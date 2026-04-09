@@ -29,6 +29,9 @@ ENV/
 *.swp
 *.swo
 
+# Claude Code
+.claude/
+
 # Environment / secrets
 .env
 .env.*
