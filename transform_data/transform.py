@@ -42,9 +42,9 @@ def main() -> None:
     output_dir.mkdir(parents=True, exist_ok=True)
     prefix = args.prefix or args.json_file.stem
 
-    transitions_path = output_dir / f"{prefix}_Transitions.csv"
-    issue_times_path = output_dir / f"{prefix}_IssueTimes.csv"
-    cfd_path = output_dir / f"{prefix}_CFD.csv"
+    transitions_path = output_dir / f"{prefix}_Transitions.xlsx"
+    issue_times_path = output_dir / f"{prefix}_IssueTimes.xlsx"
+    cfd_path = output_dir / f"{prefix}_CFD.xlsx"
 
     write_transitions(records, transitions_path)
     write_issue_times(records, workflow, issue_times_path)
