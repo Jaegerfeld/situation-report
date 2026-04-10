@@ -5,6 +5,12 @@ description = "Jira issue data toolsuite for metrics and reports"
 requires-python = ">=3.11"
 dependencies = ["openpyxl>=3.1"]
 
+[project.optional-dependencies]
+docs = ["mkdocs-material>=9.5"]
+
+[tool.setuptools.packages.find]
+include = ["get_data*", "transform_data*", "build_reports*", "testdata_generator*", "simulate*"]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 

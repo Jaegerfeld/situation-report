@@ -1,0 +1,51 @@
+site_name: SituationReport
+site_description: Jira issue data toolsuite for metrics and reports
+site_url: https://jaegerfeld.github.io/situation-report/
+repo_url: https://github.com/Jaegerfeld/situation-report
+repo_name: Jaegerfeld/situation-report
+edit_uri: edit/main/docs/
+
+theme:
+  name: material
+  language: de
+  palette:
+    - scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Dunkelmodus
+    - scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Hellmodus
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.top
+    - content.action.edit
+    - content.code.copy
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - tables
+  - toc:
+      permalink: true
+
+nav:
+  - Start: index.md
+  - Module:
+    - Übersicht: modules/index.md
+    - transform_data: modules/transform_data.md
+    - get_data: modules/get_data.md
+    - build_reports: modules/build_reports.md
+    - testdata_generator: modules/testdata_generator.md
+    - simulate: modules/simulate.md
+  - Entwicklung: development.md
