@@ -2,11 +2,30 @@
 
 Liest einen Jira-JSON-Export und eine Workflow-Definition und erzeugt drei XLSX-Dateien mit Stage-Time-Metriken.
 
-## Verwendung
+## Start
+
+### GUI
 
 ```bash
+python -m transform_data
+```
+
+Öffnet ein Fenster mit Datei-Auswahl-Dialogen. Wenn eine JSON-Datei gewählt wird, werden Ausgabeordner und Präfix automatisch vorbelegt.
+
+```bash
+python -m transform_data.gui
+```
+
+Startet die GUI direkt (ohne Argument-Prüfung).
+
+### Kommandozeile
+
+```bash
+python -m transform_data <json_datei> <workflow_datei> [Optionen]
 python -m transform_data.transform <json_datei> <workflow_datei> [Optionen]
 ```
+
+Beide Varianten sind gleichwertig. Die zweite (`transform_data.transform`) ist immer ein reiner CLI-Aufruf, unabhängig von der Anzahl der Argumente.
 
 **Argumente**
 
@@ -20,8 +39,18 @@ python -m transform_data.transform <json_datei> <workflow_datei> [Optionen]
 **Beispiel**
 
 ```bash
-python -m transform_data.transform data/ART_A.json data/workflow_ART_A.txt --output-dir out/ --prefix ART_A
+python -m transform_data data/ART_A.json data/workflow_ART_A.txt --output-dir out/ --prefix ART_A
 ```
+
+### Übersicht
+
+| Befehl | Ergebnis |
+|--------|----------|
+| `python -m transform_data` | GUI |
+| `python -m transform_data <json> <workflow>` | CLI |
+| `python -m transform_data.gui` | GUI (direkt) |
+| `python -m transform_data.transform <json> <workflow>` | CLI (direkt) |
+| `python -m transform_data --help` | CLI-Hilfe |
 
 Erzeugt:
 
