@@ -1,3 +1,17 @@
+# =============================================================================
+# Autor:          Robert Seebauer
+# KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
+# Erstellt:       10.04.2026
+# Geändert:       10.04.2026
+# Lizenz:         BSD-3-Clause (siehe LICENSE)
+#
+# Fachliche Funktion:
+#   Universeller Einstiegspunkt für `python -m transform_data`. Leitet den
+#   Aufruf automatisch weiter: ohne Argumente wird die grafische Oberfläche
+#   gestartet, mit Argumenten wird die Kommandozeilen-Variante aufgerufen.
+#   Auf Systemen ohne tkinter wird eine verständliche Fehlermeldung ausgegeben.
+# =============================================================================
+
 import sys
 
 

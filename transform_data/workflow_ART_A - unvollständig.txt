@@ -1,0 +1,9 @@
+Funnel
+Program Backlog
+Blocker
+Validating on Staging:QA
+Deploying to Production:Ready for Development
+Releasing
+Done
+<First>Analysis
+<Closed>Releasing

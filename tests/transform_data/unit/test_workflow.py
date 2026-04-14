@@ -1,3 +1,17 @@
+# =============================================================================
+# Autor:          Robert Seebauer
+# KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
+# Erstellt:       14.04.2026
+# Geändert:       14.04.2026
+# Lizenz:         BSD-3-Clause (siehe LICENSE)
+#
+# Fachliche Funktion:
+#   Unit-Tests für das Parsen von Workflow-Definitionsdateien. Prüft die
+#   korrekte Reihenfolge der Stages, das Mapping von Aliases auf kanonische
+#   Stage-Namen, die Zuweisung der Meilenstein-Marker (<First>, <Closed>,
+#   <InProgress>) sowie die Fehlererkennung bei ungültigen Marker-Referenzen.
+# =============================================================================
+
 """
 Unit tests for transform_data.workflow.parse_workflow()
 

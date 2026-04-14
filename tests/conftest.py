@@ -1,3 +1,17 @@
+# =============================================================================
+# Autor:          Robert Seebauer
+# KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
+# Erstellt:       14.04.2026
+# Geändert:       14.04.2026
+# Lizenz:         BSD-3-Clause (siehe LICENSE)
+#
+# Fachliche Funktion:
+#   Gemeinsame pytest-Fixtures für alle Tests des Projekts. Stellt Pfade zu
+#   Testdaten (ART_A-Datensatz, Workflow-Definitionen) und Fixture-Dateien
+#   bereit. Module-scoped Fixtures verhindern wiederholtes Einlesen großer
+#   Dateien über mehrere Tests hinweg.
+# =============================================================================
+
 from pathlib import Path
 import pytest
 

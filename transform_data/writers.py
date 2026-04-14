@@ -1,3 +1,18 @@
+# =============================================================================
+# Autor:          Robert Seebauer
+# KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
+# Erstellt:       09.04.2026
+# Geändert:       14.04.2026
+# Lizenz:         BSD-3-Clause (siehe LICENSE)
+#
+# Fachliche Funktion:
+#   Schreibt die verarbeiteten Issue-Daten in drei XLSX-Ausgabedateien:
+#   Transitions (chronologische Statuswechsel je Issue), IssueTimes
+#   (Verweildauer in Minuten je Stage pro Issue) und CFD (Cumulative Flow
+#   Diagram mit täglichen Stage-Belegungszahlen). Alle Ausgaben enthalten
+#   fett gedruckte Kopfzeilen.
+# =============================================================================
+
 from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 

@@ -1,0 +1,11 @@
+Funnel:New:Open
+Analysis:In Analysis:Estimated
+Program Backlog:Ready for Dev:Backlog
+Implementation:In Implementation:In Review:In Progress
+Blocker
+Validating on Staging:QA
+Deploying to Production:Ready for Development
+Releasing:Completed
+Done:Canceled
+<First>Analysis
+<Closed>Releasing

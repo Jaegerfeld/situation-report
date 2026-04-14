@@ -1,3 +1,19 @@
+# =============================================================================
+# Autor:          Robert Seebauer
+# KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
+# Erstellt:       09.04.2026
+# Geändert:       14.04.2026
+# Lizenz:         BSD-3-Clause (siehe LICENSE)
+#
+# Fachliche Funktion:
+#   Einstiegspunkt für die Kommandozeilennutzung von transform_data.
+#   Orchestriert die gesamte Transformationspipeline: Einlesen der Workflow-
+#   Definition, Verarbeitung des Jira-JSON-Exports und Ausgabe der drei
+#   XLSX-Dateien (Transitions, IssueTimes, CFD). Gibt Warnungen aus, wenn
+#   Jira-Status nicht in der Workflow-Datei gemappt sind oder Marker-Stages
+#   fehlen.
+# =============================================================================
+
 """
 transform_data CLI
 
