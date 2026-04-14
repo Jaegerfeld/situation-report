@@ -35,7 +35,13 @@ def run_transform(
     """
     workflow = parse_workflow(workflow_file)
     reference_dt = datetime.now(tz=timezone.utc)
-    records = process_issues(json_file, workflow, reference_dt)
+    records, unmapped = process_issues(json_file, workflow, reference_dt)
+
+    if unmapped:
+        log(f"WARNUNG: {len(unmapped)} Status in den Daten nicht in der Workflow-Datei gemappt:")
+        for s in sorted(unmapped):
+            log(f"  - {s}")
+        log("  > Zeit dieser Status wird der letzten bekannten Stage zugerechnet.")
 
     resolved_output_dir = output_dir or json_file.parent
     resolved_output_dir.mkdir(parents=True, exist_ok=True)
