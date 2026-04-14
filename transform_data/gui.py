@@ -1,3 +1,20 @@
+# =============================================================================
+# Autor:          Robert Seebauer
+# Repository:     https://github.com/Jaegerfeld/situation-report
+# KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
+# Erstellt:       10.04.2026
+# Geändert:       10.04.2026
+# Lizenz:         BSD-3-Clause (siehe LICENSE)
+#
+# Fachliche Funktion:
+#   Grafische Benutzeroberfläche (tkinter) für transform_data. Ermöglicht die
+#   Auswahl von Jira-JSON-Export, Workflow-Definitionsdatei und Ausgabeordner
+#   über Dateidialoge. Ausgabeordner und Präfix werden beim Öffnen der JSON-
+#   Datei automatisch vorbelegt. Die Transformation läuft in einem separaten
+#   Thread, sodass die Oberfläche während der Verarbeitung reaktionsfähig
+#   bleibt. Warnungen und Ergebnisse werden im Log-Bereich angezeigt.
+# =============================================================================
+
 import threading
 import tkinter as tk
 from tkinter import filedialog, scrolledtext, ttk

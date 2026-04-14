@@ -1,3 +1,20 @@
+# =============================================================================
+# Autor:          Robert Seebauer
+# Repository:     https://github.com/Jaegerfeld/situation-report
+# KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
+# Erstellt:       09.04.2026
+# Geändert:       14.04.2026
+# Lizenz:         BSD-3-Clause (siehe LICENSE)
+#
+# Fachliche Funktion:
+#   Liest einen Jira-JSON-Export und berechnet für jedes Issue die Verweildauer
+#   (in Minuten) in jeder Workflow-Stage. Nicht gemappte Status werden erkannt
+#   und gemeldet; ihre Zeit wird der letzten bekannten Stage zugerechnet
+#   (Carry-forward). Liefert außerdem die Meilenstein-Zeitstempel First Date,
+#   Implementation Date und Closed Date sowie die vollständige Transitions-
+#   Historie je Issue.
+# =============================================================================
+
 import json
 import re
 from dataclasses import dataclass, field

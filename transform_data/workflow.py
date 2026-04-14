@@ -1,3 +1,19 @@
+# =============================================================================
+# Autor:          Robert Seebauer
+# Repository:     https://github.com/Jaegerfeld/situation-report
+# KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
+# Erstellt:       09.04.2026
+# Geändert:       14.04.2026
+# Lizenz:         BSD-3-Clause (siehe LICENSE)
+#
+# Fachliche Funktion:
+#   Definiert die Datenstruktur eines Workflows und liest Workflow-Definitionen
+#   aus Textdateien ein. Ein Workflow beschreibt die geordneten Stages eines
+#   Jira-Projekts, die Zuordnung von Jira-Statusnamen zu kanonischen Stage-Namen
+#   (Aliases) sowie die Markierung besonderer Meilenstein-Stages (First Date,
+#   Implementation Date, Closed Date).
+# =============================================================================
+
 from dataclasses import dataclass
 from pathlib import Path
 

@@ -1,3 +1,20 @@
+# =============================================================================
+# Autor:          Robert Seebauer
+# Repository:     https://github.com/Jaegerfeld/situation-report
+# KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
+# Erstellt:       14.04.2026
+# Geändert:       14.04.2026
+# Lizenz:         BSD-3-Clause (siehe LICENSE)
+#
+# Fachliche Funktion:
+#   Acceptance-Tests für transform_data auf Basis des realen ART_A-Datensatzes.
+#   Prüft fachliche Korrektheit der gesamten Pipeline: Vollständigkeit der
+#   verarbeiteten Issues, chronologische Sortierung der Transitions,
+#   Korrektheit der Meilenstein-Daten (First Date, Closed Date),
+#   Plausibilität der Stage-Minuten sowie Invarianten für den CFD.
+#   Ein fixer Referenzzeitpunkt gewährleistet reproduzierbare Ergebnisse.
+# =============================================================================
+
 """
 Acceptance tests for transform_data using the real ART_A dataset.
 

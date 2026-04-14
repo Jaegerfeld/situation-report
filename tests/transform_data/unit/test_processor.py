@@ -1,3 +1,19 @@
+# =============================================================================
+# Autor:          Robert Seebauer
+# Repository:     https://github.com/Jaegerfeld/situation-report
+# KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
+# Erstellt:       14.04.2026
+# Geändert:       14.04.2026
+# Lizenz:         BSD-3-Clause (siehe LICENSE)
+#
+# Fachliche Funktion:
+#   Unit-Tests für die Verarbeitungslogik von Jira-Issues. Prüft mit
+#   synthetischen Testdaten die Berechnung von Stage-Verweildauern,
+#   die Vorab-Zeitattribution (Pre-Transition), den Carry-forward bei nicht
+#   gemappten Status, die Setzung von Meilenstein-Daten sowie die korrekte
+#   Sortierung und Struktur der Transitions-Liste.
+# =============================================================================
+
 """
 Unit tests for transform_data.processor.process_issues()
 
