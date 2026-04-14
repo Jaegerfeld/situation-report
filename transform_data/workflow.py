@@ -48,4 +48,16 @@ def parse_workflow(filepath: Path) -> Workflow:
     if inprogress_stage is None and "Implementation" in stages:
         inprogress_stage = "Implementation"
 
+    # Validate that marker stages actually exist in the workflow
+    for marker, name in (
+        ("<First>", first_stage),
+        ("<Closed>", closed_stage),
+        ("<InProgress>", inprogress_stage),
+    ):
+        if name is not None and name not in stages:
+            raise ValueError(
+                f"Workflow-Fehler: {marker}{name} ist kein bekannter Stage-Name. "
+                f"Bekannte Stages: {', '.join(stages)}"
+            )
+
     return Workflow(stages, status_to_stage, first_stage, closed_stage, inprogress_stage)

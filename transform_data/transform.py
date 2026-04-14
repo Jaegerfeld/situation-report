@@ -34,6 +34,12 @@ def run_transform(
     any callable that takes a single string — defaults to print for CLI use.
     """
     workflow = parse_workflow(workflow_file)
+
+    if workflow.first_stage is None:
+        log("WARNUNG: Kein <First>-Marker in der Workflow-Datei — First Date wird nicht berechnet.")
+    if workflow.closed_stage is None:
+        log("WARNUNG: Kein <Closed>-Marker in der Workflow-Datei — Closed Date wird nicht berechnet.")
+
     reference_dt = datetime.now(tz=timezone.utc)
     records, unmapped = process_issues(json_file, workflow, reference_dt)
 
