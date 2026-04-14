@@ -1,5 +1,6 @@
 # =============================================================================
 # Autor:          Robert Seebauer
+# Repository:     https://github.com/Jaegerfeld/situation-report
 # KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
 # Erstellt:       10.04.2026
 # Geändert:       10.04.2026
