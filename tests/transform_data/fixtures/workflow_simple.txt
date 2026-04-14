@@ -1,0 +1,7 @@
+Funnel:New:Open
+Analysis:In Analysis
+Implementation:In Progress:In Review
+Done:Closed
+<First>Analysis
+<InProgress>Implementation
+<Closed>Done
