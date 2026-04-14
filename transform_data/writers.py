@@ -92,7 +92,10 @@ def write_cfd(
         current = record.initial_stage
         for t in record.transitions[1:]:   # skip "Created" entry
             if t.timestamp.date() <= day:
-                current = workflow.status_to_stage.get(t.label)
+                # carry-forward: only advance if the transition target is mapped
+                mapped_stage = workflow.status_to_stage.get(t.label)
+                if mapped_stage is not None:
+                    current = mapped_stage
             else:
                 break
         return current
