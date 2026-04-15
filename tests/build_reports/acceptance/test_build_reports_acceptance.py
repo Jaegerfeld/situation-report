@@ -18,6 +18,7 @@ from pathlib import Path
 
 import pytest
 
+from build_reports.export import export_pdf, export_png
 from build_reports.filters import FilterConfig, apply_filters
 from build_reports.loader import load_report_data
 from build_reports.metrics.cfd import CfdMetric
@@ -159,3 +160,23 @@ class TestFlowDistributionOnRealData:
         assert len(figs) == 1
         pie_traces = [t for t in figs[0].data if t.type == "pie"]
         assert len(pie_traces) == 2
+
+
+class TestExportOnRealData:
+    def test_export_single_pdf(self, tmp_path, art_a_data):
+        metric = FlowTimeMetric()
+        result = metric.compute(art_a_data, SAFE)
+        figs = metric.render(result, SAFE)
+        out = tmp_path / "flow_time.pdf"
+        export_pdf([figs[0]], out)
+        assert out.exists()
+        assert out.stat().st_size > 0
+
+    def test_export_png(self, tmp_path, art_a_data):
+        metric = FlowVelocityMetric()
+        result = metric.compute(art_a_data, SAFE)
+        figs = metric.render(result, SAFE)
+        out = tmp_path / "velocity.png"
+        export_png(figs[0], out)
+        assert out.exists()
+        assert out.stat().st_size > 0
