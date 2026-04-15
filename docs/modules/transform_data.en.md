@@ -128,7 +128,7 @@ One row per issue with time spent (in minutes) per stage.
 | Created Date | Creation timestamp |
 | First Date | First entry into the `<First>` stage |
 | Implementation Date | First entry into the `<InProgress>` stage |
-| Closed Date | First entry into the `<Closed>` stage |
+| Closed Date | Last entry into the `<Closed>` stage |
 | *Stage columns* | Minutes spent in the respective stage |
 | Resolution | Jira resolution |
 

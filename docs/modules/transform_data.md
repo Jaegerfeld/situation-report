@@ -128,7 +128,7 @@ Eine Zeile pro Issue mit der verbrachten Zeit (in Minuten) je Stage.
 | Created Date | Erstellungszeitpunkt |
 | First Date | Erster Eintritt in die `<First>`-Stage |
 | Implementation Date | Erster Eintritt in die `<InProgress>`-Stage |
-| Closed Date | Erster Eintritt in die `<Closed>`-Stage |
+| Closed Date | Letzter Eintritt in die `<Closed>`-Stage |
 | *Stage-Spalten* | Minuten in der jeweiligen Stage |
 | Resolution | Jira-Resolution |
 
