@@ -51,5 +51,8 @@ htmlcov/
 
 # Generated output
 **/output/
+
+# Bug report screenshots
+bug reports screens/
 transform_data/*.xlsx
 transform_data/*.csv
