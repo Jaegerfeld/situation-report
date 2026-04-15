@@ -144,6 +144,9 @@ Cumulative Flow Diagram — one row per calendar day. Stage columns contain the 
 - The last known stage accumulates time until the execution time.
 - Issues without transitions have zero for all stages.
 
+!!! info "Closed Date"
+    The Closed Date is set on the **last** entry into the `<Closed>` stage. For issues that were reopened and closed again, the most recent closing timestamp is used.
+
 ## Tests
 
 ```bash

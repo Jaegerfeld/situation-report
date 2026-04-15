@@ -144,6 +144,9 @@ Cumulative Flow Diagram — eine Zeile pro Kalendertag, Stage-Spalten enthalten 
 - Die letzte bekannte Stage akkumuliert Zeit bis zum Ausführungszeitpunkt.
 - Issues ohne Transitionen haben für alle Stages den Wert 0.
 
+!!! info "Closed Date"
+    Das Closed Date wird beim **letzten** Eintritt in die `<Closed>`-Stage gesetzt. Bei Issues die wiedereröffnet und erneut geschlossen wurden, zählt der jüngste Schließzeitpunkt.
+
 ## Tests
 
 ```bash

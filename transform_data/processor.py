@@ -3,7 +3,7 @@
 # Repository:     https://github.com/Jaegerfeld/situation-report
 # KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
 # Erstellt:       09.04.2026
-# Geändert:       14.04.2026
+# Geändert:       15.04.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
@@ -173,8 +173,8 @@ def process_issues(
                     first_date = entry_ts
                 if stage == workflow.inprogress_stage and inprogress_date is None:
                     inprogress_date = entry_ts
-                if stage == workflow.closed_stage and closed_date is None:
-                    closed_date = entry_ts
+                if stage == workflow.closed_stage:
+                    closed_date = entry_ts  # letzter Eintritt zählt
 
         records.append(IssueRecord(
             project=project,

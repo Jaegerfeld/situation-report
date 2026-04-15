@@ -173,9 +173,9 @@ class TestStageMinutes:
 # ---------------------------------------------------------------------------
 
 class TestUnmappedStatuses:
-    def test_only_known_unmapped_status(self, unmapped):
-        """Bei der original Workflow-Datei ist nur 'To Do' nicht gemappt."""
-        assert unmapped == {"To Do"}
+    def test_no_unmapped_statuses_with_complete_workflow(self, unmapped):
+        """Bei der vollstaendigen original Workflow-Datei gibt es keine nicht gemappten Status."""
+        assert unmapped == set()
 
 
 # ---------------------------------------------------------------------------
