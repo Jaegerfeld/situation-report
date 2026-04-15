@@ -1,4 +1,4 @@
-Funnel:New:Open
+Funnel:New:Open:To Do
 Analysis:In Analysis:Estimated
 Program Backlog:Ready for Dev:Backlog
 Implementation:In Implementation:In Review:In Progress

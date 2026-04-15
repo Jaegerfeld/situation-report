@@ -3,7 +3,7 @@
 # Repository:     https://github.com/Jaegerfeld/situation-report
 # KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
 # Erstellt:       14.04.2026
-# Geändert:       14.04.2026
+# Geändert:       15.04.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
@@ -226,6 +226,22 @@ class TestMilestoneDates:
             ],
         )])
         assert records[0].closed_date == t2
+
+    def test_closed_date_uses_last_entry_not_first(self):
+        """Issue wird wiedereröffnet und erneut geschlossen — letzter Schließzeitpunkt zählt."""
+        created = datetime(2025, 12, 1, 10, 0, tzinfo=timezone.utc)
+        t1 = datetime(2025, 12, 1, 11, 0, tzinfo=timezone.utc)  # → Done (erste Schließung)
+        t2 = datetime(2025, 12, 1, 12, 0, tzinfo=timezone.utc)  # → Funnel (Wiedereröffnung)
+        t3 = datetime(2025, 12, 1, 13, 0, tzinfo=timezone.utc)  # → Done (zweite Schließung)
+        records, _ = _process([_issue(
+            "T-1", created,
+            transitions=[
+                ("Funnel", "Done", t1),
+                ("Done", "Funnel", t2),
+                ("Funnel", "Done", t3),
+            ],
+        )])
+        assert records[0].closed_date == t3  # nicht t1
 
     def test_no_first_date_if_issue_never_reaches_first_stage(self):
         created = datetime(2025, 12, 1, 10, 0, tzinfo=timezone.utc)
