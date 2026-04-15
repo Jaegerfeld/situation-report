@@ -10,13 +10,15 @@ Liest einen Jira-JSON-Export und eine Workflow-Definition und erzeugt drei XLSX-
 python -m transform_data
 ```
 
-Öffnet ein Fenster mit Datei-Auswahl-Dialogen. Wenn eine JSON-Datei gewählt wird, werden Ausgabeordner und Präfix automatisch vorbelegt.
+Öffnet ein Fenster mit Datei-Auswahl-Dialogen. Wenn eine JSON-Datei gewählt wird, werden Ausgabeordner und Präfix automatisch vorbelegt. Warnungen und Ergebnisse erscheinen im Log-Bereich.
 
 ```bash
 python -m transform_data.gui
 ```
 
 Startet die GUI direkt (ohne Argument-Prüfung).
+
+Alternativ: Doppelklick auf `start_gui.pyw` im Projektverzeichnis — öffnet die GUI ohne Konsolenfenster.
 
 ### Kommandozeile
 
@@ -42,6 +44,12 @@ Beide Varianten sind gleichwertig. Die zweite (`transform_data.transform`) ist i
 python -m transform_data data/ART_A.json data/workflow_ART_A.txt --output-dir out/ --prefix ART_A
 ```
 
+Erzeugt:
+
+- `out/ART_A_Transitions.xlsx`
+- `out/ART_A_IssueTimes.xlsx`
+- `out/ART_A_CFD.xlsx`
+
 ### Übersicht
 
 | Befehl | Ergebnis |
@@ -51,34 +59,52 @@ python -m transform_data data/ART_A.json data/workflow_ART_A.txt --output-dir ou
 | `python -m transform_data.gui` | GUI (direkt) |
 | `python -m transform_data.transform <json> <workflow>` | CLI (direkt) |
 | `python -m transform_data --help` | CLI-Hilfe |
-
-Erzeugt:
-
-- `out/ART_A_Transitions.xlsx`
-- `out/ART_A_IssueTimes.xlsx`
-- `out/ART_A_CFD.xlsx`
+| Doppelklick auf `start_gui.pyw` | GUI ohne Konsolenfenster |
 
 ## Workflow-Definitionsdatei
 
 Textdatei, eine Stage pro Zeile.
 
 ```
-Funnel:To Do
-Analysis
-Implementation
+Funnel:New:Open
+Analysis:In Analysis
+Implementation:In Progress
+Done:Canceled
 <First>Analysis
 <InProgress>Implementation
 <Closed>Done
-Done
 ```
 
 | Format | Bedeutung |
 |--------|-----------|
-| `Stage` | Canonical Stage Name |
+| `Stage` | Kanonischer Stage-Name |
 | `Stage:Alias1:Alias2` | Stage mit Jira-Statusnamen, die darauf gemappt werden |
 | `<First>Stage` | Diese Stage setzt das „First Date" |
-| `<InProgress>Stage` | Diese Stage setzt das „Implementation Date" |
+| `<InProgress>Stage` | Diese Stage setzt das „Implementation Date" (Standard: Stage namens „Implementation") |
 | `<Closed>Stage` | Diese Stage setzt das „Closed Date" |
+
+### Validierung der Workflow-Datei
+
+Beim Einlesen der Workflow-Datei werden folgende Prüfungen durchgeführt:
+
+| Situation | Verhalten |
+|-----------|-----------|
+| `<First>` / `<Closed>` nicht definiert | Warnung: Datumsspalte bleibt leer |
+| Stage-Name im Marker existiert nicht in der Datei | **Fehler** mit Liste der gültigen Stage-Namen |
+| Stage definiert, aber von keinem Issue erreicht | Kein Eingriff — Datumsspalte bleibt leer |
+
+### Nicht gemappte Jira-Status
+
+Enthält der Jira-Export Status, die in der Workflow-Datei nicht als Stage oder Alias definiert sind, gibt das Tool eine Warnung aus:
+
+```
+WARNUNG: 2 Status in den Daten nicht in der Workflow-Datei gemappt:
+  - To Do
+  - Unknown
+  > Zeit dieser Status wird der letzten bekannten Stage zugerechnet.
+```
+
+Die Zeit in nicht gemappten Status wird der **letzten bekannten Stage** zugerechnet (Carry-forward). Issues bleiben vollständig in allen Ausgaben erhalten.
 
 ## Ausgabedateien
 
@@ -113,6 +139,18 @@ Cumulative Flow Diagram — eine Zeile pro Kalendertag, Stage-Spalten enthalten 
 ## Stage-Zeit-Berechnung
 
 - Die Zeit von der Issue-Erstellung bis zur ersten expliziten Transition wird der initialen Stage zugerechnet.
-- Nicht gemappte Initialstatus werden auf die erste Stage in der Workflow-Definition zurückgefallen.
-- Die letzte Stage akkumuliert Zeit bis zum Ausführungszeitpunkt (`reference_dt`).
+- Nicht gemappte Initialstatus werden der ersten Stage in der Workflow-Definition zugerechnet.
+- Bei Transitionen in nicht gemappte Status läuft die Zeit in der **letzten bekannten Stage** weiter (Carry-forward).
+- Die letzte bekannte Stage akkumuliert Zeit bis zum Ausführungszeitpunkt.
 - Issues ohne Transitionen haben für alle Stages den Wert 0.
+
+## Tests
+
+```bash
+python -m pytest tests/transform_data/
+```
+
+| Testtyp | Verzeichnis | Inhalt |
+|---------|-------------|--------|
+| Unit | `tests/transform_data/unit/` | Isolierte Tests für `workflow.py` und `processor.py` mit synthetischen Fixtures |
+| Acceptance | `tests/transform_data/acceptance/` | Tests gegen den realen ART_A-Datensatz; prüfen fachliche Korrektheit |
