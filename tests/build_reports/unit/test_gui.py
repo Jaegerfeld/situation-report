@@ -8,9 +8,9 @@
 #
 # Fachliche Funktion:
 #   Unit-Tests für die Display-unabhängigen Hilfsfunktionen in gui.py:
-#   _parse_date_safe, _split_csv und _build_combined_html. Der tkinter-Teil
-#   (BuildReportsApp) wird hier nicht instanziiert, da dies eine laufende
-#   Anzeige erfordern würde.
+#   _parse_date_safe, _split_csv, _build_combined_html und _TRANSLATIONS.
+#   Der tkinter-Teil (BuildReportsApp) wird hier nicht instanziiert, da dies
+#   eine laufende Anzeige erfordern würde.
 # =============================================================================
 
 from __future__ import annotations
@@ -20,7 +20,10 @@ from datetime import date
 import plotly.graph_objects as go
 import pytest
 
-from build_reports.gui import _build_combined_html, _parse_date_safe, _split_csv
+from build_reports.gui import (
+    LANG_DE, LANG_EN, _T,
+    _build_combined_html, _parse_date_safe, _split_csv,
+)
 
 
 class TestParseDateSafe:
@@ -95,3 +98,26 @@ class TestBuildCombinedHtml:
         html = _build_combined_html([])
         assert "<html>" in html
         assert "<body>" in html
+
+
+class TestTranslations:
+    def test_both_languages_present(self):
+        assert LANG_DE in _T
+        assert LANG_EN in _T
+
+    def test_same_keys_in_both_languages(self):
+        assert set(_T[LANG_DE].keys()) == set(_T[LANG_EN].keys())
+
+    def test_german_window_title(self):
+        assert _T[LANG_DE]["window_title"] == "build_reports"
+
+    def test_german_options_menu_label(self):
+        assert _T[LANG_DE]["menu_options"] == "Optionen"
+
+    def test_english_options_menu_label(self):
+        assert _T[LANG_EN]["menu_options"] == "Options"
+
+    def test_no_empty_values(self):
+        for lang, entries in _T.items():
+            for key, value in entries.items():
+                assert value, f"Empty translation: [{lang}][{key}]"
