@@ -52,7 +52,12 @@ htmlcov/
 # Generated output
 **/output/
 
-# Bug report screenshots
+# Work files (locally generated, not part of the repo)
 bug reports screens/
 transform_data/*.xlsx
 transform_data/*.csv
+transform_data/*.pdf
+transform_data/*.json
+build_reports/*.pdf
+build_reports/prototype screens/
+build_reports/steckbrief_*.txt

@@ -29,9 +29,9 @@ from build_reports.metrics.flow_time import FlowTimeMetric
 from build_reports.metrics.flow_velocity import FlowVelocityMetric
 from build_reports.terminology import SAFE
 
-TRANSFORM_DIR = Path(__file__).parent.parent.parent.parent / "transform_data"
-ISSUE_TIMES = TRANSFORM_DIR / "ART_A_IssueTimes.xlsx"
-CFD = TRANSFORM_DIR / "ART_A_CFD.xlsx"
+TESTDATA_DIR = Path(__file__).parent.parent.parent / "testdata" / "ART_A"
+ISSUE_TIMES = TESTDATA_DIR / "ART_A_IssueTimes.xlsx"
+CFD = TESTDATA_DIR / "ART_A_CFD.xlsx"
 
 
 @pytest.fixture(scope="module")
