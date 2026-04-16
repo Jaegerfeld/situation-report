@@ -9,8 +9,8 @@ Toolsuite zur Abfrage von Jira-Issuedaten sowie zur Aufbereitung für Metriken u
 | Modul | Beschreibung | Status |
 |-------|-------------|--------|
 | [`transform_data`](https://jaegerfeld.github.io/situation-report/modules/transform_data/) | Transformation von Jira-Rohdaten in Stage-Time-Metriken | verfügbar |
+| [`build_reports`](https://jaegerfeld.github.io/situation-report/modules/build_reports/) | Erzeugung von Metriken und Reports | verfügbar |
 | `get_data` | Datenabruf aus Jira via REST API | geplant |
-| `build_reports` | Erzeugung von Metriken und Reports | geplant |
 | `testdata_generator` | Generierung synthetischer Testdaten | geplant |
 | `simulate` | Simulationen und Vorhersagemodelle | geplant |
 
