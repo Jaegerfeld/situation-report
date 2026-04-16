@@ -22,8 +22,8 @@ import pytest
 
 from build_reports.gui import (
     LANG_DE, LANG_EN, _T,
-    _build_combined_html, _default_year_range, _parse_date_safe,
-    _read_available_filters, _split_csv,
+    _build_combined_html, _check_stage_consistency, _default_year_range,
+    _parse_date_safe, _read_available_filters, _split_csv,
 )
 
 
@@ -99,6 +99,70 @@ class TestBuildCombinedHtml:
         html = _build_combined_html([])
         assert "<html>" in html
         assert "<body>" in html
+
+
+def _make_issuetimes(tmp_path, stages: list[str], name="it.xlsx"):
+    """Helper: create a minimal IssueTimes XLSX with given stages."""
+    from openpyxl import Workbook
+    wb = Workbook()
+    ws = wb.active
+    ws.append(["Project", "Key", "Issuetype", "Status", "Created Date",
+               "Component", "Category", "First Date", "Implementation Date",
+               "Closed Date"] + stages + ["Resolution"])
+    ws.append(["ART", "ART-1", "Feature", "Done", None, "", "", None, None, None]
+              + [0] * len(stages) + ["Done"])
+    path = tmp_path / name
+    wb.save(path)
+    return path
+
+
+def _make_cfd(tmp_path, stages: list[str], name="cfd.xlsx"):
+    """Helper: create a minimal CFD XLSX with given stages."""
+    from openpyxl import Workbook
+    wb = Workbook()
+    ws = wb.active
+    ws.append(["Day"] + stages)
+    ws.append(["2025-01-01"] + [0] * len(stages))
+    path = tmp_path / name
+    wb.save(path)
+    return path
+
+
+class TestCheckStageConsistency:
+    def test_consistent_returns_empty_lists(self, tmp_path):
+        stages = ["Analysis", "Implementation", "Done"]
+        it = _make_issuetimes(tmp_path, stages)
+        cfd = _make_cfd(tmp_path, stages)
+        only_it, only_cfd = _check_stage_consistency(it, cfd)
+        assert only_it == []
+        assert only_cfd == []
+
+    def test_stage_missing_in_cfd(self, tmp_path):
+        it = _make_issuetimes(tmp_path, ["Analysis", "Implementation", "Done"])
+        cfd = _make_cfd(tmp_path, ["Analysis", "Done"])
+        only_it, only_cfd = _check_stage_consistency(it, cfd)
+        assert only_it == ["Implementation"]
+        assert only_cfd == []
+
+    def test_extra_stage_in_cfd(self, tmp_path):
+        it = _make_issuetimes(tmp_path, ["Analysis", "Done"])
+        cfd = _make_cfd(tmp_path, ["Analysis", "Implementation", "Done"])
+        only_it, only_cfd = _check_stage_consistency(it, cfd)
+        assert only_it == []
+        assert only_cfd == ["Implementation"]
+
+    def test_both_mismatches(self, tmp_path):
+        it = _make_issuetimes(tmp_path, ["A", "B"])
+        cfd = _make_cfd(tmp_path, ["A", "C"])
+        only_it, only_cfd = _check_stage_consistency(it, cfd)
+        assert only_it == ["B"]
+        assert only_cfd == ["C"]
+
+    def test_translation_keys_present(self):
+        for lang in (LANG_DE, LANG_EN):
+            assert "log_check_ok" in _T[lang]
+            assert "log_check_miss_cfd" in _T[lang]
+            assert "log_check_miss_it" in _T[lang]
 
 
 class TestReadAvailableFilters:

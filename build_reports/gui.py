@@ -85,6 +85,9 @@ _T: dict[str, dict[str, str]] = {
         "err_not_found":     "FEHLER: Datei nicht gefunden: {}",
         "err_from_date":     "FEHLER: Ung\u00fcltiges Von-Datum '{}' (erwartet YYYY-MM-DD).",
         "err_to_date":       "FEHLER: Ung\u00fcltiges Bis-Datum '{}' (erwartet YYYY-MM-DD).",
+        "log_check_ok":      "Stages: IssueTimes und CFD stimmen \u00fcberein.",
+        "log_check_miss_cfd":"  Stage nur in IssueTimes: {}",
+        "log_check_miss_it": "  Stage nur in CFD: {}",
         "log_started":       "--- Berechnung gestartet ---",
         "log_done":          "--- Fertig ---",
         "log_pdf_started":   "--- PDF-Export gestartet ---",
@@ -132,6 +135,9 @@ _T: dict[str, dict[str, str]] = {
         "err_not_found":     "ERROR: File not found: {}",
         "err_from_date":     "ERROR: Invalid From date '{}' (expected YYYY-MM-DD).",
         "err_to_date":       "ERROR: Invalid To date '{}' (expected YYYY-MM-DD).",
+        "log_check_ok":      "Stages: IssueTimes and CFD are consistent.",
+        "log_check_miss_cfd":"  Stage only in IssueTimes: {}",
+        "log_check_miss_it": "  Stage only in CFD: {}",
         "log_started":       "--- Computation started ---",
         "log_done":          "--- Done ---",
         "log_pdf_started":   "--- PDF export started ---",
@@ -178,6 +184,52 @@ def _read_available_filters(path: Path) -> tuple[list[str], list[str]]:
 
     wb.close()
     return sorted(projects), sorted(issuetypes)
+
+
+def _check_stage_consistency(
+    issue_times_path: Path, cfd_path: Path
+) -> tuple[list[str], list[str]]:
+    """
+    Compare stage columns between an IssueTimes and a CFD XLSX file.
+
+    Reads only the header rows for efficiency.
+
+    Args:
+        issue_times_path: Path to IssueTimes.xlsx.
+        cfd_path:         Path to CFD.xlsx.
+
+    Returns:
+        Tuple of (only_in_issue_times, only_in_cfd): sorted lists of stage names
+        that appear in one file but not the other. Both empty means consistent.
+
+    Raises:
+        ValueError: If IssueTimes is missing the expected Closed Date / Resolution columns.
+    """
+    # Read IssueTimes header
+    wb = load_workbook(issue_times_path, read_only=True, data_only=True)
+    header_it = [str(c) if c is not None else "" for c in
+                 next(wb.active.iter_rows(values_only=True))]
+    wb.close()
+
+    try:
+        stage_start = header_it.index("Closed Date") + 1
+        stage_end = header_it.index("Resolution")
+    except ValueError as exc:
+        raise ValueError(
+            f"Unexpected IssueTimes format in {issue_times_path}: {exc}"
+        ) from exc
+    it_stages = set(header_it[stage_start:stage_end])
+
+    # Read CFD header
+    wb = load_workbook(cfd_path, read_only=True, data_only=True)
+    header_cfd = [str(c) if c is not None else "" for c in
+                  next(wb.active.iter_rows(values_only=True))]
+    wb.close()
+    cfd_stages = set(header_cfd[1:])  # skip "Day" column
+
+    only_in_it = sorted(it_stages - cfd_stages)
+    only_in_cfd = sorted(cfd_stages - it_stages)
+    return only_in_it, only_in_cfd
 
 
 def _default_year_range() -> tuple[date, date]:
@@ -570,7 +622,7 @@ class BuildReportsApp(tk.Tk):
     # -------------------------------------------------------------------------
 
     def _pick_issue_times(self) -> None:
-        """Open a file dialog to select the IssueTimes.xlsx file and load filter options."""
+        """Open a file dialog to select IssueTimes.xlsx; loads filter options and runs stage check."""
         path = filedialog.askopenfilename(
             title=self._tr("dlg_issue_times"),
             filetypes=[("Excel-Dateien", "*.xlsx"), ("Alle Dateien", "*.*")],
@@ -578,15 +630,21 @@ class BuildReportsApp(tk.Tk):
         if path:
             self._issue_times_var.set(path)
             self._load_filter_options_async(Path(path))
+            cfd = self._cfd_var.get().strip()
+            if cfd:
+                self._check_consistency_async(Path(path), Path(cfd))
 
     def _pick_cfd(self) -> None:
-        """Open a file dialog to select the CFD.xlsx file."""
+        """Open a file dialog to select CFD.xlsx; runs stage consistency check if IssueTimes is set."""
         path = filedialog.askopenfilename(
             title=self._tr("dlg_cfd"),
             filetypes=[("Excel-Dateien", "*.xlsx"), ("Alle Dateien", "*.*")],
         )
         if path:
             self._cfd_var.set(path)
+            it = self._issue_times_var.get().strip()
+            if it:
+                self._check_consistency_async(Path(it), Path(path))
 
     def _load_filter_options_async(self, path: Path) -> None:
         """
@@ -605,6 +663,31 @@ class BuildReportsApp(tk.Tk):
                 self._log(
                     f"  {len(projects)} Projekte, {len(issuetypes)} Issuetypen geladen."
                 )
+            except Exception as exc:
+                self._log(self._tr("log_error").format(exc))
+
+        threading.Thread(target=worker, daemon=True).start()
+
+    def _check_consistency_async(self, it_path: Path, cfd_path: Path) -> None:
+        """
+        Check stage name consistency between IssueTimes and CFD in a background thread.
+
+        Logs the result (OK or list of mismatches) to the log area.
+
+        Args:
+            it_path:  Path to IssueTimes.xlsx.
+            cfd_path: Path to CFD.xlsx.
+        """
+        def worker() -> None:
+            try:
+                only_it, only_cfd = _check_stage_consistency(it_path, cfd_path)
+                if not only_it and not only_cfd:
+                    self._log(self._tr("log_check_ok"))
+                else:
+                    if only_it:
+                        self._log(self._tr("log_check_miss_cfd").format(", ".join(only_it)))
+                    if only_cfd:
+                        self._log(self._tr("log_check_miss_it").format(", ".join(only_cfd)))
             except Exception as exc:
                 self._log(self._tr("log_error").format(exc))
 
