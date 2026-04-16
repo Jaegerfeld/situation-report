@@ -26,6 +26,7 @@ from pathlib import Path
 from tkinter import filedialog, scrolledtext, ttk
 from typing import Any
 
+from openpyxl import load_workbook
 from tkcalendar import Calendar
 
 from .cli import run_reports
@@ -63,6 +64,7 @@ _T: dict[str, dict[str, str]] = {
         "lbl_projects":      "Projekte",
         "lbl_issuetypes":    "Issuetypen",
         "btn_browse":        "Durchsuchen\u2026",
+        "btn_pick":          "\u25be",
         "btn_all":           "Alle",
         "btn_none":          "Keine",
         "btn_show":          "Anzeigen im Browser",
@@ -75,6 +77,8 @@ _T: dict[str, dict[str, str]] = {
         "dlg_cfd":           "CFD-Datei w\u00e4hlen",
         "dlg_pdf":           "PDF speichern unter",
         "dlg_pick_date":     "Datum w\u00e4hlen",
+        "dlg_projects":      "Projekte w\u00e4hlen",
+        "dlg_issuetypes":    "Issuetypen w\u00e4hlen",
         "btn_cal":           "\U0001f4c5",
         "btn_ok":            "OK",
         "err_no_file":       "FEHLER: Keine IssueTimes-Datei ausgew\u00e4hlt.",
@@ -107,6 +111,7 @@ _T: dict[str, dict[str, str]] = {
         "lbl_projects":      "Projects",
         "lbl_issuetypes":    "Issue Types",
         "btn_browse":        "Browse\u2026",
+        "btn_pick":          "\u25be",
         "btn_all":           "All",
         "btn_none":          "None",
         "btn_show":          "Show in Browser",
@@ -119,6 +124,8 @@ _T: dict[str, dict[str, str]] = {
         "dlg_cfd":           "Select CFD file",
         "dlg_pdf":           "Save PDF as",
         "dlg_pick_date":     "Pick Date",
+        "dlg_projects":      "Select Projects",
+        "dlg_issuetypes":    "Select Issue Types",
         "btn_cal":           "\U0001f4c5",
         "btn_ok":            "OK",
         "err_no_file":       "ERROR: No IssueTimes file selected.",
@@ -139,6 +146,39 @@ _T: dict[str, dict[str, str]] = {
 # ---------------------------------------------------------------------------
 # Module-level helpers (testable without a running display)
 # ---------------------------------------------------------------------------
+
+def _read_available_filters(path: Path) -> tuple[list[str], list[str]]:
+    """
+    Read unique project keys and issue types from an IssueTimes.xlsx file.
+
+    Only the Project and Issuetype columns are read; all other columns are
+    skipped for efficiency.
+
+    Args:
+        path: Path to the IssueTimes.xlsx file.
+
+    Returns:
+        Tuple of (sorted project list, sorted issuetype list).
+    """
+    wb = load_workbook(path, read_only=True, data_only=True)
+    ws = wb.active
+    rows = iter(ws.iter_rows(values_only=True))
+    header = [str(c) if c is not None else "" for c in next(rows)]
+    col = {name: i for i, name in enumerate(header)}
+
+    projects: set[str] = set()
+    issuetypes: set[str] = set()
+    for row in rows:
+        if not any(row):
+            continue
+        if "Project" in col and row[col["Project"]]:
+            projects.add(str(row[col["Project"]]))
+        if "Issuetype" in col and row[col["Issuetype"]]:
+            issuetypes.add(str(row[col["Issuetype"]]))
+
+    wb.close()
+    return sorted(projects), sorted(issuetypes)
+
 
 def _default_year_range() -> tuple[date, date]:
     """
@@ -248,6 +288,8 @@ class BuildReportsApp(tk.Tk):
         self._issuetypes_var = tk.StringVar()
         self._terminology_var = tk.StringVar(value=SAFE)
         self._ct_method_var = tk.StringVar(value=CT_METHOD_A)
+        self._available_projects: list[str] = []
+        self._available_issuetypes: list[str] = []
         self._metric_vars: dict[str, tk.BooleanVar] = {
             p.metric_id: tk.BooleanVar(value=True) for p in self._plugins
         }
@@ -389,20 +431,27 @@ class BuildReportsApp(tk.Tk):
         lbl = tk.Label(self, text=self._tr("lbl_projects"), anchor="w")
         lbl.grid(row=row, column=0, sticky="w", **pad)
         self._i18n.append((lbl, "lbl_projects"))
-        tk.Entry(self, textvariable=self._projects_var, width=50).grid(
+        tk.Entry(self, textvariable=self._projects_var, width=44).grid(
             row=row, column=1, sticky="ew", **pad
         )
-        hint = tk.Label(self, text=self._tr("hint_csv"), fg="gray", font=("", 8))
-        hint.grid(row=row, column=2, sticky="w", **pad)
-        self._i18n.append((hint, "hint_csv"))
+        btn = ttk.Button(self, text=self._tr("btn_pick"), width=3,
+                         command=lambda: self._open_multiselect(
+                             self._projects_var, self._available_projects, "dlg_projects"))
+        btn.grid(row=row, column=2, sticky="w", **pad)
+        self._i18n.append((btn, "btn_pick"))
         row += 1
 
         lbl = tk.Label(self, text=self._tr("lbl_issuetypes"), anchor="w")
         lbl.grid(row=row, column=0, sticky="w", **pad)
         self._i18n.append((lbl, "lbl_issuetypes"))
-        tk.Entry(self, textvariable=self._issuetypes_var, width=50).grid(
+        tk.Entry(self, textvariable=self._issuetypes_var, width=44).grid(
             row=row, column=1, sticky="ew", **pad
         )
+        btn = ttk.Button(self, text=self._tr("btn_pick"), width=3,
+                         command=lambda: self._open_multiselect(
+                             self._issuetypes_var, self._available_issuetypes, "dlg_issuetypes"))
+        btn.grid(row=row, column=2, sticky="w", **pad)
+        self._i18n.append((btn, "btn_pick"))
         row += 1
 
         # --- Metrics ---
@@ -521,13 +570,14 @@ class BuildReportsApp(tk.Tk):
     # -------------------------------------------------------------------------
 
     def _pick_issue_times(self) -> None:
-        """Open a file dialog to select the IssueTimes.xlsx file."""
+        """Open a file dialog to select the IssueTimes.xlsx file and load filter options."""
         path = filedialog.askopenfilename(
             title=self._tr("dlg_issue_times"),
             filetypes=[("Excel-Dateien", "*.xlsx"), ("Alle Dateien", "*.*")],
         )
         if path:
             self._issue_times_var.set(path)
+            self._load_filter_options_async(Path(path))
 
     def _pick_cfd(self) -> None:
         """Open a file dialog to select the CFD.xlsx file."""
@@ -537,6 +587,97 @@ class BuildReportsApp(tk.Tk):
         )
         if path:
             self._cfd_var.set(path)
+
+    def _load_filter_options_async(self, path: Path) -> None:
+        """
+        Load available projects and issue types from the IssueTimes file in a background thread.
+
+        Updates self._available_projects and self._available_issuetypes when done.
+
+        Args:
+            path: Path to the IssueTimes.xlsx file.
+        """
+        def worker() -> None:
+            try:
+                projects, issuetypes = _read_available_filters(path)
+                self._available_projects = projects
+                self._available_issuetypes = issuetypes
+                self._log(
+                    f"  {len(projects)} Projekte, {len(issuetypes)} Issuetypen geladen."
+                )
+            except Exception as exc:
+                self._log(self._tr("log_error").format(exc))
+
+        threading.Thread(target=worker, daemon=True).start()
+
+    def _open_multiselect(
+        self,
+        target_var: tk.StringVar,
+        available: list[str],
+        title_key: str,
+    ) -> None:
+        """
+        Open a modal popup with checkboxes for selecting multiple filter values.
+
+        Pre-checks items already present in target_var (comma-separated).
+        On confirmation, writes the selected values back as comma-separated string.
+
+        Args:
+            target_var:  StringVar of the filter entry to read from and write to.
+            available:   List of available values to show as checkboxes.
+            title_key:   Translation key for the popup window title.
+        """
+        top = tk.Toplevel(self)
+        top.title(self._tr(title_key))
+        top.resizable(False, True)
+        top.grab_set()
+
+        current = {v.strip() for v in target_var.get().split(",") if v.strip()}
+
+        # Scrollable frame for checkboxes
+        frame = tk.Frame(top)
+        frame.pack(fill="both", expand=True, padx=10, pady=(10, 4))
+
+        canvas = tk.Canvas(frame, width=260, height=min(300, max(60, len(available) * 24)))
+        scrollbar = ttk.Scrollbar(frame, orient="vertical", command=canvas.yview)
+        inner = tk.Frame(canvas)
+
+        inner.bind("<Configure>", lambda e: canvas.configure(
+            scrollregion=canvas.bbox("all")))
+        canvas.create_window((0, 0), window=inner, anchor="nw")
+        canvas.configure(yscrollcommand=scrollbar.set)
+
+        canvas.pack(side="left", fill="both", expand=True)
+        scrollbar.pack(side="right", fill="y")
+
+        check_vars: dict[str, tk.BooleanVar] = {}
+        for value in available:
+            var = tk.BooleanVar(value=value in current)
+            check_vars[value] = var
+            tk.Checkbutton(inner, text=value, variable=var, anchor="w").pack(
+                fill="x", padx=4, pady=1
+            )
+
+        if not available:
+            tk.Label(inner, text="–", fg="gray").pack(padx=8, pady=4)
+
+        # Select-all / clear buttons
+        ctrl_frame = tk.Frame(top)
+        ctrl_frame.pack(fill="x", padx=10, pady=2)
+        ttk.Button(ctrl_frame, text=self._tr("btn_all"), width=6,
+                   command=lambda: [v.set(True) for v in check_vars.values()]
+                   ).pack(side="left", padx=2)
+        ttk.Button(ctrl_frame, text=self._tr("btn_none"), width=6,
+                   command=lambda: [v.set(False) for v in check_vars.values()]
+                   ).pack(side="left", padx=2)
+
+        def _confirm() -> None:
+            selected = [v for v, var in check_vars.items() if var.get()]
+            target_var.set(", ".join(selected))
+            top.destroy()
+
+        ttk.Button(top, text=self._tr("btn_ok"), command=_confirm).pack(pady=(4, 10))
+        self.wait_window(top)
 
     def _pick_date(self, target_var: tk.StringVar) -> None:
         """

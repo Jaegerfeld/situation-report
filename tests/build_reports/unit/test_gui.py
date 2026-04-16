@@ -22,7 +22,8 @@ import pytest
 
 from build_reports.gui import (
     LANG_DE, LANG_EN, _T,
-    _build_combined_html, _default_year_range, _parse_date_safe, _split_csv,
+    _build_combined_html, _default_year_range, _parse_date_safe,
+    _read_available_filters, _split_csv,
 )
 
 
@@ -100,6 +101,46 @@ class TestBuildCombinedHtml:
         assert "<body>" in html
 
 
+class TestReadAvailableFilters:
+    def test_returns_sorted_projects(self, tmp_path):
+        """Projects extracted from XLSX are sorted and deduplicated."""
+        from openpyxl import Workbook
+        wb = Workbook()
+        ws = wb.active
+        ws.append(["Project", "Key", "Issuetype", "Status"])
+        ws.append(["ARTB", "ARTB-1", "Feature", "Done"])
+        ws.append(["ARTA", "ARTA-1", "Bug", "Open"])
+        ws.append(["ARTA", "ARTA-2", "Feature", "Done"])
+        path = tmp_path / "test.xlsx"
+        wb.save(path)
+        projects, _ = _read_available_filters(path)
+        assert projects == ["ARTA", "ARTB"]
+
+    def test_returns_sorted_issuetypes(self, tmp_path):
+        from openpyxl import Workbook
+        wb = Workbook()
+        ws = wb.active
+        ws.append(["Project", "Key", "Issuetype", "Status"])
+        ws.append(["ART", "ART-1", "Story", "Done"])
+        ws.append(["ART", "ART-2", "Feature", "Done"])
+        ws.append(["ART", "ART-3", "Story", "Open"])
+        path = tmp_path / "test.xlsx"
+        wb.save(path)
+        _, issuetypes = _read_available_filters(path)
+        assert issuetypes == ["Feature", "Story"]
+
+    def test_empty_file_returns_empty_lists(self, tmp_path):
+        from openpyxl import Workbook
+        wb = Workbook()
+        ws = wb.active
+        ws.append(["Project", "Key", "Issuetype", "Status"])
+        path = tmp_path / "empty.xlsx"
+        wb.save(path)
+        projects, issuetypes = _read_available_filters(path)
+        assert projects == []
+        assert issuetypes == []
+
+
 class TestDefaultYearRange:
     def test_returns_tuple_of_two_dates(self):
         from_d, to_d = _default_year_range()
@@ -148,3 +189,9 @@ class TestTranslations:
             assert "dlg_pick_date" in _T[lang]
             assert "btn_cal" in _T[lang]
             assert "btn_ok" in _T[lang]
+
+    def test_filter_picker_keys_present(self):
+        for lang in (LANG_DE, LANG_EN):
+            assert "dlg_projects" in _T[lang]
+            assert "dlg_issuetypes" in _T[lang]
+            assert "btn_pick" in _T[lang]
