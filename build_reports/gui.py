@@ -26,6 +26,7 @@ from tkinter import filedialog, scrolledtext, ttk
 
 from .cli import run_reports
 from .metrics import all_metrics
+from .metrics.flow_time import CT_METHOD_A, CT_METHOD_B
 from .terminology import GLOBAL, SAFE, term
 
 
@@ -119,6 +120,7 @@ class BuildReportsApp(tk.Tk):
         self._projects_var = tk.StringVar()
         self._issuetypes_var = tk.StringVar()
         self._terminology_var = tk.StringVar(value=SAFE)
+        self._ct_method_var = tk.StringVar(value=CT_METHOD_A)
         self._metric_vars: dict[str, tk.BooleanVar] = {
             p.metric_id: tk.BooleanVar(value=True) for p in self._plugins
         }
@@ -232,6 +234,23 @@ class BuildReportsApp(tk.Tk):
                 variable=self._terminology_var,
                 value=value,
             ).pack(side="left", padx=8)
+        row += 1
+
+        # --- CT-Methode section ---
+        row = self._section_header("CT-Methode (Flow Time)", row)
+
+        ct_frame = tk.Frame(self)
+        ct_frame.grid(row=row, column=0, columnspan=3, sticky="w", padx=16, pady=4)
+        for value, label in [
+            (CT_METHOD_A, "A – Kalendertage (Closed Date − First Date)"),
+            (CT_METHOD_B, "B – Stage-Minuten (First bis Closed, exkl.)"),
+        ]:
+            tk.Radiobutton(
+                ct_frame,
+                text=label,
+                variable=self._ct_method_var,
+                value=value,
+            ).pack(anchor="w", padx=8)
         row += 1
 
         # --- Action buttons ---
@@ -364,6 +383,7 @@ class BuildReportsApp(tk.Tk):
         projects = _split_csv(self._projects_var.get())
         issuetypes = _split_csv(self._issuetypes_var.get())
         terminology = self._terminology_var.get()
+        ct_method = self._ct_method_var.get()
 
         selected = [mid for mid, var in self._metric_vars.items() if var.get()]
         metrics = selected if selected else None
@@ -376,6 +396,7 @@ class BuildReportsApp(tk.Tk):
             projects=projects,
             issuetypes=issuetypes,
             terminology=terminology,
+            ct_method=ct_method,
             metrics=metrics,
         )
 
@@ -430,6 +451,11 @@ class BuildReportsApp(tk.Tk):
                             self._log(f"  WARNING: Unbekannte Metrik '{mid}' — übersprungen.")
                 else:
                     plugins = _all_metrics()
+
+                from .metrics.flow_time import CT_METHOD_A as _CTA, FlowTimeMetric as _FTM
+                for plugin in plugins:
+                    if isinstance(plugin, _FTM):
+                        plugin.ct_method = inputs.get("ct_method", _CTA)
 
                 all_figures = []
                 for plugin in plugins:
@@ -488,6 +514,7 @@ class BuildReportsApp(tk.Tk):
                     projects=inputs["projects"],
                     issuetypes=inputs["issuetypes"],
                     terminology=inputs["terminology"],
+                    ct_method=inputs["ct_method"],
                     output_pdf=Path(out_path),
                     log=self._log,
                 )

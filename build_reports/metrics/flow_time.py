@@ -3,15 +3,17 @@
 # Repository:     https://github.com/Jaegerfeld/situation-report
 # KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
 # Erstellt:       15.04.2026
-# Geändert:       15.04.2026
+# Geändert:       16.04.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
-#   Implementiert die Flow Time / Cycle Time Metrik. Berechnet die Durchlaufzeit
-#   in Tagen (First Date → Closed Date) und stellt zwei Diagramme bereit:
-#   einen horizontalen Boxplot mit Statistik-Header und einen Scatterplot
-#   mit Trendlinie über die Zeit. Issues ohne First Date oder Closed Date sowie
-#   Issues mit Cycle Time = 0 werden aus der Berechnung ausgeschlossen.
+#   Implementiert die Flow Time / Cycle Time Metrik mit zwei Berechnungsmethoden:
+#   Methode A: Kalendertage (First Date → Closed Date).
+#   Methode B: Summe der Stage-Minuten von der ersten bis zur letzten Stage
+#              (ausschließlich der Closed-Stage) geteilt durch 1440.
+#   Stellt zwei Diagramme bereit: horizontaler Boxplot mit Statistik-Header
+#   und Scatterplot mit Trendlinie. Issues ohne First Date oder Closed Date
+#   sowie Issues mit Cycle Time = 0 werden ausgeschlossen.
 # =============================================================================
 
 from __future__ import annotations
@@ -27,6 +29,9 @@ from ..loader import IssueRecord, ReportData
 from ..terminology import FLOW_TIME, term
 from . import register
 from .base import MetricPlugin, MetricResult
+
+CT_METHOD_A = "A"
+CT_METHOD_B = "B"
 
 
 @dataclass
@@ -64,26 +69,46 @@ class FlowTimeMetric(MetricPlugin):
     """
     Flow Time / Cycle Time metric.
 
-    Measures the time in days from First Date to Closed Date per issue.
-    Produces a horizontal boxplot and a time-series scatterplot with trend line.
+    Supports two calculation methods:
+    - Method A (default): calendar days from First Date to Closed Date.
+    - Method B: sum of stage minutes (all stages except the last/Closed stage)
+      divided by 1440, reflecting active processing time only.
+
+    Set ct_method = CT_METHOD_A or CT_METHOD_B before calling compute().
     """
 
     metric_id = FLOW_TIME
+    ct_method: str = CT_METHOD_A
+
+    def _cycle_days_method_b(self, issue: IssueRecord, stages: list[str]) -> float:
+        """
+        Compute cycle time via Method B: sum of stage minutes excluding the last stage.
+
+        Args:
+            issue:  IssueRecord with stage_minutes populated.
+            stages: Ordered list of workflow stages from ReportData.
+
+        Returns:
+            Cycle time in days (float), or 0.0 if no relevant stage data.
+        """
+        stages_to_sum = stages[:-1] if len(stages) > 1 else stages
+        minutes = sum(issue.stage_minutes.get(s, 0) for s in stages_to_sum)
+        return round(minutes / 1440, 2)
 
     def compute(self, data: ReportData, terminology: str) -> MetricResult:
         """
         Compute cycle time in days for all eligible issues.
 
-        Issues without First Date, without Closed Date, or with cycle time <= 0
-        are excluded. The count of zero-day issues is reported as a warning stat.
+        Only issues with both First Date and Closed Date are considered.
+        Issues with cycle time <= 0 are excluded and counted as zero_day_count.
 
         Args:
             data:        Filtered ReportData from loader.py.
             terminology: Active terminology mode (SAFe or Global).
 
         Returns:
-            MetricResult with stats (min/q1/mean/median/q3/max/pct90/sd/cv/count/zero_day_count)
-            and chart_data as list of _FlowTimePoint.
+            MetricResult with stats (min/q1/mean/median/q3/max/pct90/sd/cv/count/
+            zero_day_count/ct_method) and chart_data as list of _FlowTimePoint.
         """
         points: list[_FlowTimePoint] = []
         zero_day_count = 0
@@ -92,21 +117,27 @@ class FlowTimeMetric(MetricPlugin):
         for issue in data.issues:
             if issue.first_date is None or issue.closed_date is None:
                 continue
-            delta = (issue.closed_date - issue.first_date).total_seconds() / 86400
+
+            if self.ct_method == CT_METHOD_B:
+                delta = self._cycle_days_method_b(issue, data.stages)
+            else:
+                delta = (issue.closed_date - issue.first_date).total_seconds() / 86400
+                delta = round(delta, 2)
+
             if delta <= 0:
                 zero_day_count += 1
                 continue
             points.append(_FlowTimePoint(
                 key=issue.key,
                 closed_date=issue.closed_date,
-                cycle_days=round(delta, 2),
+                cycle_days=delta,
             ))
 
         if not points:
             warnings.append("No issues with valid First Date and Closed Date found.")
             return MetricResult(
                 metric_id=self.metric_id,
-                stats={"zero_day_count": zero_day_count},
+                stats={"zero_day_count": zero_day_count, "ct_method": self.ct_method},
                 warnings=warnings,
             )
 
@@ -114,6 +145,7 @@ class FlowTimeMetric(MetricPlugin):
         stats = _compute_stats(values)
         stats["count"] = len(points)
         stats["zero_day_count"] = zero_day_count
+        stats["ct_method"] = self.ct_method
 
         return MetricResult(
             metric_id=self.metric_id,
@@ -140,10 +172,11 @@ class FlowTimeMetric(MetricPlugin):
         points: list[_FlowTimePoint] = result.chart_data
         s = result.stats
         label = term(FLOW_TIME, terminology)
-        source = ""
+        method_label = f"Methode {s.get('ct_method', CT_METHOD_A)}"
 
         header = (
-            f"{label}  Min: {s['min']} | Q1: {s['q1']} | Mean: {round(s['mean'], 2)} | "
+            f"{label} ({method_label})  "
+            f"Min: {s['min']} | Q1: {s['q1']} | Mean: {round(s['mean'], 2)} | "
             f"Median: {s['median']} | Q3: {s['q3']} | Max: {s['max']} | "
             f"#Items: {s['count']} | 90d CT%: {s['pct90']} | "
             f"SD: {round(s['sd'], 2)} | SD%(CV): {round(s['cv'], 2)} | "
