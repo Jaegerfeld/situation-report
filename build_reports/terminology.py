@@ -25,6 +25,7 @@ FLOW_VELOCITY = "flow_velocity"
 FLOW_LOAD = "flow_load"
 FLOW_DISTRIBUTION = "flow_distribution"
 FLOW_PREDICTABILITY = "flow_predictability"
+CFD = "cfd"
 
 _TERMS: dict[str, dict[str, str]] = {
     SAFE: {
@@ -33,6 +34,7 @@ _TERMS: dict[str, dict[str, str]] = {
         FLOW_LOAD: "Flow Load",
         FLOW_DISTRIBUTION: "Flow Distribution",
         FLOW_PREDICTABILITY: "Flow Predictability",
+        CFD: "Cumulative Flow Diagram",
     },
     GLOBAL: {
         FLOW_TIME: "Cycle Time",
@@ -40,6 +42,7 @@ _TERMS: dict[str, dict[str, str]] = {
         FLOW_LOAD: "WIP",
         FLOW_DISTRIBUTION: "Flow Distribution",
         FLOW_PREDICTABILITY: "Flow Predictability",
+        CFD: "Cumulative Flow Diagram",
     },
 }
 

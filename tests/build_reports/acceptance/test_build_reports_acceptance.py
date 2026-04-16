@@ -216,6 +216,60 @@ class TestCliPipelineOnRealData:
         assert out.exists()
 
 
+class TestGuiOnRealData:
+    def test_gui_instantiates_with_all_metrics(self):
+        """BuildReportsApp can be instantiated and all metric plugins are registered."""
+        from build_reports.gui import BuildReportsApp
+        app = BuildReportsApp()
+        try:
+            assert len(app._metric_vars) > 0, "No metric checkboxes registered"
+            from build_reports.metrics import all_metrics
+            assert len(app._metric_vars) == len(all_metrics())
+        finally:
+            app.destroy()
+
+    def test_read_inputs_fails_without_file(self):
+        """_read_inputs returns None when no IssueTimes file is set."""
+        from build_reports.gui import BuildReportsApp
+        app = BuildReportsApp()
+        try:
+            result = app._read_inputs()
+            assert result is None
+        finally:
+            app.destroy()
+
+    def test_read_inputs_returns_dict_with_valid_file(self):
+        """_read_inputs returns a complete dict when a valid file path is set."""
+        from build_reports.gui import BuildReportsApp
+        app = BuildReportsApp()
+        try:
+            app._issue_times_var.set(str(ISSUE_TIMES))
+            app._cfd_var.set(str(CFD))
+            result = app._read_inputs()
+            assert result is not None
+            assert result["issue_times"] == ISSUE_TIMES
+            assert result["cfd"] == CFD
+            # all metrics selected → full list returned (equivalent to None for run_reports)
+            from build_reports.metrics import all_metrics
+            assert set(result["metrics"]) == {p.metric_id for p in all_metrics()}
+        finally:
+            app.destroy()
+
+    def test_deselect_all_metrics_sets_specific_list(self):
+        """After deselecting all and re-selecting flow_time, only flow_time is returned."""
+        from build_reports.gui import BuildReportsApp
+        app = BuildReportsApp()
+        try:
+            app._issue_times_var.set(str(ISSUE_TIMES))
+            app._deselect_all_metrics()
+            app._metric_vars["flow_time"].set(True)
+            result = app._read_inputs()
+            assert result is not None
+            assert result["metrics"] == ["flow_time"]
+        finally:
+            app.destroy()
+
+
 class TestExportOnRealData:
     def test_export_single_pdf(self, tmp_path, art_a_data):
         metric = FlowTimeMetric()
