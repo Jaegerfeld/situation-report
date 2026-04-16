@@ -26,6 +26,8 @@ from pathlib import Path
 from tkinter import filedialog, scrolledtext, ttk
 from typing import Any
 
+from tkcalendar import Calendar
+
 from .cli import run_reports
 from .metrics import all_metrics
 from .metrics.flow_time import CT_METHOD_A, CT_METHOD_B, FlowTimeMetric
@@ -72,6 +74,9 @@ _T: dict[str, dict[str, str]] = {
         "dlg_issue_times":   "IssueTimes-Datei w\u00e4hlen",
         "dlg_cfd":           "CFD-Datei w\u00e4hlen",
         "dlg_pdf":           "PDF speichern unter",
+        "dlg_pick_date":     "Datum w\u00e4hlen",
+        "btn_cal":           "\U0001f4c5",
+        "btn_ok":            "OK",
         "err_no_file":       "FEHLER: Keine IssueTimes-Datei ausgew\u00e4hlt.",
         "err_not_found":     "FEHLER: Datei nicht gefunden: {}",
         "err_from_date":     "FEHLER: Ung\u00fcltiges Von-Datum '{}' (erwartet YYYY-MM-DD).",
@@ -113,6 +118,9 @@ _T: dict[str, dict[str, str]] = {
         "dlg_issue_times":   "Select IssueTimes file",
         "dlg_cfd":           "Select CFD file",
         "dlg_pdf":           "Save PDF as",
+        "dlg_pick_date":     "Pick Date",
+        "btn_cal":           "\U0001f4c5",
+        "btn_ok":            "OK",
         "err_no_file":       "ERROR: No IssueTimes file selected.",
         "err_not_found":     "ERROR: File not found: {}",
         "err_from_date":     "ERROR: Invalid From date '{}' (expected YYYY-MM-DD).",
@@ -131,6 +139,17 @@ _T: dict[str, dict[str, str]] = {
 # ---------------------------------------------------------------------------
 # Module-level helpers (testable without a running display)
 # ---------------------------------------------------------------------------
+
+def _default_year_range() -> tuple[date, date]:
+    """
+    Return the default filter date range: 1 Jan – 31 Dec of the previous calendar year.
+
+    Returns:
+        Tuple of (from_date, to_date) for the last complete calendar year.
+    """
+    last_year = date.today().year - 1
+    return date(last_year, 1, 1), date(last_year, 12, 31)
+
 
 def _parse_date_safe(value: str) -> date | None:
     """
@@ -222,8 +241,9 @@ class BuildReportsApp(tk.Tk):
         self._lang_var = tk.StringVar(value=LANG_DE)
         self._issue_times_var = tk.StringVar()
         self._cfd_var = tk.StringVar()
-        self._from_date_var = tk.StringVar()
-        self._to_date_var = tk.StringVar()
+        _from_default, _to_default = _default_year_range()
+        self._from_date_var = tk.StringVar(value=str(_from_default))
+        self._to_date_var = tk.StringVar(value=str(_to_default))
         self._projects_var = tk.StringVar()
         self._issuetypes_var = tk.StringVar()
         self._terminology_var = tk.StringVar(value=SAFE)
@@ -348,6 +368,10 @@ class BuildReportsApp(tk.Tk):
         tk.Entry(self, textvariable=self._from_date_var, width=20).grid(
             row=row, column=1, sticky="w", **pad
         )
+        btn = ttk.Button(self, text=self._tr("btn_cal"), width=3,
+                         command=lambda: self._pick_date(self._from_date_var))
+        btn.grid(row=row, column=2, sticky="w", **pad)
+        self._i18n.append((btn, "btn_cal"))
         row += 1
 
         lbl = tk.Label(self, text=self._tr("lbl_to"), anchor="w")
@@ -356,6 +380,10 @@ class BuildReportsApp(tk.Tk):
         tk.Entry(self, textvariable=self._to_date_var, width=20).grid(
             row=row, column=1, sticky="w", **pad
         )
+        btn = ttk.Button(self, text=self._tr("btn_cal"), width=3,
+                         command=lambda: self._pick_date(self._to_date_var))
+        btn.grid(row=row, column=2, sticky="w", **pad)
+        self._i18n.append((btn, "btn_cal"))
         row += 1
 
         lbl = tk.Label(self, text=self._tr("lbl_projects"), anchor="w")
@@ -509,6 +537,43 @@ class BuildReportsApp(tk.Tk):
         )
         if path:
             self._cfd_var.set(path)
+
+    def _pick_date(self, target_var: tk.StringVar) -> None:
+        """
+        Open a modal calendar popup and write the selected date to target_var.
+
+        Pre-fills the calendar with the currently entered date if valid,
+        otherwise uses today as starting point.
+
+        Args:
+            target_var: StringVar of the date entry field to update.
+        """
+        try:
+            current = date.fromisoformat(target_var.get().strip())
+        except ValueError:
+            current = date.today()
+
+        top = tk.Toplevel(self)
+        top.title(self._tr("dlg_pick_date"))
+        top.resizable(False, False)
+        top.grab_set()
+
+        cal = Calendar(
+            top,
+            selectmode="day",
+            year=current.year,
+            month=current.month,
+            day=current.day,
+            date_pattern="yyyy-mm-dd",
+        )
+        cal.pack(padx=10, pady=10)
+
+        def _confirm() -> None:
+            target_var.set(cal.get_date())
+            top.destroy()
+
+        ttk.Button(top, text=self._tr("btn_ok"), command=_confirm).pack(pady=(0, 10))
+        self.wait_window(top)
 
     # -------------------------------------------------------------------------
     # Metric selection helpers

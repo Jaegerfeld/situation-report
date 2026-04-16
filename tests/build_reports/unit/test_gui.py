@@ -22,7 +22,7 @@ import pytest
 
 from build_reports.gui import (
     LANG_DE, LANG_EN, _T,
-    _build_combined_html, _parse_date_safe, _split_csv,
+    _build_combined_html, _default_year_range, _parse_date_safe, _split_csv,
 )
 
 
@@ -100,6 +100,27 @@ class TestBuildCombinedHtml:
         assert "<body>" in html
 
 
+class TestDefaultYearRange:
+    def test_returns_tuple_of_two_dates(self):
+        from_d, to_d = _default_year_range()
+        assert isinstance(from_d, date)
+        assert isinstance(to_d, date)
+
+    def test_from_is_jan_first_of_last_year(self):
+        from_d, _ = _default_year_range()
+        assert from_d.month == 1 and from_d.day == 1
+        assert from_d.year == date.today().year - 1
+
+    def test_to_is_dec_31_of_last_year(self):
+        _, to_d = _default_year_range()
+        assert to_d.month == 12 and to_d.day == 31
+        assert to_d.year == date.today().year - 1
+
+    def test_from_before_to(self):
+        from_d, to_d = _default_year_range()
+        assert from_d < to_d
+
+
 class TestTranslations:
     def test_both_languages_present(self):
         assert LANG_DE in _T
@@ -121,3 +142,9 @@ class TestTranslations:
         for lang, entries in _T.items():
             for key, value in entries.items():
                 assert value, f"Empty translation: [{lang}][{key}]"
+
+    def test_date_picker_keys_present(self):
+        for lang in (LANG_DE, LANG_EN):
+            assert "dlg_pick_date" in _T[lang]
+            assert "btn_cal" in _T[lang]
+            assert "btn_ok" in _T[lang]
