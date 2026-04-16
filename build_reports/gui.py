@@ -11,19 +11,21 @@
 #   Auswahl von IssueTimes- und CFD-XLSX, optionale Filter (Datum, Projekte,
 #   Issuetypen), Metrik-Auswahl (Checkboxen) sowie CT-Methode (A/B). Sprache
 #   (DE/EN) und Terminologie (SAFe/Global) werden über ein Optionsmenü gewählt.
-#   Die Berechnung läuft in einem separaten Thread, sodass die Oberfläche
-#   reaktionsfähig bleibt.
+#   Templates ermöglichen das Speichern und Laden der gesamten Konfiguration
+#   als JSON-Datei. Die Berechnung läuft in einem separaten Thread, sodass
+#   die Oberfläche reaktionsfähig bleibt.
 # =============================================================================
 
 from __future__ import annotations
 
+import json
 import tempfile
 import threading
 import tkinter as tk
 import webbrowser
 from datetime import date
 from pathlib import Path
-from tkinter import filedialog, scrolledtext, ttk
+from tkinter import filedialog, messagebox, scrolledtext, ttk
 from typing import Any
 
 from openpyxl import load_workbook
@@ -95,6 +97,14 @@ _T: dict[str, dict[str, str]] = {
         "log_figs_opened":   "  \u2192 {} Diagramm(e) im Browser ge\u00f6ffnet.",
         "log_unk_metric":    "  WARNING: Unbekannte Metrik '{}' \u2014 \u00fcbersprungen.",
         "log_error":         "FEHLER: {}",
+        "menu_template":     "Templates",
+        "menu_tpl_save":     "Speichern\u2026",
+        "menu_tpl_load":     "Laden\u2026",
+        "dlg_tpl_save":      "Template speichern",
+        "dlg_tpl_load":      "Template laden",
+        "log_tpl_saved":     "Template gespeichert: {}",
+        "log_tpl_loaded":    "Template geladen: {}",
+        "log_tpl_error":     "Fehler beim Template: {}",
     },
     LANG_EN: {
         "window_title":      "build_reports",
@@ -145,6 +155,14 @@ _T: dict[str, dict[str, str]] = {
         "log_figs_opened":   "  \u2192 {} figure(s) opened in browser.",
         "log_unk_metric":    "  WARNING: Unknown metric '{}' \u2014 skipped.",
         "log_error":         "ERROR: {}",
+        "menu_template":     "Templates",
+        "menu_tpl_save":     "Save\u2026",
+        "menu_tpl_load":     "Load\u2026",
+        "dlg_tpl_save":      "Save Template",
+        "dlg_tpl_load":      "Load Template",
+        "log_tpl_saved":     "Template saved: {}",
+        "log_tpl_loaded":    "Template loaded: {}",
+        "log_tpl_error":     "Template error: {}",
     },
 }
 
@@ -308,6 +326,97 @@ def _build_combined_html(figures: list) -> str:
     )
 
 
+# Template version bump when the schema changes in a backward-incompatible way.
+_TEMPLATE_VERSION = 1
+
+
+def _build_template_dict(
+    issue_times: str,
+    cfd: str,
+    from_date: str,
+    to_date: str,
+    projects: str,
+    issuetypes: str,
+    terminology: str,
+    ct_method: str,
+    metrics: dict[str, bool],
+    language: str,
+) -> dict:
+    """
+    Assemble the template dictionary that is written to JSON.
+
+    All string values are stored as-is; file paths are kept as strings so the
+    template remains portable (the caller decides whether to resolve them).
+
+    Args:
+        issue_times:  Absolute path string for IssueTimes.xlsx (may be empty).
+        cfd:          Absolute path string for CFD.xlsx (may be empty).
+        from_date:    ISO date string (YYYY-MM-DD) or empty.
+        to_date:      ISO date string (YYYY-MM-DD) or empty.
+        projects:     Comma-separated project keys (may be empty).
+        issuetypes:   Comma-separated issue types (may be empty).
+        terminology:  Terminology mode constant (SAFE or GLOBAL).
+        ct_method:    CT calculation method constant (CT_METHOD_A or CT_METHOD_B).
+        metrics:      Dict mapping metric_id → bool (True = selected).
+        language:     Language code (LANG_DE or LANG_EN).
+
+    Returns:
+        JSON-serialisable dict with a ``version`` key.
+    """
+    return {
+        "version": _TEMPLATE_VERSION,
+        "issue_times": issue_times,
+        "cfd": cfd,
+        "from_date": from_date,
+        "to_date": to_date,
+        "projects": projects,
+        "issuetypes": issuetypes,
+        "terminology": terminology,
+        "ct_method": ct_method,
+        "metrics": metrics,
+        "language": language,
+    }
+
+
+def _parse_template_dict(data: dict) -> dict:
+    """
+    Validate and normalise a template dict loaded from JSON.
+
+    Unknown keys are ignored; missing keys fall back to empty/default values so
+    that templates created by older versions remain loadable.
+
+    Args:
+        data: Raw dict parsed from a JSON template file.
+
+    Returns:
+        Normalised dict with guaranteed keys matching _build_template_dict output.
+
+    Raises:
+        ValueError: If ``data`` is not a dict or has an incompatible version.
+    """
+    if not isinstance(data, dict):
+        raise ValueError("Template file does not contain a JSON object.")
+    version = data.get("version", 1)
+    if not isinstance(version, int) or version > _TEMPLATE_VERSION:
+        raise ValueError(
+            f"Unsupported template version {version} "
+            f"(this build supports up to {_TEMPLATE_VERSION})."
+        )
+    return {
+        "version": version,
+        "issue_times": str(data.get("issue_times", "")),
+        "cfd": str(data.get("cfd", "")),
+        "from_date": str(data.get("from_date", "")),
+        "to_date": str(data.get("to_date", "")),
+        "projects": str(data.get("projects", "")),
+        "issuetypes": str(data.get("issuetypes", "")),
+        "terminology": str(data.get("terminology", SAFE)),
+        "ct_method": str(data.get("ct_method", CT_METHOD_A)),
+        "metrics": dict(data.get("metrics", {})),
+        "language": str(data.get("language", LANG_DE)),
+    }
+
+
 # ---------------------------------------------------------------------------
 # Main application
 # ---------------------------------------------------------------------------
@@ -406,6 +515,12 @@ class BuildReportsApp(tk.Tk):
             label=self._tr("menu_terminology"),
             menu=self._build_terminology_menu(options_menu),
         )
+
+        # Templates menu
+        tpl_menu = tk.Menu(menubar, tearoff=0)
+        menubar.add_cascade(label=self._tr("menu_template"), menu=tpl_menu)
+        tpl_menu.add_command(label=self._tr("menu_tpl_save"), command=self._save_template)
+        tpl_menu.add_command(label=self._tr("menu_tpl_load"), command=self._load_template)
 
         self.config(menu=menubar)
 
@@ -616,6 +731,97 @@ class BuildReportsApp(tk.Tk):
         current_term = self._terminology_var.get()
         for cb, metric_id in self._metric_checkbuttons:
             cb.config(text=term(metric_id, current_term))
+
+    # -------------------------------------------------------------------------
+    # Template save / load
+    # -------------------------------------------------------------------------
+
+    def _save_template(self) -> None:
+        """
+        Collect the current UI state and write it as a JSON template file.
+
+        Opens a save-file dialog so the user can choose the destination. The
+        template includes all file paths, filter values, metric selection,
+        CT method, terminology, and language setting.
+        """
+        path = filedialog.asksaveasfilename(
+            title=self._tr("dlg_tpl_save"),
+            defaultextension=".json",
+            filetypes=[("JSON-Dateien", "*.json"), ("Alle Dateien", "*.*")],
+        )
+        if not path:
+            return
+        try:
+            tpl = _build_template_dict(
+                issue_times=self._issue_times_var.get(),
+                cfd=self._cfd_var.get(),
+                from_date=self._from_date_var.get(),
+                to_date=self._to_date_var.get(),
+                projects=self._projects_var.get(),
+                issuetypes=self._issuetypes_var.get(),
+                terminology=self._terminology_var.get(),
+                ct_method=self._ct_method_var.get(),
+                metrics={mid: var.get() for mid, var in self._metric_vars.items()},
+                language=self._lang_var.get(),
+            )
+            Path(path).write_text(
+                json.dumps(tpl, indent=2, ensure_ascii=False), encoding="utf-8"
+            )
+            self._log(self._tr("log_tpl_saved").format(Path(path).name))
+        except Exception as exc:
+            self._log(self._tr("log_tpl_error").format(exc))
+            messagebox.showerror(self._tr("menu_template"), str(exc))
+
+    def _load_template(self) -> None:
+        """
+        Open a JSON template file and apply its settings to the UI.
+
+        Paths stored in the template are applied directly; if a stored file path
+        no longer exists a warning is logged but loading continues. The language
+        is applied last so all label updates reflect the loaded language.
+        """
+        path = filedialog.askopenfilename(
+            title=self._tr("dlg_tpl_load"),
+            filetypes=[("JSON-Dateien", "*.json"), ("Alle Dateien", "*.*")],
+        )
+        if not path:
+            return
+        try:
+            raw = json.loads(Path(path).read_text(encoding="utf-8"))
+            state = _parse_template_dict(raw)
+        except Exception as exc:
+            self._log(self._tr("log_tpl_error").format(exc))
+            messagebox.showerror(self._tr("menu_template"), str(exc))
+            return
+
+        self._issue_times_var.set(state["issue_times"])
+        self._cfd_var.set(state["cfd"])
+        self._from_date_var.set(state["from_date"])
+        self._to_date_var.set(state["to_date"])
+        self._projects_var.set(state["projects"])
+        self._issuetypes_var.set(state["issuetypes"])
+        self._terminology_var.set(state["terminology"])
+        self._ct_method_var.set(state["ct_method"])
+
+        for mid, var in self._metric_vars.items():
+            if mid in state["metrics"]:
+                var.set(bool(state["metrics"][mid]))
+
+        # Warn if stored file paths have gone missing
+        for key in ("issue_times", "cfd"):
+            p = state[key]
+            if p and not Path(p).is_file():
+                self._log(self._tr("err_not_found").format(p))
+
+        # Reload filter options if IssueTimes path is set and valid
+        it_path = state["issue_times"]
+        if it_path and Path(it_path).is_file():
+            self._load_filter_options_async(Path(it_path))
+
+        # Apply language last (triggers _apply_language which rebuilds menu labels)
+        self._lang_var.set(state["language"])
+
+        self._log(self._tr("log_tpl_loaded").format(Path(path).name))
 
     # -------------------------------------------------------------------------
     # File pickers

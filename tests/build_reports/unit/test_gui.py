@@ -22,8 +22,9 @@ import pytest
 
 from build_reports.gui import (
     LANG_DE, LANG_EN, _T,
-    _build_combined_html, _check_stage_consistency, _default_year_range,
-    _parse_date_safe, _read_available_filters, _split_csv,
+    _build_combined_html, _build_template_dict, _check_stage_consistency,
+    _default_year_range, _parse_date_safe, _parse_template_dict,
+    _read_available_filters, _split_csv,
 )
 
 
@@ -259,3 +260,95 @@ class TestTranslations:
             assert "dlg_projects" in _T[lang]
             assert "dlg_issuetypes" in _T[lang]
             assert "btn_pick" in _T[lang]
+
+    def test_template_keys_present(self):
+        for lang in (LANG_DE, LANG_EN):
+            assert "menu_template" in _T[lang]
+            assert "menu_tpl_save" in _T[lang]
+            assert "menu_tpl_load" in _T[lang]
+            assert "log_tpl_saved" in _T[lang]
+            assert "log_tpl_loaded" in _T[lang]
+            assert "log_tpl_error" in _T[lang]
+
+
+# ---------------------------------------------------------------------------
+# Helper for template tests
+# ---------------------------------------------------------------------------
+
+def _sample_template(**overrides) -> dict:
+    """Return a minimal valid template dict, with optional field overrides."""
+    base = dict(
+        issue_times="/data/it.xlsx",
+        cfd="/data/cfd.xlsx",
+        from_date="2024-01-01",
+        to_date="2024-12-31",
+        projects="ARTA, ARTB",
+        issuetypes="Feature",
+        terminology="safe",
+        ct_method="A",
+        metrics={"flow_time": True, "throughput": False},
+        language="de",
+    )
+    base.update(overrides)
+    return base
+
+
+class TestBuildTemplateDict:
+    def test_contains_version(self):
+        tpl = _build_template_dict(**_sample_template())
+        assert "version" in tpl
+        assert isinstance(tpl["version"], int)
+
+    def test_roundtrip_fields(self):
+        state = _sample_template()
+        tpl = _build_template_dict(**state)
+        for key in ("issue_times", "cfd", "from_date", "to_date",
+                    "projects", "issuetypes", "terminology", "ct_method", "language"):
+            assert tpl[key] == state[key]
+
+    def test_metrics_preserved(self):
+        metrics = {"flow_time": True, "throughput": False}
+        tpl = _build_template_dict(**_sample_template(metrics=metrics))
+        assert tpl["metrics"] == metrics
+
+    def test_empty_paths_allowed(self):
+        tpl = _build_template_dict(**_sample_template(issue_times="", cfd=""))
+        assert tpl["issue_times"] == ""
+        assert tpl["cfd"] == ""
+
+
+class TestParseTemplateDict:
+    def test_valid_roundtrip(self):
+        state = _sample_template()
+        tpl = _build_template_dict(**state)
+        parsed = _parse_template_dict(tpl)
+        for key in ("issue_times", "cfd", "from_date", "to_date",
+                    "projects", "issuetypes", "terminology", "ct_method", "language"):
+            assert parsed[key] == state[key]
+
+    def test_missing_keys_get_defaults(self):
+        parsed = _parse_template_dict({"version": 1})
+        assert parsed["issue_times"] == ""
+        assert parsed["cfd"] == ""
+        assert parsed["from_date"] == ""
+        assert parsed["to_date"] == ""
+        assert isinstance(parsed["metrics"], dict)
+
+    def test_non_dict_raises_value_error(self):
+        with pytest.raises(ValueError):
+            _parse_template_dict([1, 2, 3])
+
+    def test_future_version_raises_value_error(self):
+        with pytest.raises(ValueError, match="version"):
+            _parse_template_dict({"version": 9999})
+
+    def test_metrics_is_dict(self):
+        parsed = _parse_template_dict({"version": 1, "metrics": {"flow_time": True}})
+        assert parsed["metrics"] == {"flow_time": True}
+
+    def test_json_serialisable(self):
+        import json
+        state = _sample_template()
+        tpl = _build_template_dict(**state)
+        # Must not raise
+        json.dumps(tpl)
