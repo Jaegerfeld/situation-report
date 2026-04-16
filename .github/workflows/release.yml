@@ -1,0 +1,121 @@
+name: Build Standalone App
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Git tag to build and release (must already exist on main)'
+        required: true
+        default: 'prototype'
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build – ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            artifact: SituationReport-Windows
+            zip_file: SituationReport-Windows.zip
+          - os: macos-latest      # macos-latest = Apple Silicon (ARM) runner
+            artifact: SituationReport-macOS-ARM
+            zip_file: SituationReport-macOS-ARM.zip
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.tag }}
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Python dependencies
+        run: pip install -e "." pyinstaller
+
+      - name: Download bundled Chrome (kaleido PDF export)
+        run: choreo_get_chrome
+        shell: bash
+
+      - name: Build with PyInstaller
+        run: pyinstaller build_gui.spec
+
+      - name: Package – Windows
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: Compress-Archive -Path dist\SituationReport -DestinationPath SituationReport-Windows.zip
+
+      - name: Package – macOS
+        if: runner.os == 'macOS'
+        run: zip -r SituationReport-macOS-ARM.zip dist/SituationReport.app
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact }}
+          path: ${{ matrix.zip_file }}
+
+  release:
+    name: Create GitHub Release
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          merge-multiple: true
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.event.inputs.tag }}
+          name: 'Prototype – ${{ github.event.inputs.tag }}'
+          prerelease: true
+          draft: false
+          files: |
+            SituationReport-Windows.zip
+            SituationReport-macOS-ARM.zip
+          body: |
+            ## SituationReport – Prototype
+
+            Eigenständige GUI-App. **Kein Python oder sonstige Installation notwendig.**
+
+            ---
+
+            ### Windows
+
+            1. `SituationReport-Windows.zip` herunterladen und entpacken
+            2. Im entpackten Ordner `SituationReport.exe` doppelklicken
+
+            ### macOS (Apple Silicon)
+
+            1. `SituationReport-macOS-ARM.zip` herunterladen und entpacken
+            2. `SituationReport.app` in den Ordner *Programme* ziehen (optional)
+            3. Beim **ersten Start**: Rechtsklick → *Öffnen* → *Öffnen* bestätigen
+               *(macOS Gatekeeper-Hinweis, da die App nicht signiert ist)*
+
+            ---
+
+            ### Voraussetzungen
+
+            Keine – alle Abhängigkeiten (inkl. Chrome für PDF-Export) sind enthalten.
+
+            ### Datenformat
+
+            Die App erwartet XLSX-Dateien aus dem `transform_data`-Modul:
+
+            | Datei | Bedeutung |
+            |-------|-----------|
+            | `*_IssueTimes.xlsx` | Pflicht – Durchlaufzeiten pro Issue und Stage |
+            | `*_CFD.xlsx` | Optional – tägliche Stage-Zählungen für CFD |
+
+            ### Bekannte Einschränkungen (Prototype)
+
+            - PDF-Export dauert beim ersten Mal einige Sekunden (interner Chrome-Start)
+            - macOS: Sicherheitswarnung beim Erststart (App ist nicht notarisiert)
+            - Keine automatischen Updates
