@@ -18,6 +18,7 @@ from pathlib import Path
 
 import pytest
 
+from build_reports.cli import run_reports
 from build_reports.export import export_pdf, export_png
 from build_reports.filters import FilterConfig, apply_filters
 from build_reports.loader import load_report_data
@@ -160,6 +161,59 @@ class TestFlowDistributionOnRealData:
         assert len(figs) == 1
         pie_traces = [t for t in figs[0].data if t.type == "pie"]
         assert len(pie_traces) == 2
+
+
+class TestCliPipelineOnRealData:
+    def test_run_reports_all_metrics_produces_pdf(self, tmp_path):
+        """Full pipeline via run_reports() against real ART_A data exports a non-empty PDF."""
+        out = tmp_path / "art_a_report.pdf"
+        logged: list[str] = []
+        run_reports(
+            issue_times=ISSUE_TIMES,
+            cfd=CFD,
+            output_pdf=out,
+            log=logged.append,
+        )
+        assert out.exists(), "PDF not created"
+        assert out.stat().st_size > 0, "PDF is empty"
+        assert any("Saved" in m for m in logged)
+
+    def test_run_reports_single_metric(self, tmp_path):
+        """run_reports with a single metric produces fewer figures than all metrics."""
+        out_single = tmp_path / "single.pdf"
+        out_all = tmp_path / "all.pdf"
+        counts: list[int] = []
+
+        def counting_log(msg: str) -> None:
+            if "figure(s)" in msg:
+                counts.append(int(msg.strip().split()[1]))
+
+        run_reports(
+            issue_times=ISSUE_TIMES,
+            cfd=CFD,
+            metrics=["flow_time"],
+            output_pdf=out_single,
+            log=counting_log,
+        )
+        run_reports(
+            issue_times=ISSUE_TIMES,
+            cfd=CFD,
+            output_pdf=out_all,
+            log=counting_log,
+        )
+        assert counts[0] < counts[-1], "Single metric should produce fewer figures than all"
+
+    def test_run_reports_date_filter_accepted(self, tmp_path):
+        """run_reports accepts date filters without crashing."""
+        out = tmp_path / "filtered.pdf"
+        run_reports(
+            issue_times=ISSUE_TIMES,
+            cfd=CFD,
+            from_date=date(2026, 1, 1),
+            output_pdf=out,
+            log=lambda *_: None,
+        )
+        assert out.exists()
 
 
 class TestExportOnRealData:
