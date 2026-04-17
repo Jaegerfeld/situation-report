@@ -292,7 +292,7 @@ class TestTranslations:
 
     def test_tooltip_keys_present(self):
         required = [
-            "tip_issue_times", "tip_cfd", "tip_browse",
+            "tip_issue_times", "tip_cfd", "tip_pi_config", "tip_browse",
             "tip_from", "tip_to", "tip_cal", "tip_last_365",
             "tip_projects", "tip_issuetypes", "tip_pick",
             "tip_ct_a", "tip_ct_b", "tip_show", "tip_pdf",
@@ -321,6 +321,7 @@ def _sample_template(**overrides) -> dict:
     base = dict(
         issue_times="/data/it.xlsx",
         cfd="/data/cfd.xlsx",
+        pi_config="",
         from_date="2024-01-01",
         to_date="2024-12-31",
         projects="ARTA, ARTB",
@@ -343,7 +344,7 @@ class TestBuildTemplateDict:
     def test_roundtrip_fields(self):
         state = _sample_template()
         tpl = _build_template_dict(**state)
-        for key in ("issue_times", "cfd", "from_date", "to_date",
+        for key in ("issue_times", "cfd", "pi_config", "from_date", "to_date",
                     "projects", "issuetypes", "terminology", "ct_method", "language"):
             assert tpl[key] == state[key]
 
@@ -363,7 +364,7 @@ class TestParseTemplateDict:
         state = _sample_template()
         tpl = _build_template_dict(**state)
         parsed = _parse_template_dict(tpl)
-        for key in ("issue_times", "cfd", "from_date", "to_date",
+        for key in ("issue_times", "cfd", "pi_config", "from_date", "to_date",
                     "projects", "issuetypes", "terminology", "ct_method", "language"):
             assert parsed[key] == state[key]
 
@@ -371,6 +372,7 @@ class TestParseTemplateDict:
         parsed = _parse_template_dict({"version": 1})
         assert parsed["issue_times"] == ""
         assert parsed["cfd"] == ""
+        assert parsed["pi_config"] == ""
         assert parsed["from_date"] == ""
         assert parsed["to_date"] == ""
         assert isinstance(parsed["metrics"], dict)

@@ -3,7 +3,7 @@
 # Repository:     https://github.com/Jaegerfeld/situation-report
 # KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
 # Erstellt:       15.04.2026
-# Geändert:       15.04.2026
+# Geändert:       17.04.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
@@ -28,6 +28,7 @@ from .filters import FilterConfig, apply_filters
 from .loader import load_report_data
 from .metrics import all_metrics, get_metric
 from .metrics.flow_time import CT_METHOD_A, CT_METHOD_B, FlowTimeMetric
+from .metrics.flow_velocity import FlowVelocityMetric
 from .terminology import GLOBAL, SAFE
 
 
@@ -62,6 +63,7 @@ def run_reports(
     issuetypes: list[str] | None = None,
     terminology: str = SAFE,
     ct_method: str = CT_METHOD_A,
+    pi_config: Path | None = None,
     output_pdf: Path | None = None,
     open_browser: bool = False,
     log: Callable[[str], None] = print,
@@ -83,6 +85,8 @@ def run_reports(
         terminology:  Display mode — SAFE or GLOBAL.
         ct_method:    Cycle time calculation method: CT_METHOD_A (date diff)
                       or CT_METHOD_B (sum of stage minutes).
+        pi_config:    Path to a JSON PI interval config file (optional).
+                      If None, quarterly intervals are used for Flow Velocity.
         output_pdf:   If set, export all figures to this PDF file.
         open_browser: If True, open each figure in the default browser.
         log:          Callable for progress/warning output.
@@ -112,10 +116,12 @@ def run_reports(
     else:
         plugins = all_metrics()
 
-    # Configure ct_method on the FlowTime plugin
+    # Configure per-plugin settings
     for plugin in plugins:
         if isinstance(plugin, FlowTimeMetric):
             plugin.ct_method = ct_method
+        if isinstance(plugin, FlowVelocityMetric):
+            plugin.pi_config_path = str(pi_config) if pi_config else ""
 
     all_figures = []
     all_results = []
@@ -197,6 +203,10 @@ def main() -> None:
                         default=CT_METHOD_A, dest="ct_method",
                         help="Cycle time method: A=date diff, B=sum of stage minutes "
                              f"(default: {CT_METHOD_A})")
+    parser.add_argument("--pi-config", type=Path, default=None,
+                        metavar="FILE", dest="pi_config",
+                        help="JSON file defining custom PI intervals for Flow Velocity "
+                             "(default: quarterly intervals)")
     parser.add_argument("--pdf", type=Path, default=None,
                         metavar="FILE",
                         help="Export all figures to this PDF file")
@@ -215,6 +225,7 @@ def main() -> None:
         issuetypes=args.issuetypes,
         terminology=args.terminology,
         ct_method=args.ct_method,
+        pi_config=args.pi_config,
         output_pdf=args.pdf,
         open_browser=args.browser,
     )

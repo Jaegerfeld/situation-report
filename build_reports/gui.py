@@ -35,6 +35,7 @@ from .cli import run_reports
 from .export import write_zero_day_excel
 from .metrics import all_metrics
 from .metrics.flow_time import CT_METHOD_A, CT_METHOD_B, FlowTimeMetric
+from .metrics.flow_velocity import FlowVelocityMetric
 from .terminology import GLOBAL, SAFE, term
 
 # ---------------------------------------------------------------------------
@@ -62,6 +63,7 @@ _T: dict[str, dict[str, str]] = {
         "sec_ct":            "CT-Methode (Flow Time)",
         "lbl_issue_times":   "IssueTimes",
         "lbl_cfd":           "CFD (optional)",
+        "lbl_pi_config":     "PI-Konfig (optional)",
         "lbl_from":          "Von (YYYY-MM-DD)",
         "lbl_to":            "Bis (YYYY-MM-DD)",
         "lbl_projects":      "Projekte",
@@ -78,6 +80,7 @@ _T: dict[str, dict[str, str]] = {
         "ct_b":              "B \u2013 Stage-Minuten (First bis Closed, exkl.)",
         "dlg_issue_times":   "IssueTimes-Datei w\u00e4hlen",
         "dlg_cfd":           "CFD-Datei w\u00e4hlen",
+        "dlg_pi_config":     "PI-Konfigurationsdatei w\u00e4hlen",
         "dlg_pdf":           "PDF speichern unter",
         "dlg_pick_date":     "Datum w\u00e4hlen",
         "dlg_projects":      "Projekte w\u00e4hlen",
@@ -112,6 +115,7 @@ _T: dict[str, dict[str, str]] = {
         # Tooltips
         "tip_issue_times":   "IssueTimes.xlsx aus transform_data \u2014 enth\u00e4lt alle Issues mit Datums- und Stufenangaben.",
         "tip_cfd":           "CFD.xlsx aus transform_data \u2014 optional, wird nur f\u00fcr die CFD-Metrik ben\u00f6tigt.",
+        "tip_pi_config":     "JSON-Konfigdatei mit PI-Intervallen f\u00fcr Flow Velocity. Ohne Datei werden Quartale verwendet.",
         "tip_browse":        "Datei ausw\u00e4hlen \u2026",
         "tip_from":          "Nur Issues einbeziehen, die ab diesem Datum abgeschlossen wurden (inkl.).",
         "tip_to":            "Nur Issues einbeziehen, die bis zu diesem Datum abgeschlossen wurden (inkl.).",
@@ -143,6 +147,7 @@ _T: dict[str, dict[str, str]] = {
         "sec_ct":            "CT Method (Flow Time)",
         "lbl_issue_times":   "IssueTimes",
         "lbl_cfd":           "CFD (optional)",
+        "lbl_pi_config":     "PI Config (optional)",
         "lbl_from":          "From (YYYY-MM-DD)",
         "lbl_to":            "To (YYYY-MM-DD)",
         "lbl_projects":      "Projects",
@@ -159,6 +164,7 @@ _T: dict[str, dict[str, str]] = {
         "ct_b":              "B \u2013 Stage minutes (First to Closed, excl.)",
         "dlg_issue_times":   "Select IssueTimes file",
         "dlg_cfd":           "Select CFD file",
+        "dlg_pi_config":     "Select PI configuration file",
         "dlg_pdf":           "Save PDF as",
         "dlg_pick_date":     "Pick Date",
         "dlg_projects":      "Select Projects",
@@ -193,6 +199,7 @@ _T: dict[str, dict[str, str]] = {
         # Tooltips
         "tip_issue_times":   "IssueTimes.xlsx from transform_data \u2014 contains all issues with dates and stage data.",
         "tip_cfd":           "CFD.xlsx from transform_data \u2014 optional, only required for the CFD metric.",
+        "tip_pi_config":     "JSON config file defining PI intervals for Flow Velocity. Without a file, quarterly intervals are used.",
         "tip_browse":        "Select file \u2026",
         "tip_from":          "Include only issues closed on or after this date (inclusive).",
         "tip_to":            "Include only issues closed on or before this date (inclusive).",
@@ -462,6 +469,7 @@ def _build_template_dict(
     ct_method: str,
     metrics: dict[str, bool],
     language: str,
+    pi_config: str = "",
 ) -> dict:
     """
     Assemble the template dictionary that is written to JSON.
@@ -480,6 +488,7 @@ def _build_template_dict(
         ct_method:    CT calculation method constant (CT_METHOD_A or CT_METHOD_B).
         metrics:      Dict mapping metric_id → bool (True = selected).
         language:     Language code (LANG_DE or LANG_EN).
+        pi_config:    Absolute path string for PI config JSON (may be empty).
 
     Returns:
         JSON-serialisable dict with a ``version`` key.
@@ -488,6 +497,7 @@ def _build_template_dict(
         "version": _TEMPLATE_VERSION,
         "issue_times": issue_times,
         "cfd": cfd,
+        "pi_config": pi_config,
         "from_date": from_date,
         "to_date": to_date,
         "projects": projects,
@@ -527,6 +537,7 @@ def _parse_template_dict(data: dict) -> dict:
         "version": version,
         "issue_times": str(data.get("issue_times", "")),
         "cfd": str(data.get("cfd", "")),
+        "pi_config": str(data.get("pi_config", "")),
         "from_date": str(data.get("from_date", "")),
         "to_date": str(data.get("to_date", "")),
         "projects": str(data.get("projects", "")),
@@ -563,6 +574,7 @@ class BuildReportsApp(tk.Tk):
         self._lang_var = tk.StringVar(value=LANG_DE)
         self._issue_times_var = tk.StringVar()
         self._cfd_var = tk.StringVar()
+        self._pi_config_var = tk.StringVar()
         _from_default, _to_default = _default_date_range()
         self._from_date_var = tk.StringVar(value=str(_from_default))
         self._to_date_var = tk.StringVar(value=str(_to_default))
@@ -690,6 +702,20 @@ class BuildReportsApp(tk.Tk):
         self._tips.append((_ToolTip(cfd_entry, self._tr("tip_cfd")), "tip_cfd"))
 
         btn = ttk.Button(self, text=self._tr("btn_browse"), command=self._pick_cfd)
+        btn.grid(row=row, column=2, **pad)
+        self._i18n.append((btn, "btn_browse"))
+        self._tips.append((_ToolTip(btn, self._tr("tip_browse")), "tip_browse"))
+        row += 1
+
+        lbl = tk.Label(self, text=self._tr("lbl_pi_config"), anchor="w")
+        lbl.grid(row=row, column=0, sticky="w", **pad)
+        self._i18n.append((lbl, "lbl_pi_config"))
+
+        pi_entry = tk.Entry(self, textvariable=self._pi_config_var, state="readonly", width=50)
+        pi_entry.grid(row=row, column=1, sticky="ew", **pad)
+        self._tips.append((_ToolTip(pi_entry, self._tr("tip_pi_config")), "tip_pi_config"))
+
+        btn = ttk.Button(self, text=self._tr("btn_browse"), command=self._pick_pi_config)
         btn.grid(row=row, column=2, **pad)
         self._i18n.append((btn, "btn_browse"))
         self._tips.append((_ToolTip(btn, self._tr("tip_browse")), "tip_browse"))
@@ -904,6 +930,7 @@ class BuildReportsApp(tk.Tk):
             tpl = _build_template_dict(
                 issue_times=self._issue_times_var.get(),
                 cfd=self._cfd_var.get(),
+                pi_config=self._pi_config_var.get(),
                 from_date=self._from_date_var.get(),
                 to_date=self._to_date_var.get(),
                 projects=self._projects_var.get(),
@@ -945,6 +972,7 @@ class BuildReportsApp(tk.Tk):
 
         self._issue_times_var.set(state["issue_times"])
         self._cfd_var.set(state["cfd"])
+        self._pi_config_var.set(state["pi_config"])
         self._from_date_var.set(state["from_date"])
         self._to_date_var.set(state["to_date"])
         self._projects_var.set(state["projects"])
@@ -957,7 +985,7 @@ class BuildReportsApp(tk.Tk):
                 var.set(bool(state["metrics"][mid]))
 
         # Warn if stored file paths have gone missing
-        for key in ("issue_times", "cfd"):
+        for key in ("issue_times", "cfd", "pi_config"):
             p = state[key]
             if p and not Path(p).is_file():
                 self._log(self._tr("err_not_found").format(p))
@@ -1000,6 +1028,15 @@ class BuildReportsApp(tk.Tk):
             it = self._issue_times_var.get().strip()
             if it:
                 self._check_consistency_async(Path(it), Path(path))
+
+    def _pick_pi_config(self) -> None:
+        """Open a file dialog to select a PI configuration JSON file."""
+        path = filedialog.askopenfilename(
+            title=self._tr("dlg_pi_config"),
+            filetypes=[("JSON-Dateien", "*.json"), ("Alle Dateien", "*.*")],
+        )
+        if path:
+            self._pi_config_var.set(path)
 
     def _load_filter_options_async(self, path: Path) -> None:
         """
@@ -1199,6 +1236,9 @@ class BuildReportsApp(tk.Tk):
         cfd_str = self._cfd_var.get().strip()
         cfd = Path(cfd_str) if cfd_str else None
 
+        pi_config_str = self._pi_config_var.get().strip()
+        pi_config = Path(pi_config_str) if pi_config_str else None
+
         try:
             from_date = _parse_date_safe(self._from_date_var.get())
         except ValueError:
@@ -1222,6 +1262,7 @@ class BuildReportsApp(tk.Tk):
         return dict(
             issue_times=issue_times,
             cfd=cfd,
+            pi_config=pi_config,
             from_date=from_date,
             to_date=to_date,
             projects=projects,
@@ -1281,6 +1322,9 @@ class BuildReportsApp(tk.Tk):
                 for plugin in plugins:
                     if isinstance(plugin, FlowTimeMetric):
                         plugin.ct_method = inputs.get("ct_method", CT_METHOD_A)
+                    if isinstance(plugin, FlowVelocityMetric):
+                        pi_cfg = inputs.get("pi_config")
+                        plugin.pi_config_path = str(pi_cfg) if pi_cfg else ""
 
                 all_figures = []
                 all_results = []
@@ -1361,6 +1405,7 @@ class BuildReportsApp(tk.Tk):
                     issuetypes=inputs["issuetypes"],
                     terminology=inputs["terminology"],
                     ct_method=inputs["ct_method"],
+                    pi_config=inputs.get("pi_config"),
                     output_pdf=Path(out_path),
                     log=self._log,
                 )

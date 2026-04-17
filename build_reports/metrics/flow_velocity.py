@@ -3,16 +3,17 @@
 # Repository:     https://github.com/Jaegerfeld/situation-report
 # KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
 # Erstellt:       15.04.2026
-# Geändert:       15.04.2026
+# Geändert:       17.04.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
 #   Implementiert die Flow Velocity / Throughput Metrik. Zählt abgeschlossene
 #   Issues (Closed Date vorhanden) nach Zeitraum. Liefert drei Diagramme:
 #   Histogramm (Häufigkeit der täglich abgeschlossenen Items), Liniendiagramm
-#   (Items pro Woche über die Zeit) und Balkendiagramm (Items pro SAFe PI,
-#   d.h. ISO-Kalenderwoche gruppiert nach Jahr.KW). Nur Issues mit Closed Date
-#   fließen in die Berechnung ein.
+#   (Items pro Woche über die Zeit) und Balkendiagramm (Items pro PI).
+#   PI-Intervalle werden aus einer optionalen JSON-Konfigdatei geladen; ohne
+#   Konfigdatei werden Kalenderquartale als Standard-PIs verwendet.
+#   Nur Issues mit Closed Date fließen in die Berechnung ein.
 # =============================================================================
 
 from __future__ import annotations
@@ -25,6 +26,9 @@ from datetime import date
 import plotly.graph_objects as go
 
 from ..loader import ReportData
+from ..pi_config import (
+    PIInterval, assign_pi, default_quarter_intervals, load_pi_config,
+)
 from ..terminology import FLOW_VELOCITY, term
 from . import register
 from .base import MetricPlugin, MetricResult
@@ -49,9 +53,10 @@ class _VelocityData:
     """Aggregated velocity data for all three chart variants."""
     daily_freq: dict[int, int]        # items-per-day count -> frequency (histogram)
     weekly: dict[str, int]            # 'YYYY.WW' -> item count
-    per_pi: dict[str, int]            # 'YYYY.WW' -> item count (same as weekly, displayed as bars)
+    per_pi: dict[str, int]            # PI name -> item count (ordered by interval)
     closed_dates: list[date]          # individual closed dates (sorted)
     avg_per_week: float
+    pi_intervals: list[PIInterval]    # PI definitions used for the bar chart
 
 
 class FlowVelocityMetric(MetricPlugin):
@@ -61,9 +66,13 @@ class FlowVelocityMetric(MetricPlugin):
     Counts completed issues (those with a Closed Date) per time period.
     Produces three figures: a daily frequency histogram, a weekly line chart,
     and a per-PI bar chart.
+
+    Set pi_config_path to a JSON file path before calling compute() to use
+    custom PI intervals. If empty, quarterly intervals are used by default.
     """
 
     metric_id = FLOW_VELOCITY
+    pi_config_path: str = ""
 
     def compute(self, data: ReportData, terminology: str) -> MetricResult:
         """
@@ -92,20 +101,43 @@ class FlowVelocityMetric(MetricPlugin):
         per_day: Counter[date] = Counter(closed)
         daily_freq: Counter[int] = Counter(per_day.values())
 
-        # Weekly and per-PI: same ISO week label
+        # Weekly ISO week label
         weekly: Counter[str] = Counter(_iso_week_label(d) for d in closed)
 
-        # Fill in zero-count weeks between first and last to make the line chart continuous
-        all_weeks = sorted(weekly.keys())
-
         avg_per_week = statistics.mean(weekly.values()) if weekly else 0.0
+
+        # PI intervals: load from config or fall back to quarterly defaults
+        pi_intervals: list[PIInterval] = []
+        if self.pi_config_path:
+            try:
+                pi_intervals = load_pi_config(self.pi_config_path)
+            except Exception as exc:
+                warnings.append(f"PI config could not be loaded ({exc}); using quarterly defaults.")
+
+        if not pi_intervals:
+            pi_intervals = default_quarter_intervals(closed[0], closed[-1])
+
+        # Count issues per PI (preserve interval order; unassigned go to "Other")
+        per_pi: dict[str, int] = {iv.name: 0 for iv in pi_intervals}
+        unassigned = 0
+        for d in closed:
+            pi_name = assign_pi(d, pi_intervals)
+            if pi_name is not None:
+                per_pi[pi_name] += 1
+            else:
+                unassigned += 1
+        if unassigned:
+            warnings.append(
+                f"{unassigned} issue(s) not covered by any PI interval — excluded from PI chart."
+            )
 
         chart_data = _VelocityData(
             daily_freq=dict(sorted(daily_freq.items())),
             weekly=dict(sorted(weekly.items())),
-            per_pi=dict(sorted(weekly.items())),
+            per_pi=per_pi,
             closed_dates=closed,
             avg_per_week=round(avg_per_week, 2),
+            pi_intervals=pi_intervals,
         )
 
         from_date = closed[0]
@@ -183,8 +215,12 @@ class FlowVelocityMetric(MetricPlugin):
         counts_pi = list(vd.per_pi.values())
         avg = s["avg_per_week"]
 
-        # Color bars: below average = gray, above = orange (alternating for visual grouping)
+        # Color bars: at or above average = orange, below = steelblue
         colors = ["orange" if c >= avg else "steelblue" for c in counts_pi]
+
+        # PI axis label: "PI" for custom config, "Quarter" for quarterly defaults
+        pi_source = "custom" if self.pi_config_path else "quarterly"
+        xaxis_label = "PI" if pi_source == "custom" else "Quarter"
 
         fig_pi = go.Figure(go.Bar(
             x=pis, y=counts_pi,
@@ -200,7 +236,7 @@ class FlowVelocityMetric(MetricPlugin):
         fig_pi.update_layout(
             title=f"{label}: Feature per PI.  Average = {avg}",
             title_font_size=11,
-            xaxis_title="PI (ISO Week)", yaxis_title="count",
+            xaxis_title=xaxis_label, yaxis_title="count",
             plot_bgcolor="#e8e8e8", paper_bgcolor="#e8e8e8",
             height=450,
         )
