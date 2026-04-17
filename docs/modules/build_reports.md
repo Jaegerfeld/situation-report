@@ -1,6 +1,6 @@
 # build_reports
 
-Liest die von `transform_data` erzeugten XLSX-Dateien und berechnet Flow-Metriken als interaktive Diagramme. Unterstützt SAFe- und Global-Terminologie, optionale Filter und PDF-Export.
+Liest die von `transform_data` erzeugten XLSX-Dateien und berechnet Flow-Metriken als interaktive Diagramme. Unterstützt SAFe- und Global-Terminologie, optionale Filter, PDF-Export und eine vollständig lokalisierte GUI (Deutsch/Englisch).
 
 ## Start
 
@@ -10,9 +10,7 @@ Liest die von `transform_data` erzeugten XLSX-Dateien und berechnet Flow-Metrike
 python -m build_reports
 ```
 
-Öffnet das build_reports-Fenster mit Datei-Auswahl, Filterfeldern, Metrik-Checkboxen und Terminologie-Umschalter. Diagramme werden im Standard-Browser als interaktives HTML angezeigt. PDF-Export öffnet einen Speicher-Dialog.
-
-Alternativ: Doppelklick auf `build_reports_gui.pyw` im Projektverzeichnis — öffnet die GUI ohne Konsolenfenster.
+Öffnet das build_reports-Fenster. Alternativ: Doppelklick auf `build_reports_gui.pyw` im Projektverzeichnis — öffnet die GUI ohne Konsolenfenster.
 
 ### Kommandozeile
 
@@ -32,6 +30,7 @@ python -m build_reports.cli <IssueTimes.xlsx> [Optionen]
 | `--projects KEY …` | Auf diese Projektschlüssel einschränken |
 | `--issuetypes TYPE …` | Auf diese Issuetypen einschränken |
 | `--terminology` | Terminologie: `SAFe` (Standard) oder `Global` |
+| `--ct-method` | CT-Berechnungsmethode: `A` (Kalendertage, Standard) oder `B` (Stage-Minuten) |
 | `--pdf FILE` | Alle Diagramme als PDF speichern |
 | `--browser` | Diagramme im Standard-Browser öffnen |
 
@@ -47,10 +46,11 @@ python -m build_reports.cli data/ART_A_IssueTimes.xlsx \
     --from-date 2025-01-01 --to-date 2025-12-31 \
     --browser
 
-# Mehrere Metriken, Global-Terminologie
+# Mehrere Metriken, Global-Terminologie, CT-Methode B
 python -m build_reports.cli data/ART_A_IssueTimes.xlsx --cfd data/ART_A_CFD.xlsx \
     --metrics flow_time flow_velocity cfd \
     --terminology Global \
+    --ct-method B \
     --pdf quarterly_report.pdf
 ```
 
@@ -64,6 +64,60 @@ python -m build_reports.cli data/ART_A_IssueTimes.xlsx --cfd data/ART_A_CFD.xlsx
 | `python -m build_reports.cli --help` | CLI-Hilfe |
 | Doppelklick auf `build_reports_gui.pyw` | GUI ohne Konsolenfenster |
 
+## GUI
+
+### Optionsmenü
+
+Das Menüband enthält zwei Menüs:
+
+**Optionen**
+
+- **Sprache** — Umschalten zwischen Deutsch und Englisch; alle Labels, Tooltips und Menüpunkte werden sofort aktualisiert.
+- **Terminologie** — Umschalten zwischen SAFe und Global; betrifft Diagrammtitel, Achsenbeschriftungen und Metrik-Checkboxen.
+
+**Templates**
+
+- **Speichern…** — Speichert die gesamte aktuelle Konfiguration (Dateipfade, Datumsfilter, Projekte, Issuetypen, Terminologie, CT-Methode, Metrikauswahl, Sprache) als JSON-Datei.
+- **Laden…** — Lädt eine gespeicherte Konfiguration und befüllt alle Felder. Pfade, die nicht mehr existieren, werden im Log angezeigt.
+
+### Dateien
+
+- **IssueTimes** — Pflichtfeld. Nach der Auswahl werden Projekte und Issuetypen automatisch aus der Datei geladen (Hintergrund-Thread). Falls eine CFD-Datei bereits gesetzt ist, wird gleichzeitig ein Stage-Konsistenz-Check durchgeführt.
+- **CFD (optional)** — Wird nur für die CFD-Metrik benötigt. Beim Setzen wird der Stage-Konsistenz-Check ausgeführt.
+
+### Filter
+
+| Feld | Beschreibung |
+|------|-------------|
+| Von / Bis | Datumsfilter auf `Closed Date`. Standard: letzte 365 Tage. Direkteingabe (YYYY-MM-DD) oder Kalender-Picker (📅-Button). |
+| Letzte 365 Tage | Setzt Von und Bis auf heute − 365 Tage bis heute. |
+| Projekte | Kommagetrennte Projektschlüssel, z. B. `ARTA, ARTB`. Leer = alle. ▾-Button öffnet eine Auswahlliste aus der geladenen Datei. |
+| Issuetypen | Kommagetrennte Issuetypen, z. B. `Feature, Bug`. Leer = alle. ▾-Button öffnet eine Auswahlliste. |
+
+### Metriken und CT-Methode
+
+Über Checkboxen können einzelne Metriken aktiviert oder deaktiviert werden. **Alle** und **Keine** setzen alle Checkboxen auf einmal.
+
+Die CT-Methode (nur für Flow Time relevant) wird per Radiobutton gewählt:
+
+| Methode | Berechnung |
+|---------|------------|
+| A (Standard) | Kalendertage: `Closed Date − First Date` |
+| B | Summe der Stage-Minuten von `First Date` bis `Closed Date` (letzte Stage ausgeschlossen) |
+
+### Stage-Konsistenz-Check
+
+Beim Laden von IssueTimes oder CFD werden die Stage-Spalten beider Dateien verglichen. Abweichungen werden im Log angezeigt:
+
+```
+Stage nur in IssueTimes: Review
+Stage nur in CFD: In Review
+```
+
+### Tooltips
+
+Alle interaktiven Elemente (Eingabefelder, Buttons, Radiobuttons, Checkboxen) zeigen beim Hover einen erläuternden Tooltip. Tooltips werden beim Sprachwechsel automatisch aktualisiert.
+
 ## Metriken
 
 ### Flow Time / Cycle Time
@@ -72,10 +126,26 @@ python -m build_reports.cli data/ART_A_IssueTimes.xlsx --cfd data/ART_A_CFD.xlsx
 
 Berechnet die Durchlaufzeit (in Tagen) von der ersten Aktivität (`First Date`) bis zum Abschluss (`Closed Date`) für alle abgeschlossenen Issues. Issues ohne beide Daten oder mit einer Durchlaufzeit von 0 Tagen werden ausgeschlossen.
 
+**CT-Berechnungsmethoden:**
+
+- **Methode A** (Standard): Differenz in Kalendertagen zwischen `First Date` und `Closed Date`.
+- **Methode B**: Summe der Stage-Minuten aller Stages außer der letzten, dividiert durch 1440.
+
 **Diagramme:**
 
-- **Boxplot** — Verteilung der Durchlaufzeiten mit Statistik-Header (Median, Mittelwert, Min, Max, 90. Perzentil, Variationskoeffizient)
-- **Scatterplot** — Durchlaufzeit je Abschlussdatum mit Trendlinie und Referenzlinien (Median, 85. und 95. Perzentil)
+- **Boxplot** — Verteilung der Durchlaufzeiten mit Statistik-Header (Min, Q1, Mittelwert, Median, Q3, Max, 90. Perzentil, Standardabweichung, Variationskoeffizient, Anzahl Zero-Day Issues).
+- **Scatterplot** — Durchlaufzeit je Abschlussdatum mit:
+  - **LOESS-Trendlinie** (blau, durchgezogen) — lokal gewichtete Regression ohne externe Abhängigkeit.
+  - **Referenzlinien** (gepunktet): Median (rot), 85. Perzentil (hellgrün), 95. Perzentil (cyan).
+  - **Farbkodierung der Punkte**: ≥ 95. Perzentil = rot, ≥ 85. Perzentil = orange, darunter = blau.
+  - **X-Achse**: monatliche Ticks; ungerade Monate mit Namenskürzel, gerade Monate mit „·".
+
+**Zero-Day Issues:**
+
+Issues mit Durchlaufzeit ≤ 0 werden aus der Berechnung ausgeschlossen:
+
+- **PDF-Export**: Automatisch als `<reportname>_zero_day_issues.xlsx` im selben Ordner gespeichert (wenn Issues vorhanden).
+- **Browser-Anzeige**: Issue-Keys im Log-Fenster aufgelistet.
 
 | SAFe | Global |
 |------|--------|
@@ -149,14 +219,15 @@ Filter können in der GUI über die Eingabefelder gesetzt oder per CLI als Argum
 
 | Filter | GUI | CLI |
 |--------|-----|-----|
-| Von-Datum | Feld „Von (YYYY-MM-DD)" | `--from-date` |
-| Bis-Datum | Feld „Bis (YYYY-MM-DD)" | `--to-date` |
-| Projekte | Feld „Projekte" (kommagetrennt) | `--projects` |
-| Issuetypen | Feld „Issuetypen" (kommagetrennt) | `--issuetypes` |
+| Von-Datum | Feld „Von", 📅-Button oder „Letzte 365 Tage" | `--from-date` |
+| Bis-Datum | Feld „Bis", 📅-Button oder „Letzte 365 Tage" | `--to-date` |
+| Projekte | Feld „Projekte" (kommagetrennt) oder ▾-Auswahl | `--projects` |
+| Issuetypen | Feld „Issuetypen" (kommagetrennt) oder ▾-Auswahl | `--issuetypes` |
 
-- Das Datumsfilter bezieht sich auf das `Closed Date` der Issues.
+- Der Datumsfilter bezieht sich auf das `Closed Date` der Issues.
 - Issues ohne `Closed Date` werden bei gesetztem Datumsfilter ausgeschlossen.
 - CFD-Daten werden nur nach Datum gefiltert (keine Projekt- oder Issuetyp-Dimension).
+- Standard-Datumsbereich: die letzten 365 Tage bis heute.
 
 ## Terminologie
 
@@ -174,7 +245,7 @@ Alle Metrik-Bezeichnungen können zwischen SAFe und Global umgeschaltet werden. 
 
 ### Browser-Anzeige
 
-Alle Diagramme werden als kombiniertes HTML-Dokument in einer temporären Datei erzeugt und im Standard-Browser geöffnet. Die Diagramme sind vollständig interaktiv (Zoom, Pan, Hover-Tooltips, Legende ein-/ausblenden).
+Alle Diagramme werden als kombiniertes HTML-Dokument in einer temporären Datei erzeugt und im Standard-Browser geöffnet. Die Diagramme sind vollständig interaktiv (Zoom, Pan, Hover-Tooltips, Legende ein-/ausblenden). Jede Metrik erhält eine Überschrift im HTML-Dokument.
 
 ### PDF-Export
 
@@ -185,6 +256,11 @@ python -m build_reports.cli <xlsx> --pdf report.pdf
 - Einzelne Diagramme werden direkt als PDF erzeugt.
 - Mehrere Diagramme werden über `pypdf` zu einem mehrseitigen PDF zusammengefügt.
 - Der Export nutzt `kaleido` zur Rasterisierung (einmalig `choreo_get_chrome` ausführen, falls kaleido den Chrome-Binary noch nicht gefunden hat).
+- Bei vorhandenen Zero-Day Issues wird automatisch `report_zero_day_issues.xlsx` im selben Ordner erstellt.
+
+### Zero-Day Issues Excel
+
+Die exportierte Datei enthält dieselben Spalten wie IssueTimes (Project, Key, Issuetype, Status, Dates, Resolution), sortiert nach Projekt und Key. Der Dateiname wird automatisch aus dem PDF-Namen abgeleitet.
 
 ## Plugin-System
 
@@ -192,7 +268,8 @@ Neue Metriken können als eigenständiges Modul in `build_reports/metrics/` hinz
 
 ```python
 # build_reports/metrics/my_metric.py
-from build_reports.metrics.base import MetricPlugin, MetricResult, register
+from build_reports.metrics.base import MetricPlugin, MetricResult
+from build_reports.metrics import register
 import plotly.graph_objects as go
 
 class MyMetric(MetricPlugin):
