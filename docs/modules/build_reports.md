@@ -193,6 +193,10 @@ Liest die tagesgenauen Stage-Zählungen aus `CFD.xlsx`. Zeigt den Zustand des Sy
 
 **Diagramm:** Gestapeltes Flächendiagramm (erste Stage oben) mit zwei Trendlinien (Zufluss/Abfluss) und In/Out-Ratio im Titel.
 
+- **Obere Trendlinie** — verläuft vom Gesamtbestand (Summe aller Stages) am ersten bis zum letzten Tag (Zufluss).
+- **Untere Trendlinie** — verläuft vom Wert der letzten Stage (z. B. „Done"/„Closed") am ersten bis zum letzten Tag (Abfluss).
+- **X-Achse** — Monatsgrenzen werden groß beschriftet (z. B. „Jan 2025"); ISO-Kalenderwochen-Montage werden klein und in Grau dargestellt (z. B. „W03"), damit sich die Labels nicht überlappen.
+
 | SAFe | Global |
 |------|--------|
 | Cumulative Flow Diagram | Cumulative Flow Diagram |

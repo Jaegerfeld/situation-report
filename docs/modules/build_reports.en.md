@@ -193,6 +193,10 @@ Reads the daily stage counts from `CFD.xlsx`. Shows the state of the system over
 
 **Chart:** Stacked area chart (first stage on top) with two trend lines (inflow/outflow) and the In/Out ratio in the title.
 
+- **Upper trend line** — runs from the total backlog (sum of all stages) on the first to the last day (inflow).
+- **Lower trend line** — runs from the value of the last stage (e.g. "Done" / "Closed") on the first to the last day (outflow).
+- **X-axis** — month boundaries are labelled prominently (e.g. "Jan 2025"); ISO calendar-week Mondays are shown small and in grey (e.g. "W03") to prevent label overlap.
+
 | SAFe | Global |
 |------|--------|
 | Cumulative Flow Diagram | Cumulative Flow Diagram |
