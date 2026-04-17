@@ -2,6 +2,11 @@
 
 Reads the XLSX files produced by `transform_data` and computes flow metrics as interactive charts. Supports SAFe and Global terminology, optional filters, PDF export, and a fully localised GUI (German/English).
 
+!!! tip "User Manual (PDF)"
+    A comprehensive user manual for non-technical users is available:
+    **[build_reports_Benutzerhandbuch.pdf](../build_reports_Benutzerhandbuch.pdf)**
+    — covers setup, GUI walkthrough, metric explanations, FAQ, and glossary.
+
 ## Start
 
 ### GUI

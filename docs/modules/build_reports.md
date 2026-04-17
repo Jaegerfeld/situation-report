@@ -2,6 +2,11 @@
 
 Liest die von `transform_data` erzeugten XLSX-Dateien und berechnet Flow-Metriken als interaktive Diagramme. Unterstützt SAFe- und Global-Terminologie, optionale Filter, PDF-Export und eine vollständig lokalisierte GUI (Deutsch/Englisch).
 
+!!! tip "Benutzerhandbuch (PDF)"
+    Für Nicht-Techniker steht ein ausführliches Benutzerhandbuch bereit:
+    **[build_reports_Benutzerhandbuch.pdf](../build_reports_Benutzerhandbuch.pdf)**
+    — enthält Setup, GUI-Bedienung, Metriken-Erklärungen, FAQ und Glossar.
+
 ## Start
 
 ### GUI
