@@ -337,10 +337,12 @@ class FlowTimeMetric(MetricPlugin):
         fig_box.add_trace(go.Box(
             x=values,
             orientation="h",
-            marker_color="orange",
+            fillcolor="orange",
             line_color="darkgray",
             boxpoints="outliers",
             marker=dict(color="red", size=6),
+            text=[p.key for p in points],
+            hovertemplate="<b>%{text}</b><br>Days: %{x}<extra></extra>",
             name=label,
         ))
         fig_box.update_layout(

@@ -273,6 +273,28 @@ class TestRender:
         assert "pct85" in result.stats
         assert "pct95" in result.stats
 
+    def test_boxplot_outlier_marker_color_is_red(self, metric, simple_data):
+        result = metric.compute(simple_data, SAFE)
+        figures = metric.render(result, SAFE)
+        boxplot = figures[0]
+        assert boxplot.data[0].marker.color == "red"
+
+    def test_boxplot_fill_color_is_orange(self, metric, simple_data):
+        result = metric.compute(simple_data, SAFE)
+        figures = metric.render(result, SAFE)
+        boxplot = figures[0]
+        assert boxplot.data[0].fillcolor == "orange"
+
+    def test_boxplot_has_issue_key_tooltips(self, metric, simple_data):
+        result = metric.compute(simple_data, SAFE)
+        figures = metric.render(result, SAFE)
+        boxplot = figures[0]
+        trace = boxplot.data[0]
+        assert trace.text is not None
+        assert len(trace.text) == len(simple_data.issues)
+        assert trace.hovertemplate is not None
+        assert "%{text}" in trace.hovertemplate
+
 
 class TestLoess:
     def test_same_length_as_input(self):
