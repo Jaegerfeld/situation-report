@@ -32,6 +32,7 @@ from openpyxl import load_workbook
 from tkcalendar import Calendar
 
 from .cli import run_reports
+from .export import write_zero_day_excel
 from .metrics import all_metrics
 from .metrics.flow_time import CT_METHOD_A, CT_METHOD_B, FlowTimeMetric
 from .terminology import GLOBAL, SAFE, term
@@ -106,6 +107,8 @@ _T: dict[str, dict[str, str]] = {
         "log_tpl_saved":     "Template gespeichert: {}",
         "log_tpl_loaded":    "Template geladen: {}",
         "log_tpl_error":     "Fehler beim Template: {}",
+        "log_zero_day_xlsx": "  {} Zero-Day Issue(s) exportiert: {}",
+        "log_zero_day_log":  "  Zero-Day Issues ({}): {}",
         # Tooltips
         "tip_issue_times":   "IssueTimes.xlsx aus transform_data \u2014 enth\u00e4lt alle Issues mit Datums- und Stufenangaben.",
         "tip_cfd":           "CFD.xlsx aus transform_data \u2014 optional, wird nur f\u00fcr die CFD-Metrik ben\u00f6tigt.",
@@ -185,6 +188,8 @@ _T: dict[str, dict[str, str]] = {
         "log_tpl_saved":     "Template saved: {}",
         "log_tpl_loaded":    "Template loaded: {}",
         "log_tpl_error":     "Template error: {}",
+        "log_zero_day_xlsx": "  {} zero-day issue(s) exported: {}",
+        "log_zero_day_log":  "  Zero-Day Issues ({}): {}",
         # Tooltips
         "tip_issue_times":   "IssueTimes.xlsx from transform_data \u2014 contains all issues with dates and stage data.",
         "tip_cfd":           "CFD.xlsx from transform_data \u2014 optional, only required for the CFD metric.",
@@ -1278,9 +1283,11 @@ class BuildReportsApp(tk.Tk):
                         plugin.ct_method = inputs.get("ct_method", CT_METHOD_A)
 
                 all_figures = []
+                all_results = []
                 section_breaks: dict[int, str] = {}
                 for plugin in plugins:
                     result = plugin.compute(data, inputs["terminology"])
+                    all_results.append(result)
                     for w in result.warnings:
                         self._log(f"  WARNING: {w}")
                     figs = plugin.render(result, inputs["terminology"])
@@ -1289,6 +1296,19 @@ class BuildReportsApp(tk.Tk):
                             plugin.metric_id, inputs["terminology"]
                         )
                     all_figures.extend(figs)
+
+                # Log zero-day issues to the log window (browser mode)
+                seen_zd: set[str] = set()
+                zero_day_keys: list[str] = []
+                for res in all_results:
+                    for rec in res.stats.get("zero_day_records", []):
+                        if rec.key not in seen_zd:
+                            seen_zd.add(rec.key)
+                            zero_day_keys.append(rec.key)
+                if zero_day_keys:
+                    self._log(self._tr("log_zero_day_log").format(
+                        len(zero_day_keys), " | ".join(zero_day_keys)
+                    ))
 
                 if not all_figures:
                     self._log(self._tr("log_no_figs"))

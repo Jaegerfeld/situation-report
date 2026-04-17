@@ -19,7 +19,8 @@ from unittest.mock import MagicMock, call, patch
 import plotly.graph_objects as go
 import pytest
 
-from build_reports.export import export_pdf, export_png
+from build_reports.export import export_pdf, export_png, write_zero_day_excel
+from build_reports.loader import IssueRecord
 
 
 @pytest.fixture
@@ -69,6 +70,66 @@ class TestExportPdf:
         mock_write.assert_called_once_with(
             simple_figure, str(out), format="pdf", width=800, height=600
         )
+
+
+def _make_record(key: str, project: str = "ART") -> IssueRecord:
+    from datetime import datetime
+    return IssueRecord(
+        project=project, key=key, issuetype="Feature", status="Done",
+        created=datetime(2025, 1, 1), component="",
+        first_date=datetime(2025, 1, 5), implementation_date=None,
+        closed_date=datetime(2025, 1, 5),
+        stage_minutes={}, resolution="Done",
+    )
+
+
+class TestWriteZeroDayExcel:
+    def test_creates_file(self, tmp_path):
+        path = tmp_path / "zero_day.xlsx"
+        write_zero_day_excel([_make_record("A-1")], path)
+        assert path.exists()
+
+    def test_creates_parent_dirs(self, tmp_path):
+        path = tmp_path / "sub" / "zero_day.xlsx"
+        write_zero_day_excel([_make_record("A-1")], path)
+        assert path.exists()
+
+    def test_file_contains_header_and_data(self, tmp_path):
+        from openpyxl import load_workbook
+        path = tmp_path / "zero_day.xlsx"
+        write_zero_day_excel([_make_record("A-1"), _make_record("A-2")], path)
+        wb = load_workbook(path)
+        ws = wb.active
+        rows = list(ws.iter_rows(values_only=True))
+        assert rows[0][0] == "Project"  # header
+        keys = [r[1] for r in rows[1:]]
+        assert "A-1" in keys
+        assert "A-2" in keys
+
+    def test_records_sorted_by_project_then_key(self, tmp_path):
+        from openpyxl import load_workbook
+        path = tmp_path / "sorted.xlsx"
+        records = [
+            _make_record("B-2", project="ARTB"),
+            _make_record("A-1", project="ARTA"),
+            _make_record("A-2", project="ARTA"),
+        ]
+        write_zero_day_excel(records, path)
+        wb = load_workbook(path)
+        ws = wb.active
+        rows = list(ws.iter_rows(values_only=True))
+        keys = [r[1] for r in rows[1:]]
+        assert keys == ["A-1", "A-2", "B-2"]
+
+    def test_empty_records_writes_header_only(self, tmp_path):
+        from openpyxl import load_workbook
+        path = tmp_path / "empty.xlsx"
+        write_zero_day_excel([], path)
+        wb = load_workbook(path)
+        ws = wb.active
+        rows = list(ws.iter_rows(values_only=True))
+        assert len(rows) == 1  # header only
+        assert rows[0][0] == "Project"
 
 
 class TestExportPng:

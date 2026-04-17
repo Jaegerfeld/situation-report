@@ -133,6 +133,20 @@ class TestCompute:
         assert result.stats.get("count", 0) == 0
         assert result.stats.get("zero_day_count", 0) == 1
 
+    def test_zero_day_records_stored(self, metric):
+        data = ReportData(
+            issues=[_issue("X", datetime(2025, 1, 1), datetime(2025, 1, 1))],
+            cfd=[], stages=[], source_prefix="",
+        )
+        result = metric.compute(data, SAFE)
+        records = result.stats.get("zero_day_records", [])
+        assert len(records) == 1
+        assert records[0].key == "X"
+
+    def test_normal_issues_not_in_zero_day_records(self, metric, simple_data):
+        result = metric.compute(simple_data, SAFE)
+        assert result.stats.get("zero_day_records", []) == []
+
     def test_warning_on_empty_data(self, metric):
         data = ReportData(issues=[], cfd=[], stages=[], source_prefix="")
         result = metric.compute(data, SAFE)

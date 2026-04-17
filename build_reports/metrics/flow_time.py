@@ -247,6 +247,7 @@ class FlowTimeMetric(MetricPlugin):
         """
         points: list[_FlowTimePoint] = []
         zero_day_count = 0
+        zero_day_records: list = []
         warnings: list[str] = []
 
         for issue in data.issues:
@@ -261,6 +262,7 @@ class FlowTimeMetric(MetricPlugin):
 
             if delta <= 0:
                 zero_day_count += 1
+                zero_day_records.append(issue)
                 continue
             points.append(_FlowTimePoint(
                 key=issue.key,
@@ -272,7 +274,11 @@ class FlowTimeMetric(MetricPlugin):
             warnings.append("No issues with valid First Date and Closed Date found.")
             return MetricResult(
                 metric_id=self.metric_id,
-                stats={"zero_day_count": zero_day_count, "ct_method": self.ct_method},
+                stats={
+                    "zero_day_count": zero_day_count,
+                    "zero_day_records": zero_day_records,
+                    "ct_method": self.ct_method,
+                },
                 warnings=warnings,
             )
 
@@ -280,6 +286,7 @@ class FlowTimeMetric(MetricPlugin):
         stats = _compute_stats(values)
         stats["count"] = len(points)
         stats["zero_day_count"] = zero_day_count
+        stats["zero_day_records"] = zero_day_records
         stats["ct_method"] = self.ct_method
 
         return MetricResult(

@@ -23,7 +23,7 @@ from pathlib import Path
 
 import plotly.io as pio
 
-from .export import export_pdf
+from .export import export_pdf, write_zero_day_excel
 from .filters import FilterConfig, apply_filters
 from .loader import load_report_data
 from .metrics import all_metrics, get_metric
@@ -118,14 +118,25 @@ def run_reports(
             plugin.ct_method = ct_method
 
     all_figures = []
+    all_results = []
     for plugin in plugins:
         log(f"Computing {plugin.metric_id} ...")
         result = plugin.compute(data, terminology)
+        all_results.append(result)
         for w in result.warnings:
             log(f"  WARNING: {w}")
         figures = plugin.render(result, terminology)
         log(f"  → {len(figures)} figure(s)")
         all_figures.extend(figures)
+
+    # Collect zero-day records from all metrics (deduplicated by key)
+    seen_keys: set[str] = set()
+    zero_day_records = []
+    for result in all_results:
+        for rec in result.stats.get("zero_day_records", []):
+            if rec.key not in seen_keys:
+                seen_keys.add(rec.key)
+                zero_day_records.append(rec)
 
     if not all_figures:
         log("No figures produced — nothing to export.")
@@ -135,6 +146,10 @@ def run_reports(
         log(f"Exporting {len(all_figures)} figure(s) to {output_pdf} ...")
         export_pdf(all_figures, output_pdf)
         log(f"  Saved: {output_pdf}")
+        if zero_day_records:
+            xlsx_path = output_pdf.parent / (output_pdf.stem + "_zero_day_issues.xlsx")
+            write_zero_day_excel(zero_day_records, xlsx_path)
+            log(f"  {len(zero_day_records)} Zero-Day Issue(s) exportiert: {xlsx_path.name}")
 
     if open_browser:
         for fig in all_figures:
