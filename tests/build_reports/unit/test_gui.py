@@ -23,7 +23,7 @@ import pytest
 from build_reports.gui import (
     LANG_DE, LANG_EN, _T,
     _build_combined_html, _build_template_dict, _check_stage_consistency,
-    _default_year_range, _parse_date_safe, _parse_template_dict,
+    _default_date_range, _parse_date_safe, _parse_template_dict,
     _read_available_filters, _split_csv,
 )
 
@@ -206,24 +206,23 @@ class TestReadAvailableFilters:
         assert issuetypes == []
 
 
-class TestDefaultYearRange:
+class TestDefaultDateRange:
     def test_returns_tuple_of_two_dates(self):
-        from_d, to_d = _default_year_range()
+        from_d, to_d = _default_date_range()
         assert isinstance(from_d, date)
         assert isinstance(to_d, date)
 
-    def test_from_is_jan_first_of_last_year(self):
-        from_d, _ = _default_year_range()
-        assert from_d.month == 1 and from_d.day == 1
-        assert from_d.year == date.today().year - 1
+    def test_to_is_today(self):
+        _, to_d = _default_date_range()
+        assert to_d == date.today()
 
-    def test_to_is_dec_31_of_last_year(self):
-        _, to_d = _default_year_range()
-        assert to_d.month == 12 and to_d.day == 31
-        assert to_d.year == date.today().year - 1
+    def test_from_is_365_days_before_today(self):
+        from datetime import timedelta
+        from_d, _ = _default_date_range()
+        assert from_d == date.today() - timedelta(days=365)
 
     def test_from_before_to(self):
-        from_d, to_d = _default_year_range()
+        from_d, to_d = _default_date_range()
         assert from_d < to_d
 
 
@@ -254,6 +253,7 @@ class TestTranslations:
             assert "dlg_pick_date" in _T[lang]
             assert "btn_cal" in _T[lang]
             assert "btn_ok" in _T[lang]
+            assert "btn_last_365" in _T[lang]
 
     def test_filter_picker_keys_present(self):
         for lang in (LANG_DE, LANG_EN):

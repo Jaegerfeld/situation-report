@@ -23,7 +23,7 @@ import tempfile
 import threading
 import tkinter as tk
 import webbrowser
-from datetime import date
+from datetime import date, timedelta
 from pathlib import Path
 from tkinter import filedialog, messagebox, scrolledtext, ttk
 from typing import Any
@@ -83,6 +83,7 @@ _T: dict[str, dict[str, str]] = {
         "dlg_issuetypes":    "Issuetypen w\u00e4hlen",
         "btn_cal":           "\U0001f4c5",
         "btn_ok":            "OK",
+        "btn_last_365":      "Letzte 365 Tage",
         "err_no_file":       "FEHLER: Keine IssueTimes-Datei ausgew\u00e4hlt.",
         "err_not_found":     "FEHLER: Datei nicht gefunden: {}",
         "err_from_date":     "FEHLER: Ung\u00fcltiges Von-Datum '{}' (erwartet YYYY-MM-DD).",
@@ -141,6 +142,7 @@ _T: dict[str, dict[str, str]] = {
         "dlg_issuetypes":    "Select Issue Types",
         "btn_cal":           "\U0001f4c5",
         "btn_ok":            "OK",
+        "btn_last_365":      "Last 365 Days",
         "err_no_file":       "ERROR: No IssueTimes file selected.",
         "err_not_found":     "ERROR: File not found: {}",
         "err_from_date":     "ERROR: Invalid From date '{}' (expected YYYY-MM-DD).",
@@ -250,15 +252,15 @@ def _check_stage_consistency(
     return only_in_it, only_in_cfd
 
 
-def _default_year_range() -> tuple[date, date]:
+def _default_date_range() -> tuple[date, date]:
     """
-    Return the default filter date range: 1 Jan – 31 Dec of the previous calendar year.
+    Return the default filter date range: today minus 365 days through today.
 
     Returns:
-        Tuple of (from_date, to_date) for the last complete calendar year.
+        Tuple of (from_date, to_date) covering the last 365 days inclusive.
     """
-    last_year = date.today().year - 1
-    return date(last_year, 1, 1), date(last_year, 12, 31)
+    today = date.today()
+    return today - timedelta(days=365), today
 
 
 def _parse_date_safe(value: str) -> date | None:
@@ -442,7 +444,7 @@ class BuildReportsApp(tk.Tk):
         self._lang_var = tk.StringVar(value=LANG_DE)
         self._issue_times_var = tk.StringVar()
         self._cfd_var = tk.StringVar()
-        _from_default, _to_default = _default_year_range()
+        _from_default, _to_default = _default_date_range()
         self._from_date_var = tk.StringVar(value=str(_from_default))
         self._to_date_var = tk.StringVar(value=str(_to_default))
         self._projects_var = tk.StringVar()
@@ -593,6 +595,12 @@ class BuildReportsApp(tk.Tk):
                          command=lambda: self._pick_date(self._to_date_var))
         btn.grid(row=row, column=2, sticky="w", **pad)
         self._i18n.append((btn, "btn_cal"))
+        row += 1
+
+        btn = ttk.Button(self, text=self._tr("btn_last_365"),
+                         command=self._set_last_365_days)
+        btn.grid(row=row, column=0, columnspan=2, sticky="w", padx=16, pady=2)
+        self._i18n.append((btn, "btn_last_365"))
         row += 1
 
         lbl = tk.Label(self, text=self._tr("lbl_projects"), anchor="w")
@@ -1008,6 +1016,12 @@ class BuildReportsApp(tk.Tk):
     # -------------------------------------------------------------------------
     # Metric selection helpers
     # -------------------------------------------------------------------------
+
+    def _set_last_365_days(self) -> None:
+        """Set the From/To date fields to cover the last 365 days ending today."""
+        from_d, to_d = _default_date_range()
+        self._from_date_var.set(str(from_d))
+        self._to_date_var.set(str(to_d))
 
     def _select_all_metrics(self) -> None:
         """Set all metric checkboxes to checked."""
