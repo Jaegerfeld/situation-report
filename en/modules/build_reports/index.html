@@ -1606,6 +1606,11 @@
 <p><strong>Metric ID:</strong> <code>cfd</code></p>
 <p>Reads the daily stage counts from <code>CFD.xlsx</code>. Shows the state of the system over time.</p>
 <p><strong>Chart:</strong> Stacked area chart (first stage on top) with two trend lines (inflow/outflow) and the In/Out ratio in the title.</p>
+<ul>
+<li><strong>Upper trend line</strong> — runs from the total backlog (sum of all stages) on the first to the last day (inflow).</li>
+<li><strong>Lower trend line</strong> — runs from the value of the last stage (e.g. "Done" / "Closed") on the first to the last day (outflow).</li>
+<li><strong>X-axis</strong> — month boundaries are labelled prominently (e.g. "Jan 2025"); ISO calendar-week Mondays are shown small and in grey (e.g. "W03") to prevent label overlap.</li>
+</ul>
 <table>
 <thead>
 <tr>
