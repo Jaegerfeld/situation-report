@@ -24,7 +24,7 @@ from build_reports.gui import (
     LANG_DE, LANG_EN, _T,
     _build_combined_html, _build_template_dict, _check_stage_consistency,
     _default_date_range, _parse_date_safe, _parse_template_dict,
-    _read_available_filters, _split_csv,
+    _read_available_filters, _split_csv, _TEMPLATE_VERSION,
 )
 
 
@@ -100,6 +100,26 @@ class TestBuildCombinedHtml:
         html = _build_combined_html([])
         assert "<html>" in html
         assert "<body>" in html
+
+    def test_section_break_heading_inserted(self):
+        figs = [go.Figure(), go.Figure()]
+        html = _build_combined_html(figs, section_breaks={0: "Flow Time"})
+        assert "Flow Time" in html
+        assert "metric-heading" in html
+
+    def test_section_break_only_at_correct_index(self):
+        figs = [go.Figure(), go.Figure()]
+        html = _build_combined_html(figs, section_breaks={1: "Throughput"})
+        # Heading must appear before the second figure block
+        idx_heading = html.index("Throughput")
+        # At least one plotly div precedes the heading
+        idx_first_div = html.index("plotly-graph-div")
+        assert idx_first_div < idx_heading
+
+    def test_no_section_breaks_produces_no_h2(self):
+        fig = go.Figure()
+        html = _build_combined_html([fig], section_breaks=None)
+        assert "<h2" not in html
 
 
 def _make_issuetimes(tmp_path, stages: list[str], name="it.xlsx"):
@@ -269,6 +289,27 @@ class TestTranslations:
             assert "log_tpl_saved" in _T[lang]
             assert "log_tpl_loaded" in _T[lang]
             assert "log_tpl_error" in _T[lang]
+
+    def test_tooltip_keys_present(self):
+        required = [
+            "tip_issue_times", "tip_cfd", "tip_browse",
+            "tip_from", "tip_to", "tip_cal", "tip_last_365",
+            "tip_projects", "tip_issuetypes", "tip_pick",
+            "tip_ct_a", "tip_ct_b", "tip_show", "tip_pdf",
+        ]
+        for lang in (LANG_DE, LANG_EN):
+            for key in required:
+                assert key in _T[lang], f"Missing tooltip key [{lang}][{key}]"
+
+    def test_metric_tooltip_keys_present(self):
+        from build_reports.metrics import all_metrics
+        for plugin in all_metrics():
+            tip_key = f"tip_metric_{plugin.metric_id}"
+            # Only check keys that are defined (not all metrics need one)
+            if tip_key in _T[LANG_DE]:
+                assert tip_key in _T[LANG_EN], (
+                    f"Tooltip key {tip_key} present in DE but missing in EN"
+                )
 
 
 # ---------------------------------------------------------------------------

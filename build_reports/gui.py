@@ -106,6 +106,26 @@ _T: dict[str, dict[str, str]] = {
         "log_tpl_saved":     "Template gespeichert: {}",
         "log_tpl_loaded":    "Template geladen: {}",
         "log_tpl_error":     "Fehler beim Template: {}",
+        # Tooltips
+        "tip_issue_times":   "IssueTimes.xlsx aus transform_data \u2014 enth\u00e4lt alle Issues mit Datums- und Stufenangaben.",
+        "tip_cfd":           "CFD.xlsx aus transform_data \u2014 optional, wird nur f\u00fcr die CFD-Metrik ben\u00f6tigt.",
+        "tip_browse":        "Datei ausw\u00e4hlen \u2026",
+        "tip_from":          "Nur Issues einbeziehen, die ab diesem Datum abgeschlossen wurden (inkl.).",
+        "tip_to":            "Nur Issues einbeziehen, die bis zu diesem Datum abgeschlossen wurden (inkl.).",
+        "tip_cal":           "Kalender \u00f6ffnen",
+        "tip_last_365":      "Setzt Von und Bis auf die letzten 365 Tage bis heute.",
+        "tip_projects":      "Kommagetrennte Projektschl\u00fcssel, z.\u202fB. \u201eARTA, ARTB\u201c. Leer = alle Projekte.",
+        "tip_issuetypes":    "Kommagetrennte Issuetypen, z.\u202fB. \u201eFeature, Bug\u201c. Leer = alle Typen.",
+        "tip_pick":          "Aus der geladenen IssueTimes-Datei ausw\u00e4hlen.",
+        "tip_ct_a":          "Berechnet CT als Differenz der Kalendertage zwischen First Date und Closed Date.",
+        "tip_ct_b":          "Berechnet CT als Summe der Stage-Minuten von First Date bis Closed Date (letzte Stage ausgeschlossen).",
+        "tip_show":          "Metriken berechnen und Ergebnisse im Standard-Browser anzeigen.",
+        "tip_pdf":           "Metriken berechnen und alle Diagramme als PDF-Datei exportieren.",
+        "tip_metric_flow_time":         "Wie lange braucht ein Issue von Start bis Abschluss?",
+        "tip_metric_flow_velocity":     "Wie viele Issues werden pro Zeiteinheit abgeschlossen?",
+        "tip_metric_flow_load":         "Wie viele Issues befinden sich gleichzeitig in Bearbeitung?",
+        "tip_metric_cfd":               "Kumulative Anzahl von Issues pro Stage \u00fcber die Zeit.",
+        "tip_metric_flow_distribution": "Verteilung der Issues nach Typ oder Kategorie.",
     },
     LANG_EN: {
         "window_title":      "build_reports",
@@ -165,6 +185,26 @@ _T: dict[str, dict[str, str]] = {
         "log_tpl_saved":     "Template saved: {}",
         "log_tpl_loaded":    "Template loaded: {}",
         "log_tpl_error":     "Template error: {}",
+        # Tooltips
+        "tip_issue_times":   "IssueTimes.xlsx from transform_data \u2014 contains all issues with dates and stage data.",
+        "tip_cfd":           "CFD.xlsx from transform_data \u2014 optional, only required for the CFD metric.",
+        "tip_browse":        "Select file \u2026",
+        "tip_from":          "Include only issues closed on or after this date (inclusive).",
+        "tip_to":            "Include only issues closed on or before this date (inclusive).",
+        "tip_cal":           "Open calendar picker",
+        "tip_last_365":      "Sets From and To to the last 365 days ending today.",
+        "tip_projects":      "Comma-separated project keys, e.g. \u201cARTA, ARTB\u201d. Empty = all projects.",
+        "tip_issuetypes":    "Comma-separated issue types, e.g. \u201cFeature, Bug\u201d. Empty = all types.",
+        "tip_pick":          "Select from the loaded IssueTimes file.",
+        "tip_ct_a":          "Computes CT as the calendar-day difference between First Date and Closed Date.",
+        "tip_ct_b":          "Computes CT as the sum of stage minutes from First Date to Closed Date (last stage excluded).",
+        "tip_show":          "Compute metrics and display results in the default browser.",
+        "tip_pdf":           "Compute metrics and export all charts as a PDF file.",
+        "tip_metric_flow_time":         "How long does an issue take from start to close?",
+        "tip_metric_flow_velocity":     "How many issues are completed per time unit?",
+        "tip_metric_flow_load":         "How many issues are simultaneously in progress?",
+        "tip_metric_cfd":               "Cumulative count of issues per stage over time.",
+        "tip_metric_flow_distribution": "Distribution of issues by type or category.",
     },
 }
 
@@ -295,21 +335,34 @@ def _split_csv(value: str) -> list[str]:
     return [item.strip() for item in value.split(",") if item.strip()]
 
 
-def _build_combined_html(figures: list) -> str:
+def _build_combined_html(
+    figures: list,
+    section_breaks: "dict[int, str] | None" = None,
+) -> str:
     """
     Combine multiple plotly Figure objects into a single self-contained HTML string.
 
     The first figure includes the full Plotly.js CDN bundle; subsequent figures
     reuse the already-loaded library to keep file size reasonable.
 
+    An optional ``section_breaks`` dict maps figure index → heading text. When
+    a heading is present for index ``i``, an ``<h2>`` element is inserted before
+    that figure's div — useful for labelling metric groups in the browser view.
+
     Args:
-        figures: List of plotly Figure objects to embed.
+        figures:        List of plotly Figure objects to embed.
+        section_breaks: Optional dict mapping figure index to a heading string.
 
     Returns:
         Complete HTML document as a string.
     """
+    breaks = section_breaks or {}
     parts = []
     for i, fig in enumerate(figures):
+        if i in breaks:
+            parts.append(
+                f'<h2 class="metric-heading">{breaks[i]}</h2>'
+            )
         parts.append(
             fig.to_html(
                 include_plotlyjs="cdn" if i == 0 else False,
@@ -321,11 +374,72 @@ def _build_combined_html(figures: list) -> str:
     return (
         "<!DOCTYPE html><html><head>"
         "<meta charset='utf-8'>"
-        "<style>body{margin:16px;font-family:sans-serif;background:#fff;}"
-        "div.plotly-graph-div{margin-bottom:32px;}</style>"
+        "<style>"
+        "body{margin:16px;font-family:sans-serif;background:#fff;}"
+        "div.plotly-graph-div{margin-bottom:32px;}"
+        "h2.metric-heading{"
+        "font-size:1.5rem;font-weight:700;margin:32px 0 4px 0;"
+        "padding-bottom:4px;border-bottom:2px solid #d0d0d0;}"
+        "</style>"
         "</head>"
         f"<body>{body}</body></html>"
     )
+
+
+# ---------------------------------------------------------------------------
+# Tooltip helper
+# ---------------------------------------------------------------------------
+
+class _ToolTip:
+    """
+    Lightweight hover tooltip for any tkinter widget.
+
+    Binds <Enter> and <Leave> events on creation. The displayed text can be
+    updated at any time via update_text() to support runtime language switches.
+
+    Args:
+        widget: The widget to attach the tooltip to.
+        text:   Initial tooltip text.
+    """
+
+    def __init__(self, widget: "tk.Widget", text: str) -> None:
+        self._widget = widget
+        self._text = text
+        self._tip_window: "tk.Toplevel | None" = None
+        widget.bind("<Enter>", self._show, add="+")
+        widget.bind("<Leave>", self._hide, add="+")
+
+    def update_text(self, text: str) -> None:
+        """Replace the tooltip text (takes effect on the next hover)."""
+        self._text = text
+
+    def _show(self, _event: object = None) -> None:
+        """Display the tooltip window near the widget."""
+        if self._tip_window or not self._text:
+            return
+        x = self._widget.winfo_rootx() + 20
+        y = self._widget.winfo_rooty() + self._widget.winfo_height() + 4
+        self._tip_window = tw = tk.Toplevel(self._widget)
+        tw.wm_overrideredirect(True)
+        tw.wm_geometry(f"+{x}+{y}")
+        tk.Label(
+            tw,
+            text=self._text,
+            background="#ffffe0",
+            relief="solid",
+            borderwidth=1,
+            font=("", 9),
+            wraplength=300,
+            justify="left",
+            padx=5,
+            pady=3,
+        ).pack()
+
+    def _hide(self, _event: object = None) -> None:
+        """Destroy the tooltip window."""
+        if self._tip_window:
+            self._tip_window.destroy()
+            self._tip_window = None
 
 
 # Template version bump when the schema changes in a backward-incompatible way.
@@ -461,6 +575,8 @@ class BuildReportsApp(tk.Tk):
         self._i18n: list[tuple[Any, str]] = []
         # Metric checkbuttons for terminology-driven label updates
         self._metric_checkbuttons: list[tuple[tk.Checkbutton, str]] = []
+        # Tooltips: list of (_ToolTip, tr_key)
+        self._tips: list[tuple[_ToolTip, str]] = []
 
         # React to language / terminology changes
         self._lang_var.trace_add("write", lambda *_: self._apply_language())
@@ -550,24 +666,28 @@ class BuildReportsApp(tk.Tk):
         lbl.grid(row=row, column=0, sticky="w", **pad)
         self._i18n.append((lbl, "lbl_issue_times"))
 
-        tk.Entry(self, textvariable=self._issue_times_var, state="readonly", width=50).grid(
-            row=row, column=1, sticky="ew", **pad
-        )
+        it_entry = tk.Entry(self, textvariable=self._issue_times_var, state="readonly", width=50)
+        it_entry.grid(row=row, column=1, sticky="ew", **pad)
+        self._tips.append((_ToolTip(it_entry, self._tr("tip_issue_times")), "tip_issue_times"))
+
         btn = ttk.Button(self, text=self._tr("btn_browse"), command=self._pick_issue_times)
         btn.grid(row=row, column=2, **pad)
         self._i18n.append((btn, "btn_browse"))
+        self._tips.append((_ToolTip(btn, self._tr("tip_browse")), "tip_browse"))
         row += 1
 
         lbl = tk.Label(self, text=self._tr("lbl_cfd"), anchor="w")
         lbl.grid(row=row, column=0, sticky="w", **pad)
         self._i18n.append((lbl, "lbl_cfd"))
 
-        tk.Entry(self, textvariable=self._cfd_var, state="readonly", width=50).grid(
-            row=row, column=1, sticky="ew", **pad
-        )
+        cfd_entry = tk.Entry(self, textvariable=self._cfd_var, state="readonly", width=50)
+        cfd_entry.grid(row=row, column=1, sticky="ew", **pad)
+        self._tips.append((_ToolTip(cfd_entry, self._tr("tip_cfd")), "tip_cfd"))
+
         btn = ttk.Button(self, text=self._tr("btn_browse"), command=self._pick_cfd)
         btn.grid(row=row, column=2, **pad)
         self._i18n.append((btn, "btn_browse"))
+        self._tips.append((_ToolTip(btn, self._tr("tip_browse")), "tip_browse"))
         row += 1
 
         # --- Filter ---
@@ -576,57 +696,62 @@ class BuildReportsApp(tk.Tk):
         lbl = tk.Label(self, text=self._tr("lbl_from"), anchor="w")
         lbl.grid(row=row, column=0, sticky="w", **pad)
         self._i18n.append((lbl, "lbl_from"))
-        tk.Entry(self, textvariable=self._from_date_var, width=20).grid(
-            row=row, column=1, sticky="w", **pad
-        )
+        from_entry = tk.Entry(self, textvariable=self._from_date_var, width=20)
+        from_entry.grid(row=row, column=1, sticky="w", **pad)
+        self._tips.append((_ToolTip(from_entry, self._tr("tip_from")), "tip_from"))
         btn = ttk.Button(self, text=self._tr("btn_cal"), width=3,
                          command=lambda: self._pick_date(self._from_date_var))
         btn.grid(row=row, column=2, sticky="w", **pad)
         self._i18n.append((btn, "btn_cal"))
+        self._tips.append((_ToolTip(btn, self._tr("tip_cal")), "tip_cal"))
         row += 1
 
         lbl = tk.Label(self, text=self._tr("lbl_to"), anchor="w")
         lbl.grid(row=row, column=0, sticky="w", **pad)
         self._i18n.append((lbl, "lbl_to"))
-        tk.Entry(self, textvariable=self._to_date_var, width=20).grid(
-            row=row, column=1, sticky="w", **pad
-        )
+        to_entry = tk.Entry(self, textvariable=self._to_date_var, width=20)
+        to_entry.grid(row=row, column=1, sticky="w", **pad)
+        self._tips.append((_ToolTip(to_entry, self._tr("tip_to")), "tip_to"))
         btn = ttk.Button(self, text=self._tr("btn_cal"), width=3,
                          command=lambda: self._pick_date(self._to_date_var))
         btn.grid(row=row, column=2, sticky="w", **pad)
         self._i18n.append((btn, "btn_cal"))
+        self._tips.append((_ToolTip(btn, self._tr("tip_cal")), "tip_cal"))
         row += 1
 
         btn = ttk.Button(self, text=self._tr("btn_last_365"),
                          command=self._set_last_365_days)
         btn.grid(row=row, column=0, columnspan=2, sticky="w", padx=16, pady=2)
         self._i18n.append((btn, "btn_last_365"))
+        self._tips.append((_ToolTip(btn, self._tr("tip_last_365")), "tip_last_365"))
         row += 1
 
         lbl = tk.Label(self, text=self._tr("lbl_projects"), anchor="w")
         lbl.grid(row=row, column=0, sticky="w", **pad)
         self._i18n.append((lbl, "lbl_projects"))
-        tk.Entry(self, textvariable=self._projects_var, width=44).grid(
-            row=row, column=1, sticky="ew", **pad
-        )
+        proj_entry = tk.Entry(self, textvariable=self._projects_var, width=44)
+        proj_entry.grid(row=row, column=1, sticky="ew", **pad)
+        self._tips.append((_ToolTip(proj_entry, self._tr("tip_projects")), "tip_projects"))
         btn = ttk.Button(self, text=self._tr("btn_pick"), width=3,
                          command=lambda: self._open_multiselect(
                              self._projects_var, self._available_projects, "dlg_projects"))
         btn.grid(row=row, column=2, sticky="w", **pad)
         self._i18n.append((btn, "btn_pick"))
+        self._tips.append((_ToolTip(btn, self._tr("tip_pick")), "tip_pick"))
         row += 1
 
         lbl = tk.Label(self, text=self._tr("lbl_issuetypes"), anchor="w")
         lbl.grid(row=row, column=0, sticky="w", **pad)
         self._i18n.append((lbl, "lbl_issuetypes"))
-        tk.Entry(self, textvariable=self._issuetypes_var, width=44).grid(
-            row=row, column=1, sticky="ew", **pad
-        )
+        it_type_entry = tk.Entry(self, textvariable=self._issuetypes_var, width=44)
+        it_type_entry.grid(row=row, column=1, sticky="ew", **pad)
+        self._tips.append((_ToolTip(it_type_entry, self._tr("tip_issuetypes")), "tip_issuetypes"))
         btn = ttk.Button(self, text=self._tr("btn_pick"), width=3,
                          command=lambda: self._open_multiselect(
                              self._issuetypes_var, self._available_issuetypes, "dlg_issuetypes"))
         btn.grid(row=row, column=2, sticky="w", **pad)
         self._i18n.append((btn, "btn_pick"))
+        self._tips.append((_ToolTip(btn, self._tr("tip_pick")), "tip_pick"))
         row += 1
 
         # --- Metrics ---
@@ -642,6 +767,9 @@ class BuildReportsApp(tk.Tk):
             )
             cb.grid(row=row, column=0, columnspan=2, sticky="w", padx=16, pady=1)
             self._metric_checkbuttons.append((cb, plugin.metric_id))
+            tip_key = f"tip_metric_{plugin.metric_id}"
+            if tip_key in _T[LANG_DE]:
+                self._tips.append((_ToolTip(cb, self._tr(tip_key)), tip_key))
             row += 1
 
         btn_frame = tk.Frame(self)
@@ -661,7 +789,10 @@ class BuildReportsApp(tk.Tk):
 
         ct_frame = tk.Frame(self)
         ct_frame.grid(row=row, column=0, columnspan=3, sticky="w", padx=16, pady=4)
-        for value, key in [(CT_METHOD_A, "ct_a"), (CT_METHOD_B, "ct_b")]:
+        for value, key, tip_key in [
+            (CT_METHOD_A, "ct_a", "tip_ct_a"),
+            (CT_METHOD_B, "ct_b", "tip_ct_b"),
+        ]:
             rb = tk.Radiobutton(
                 ct_frame,
                 text=self._tr(key),
@@ -670,6 +801,7 @@ class BuildReportsApp(tk.Tk):
             )
             rb.pack(anchor="w", padx=8)
             self._i18n.append((rb, key))
+            self._tips.append((_ToolTip(rb, self._tr(tip_key)), tip_key))
         row += 1
 
         # --- Action buttons ---
@@ -685,11 +817,13 @@ class BuildReportsApp(tk.Tk):
         )
         self._show_btn.pack(side="left", padx=8)
         self._i18n.append((self._show_btn, "btn_show"))
+        self._tips.append((_ToolTip(self._show_btn, self._tr("tip_show")), "tip_show"))
         self._pdf_btn = ttk.Button(
             action_frame, text=self._tr("btn_pdf"), command=self._run_export_pdf
         )
         self._pdf_btn.pack(side="left", padx=8)
         self._i18n.append((self._pdf_btn, "btn_pdf"))
+        self._tips.append((_ToolTip(self._pdf_btn, self._tr("tip_pdf")), "tip_pdf"))
         row += 1
 
         # --- Log area ---
@@ -728,10 +862,12 @@ class BuildReportsApp(tk.Tk):
     # -------------------------------------------------------------------------
 
     def _apply_language(self) -> None:
-        """Update all translatable widgets and the window title."""
+        """Update all translatable widgets, tooltips, and the window title."""
         self.title(self._tr("window_title"))
         for widget, key in self._i18n:
             widget.config(text=self._tr(key))
+        for tip, key in self._tips:
+            tip.update_text(self._tr(key))
         self._build_menubar()
 
     def _apply_terminology(self) -> None:
@@ -1142,17 +1278,23 @@ class BuildReportsApp(tk.Tk):
                         plugin.ct_method = inputs.get("ct_method", CT_METHOD_A)
 
                 all_figures = []
+                section_breaks: dict[int, str] = {}
                 for plugin in plugins:
                     result = plugin.compute(data, inputs["terminology"])
                     for w in result.warnings:
                         self._log(f"  WARNING: {w}")
-                    all_figures.extend(plugin.render(result, inputs["terminology"]))
+                    figs = plugin.render(result, inputs["terminology"])
+                    if figs:
+                        section_breaks[len(all_figures)] = term(
+                            plugin.metric_id, inputs["terminology"]
+                        )
+                    all_figures.extend(figs)
 
                 if not all_figures:
                     self._log(self._tr("log_no_figs"))
                     return
 
-                html = _build_combined_html(all_figures)
+                html = _build_combined_html(all_figures, section_breaks)
                 with tempfile.NamedTemporaryFile(
                     mode="w", suffix=".html", delete=False, encoding="utf-8"
                 ) as f:
