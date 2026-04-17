@@ -146,6 +146,29 @@ def _month_ticks(dates: list[datetime]) -> tuple[list[str], list[str]]:
     return tickvals, ticktext
 
 
+def _point_color(cycle_days: float, pct85: float, pct95: float) -> str:
+    """
+    Return the marker color for a single scatter point based on its percentile.
+
+    Points at or above the 95th percentile are colored red (outlier warning).
+    Points at or above the 85th percentile (but below 95th) are colored orange.
+    All other points are steelblue.
+
+    Args:
+        cycle_days: Cycle time value of the point.
+        pct85:      85th percentile threshold from the current dataset.
+        pct95:      95th percentile threshold from the current dataset.
+
+    Returns:
+        CSS color string: "red", "orange", or "steelblue".
+    """
+    if cycle_days >= pct95:
+        return "red"
+    if cycle_days >= pct85:
+        return "orange"
+    return "steelblue"
+
+
 def _compute_stats(values: list[float]) -> dict:
     """
     Compute descriptive statistics for a list of cycle time values.
@@ -341,12 +364,15 @@ class FlowTimeMetric(MetricPlugin):
 
         fig_scatter = go.Figure()
 
-        # Scatter points
+        # Scatter points — colour-coded by percentile
+        point_colors = [
+            _point_color(p.cycle_days, s["pct85"], s["pct95"]) for p in points
+        ]
         fig_scatter.add_trace(go.Scatter(
             x=all_dates,
             y=values,
             mode="markers",
-            marker=dict(color="steelblue", size=5, opacity=0.6),
+            marker=dict(color=point_colors, size=5, opacity=0.7),
             text=all_keys,
             hovertemplate="<b>%{text}</b><br>Closed: %{x}<br>Days: %{y}<extra></extra>",
             name=label,

@@ -18,7 +18,7 @@ import pytest
 
 from build_reports.loader import IssueRecord, ReportData
 from build_reports.metrics.flow_time import (
-    CT_METHOD_A, CT_METHOD_B, FlowTimeMetric, _loess, _month_ticks,
+    CT_METHOD_A, CT_METHOD_B, FlowTimeMetric, _loess, _month_ticks, _point_color,
 )
 from build_reports.terminology import GLOBAL, SAFE
 
@@ -331,3 +331,68 @@ class TestMonthTicks:
         vals, _ = _month_ticks(dates)
         for v in vals:
             assert len(v) == 10 and v[4] == "-" and v[7] == "-"
+
+
+class TestPointColor:
+    def test_below_pct85_is_steelblue(self):
+        assert _point_color(5.0, pct85=10.0, pct95=20.0) == "steelblue"
+
+    def test_at_pct85_is_orange(self):
+        assert _point_color(10.0, pct85=10.0, pct95=20.0) == "orange"
+
+    def test_between_pct85_and_pct95_is_orange(self):
+        assert _point_color(15.0, pct85=10.0, pct95=20.0) == "orange"
+
+    def test_at_pct95_is_red(self):
+        assert _point_color(20.0, pct85=10.0, pct95=20.0) == "red"
+
+    def test_above_pct95_is_red(self):
+        assert _point_color(25.0, pct85=10.0, pct95=20.0) == "red"
+
+    def test_pct85_equals_pct95_at_value_is_red(self):
+        # When thresholds collapse (small dataset), 95th wins
+        assert _point_color(30.0, pct85=30.0, pct95=30.0) == "red"
+
+    def test_pct85_equals_pct95_below_is_steelblue(self):
+        assert _point_color(29.0, pct85=30.0, pct95=30.0) == "steelblue"
+
+
+class TestScatterColors:
+    """Verify per-point colour coding in the scatterplot."""
+
+    @pytest.fixture
+    def many_data(self) -> ReportData:
+        """10 issues with cycle times 1–10 days for deterministic percentile checks."""
+        base = datetime(2025, 1, 1)
+        issues = [
+            _issue(f"A-{i}", base, datetime(2025, 1, 1 + i), {})
+            for i in range(1, 11)
+        ]
+        return ReportData(issues=issues, cfd=[], stages=STAGES, source_prefix="TEST")
+
+    def test_scatter_marker_color_is_list(self, many_data):
+        metric = FlowTimeMetric()
+        result = metric.compute(many_data, SAFE)
+        figures = metric.render(result, SAFE)
+        scatter_trace = figures[1].data[0]
+        assert isinstance(scatter_trace.marker.color, (list, tuple))
+
+    def test_highest_point_is_red(self, many_data):
+        metric = FlowTimeMetric()
+        result = metric.compute(many_data, SAFE)
+        figures = metric.render(result, SAFE)
+        scatter_trace = figures[1].data[0]
+        colors = list(scatter_trace.marker.color)
+        y_values = list(scatter_trace.y)
+        max_idx = y_values.index(max(y_values))
+        assert colors[max_idx] == "red"
+
+    def test_lowest_point_is_steelblue(self, many_data):
+        metric = FlowTimeMetric()
+        result = metric.compute(many_data, SAFE)
+        figures = metric.render(result, SAFE)
+        scatter_trace = figures[1].data[0]
+        colors = list(scatter_trace.marker.color)
+        y_values = list(scatter_trace.y)
+        min_idx = y_values.index(min(y_values))
+        assert colors[min_idx] == "steelblue"
