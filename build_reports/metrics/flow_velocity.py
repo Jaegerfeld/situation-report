@@ -213,14 +213,29 @@ class FlowVelocityMetric(MetricPlugin):
         # --- Per-PI bar chart ---
         pis = list(vd.per_pi.keys())
         counts_pi = list(vd.per_pi.values())
-        avg = s["avg_per_week"]
 
-        # Color bars: at or above average = orange, below = steelblue
-        colors = ["orange" if c >= avg else "steelblue" for c in counts_pi]
+        # Average per PI (not per week — fixes incorrect avg_per_week usage here)
+        avg_per_pi = round(statistics.mean(counts_pi), 2) if counts_pi else 0.0
+
+        # Color bars by PI status relative to today:
+        #   index 0 → gray   (first PI may be outside the evaluation window)
+        #   current PI        → orange  (today falls within the interval)
+        #   completed PIs     → steelblue
+        #   future PIs        → lightgray
+        today = date.today()
+        colors: list[str] = []
+        for idx, iv in enumerate(vd.pi_intervals):
+            if idx == 0:
+                colors.append("gray")
+            elif iv.from_date <= today <= iv.to_date:
+                colors.append("orange")
+            elif iv.to_date < today:
+                colors.append("steelblue")
+            else:
+                colors.append("lightgray")
 
         # PI axis label: "PI" for custom config, "Quarter" for quarterly defaults
-        pi_source = "custom" if self.pi_config_path else "quarterly"
-        xaxis_label = "PI" if pi_source == "custom" else "Quarter"
+        xaxis_label = "PI" if self.pi_config_path else "Quarter"
 
         fig_pi = go.Figure(go.Bar(
             x=pis, y=counts_pi,
@@ -229,12 +244,12 @@ class FlowVelocityMetric(MetricPlugin):
             textfont=dict(color="white", size=11),
         ))
         fig_pi.add_hline(
-            y=avg, line_color="red", line_dash="dot",
-            annotation_text=f"Avg: {avg}",
+            y=avg_per_pi, line_color="red", line_dash="dot",
+            annotation_text=f"Avg: {avg_per_pi}",
             annotation_position="right",
         )
         fig_pi.update_layout(
-            title=f"{label}: Feature per PI.  Average = {avg}",
+            title=f"{label}: Feature per PI.  Average = {avg_per_pi}",
             title_font_size=11,
             xaxis_title=xaxis_label, yaxis_title="count",
             plot_bgcolor="#e8e8e8", paper_bgcolor="#e8e8e8",

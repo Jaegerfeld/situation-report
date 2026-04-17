@@ -195,3 +195,34 @@ class TestRender:
         figs = metric.render(result, SAFE)
         pi_fig = figs[2]
         assert pi_fig.layout.xaxis.title.text == "PI"
+
+    def test_pi_chart_avg_is_per_pi_not_per_week(self, metric, tmp_path):
+        """Average line must be based on per-PI counts, not avg_per_week."""
+        import json
+        cfg = tmp_path / "pi.json"
+        cfg.write_text(json.dumps({
+            "mode": "date",
+            "intervals": [
+                {"name": "PI 1", "from": "2025-01-01", "to": "2025-03-31"},
+                {"name": "PI 2", "from": "2025-04-01", "to": "2025-06-30"},
+            ],
+        }), encoding="utf-8")
+        metric.pi_config_path = str(cfg)
+        # 10 issues in PI 1, 20 issues in PI 2 → avg per PI = 15.0
+        issues = (
+            [_issue(f"A-{i}", datetime(2025, 2, 1)) for i in range(10)] +
+            [_issue(f"B-{i}", datetime(2025, 5, 1)) for i in range(20)]
+        )
+        data = ReportData(issues=issues, cfd=[], stages=[], source_prefix="")
+        result = metric.compute(data, SAFE)
+        figs = metric.render(result, SAFE)
+        pi_fig = figs[2]
+        title = pi_fig.layout.title.text
+        assert "15" in title
+
+    def test_first_pi_bar_is_gray(self, metric, data_5_issues):
+        result = metric.compute(data_5_issues, SAFE)
+        figs = metric.render(result, SAFE)
+        pi_fig = figs[2]
+        colors = pi_fig.data[0].marker.color
+        assert colors[0] == "gray"
