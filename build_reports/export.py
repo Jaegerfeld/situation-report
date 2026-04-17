@@ -17,10 +17,13 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import plotly.graph_objects as go
 import plotly.io as pio
+
+if TYPE_CHECKING:
+    from .loader import IssueRecord
 
 
 def export_pdf(figures: list[Any], output_path: Path, width: int = 1400, height: int = 700) -> None:
@@ -99,6 +102,68 @@ def _export_merged_pdf(
 
         with open(output_path, "wb") as f:
             writer.write(f)
+
+
+def write_zero_day_excel(records: "list[IssueRecord]", path: Path) -> None:
+    """
+    Write a list of zero-day IssueRecords to an Excel file.
+
+    The output format mirrors IssueTimes.xlsx: one row per issue with the
+    same fixed columns. Stage-minute columns are omitted (all were zero or
+    irrelevant for these issues). Records are sorted by Project then Key.
+
+    Args:
+        records: List of IssueRecord objects excluded as zero-day issues.
+        path:    Destination .xlsx path; parent directory is created if needed.
+    """
+    from openpyxl import Workbook
+    from openpyxl.styles import Font, PatternFill
+
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+
+    headers = [
+        "Project", "Key", "Issuetype", "Status",
+        "Created Date", "Component",
+        "First Date", "Implementation Date", "Closed Date",
+        "Resolution",
+    ]
+
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Zero-Day Issues"
+
+    # Header row
+    ws.append(headers)
+    header_fill = PatternFill("solid", fgColor="FFC7CE")  # light red
+    for cell in ws[1]:
+        cell.font = Font(bold=True)
+        cell.fill = header_fill
+
+    def _fmt(dt: object) -> object:
+        """Return datetime as-is (openpyxl formats it); None → empty string."""
+        return dt if dt is not None else ""
+
+    for rec in sorted(records, key=lambda r: (r.project, r.key)):
+        ws.append([
+            rec.project,
+            rec.key,
+            rec.issuetype,
+            rec.status,
+            _fmt(rec.created),
+            rec.component,
+            _fmt(rec.first_date),
+            _fmt(rec.implementation_date),
+            _fmt(rec.closed_date),
+            rec.resolution,
+        ])
+
+    # Auto-width for readability
+    for col in ws.columns:
+        max_len = max((len(str(cell.value or "")) for cell in col), default=0)
+        ws.column_dimensions[col[0].column_letter].width = min(max_len + 4, 40)
+
+    wb.save(path)
 
 
 def export_png(figure: Any, output_path: Path, width: int = 1400, height: int = 700) -> None:

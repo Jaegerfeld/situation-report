@@ -23,10 +23,11 @@ from pathlib import Path
 
 import plotly.io as pio
 
-from .export import export_pdf
+from .export import export_pdf, write_zero_day_excel
 from .filters import FilterConfig, apply_filters
 from .loader import load_report_data
 from .metrics import all_metrics, get_metric
+from .metrics.flow_time import CT_METHOD_A, CT_METHOD_B, FlowTimeMetric
 from .terminology import GLOBAL, SAFE
 
 
@@ -60,6 +61,7 @@ def run_reports(
     projects: list[str] | None = None,
     issuetypes: list[str] | None = None,
     terminology: str = SAFE,
+    ct_method: str = CT_METHOD_A,
     output_pdf: Path | None = None,
     open_browser: bool = False,
     log: Callable[[str], None] = print,
@@ -79,6 +81,8 @@ def run_reports(
         projects:     Filter: restrict to these project keys (empty = all).
         issuetypes:   Filter: restrict to these issue types (empty = all).
         terminology:  Display mode — SAFE or GLOBAL.
+        ct_method:    Cycle time calculation method: CT_METHOD_A (date diff)
+                      or CT_METHOD_B (sum of stage minutes).
         output_pdf:   If set, export all figures to this PDF file.
         open_browser: If True, open each figure in the default browser.
         log:          Callable for progress/warning output.
@@ -108,15 +112,31 @@ def run_reports(
     else:
         plugins = all_metrics()
 
+    # Configure ct_method on the FlowTime plugin
+    for plugin in plugins:
+        if isinstance(plugin, FlowTimeMetric):
+            plugin.ct_method = ct_method
+
     all_figures = []
+    all_results = []
     for plugin in plugins:
         log(f"Computing {plugin.metric_id} ...")
         result = plugin.compute(data, terminology)
+        all_results.append(result)
         for w in result.warnings:
             log(f"  WARNING: {w}")
         figures = plugin.render(result, terminology)
         log(f"  → {len(figures)} figure(s)")
         all_figures.extend(figures)
+
+    # Collect zero-day records from all metrics (deduplicated by key)
+    seen_keys: set[str] = set()
+    zero_day_records = []
+    for result in all_results:
+        for rec in result.stats.get("zero_day_records", []):
+            if rec.key not in seen_keys:
+                seen_keys.add(rec.key)
+                zero_day_records.append(rec)
 
     if not all_figures:
         log("No figures produced — nothing to export.")
@@ -126,6 +146,10 @@ def run_reports(
         log(f"Exporting {len(all_figures)} figure(s) to {output_pdf} ...")
         export_pdf(all_figures, output_pdf)
         log(f"  Saved: {output_pdf}")
+        if zero_day_records:
+            xlsx_path = output_pdf.parent / (output_pdf.stem + "_zero_day_issues.xlsx")
+            write_zero_day_excel(zero_day_records, xlsx_path)
+            log(f"  {len(zero_day_records)} Zero-Day Issue(s) exportiert: {xlsx_path.name}")
 
     if open_browser:
         for fig in all_figures:
@@ -169,6 +193,10 @@ def main() -> None:
                         help="Restrict to these issue types")
     parser.add_argument("--terminology", choices=[SAFE, GLOBAL], default=SAFE,
                         help=f"Terminology mode (default: {SAFE})")
+    parser.add_argument("--ct-method", choices=[CT_METHOD_A, CT_METHOD_B],
+                        default=CT_METHOD_A, dest="ct_method",
+                        help="Cycle time method: A=date diff, B=sum of stage minutes "
+                             f"(default: {CT_METHOD_A})")
     parser.add_argument("--pdf", type=Path, default=None,
                         metavar="FILE",
                         help="Export all figures to this PDF file")
@@ -186,6 +214,7 @@ def main() -> None:
         projects=args.projects,
         issuetypes=args.issuetypes,
         terminology=args.terminology,
+        ct_method=args.ct_method,
         output_pdf=args.pdf,
         open_browser=args.browser,
     )
