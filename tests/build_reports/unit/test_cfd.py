@@ -128,7 +128,7 @@ class TestCfdTickLabels:
         vals, text = _cfd_tick_labels(["2025-01-06", "2025-01-07"])
         assert "2025-01-06" in vals
         idx = vals.index("2025-01-06")
-        assert text[idx].startswith("W")
+        assert "W" in text[idx]
 
     def test_tuesday_not_labeled(self):
         # 2025-01-07 is a Tuesday

@@ -33,6 +33,9 @@ _MONTH_ABBR_CFD = [
 ]
 
 
+_WEEK_LABEL_HTML = '<span style="font-size:8px; color:#aaa">{week}</span>'
+
+
 def _cfd_tick_labels(
     dates: list[str],
 ) -> tuple[list[str], list[str]]:
@@ -40,8 +43,9 @@ def _cfd_tick_labels(
     Generate x-axis tick positions and labels for the CFD chart.
 
     Month boundaries receive a prominent label (e.g. "Jan 2025");
-    ISO week Mondays that are not a month start receive a small label
-    ("W03"). Both are returned as ISO date strings ("YYYY-MM-DD").
+    ISO week Mondays that are not a month start receive a small HTML-
+    formatted label ("<span ...>W03</span>") so weeks render visually
+    smaller than month markers and do not overlap.
 
     Args:
         dates: Ordered list of ISO date strings present in the CFD data.
@@ -74,7 +78,7 @@ def _cfd_tick_labels(
         elif is_monday and iso not in seen:
             week = d.isocalendar().week
             tickvals.append(iso)
-            ticktext.append(f"W{week:02d}")
+            ticktext.append(_WEEK_LABEL_HTML.format(week=f"W{week:02d}"))
             seen.add(iso)
 
         d += timedelta(days=1)
