@@ -17,7 +17,9 @@ from datetime import datetime
 import pytest
 
 from build_reports.loader import IssueRecord, ReportData
-from build_reports.metrics.flow_time import CT_METHOD_A, CT_METHOD_B, FlowTimeMetric
+from build_reports.metrics.flow_time import (
+    CT_METHOD_A, CT_METHOD_B, FlowTimeMetric, _loess, _month_ticks,
+)
 from build_reports.terminology import GLOBAL, SAFE
 
 STAGES = ["Analysis", "Implementation", "Done"]
@@ -223,3 +225,109 @@ class TestRender:
         result = metric_b.compute(stage_data, SAFE)
         figures = metric_b.render(result, SAFE)
         assert "Methode B" in figures[0].layout.title.text
+
+    def test_scatterplot_has_loess_trace(self, metric, simple_data):
+        result = metric.compute(simple_data, SAFE)
+        figures = metric.render(result, SAFE)
+        scatter = figures[1]
+        trace_names = [t.name for t in scatter.data]
+        assert any("LOESS" in (n or "") for n in trace_names)
+
+    def test_scatterplot_has_three_reference_lines(self, metric, simple_data):
+        result = metric.compute(simple_data, SAFE)
+        figures = metric.render(result, SAFE)
+        scatter = figures[1]
+        # add_hline creates layout shapes
+        assert len(scatter.layout.shapes) == 3
+
+    def test_scatterplot_reference_lines_dotted(self, metric, simple_data):
+        result = metric.compute(simple_data, SAFE)
+        figures = metric.render(result, SAFE)
+        scatter = figures[1]
+        for shape in scatter.layout.shapes:
+            assert shape.line.dash == "dot"
+
+    def test_scatterplot_has_month_ticks(self, metric, simple_data):
+        result = metric.compute(simple_data, SAFE)
+        figures = metric.render(result, SAFE)
+        scatter = figures[1]
+        assert scatter.layout.xaxis.tickmode == "array"
+        assert len(scatter.layout.xaxis.tickvals) > 0
+
+    def test_stats_has_pct85_and_pct95(self, metric, simple_data):
+        result = metric.compute(simple_data, SAFE)
+        assert "pct85" in result.stats
+        assert "pct95" in result.stats
+
+
+class TestLoess:
+    def test_same_length_as_input(self):
+        x = [1.0, 2.0, 3.0, 4.0, 5.0]
+        y = [2.0, 4.0, 5.0, 4.0, 2.0]
+        assert len(_loess(x, y)) == 5
+
+    def test_returns_list_of_floats(self):
+        x = list(range(10))
+        y = [float(i) for i in range(10)]
+        result = _loess(x, y)
+        assert all(isinstance(v, float) for v in result)
+
+    def test_constant_input_returns_constant(self):
+        x = [1.0, 2.0, 3.0, 4.0, 5.0]
+        y = [7.0] * 5
+        result = _loess(x, y)
+        assert all(abs(v - 7.0) < 1e-6 for v in result)
+
+    def test_short_input_returned_unchanged(self):
+        assert _loess([1.0], [5.0]) == [5.0]
+        assert _loess([1.0, 2.0], [3.0, 4.0]) == [3.0, 4.0]
+
+    def test_linear_input_approximately_linear(self):
+        x = [float(i) for i in range(20)]
+        y = [2.0 * i + 1.0 for i in range(20)]
+        result = _loess(x, y)
+        for i, v in enumerate(result):
+            assert abs(v - y[i]) < 3.0  # LOESS on a line should stay close
+
+
+class TestMonthTicks:
+    def test_empty_input_returns_empty(self):
+        vals, text = _month_ticks([])
+        assert vals == []
+        assert text == []
+
+    def test_equal_length_output(self):
+        dates = [datetime(2025, 3, 15), datetime(2025, 5, 20)]
+        vals, text = _month_ticks(dates)
+        assert len(vals) == len(text)
+
+    def test_january_includes_year(self):
+        dates = [datetime(2025, 1, 10), datetime(2025, 3, 10)]
+        _, text = _month_ticks(dates)
+        jan_labels = [t for t in text if "2025" in t]
+        assert len(jan_labels) >= 1
+
+    def test_odd_months_have_name(self):
+        dates = [datetime(2025, 1, 1), datetime(2025, 6, 30)]
+        vals, text = _month_ticks(dates)
+        # Month 3 (Mär) is odd → should appear as text label
+        mar_entry = next(
+            (text[i] for i, v in enumerate(vals) if v == "2025-03-01"), None
+        )
+        assert mar_entry is not None
+        assert mar_entry != "·"
+
+    def test_even_months_have_dot(self):
+        dates = [datetime(2025, 1, 1), datetime(2025, 6, 30)]
+        vals, text = _month_ticks(dates)
+        # Month 2 (Feb) is even → should be "·"
+        feb_entry = next(
+            (text[i] for i, v in enumerate(vals) if v == "2025-02-01"), None
+        )
+        assert feb_entry == "·"
+
+    def test_tickvals_are_iso_strings(self):
+        dates = [datetime(2025, 4, 10)]
+        vals, _ = _month_ticks(dates)
+        for v in vals:
+            assert len(v) == 10 and v[4] == "-" and v[7] == "-"
