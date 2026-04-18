@@ -3,7 +3,7 @@
 # Repository:     https://github.com/Jaegerfeld/situation-report
 # KI-Unterstuetzung: Erstellt mit Unterstuetzung von Claude (Anthropic)
 # Erstellt:       17.04.2026
-# Geaendert:      17.04.2026
+# Geaendert:      18.04.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
@@ -418,9 +418,10 @@ def content(st):
         "Legende ein- und ausblenden.", st))
     story.append(BL(
         "<b>Als PDF speichern</b> - Alle Diagramme werden in eine mehrseitige PDF-Datei "
-        "exportiert. Ein Speicherdialog fragt nach Dateiname und Speicherort. Falls "
-        "Issues mit Durchlaufzeit 0 vorhanden sind, wird automatisch eine zusaetzliche "
-        "Excel-Datei mit diesen Issues erstellt.", st))
+        "exportiert. Ein Speicherdialog fragt nach Dateiname und Speicherort. "
+        "Zusaetzlich zur PDF werden automatisch zwei Excel-Dateien erstellt: eine "
+        "Report-Excel mit allen Issues, Statusgruppen und Durchlaufzeiten sowie -- bei "
+        "vorhandenen Zero-Day Issues -- eine separate Datei fuer diese Issues.", st))
     story.append(SP(4))
     story.append(box(
         "<b>Hinweis:</b> Waehrend die Berechnungen laufen, ist die Oberflaeche kurz "
@@ -620,14 +621,36 @@ def content(st):
             ["3", "Auf 'Als PDF speichern' klicken."],
             ["4", "Im Speicherdialog Dateiname und Speicherort waehlen und bestaetigen."],
             ["5", "Das Programm rechnet und exportiert; der Fortschritt erscheint im Log."],
-            ["6", "Nach Abschluss steht die PDF-Datei am gewaehlten Speicherort bereit."],
+            ["6", "Nach Abschluss stehen PDF und Report-Excel am gewaehlten Speicherort bereit."],
         ],
         col_widths=[1.5*cm, 14.5*cm]))
     story.append(SP(8))
+    story.append(H2("6.1  Automatische Report-Excel", st))
+    story.append(P(
+        "Bei jedem PDF-Export wird automatisch eine Excel-Datei mit dem gleichen Namen "
+        "erzeugt (z.B. report.xlsx neben report.pdf). Diese Datei enthaelt alle "
+        "gefilterten Issues im IssueTimes-Format, ergaenzt um drei Spalten:", st))
+    story.append(SP(4))
+    story.append(tbl(
+        ["Spalte", "Inhalt"],
+        [
+            ["Status Group",
+             "Statusgruppe des Issues: 'To Do' (noch nicht gestartet), "
+             "'In Progress' (in Bearbeitung) oder 'Done' (abgeschlossen). "
+             "Abgeleitet aus First Date und Closed Date."],
+            ["Cycle Time (First->Closed)",
+             "Durchlaufzeit in Kalendertagen von First Date bis Closed Date "
+             "(Methode A). Leer, wenn eines der Daten fehlt."],
+            ["Cycle Time B (days in Status)",
+             "Summe der Minuten in allen Workflow-Stages ausser der letzten, "
+             "dividiert durch 1440 (Methode B). Leer, wenn eines der Daten fehlt."],
+        ],
+        col_widths=[5*cm, 11*cm]))
+    story.append(SP(8))
     story.append(box(
         "<b>Zero-Day Issues:</b> Wenn Issues mit einer Durchlaufzeit von 0 Tagen "
-        "vorhanden sind, wird automatisch eine zusaetzliche Excel-Datei erstellt "
-        "(gleicher Ordner wie die PDF, Dateiname z.B. report_zero_day_issues.xlsx). "
+        "vorhanden sind, wird zusaetzlich eine separate Datei erstellt "
+        "(z.B. report_zero_day_issues.xlsx im gleichen Ordner). "
         "Diese Issues werden in der Flow-Time-Metrik nicht beruecksichtigt.", st,
         "#fff8e1"))
 

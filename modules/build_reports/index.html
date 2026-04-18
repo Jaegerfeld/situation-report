@@ -848,6 +848,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#report-excel" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Report Excel
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#zero-day-issues-excel" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1265,6 +1276,17 @@
     <span class="md-ellipsis">
       
         PDF-Export
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#report-excel" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Report Excel
       
     </span>
   </a>
@@ -1739,7 +1761,32 @@
 <li>Mehrere Diagramme werden über <code>pypdf</code> zu einem mehrseitigen PDF zusammengefügt.</li>
 <li>Der Export nutzt <code>kaleido</code> zur Rasterisierung (einmalig <code>choreo_get_chrome</code> ausführen, falls kaleido den Chrome-Binary noch nicht gefunden hat).</li>
 <li>Bei vorhandenen Zero-Day Issues wird automatisch <code>report_zero_day_issues.xlsx</code> im selben Ordner erstellt.</li>
+<li>Parallel zur PDF wird stets eine <strong>Report-Excel-Datei</strong> mit dem gleichen Dateinamen (Endung <code>.xlsx</code>) erstellt.</li>
 </ul>
+<h3 id="report-excel">Report Excel<a class="headerlink" href="#report-excel" title="Permanent link">&para;</a></h3>
+<p>Bei jedem PDF-Export wird automatisch eine XLSX-Datei (<code>&lt;reportname&gt;.xlsx</code>) erzeugt. Sie enthält alle gefilterten Issues im IssueTimes-Format, ergänzt um drei zusätzliche Spalten:</p>
+<table>
+<thead>
+<tr>
+<th>Spalte</th>
+<th>Inhalt</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Status Group</code></td>
+<td>Statusgruppe des Issues: <code>To Do</code>, <code>In Progress</code> oder <code>Done</code> (abgeleitet aus <code>First Date</code> und <code>Closed Date</code>)</td>
+</tr>
+<tr>
+<td><code>Cycle Time (First-&gt;Closed)</code></td>
+<td>Durchlaufzeit in Kalendertagen (<code>Closed Date − First Date</code>); leer wenn eines der Daten fehlt</td>
+</tr>
+<tr>
+<td><code>Cycle Time B (days in Status)</code></td>
+<td>Summe der Stage-Minuten (alle Stages außer der letzten) dividiert durch 1440; leer wenn eines der Daten fehlt</td>
+</tr>
+</tbody>
+</table>
 <h3 id="zero-day-issues-excel">Zero-Day Issues Excel<a class="headerlink" href="#zero-day-issues-excel" title="Permanent link">&para;</a></h3>
 <p>Die exportierte Datei enthält dieselben Spalten wie IssueTimes (Project, Key, Issuetype, Status, Dates, Resolution), sortiert nach Projekt und Key. Der Dateiname wird automatisch aus dem PDF-Namen abgeleitet.</p>
 <h2 id="plugin-system">Plugin-System<a class="headerlink" href="#plugin-system" title="Permanent link">&para;</a></h2>
