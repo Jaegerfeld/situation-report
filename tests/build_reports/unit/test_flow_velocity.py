@@ -21,6 +21,15 @@ from build_reports.terminology import SAFE
 
 
 def _issue(key: str, closed: datetime | None) -> IssueRecord:
+    """Create a minimal IssueRecord with an optional closed date.
+
+    Args:
+        key:    Unique issue key.
+        closed: Closed datetime, or None for an open issue.
+
+    Returns:
+        IssueRecord with project 'P' and issuetype 'Feature'.
+    """
     return IssueRecord(
         project="P", key=key, issuetype="Feature", status="Done",
         created=datetime(2025, 1, 1), component="",
@@ -30,13 +39,20 @@ def _issue(key: str, closed: datetime | None) -> IssueRecord:
 
 
 @pytest.fixture
-def metric():
+def metric() -> FlowVelocityMetric:
+    """Return a default FlowVelocityMetric instance."""
     return FlowVelocityMetric()
 
 
 @pytest.fixture
-def data_5_issues():
-    """Five issues closed across different days in the same week."""
+def data_5_issues() -> ReportData:
+    """Five issues closed across different days in the same week, plus one open.
+
+    A-1, A-2: closed Monday 2025-03-03
+    A-3: closed Wednesday 2025-03-05
+    A-4: closed Monday 2025-03-10 (next week)
+    A-5: no closed date — excluded from velocity calculations.
+    """
     return ReportData(
         issues=[
             _issue("A-1", datetime(2025, 3, 3)),   # Mon
@@ -50,28 +66,35 @@ def data_5_issues():
 
 
 class TestCompute:
+    """Tests for FlowVelocityMetric.compute() — closed issue aggregation."""
+
     def test_count_excludes_no_closed_date(self, metric, data_5_issues):
+        """Issues without a Closed Date are excluded from the count."""
         result = metric.compute(data_5_issues, SAFE)
         assert result.stats["count"] == 4
 
     def test_daily_freq_two_on_same_day(self, metric, data_5_issues):
+        """Two issues closed on the same day increment the frequency bucket for 2."""
         result = metric.compute(data_5_issues, SAFE)
         freq = result.chart_data.daily_freq
         # Two items on 2025-03-03 → freq[2] = 1
         assert freq.get(2, 0) == 1
 
     def test_weekly_groups_correctly(self, metric, data_5_issues):
+        """Sum of all weekly buckets equals the total closed issue count."""
         result = metric.compute(data_5_issues, SAFE)
         weekly = result.chart_data.weekly
         # 2025-W10 (Mar 3+5) = 3 items, 2025-W11 (Mar 10) = 1 item
         assert sum(weekly.values()) == 4
 
     def test_warning_on_no_data(self, metric):
+        """A warning is produced when the dataset is empty."""
         data = ReportData(issues=[], cfd=[], stages=[], source_prefix="")
         result = metric.compute(data, SAFE)
         assert result.warnings
 
     def test_warning_when_all_open(self, metric):
+        """A warning is produced when all issues lack a Closed Date."""
         data = ReportData(
             issues=[_issue("X", None)],
             cfd=[], stages=[], source_prefix="",
@@ -80,13 +103,16 @@ class TestCompute:
         assert result.warnings
 
     def test_metric_id(self, metric, data_5_issues):
+        """MetricResult carries the correct metric ID."""
         result = metric.compute(data_5_issues, SAFE)
         assert result.metric_id == "flow_velocity"
 
 
 class TestPiIntervals:
+    """Tests for PI interval assignment within FlowVelocityMetric.compute()."""
+
     def test_default_uses_quarterly_intervals(self, metric, data_5_issues):
-        """Without pi_config_path, quarterly intervals are generated."""
+        """Without pi_config_path, quarterly intervals are generated automatically."""
         result = metric.compute(data_5_issues, SAFE)
         pi_intervals = result.chart_data.pi_intervals
         assert len(pi_intervals) > 0
@@ -95,19 +121,20 @@ class TestPiIntervals:
             assert "Q" in iv.name
 
     def test_per_pi_keys_match_interval_names(self, metric, data_5_issues):
+        """per_pi dict keys match the names of the generated PI intervals."""
         result = metric.compute(data_5_issues, SAFE)
         expected_names = {iv.name for iv in result.chart_data.pi_intervals}
         actual_names = set(result.chart_data.per_pi.keys())
         assert actual_names == expected_names
 
     def test_per_pi_counts_sum_to_issue_count(self, metric, data_5_issues):
-        """Total items across all PIs equals the count of issues with Closed Date."""
+        """Total items across all PIs equals the count of issues with a Closed Date."""
         result = metric.compute(data_5_issues, SAFE)
         total = sum(result.chart_data.per_pi.values())
         assert total == result.stats["count"]
 
     def test_custom_pi_config_loaded(self, metric, tmp_path):
-        """When pi_config_path is set, custom intervals are used."""
+        """When pi_config_path is set, custom PI intervals from the file are used."""
         import json
         cfg = tmp_path / "pi.json"
         cfg.write_text(json.dumps({
@@ -131,7 +158,7 @@ class TestPiIntervals:
         assert result.chart_data.per_pi.get("My PI 2") == 1
 
     def test_invalid_pi_config_path_falls_back_to_quarters(self, metric, data_5_issues):
-        """An invalid path produces a warning and falls back to quarterly intervals."""
+        """An invalid config path produces a warning and falls back to quarterly intervals."""
         metric.pi_config_path = "/nonexistent/path.json"
         result = metric.compute(data_5_issues, SAFE)
         assert any("PI config" in w for w in result.warnings)
@@ -140,7 +167,7 @@ class TestPiIntervals:
         assert len(result.chart_data.pi_intervals) > 0
 
     def test_unassigned_issues_produce_warning(self, metric, tmp_path):
-        """Issues that fall outside all intervals generate a warning."""
+        """Issues that fall outside all configured intervals generate a warning."""
         import json
         cfg = tmp_path / "pi.json"
         cfg.write_text(json.dumps({
@@ -162,17 +189,22 @@ class TestPiIntervals:
 
 
 class TestRender:
+    """Tests for FlowVelocityMetric.render() — three-figure output."""
+
     def test_returns_three_figures(self, metric, data_5_issues):
+        """render() returns exactly three figures: daily hist, weekly line, PI bar."""
         result = metric.compute(data_5_issues, SAFE)
         figs = metric.render(result, SAFE)
         assert len(figs) == 3
 
     def test_returns_empty_on_no_data(self, metric):
+        """render() returns an empty list when compute() produced no chart data."""
         data = ReportData(issues=[], cfd=[], stages=[], source_prefix="")
         result = metric.compute(data, SAFE)
         assert metric.render(result, SAFE) == []
 
     def test_pi_chart_xaxis_title_is_quarter_for_default(self, metric, data_5_issues):
+        """Without a custom PI config, the PI bar chart x-axis is labelled 'Quarter'."""
         metric.pi_config_path = ""
         result = metric.compute(data_5_issues, SAFE)
         figs = metric.render(result, SAFE)
@@ -180,6 +212,7 @@ class TestRender:
         assert pi_fig.layout.xaxis.title.text == "Quarter"
 
     def test_pi_chart_xaxis_title_is_pi_for_custom_config(self, metric, tmp_path):
+        """With a custom PI config, the PI bar chart x-axis is labelled 'PI'."""
         import json
         cfg = tmp_path / "pi.json"
         cfg.write_text(json.dumps({
@@ -197,7 +230,7 @@ class TestRender:
         assert pi_fig.layout.xaxis.title.text == "PI"
 
     def test_pi_chart_avg_is_per_pi_not_per_week(self, metric, tmp_path):
-        """Average line must be based on per-PI counts, not avg_per_week."""
+        """Average line in the PI chart is based on per-PI counts, not avg_per_week."""
         import json
         cfg = tmp_path / "pi.json"
         cfg.write_text(json.dumps({
@@ -221,6 +254,7 @@ class TestRender:
         assert "15" in title
 
     def test_first_pi_bar_is_gray(self, metric, data_5_issues):
+        """The first PI bar is always colored gray (may be outside evaluation window)."""
         result = metric.compute(data_5_issues, SAFE)
         figs = metric.render(result, SAFE)
         pi_fig = figs[2]

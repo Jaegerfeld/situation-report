@@ -266,6 +266,17 @@ python -m build_reports.cli <xlsx> --pdf report.pdf
 - Mehrere Diagramme werden über `pypdf` zu einem mehrseitigen PDF zusammengefügt.
 - Der Export nutzt `kaleido` zur Rasterisierung (einmalig `choreo_get_chrome` ausführen, falls kaleido den Chrome-Binary noch nicht gefunden hat).
 - Bei vorhandenen Zero-Day Issues wird automatisch `report_zero_day_issues.xlsx` im selben Ordner erstellt.
+- Parallel zur PDF wird stets eine **Report-Excel-Datei** mit dem gleichen Dateinamen (Endung `.xlsx`) erstellt.
+
+### Report Excel
+
+Bei jedem PDF-Export wird automatisch eine XLSX-Datei (`<reportname>.xlsx`) erzeugt. Sie enthält alle gefilterten Issues im IssueTimes-Format, ergänzt um drei zusätzliche Spalten:
+
+| Spalte | Inhalt |
+|--------|--------|
+| `Status Group` | Statusgruppe des Issues: `To Do`, `In Progress` oder `Done` (abgeleitet aus `First Date` und `Closed Date`) |
+| `Cycle Time (First->Closed)` | Durchlaufzeit in Kalendertagen (`Closed Date − First Date`); leer wenn eines der Daten fehlt |
+| `Cycle Time B (days in Status)` | Summe der Stage-Minuten (alle Stages außer der letzten) dividiert durch 1440; leer wenn eines der Daten fehlt |
 
 ### Zero-Day Issues Excel
 

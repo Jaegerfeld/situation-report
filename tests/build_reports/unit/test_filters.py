@@ -22,7 +22,17 @@ from build_reports.loader import CfdRecord, IssueRecord, ReportData
 
 def _issue(key: str, project: str = "A", issuetype: str = "Feature",
            closed: datetime | None = None) -> IssueRecord:
-    """Helper: create a minimal IssueRecord."""
+    """Create a minimal IssueRecord with optional closed date.
+
+    Args:
+        key:       Unique issue key.
+        project:   Project key string (default 'A').
+        issuetype: Issue type string (default 'Feature').
+        closed:    Closed datetime, or None for open issues.
+
+    Returns:
+        IssueRecord with minimal non-null fields.
+    """
     return IssueRecord(
         project=project, key=key, issuetype=issuetype, status="Done",
         created=datetime(2025, 1, 1), component="", first_date=datetime(2025, 1, 2),
@@ -31,12 +41,25 @@ def _issue(key: str, project: str = "A", issuetype: str = "Feature",
 
 
 def _cfd(day: date) -> CfdRecord:
-    """Helper: create a minimal CfdRecord."""
+    """Create a minimal CfdRecord for a given calendar day.
+
+    Args:
+        day: The date of this CFD snapshot.
+
+    Returns:
+        CfdRecord with a single 'Funnel' stage count of 1.
+    """
     return CfdRecord(day=day, stage_counts={"Funnel": 1})
 
 
 @pytest.fixture
 def sample_data() -> ReportData:
+    """ReportData with 5 issues across two projects and 3 CFD records.
+
+    Issues: A-1 (closed Mar), A-2 (closed Jun), B-1 (closed Sep),
+            X-1 (Bug, closed Apr), N-1 (open, no closed date).
+    CFD records: Jan, Jun, Dec 2025.
+    """
     return ReportData(
         issues=[
             _issue("A-1", project="ART_A", closed=datetime(2025, 3, 1)),
@@ -56,36 +79,47 @@ def sample_data() -> ReportData:
 
 
 class TestNoFilter:
+    """Tests for apply_filters() with an empty FilterConfig — no records removed."""
+
     def test_empty_config_returns_all_issues(self, sample_data):
+        """All issues are preserved when no filter criteria are set."""
         result = apply_filters(sample_data, FilterConfig())
         assert len(result.issues) == len(sample_data.issues)
 
     def test_empty_config_returns_all_cfd(self, sample_data):
+        """All CFD records are preserved when no filter criteria are set."""
         result = apply_filters(sample_data, FilterConfig())
         assert len(result.cfd) == len(sample_data.cfd)
 
     def test_stages_preserved(self, sample_data):
+        """Stages list is passed through unchanged by apply_filters."""
         result = apply_filters(sample_data, FilterConfig())
         assert result.stages == sample_data.stages
 
     def test_source_prefix_preserved(self, sample_data):
+        """source_prefix is passed through unchanged by apply_filters."""
         result = apply_filters(sample_data, FilterConfig())
         assert result.source_prefix == "TEST"
 
     def test_original_data_not_mutated(self, sample_data):
+        """apply_filters does not mutate the source ReportData object."""
         original_count = len(sample_data.issues)
         apply_filters(sample_data, FilterConfig(projects=["ART_A"]))
         assert len(sample_data.issues) == original_count
 
 
 class TestDateFilter:
+    """Tests for apply_filters() with date range criteria."""
+
     def test_from_date_excludes_earlier(self, sample_data):
+        """Issues closed before from_date are excluded."""
         cfg = FilterConfig(from_date=date(2025, 5, 1))
         result = apply_filters(sample_data, cfg)
         keys = {i.key for i in result.issues}
         assert "A-1" not in keys   # closed 2025-03-01
 
     def test_to_date_excludes_later(self, sample_data):
+        """Issues closed after to_date are excluded."""
         cfg = FilterConfig(to_date=date(2025, 5, 1))
         result = apply_filters(sample_data, cfg)
         keys = {i.key for i in result.issues}
@@ -93,6 +127,7 @@ class TestDateFilter:
         assert "B-1" not in keys   # closed 2025-09-01
 
     def test_date_range_inclusive_bounds(self, sample_data):
+        """Issues closed exactly on from_date or to_date are included."""
         cfg = FilterConfig(from_date=date(2025, 3, 1), to_date=date(2025, 6, 15))
         result = apply_filters(sample_data, cfg)
         keys = {i.key for i in result.issues}
@@ -100,12 +135,14 @@ class TestDateFilter:
         assert "A-2" in keys
 
     def test_no_closed_date_excluded_when_range_set(self, sample_data):
+        """Issues without a Closed Date are excluded when a date range is active."""
         cfg = FilterConfig(from_date=date(2025, 1, 1))
         result = apply_filters(sample_data, cfg)
         keys = {i.key for i in result.issues}
         assert "N-1" not in keys
 
     def test_cfd_filtered_by_date(self, sample_data):
+        """CFD records outside the date range are removed."""
         cfg = FilterConfig(from_date=date(2025, 3, 1), to_date=date(2025, 7, 1))
         result = apply_filters(sample_data, cfg)
         assert len(result.cfd) == 1
@@ -113,13 +150,17 @@ class TestDateFilter:
 
 
 class TestProjectFilter:
+    """Tests for apply_filters() with project key criteria."""
+
     def test_single_project(self, sample_data):
+        """Only issues belonging to the specified project are retained."""
         cfg = FilterConfig(projects=["ART_B"])
         result = apply_filters(sample_data, cfg)
         assert all(i.project == "ART_B" for i in result.issues)
         assert len(result.issues) == 1
 
     def test_multiple_projects(self, sample_data):
+        """Issues from all listed projects are retained."""
         cfg = FilterConfig(projects=["ART_A", "ART_B"])
         result = apply_filters(sample_data, cfg)
         projects = {i.project for i in result.issues}
@@ -127,13 +168,17 @@ class TestProjectFilter:
 
 
 class TestIssuetypeFilter:
+    """Tests for apply_filters() with issuetype criteria."""
+
     def test_single_type(self, sample_data):
+        """Only issues of the specified type are retained."""
         cfg = FilterConfig(issuetypes=["Bug"])
         result = apply_filters(sample_data, cfg)
         assert len(result.issues) == 1
         assert result.issues[0].key == "X-1"
 
     def test_combined_project_and_type(self, sample_data):
+        """Project and issuetype filters are applied conjunctively."""
         cfg = FilterConfig(projects=["ART_A"], issuetypes=["Feature"])
         result = apply_filters(sample_data, cfg)
         assert all(i.project == "ART_A" and i.issuetype == "Feature"

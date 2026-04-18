@@ -3,7 +3,7 @@
 # Repository:     https://github.com/Jaegerfeld/situation-report
 # KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
 # Erstellt:       15.04.2026
-# Geändert:       17.04.2026
+# Geändert:       18.04.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
@@ -23,7 +23,7 @@ from pathlib import Path
 
 import plotly.io as pio
 
-from .export import export_pdf, write_zero_day_excel
+from .export import export_pdf, write_report_excel, write_zero_day_excel
 from .filters import FilterConfig, apply_filters
 from .loader import load_report_data
 from .metrics import all_metrics, get_metric
@@ -152,6 +152,9 @@ def run_reports(
         log(f"Exporting {len(all_figures)} figure(s) to {output_pdf} ...")
         export_pdf(all_figures, output_pdf)
         log(f"  Saved: {output_pdf}")
+        xlsx_path = output_pdf.with_suffix(".xlsx")
+        write_report_excel(data.issues, data.stages, xlsx_path)
+        log(f"  Saved: {xlsx_path}")
         if zero_day_records:
             xlsx_path = output_pdf.parent / (output_pdf.stem + "_zero_day_issues.xlsx")
             write_zero_day_excel(zero_day_records, xlsx_path)

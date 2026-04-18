@@ -3,7 +3,7 @@
 # Repository:     https://github.com/Jaegerfeld/situation-report
 # KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
 # Erstellt:       15.04.2026
-# Geändert:       15.04.2026
+# Geändert:       18.04.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
@@ -159,6 +159,90 @@ def write_zero_day_excel(records: "list[IssueRecord]", path: Path) -> None:
         ])
 
     # Auto-width for readability
+    for col in ws.columns:
+        max_len = max((len(str(cell.value or "")) for cell in col), default=0)
+        ws.column_dimensions[col[0].column_letter].width = min(max_len + 4, 40)
+
+    wb.save(path)
+
+
+def write_report_excel(
+    records: "list[IssueRecord]",
+    stages: list[str],
+    path: Path,
+) -> None:
+    """
+    Write filtered issue records to XLSX in IssueTimes format, extended with
+    status group and cycle time columns (Method A and B).
+
+    The output contains all original IssueTimes columns (Project, Key, Issuetype,
+    Status, Created Date, Component, First Date, Implementation Date, Closed Date,
+    one column per workflow stage, Resolution) followed by three additional columns:
+    Status Group (To Do / In Progress / Done), Cycle Time A in calendar days
+    (First Date to Closed Date), and Cycle Time B in days (sum of stage minutes
+    for all stages except the last, divided by 1440). Cycle time columns are left
+    empty for issues that lack First Date or Closed Date.
+
+    Args:
+        records: List of IssueRecord objects to export (typically the filtered set).
+        stages:  Ordered workflow stage names matching the stage_minutes keys.
+        path:    Destination .xlsx path; parent directory is created if needed.
+    """
+    from openpyxl import Workbook
+    from openpyxl.styles import Font, PatternFill
+
+    from .stage_groups import issue_stage_group
+
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+
+    fixed_headers = [
+        "Project", "Key", "Issuetype", "Status",
+        "Created Date", "Component",
+        "First Date", "Implementation Date", "Closed Date",
+    ]
+    extra_headers = ["Status Group", "Cycle Time (First->Closed)", "Cycle Time B (days in Status)"]
+    headers = fixed_headers + stages + ["Resolution"] + extra_headers
+
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Report Data"
+
+    ws.append(headers)
+    header_fill = PatternFill("solid", fgColor="BDD7EE")  # light blue
+    for cell in ws[1]:
+        cell.font = Font(bold=True)
+        cell.fill = header_fill
+
+    def _fmt(dt: object) -> object:
+        """Return datetime as-is (openpyxl formats it); None → empty string."""
+        return dt if dt is not None else ""
+
+    stages_for_ct_b = stages[:-1] if len(stages) > 1 else stages
+
+    for rec in records:
+        if rec.first_date is not None and rec.closed_date is not None:
+            ct_a: object = round(
+                (rec.closed_date - rec.first_date).total_seconds() / 86400, 2
+            )
+            minutes = sum(rec.stage_minutes.get(s, 0) for s in stages_for_ct_b)
+            ct_b: object = round(minutes / 1440, 2)
+        else:
+            ct_a = ""
+            ct_b = ""
+
+        stage_values = [rec.stage_minutes.get(s, 0) for s in stages]
+
+        ws.append(
+            [
+                rec.project, rec.key, rec.issuetype, rec.status,
+                _fmt(rec.created), rec.component,
+                _fmt(rec.first_date), _fmt(rec.implementation_date), _fmt(rec.closed_date),
+            ]
+            + stage_values
+            + [rec.resolution, issue_stage_group(rec), ct_a, ct_b]
+        )
+
     for col in ws.columns:
         max_len = max((len(str(cell.value or "")) for cell in col), default=0)
         ws.column_dimensions[col[0].column_letter].width = min(max_len + 4, 40)

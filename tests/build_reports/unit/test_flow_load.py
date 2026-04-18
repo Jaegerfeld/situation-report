@@ -23,6 +23,17 @@ from build_reports.terminology import SAFE
 def _issue(key: str, closed: datetime | None = None,
            stage_minutes: dict | None = None,
            first: datetime | None = None) -> IssueRecord:
+    """Create a minimal IssueRecord with optional closed date, stage minutes, and first date.
+
+    Args:
+        key:           Unique issue key.
+        closed:        Closed datetime, or None for an open issue.
+        stage_minutes: Dict of stage name to minutes spent; defaults to empty.
+        first:         First active date; defaults to 2025-01-02 if not given.
+
+    Returns:
+        IssueRecord with status 'In Progress' and project 'P'.
+    """
     return IssueRecord(
         project="P", key=key, issuetype="Feature", status="In Progress",
         created=datetime(2025, 1, 1), component="",
@@ -36,12 +47,14 @@ STAGES = ["Funnel", "Analysis", "Implementation", "Done"]
 
 
 @pytest.fixture
-def metric():
+def metric() -> FlowLoadMetric:
+    """Return a default FlowLoadMetric instance."""
     return FlowLoadMetric()
 
 
 @pytest.fixture
-def mixed_data():
+def mixed_data() -> ReportData:
+    """ReportData with two open issues and one closed issue across multiple stages."""
     return ReportData(
         issues=[
             _issue("O-1", closed=None,
@@ -57,25 +70,34 @@ def mixed_data():
 
 
 class TestCurrentStage:
+    """Tests for _current_stage() — inferring an issue's active workflow stage."""
+
     def test_returns_last_nonzero_stage(self):
+        """Returns the last stage in workflow order that has recorded time > 0."""
         issue = _issue("X", stage_minutes={"Funnel": 10, "Analysis": 20, "Implementation": 0, "Done": 0})
         assert _current_stage(issue, STAGES) == "Analysis"
 
     def test_fallback_to_first_stage_when_all_zero(self):
+        """Falls back to the first workflow stage when all stage minutes are zero."""
         issue = _issue("X", stage_minutes={"Funnel": 0, "Analysis": 0})
         assert _current_stage(issue, ["Funnel", "Analysis"]) == "Funnel"
 
     def test_single_stage_with_time(self):
+        """Returns the only stage when it has recorded time."""
         issue = _issue("X", stage_minutes={"Funnel": 5})
         assert _current_stage(issue, ["Funnel"]) == "Funnel"
 
 
 class TestCompute:
+    """Tests for FlowLoadMetric.compute() — open issue age grouping."""
+
     def test_only_open_issues_counted(self, metric, mixed_data):
+        """open_count stat reflects only issues without a Closed Date."""
         result = metric.compute(mixed_data, SAFE)
         assert result.stats["open_count"] == 2
 
     def test_warning_when_no_open_issues(self, metric):
+        """A warning is produced when no open issues exist in the dataset."""
         data = ReportData(
             issues=[_issue("C-1", closed=datetime(2025, 3, 1))],
             cfd=[], stages=STAGES, source_prefix="",
@@ -84,25 +106,32 @@ class TestCompute:
         assert result.warnings
 
     def test_done_count_from_closed_issues(self, metric, mixed_data):
+        """done_count stat is derived from closed issues with valid cycle time."""
         result = metric.compute(mixed_data, SAFE)
         assert result.stats["done_count"] > 0
 
     def test_mean_age_positive(self, metric, mixed_data):
+        """Mean age of open issues is positive when issues have a first date."""
         result = metric.compute(mixed_data, SAFE)
         assert result.stats["mean_age"] > 0
 
     def test_metric_id(self, metric, mixed_data):
+        """MetricResult carries the correct metric ID."""
         result = metric.compute(mixed_data, SAFE)
         assert result.metric_id == "flow_load"
 
 
 class TestRender:
+    """Tests for FlowLoadMetric.render() — aging WIP boxplot output."""
+
     def test_returns_one_figure(self, metric, mixed_data):
+        """render() returns exactly one figure."""
         result = metric.compute(mixed_data, SAFE)
         figs = metric.render(result, SAFE)
         assert len(figs) == 1
 
     def test_returns_empty_on_no_data(self, metric):
+        """render() returns an empty list when compute() produced no chart data."""
         data = ReportData(
             issues=[_issue("C-1", closed=datetime(2025, 3, 1))],
             cfd=[], stages=STAGES, source_prefix="",
