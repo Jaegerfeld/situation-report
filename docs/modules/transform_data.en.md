@@ -2,6 +2,10 @@
 
 Reads a Jira JSON export and a workflow definition and produces three XLSX files with stage-time metrics.
 
+!!! tip "User Manual (PDF)"
+    A detailed user manual for non-technical users is available:
+    **[transform_data_Benutzerhandbuch.pdf](../transform_data_Benutzerhandbuch.pdf)**
+
 ## Start
 
 ### GUI

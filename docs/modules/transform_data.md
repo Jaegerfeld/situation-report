@@ -2,6 +2,10 @@
 
 Liest einen Jira-JSON-Export und eine Workflow-Definition und erzeugt drei XLSX-Dateien mit Stage-Time-Metriken.
 
+!!! tip "Benutzerhandbuch (PDF)"
+    Für Nicht-Techniker steht ein ausführliches Benutzerhandbuch bereit:
+    **[transform_data_Benutzerhandbuch.pdf](../transform_data_Benutzerhandbuch.pdf)**
+
 ## Start
 
 ### GUI
