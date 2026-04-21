@@ -3,7 +3,7 @@
 # Repository:     https://github.com/Jaegerfeld/situation-report
 # KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
 # Erstellt:       09.04.2026
-# Geändert:       15.04.2026
+# Geändert:       21.04.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
@@ -175,6 +175,15 @@ def process_issues(
                     inprogress_date = entry_ts
                 if stage == workflow.closed_stage:
                     closed_date = entry_ts  # letzter Eintritt zählt
+
+        # If development started (first_date set) but the closed stage was skipped,
+        # use the first stage that comes after the closed stage in workflow order.
+        if first_date is not None and closed_date is None and workflow.closed_stage is not None:
+            closed_idx = workflow.stages.index(workflow.closed_stage)
+            for stage, entry_ts in mapped:
+                if stage is not None and workflow.stages.index(stage) > closed_idx:
+                    closed_date = entry_ts
+                    break
 
         records.append(IssueRecord(
             project=project,

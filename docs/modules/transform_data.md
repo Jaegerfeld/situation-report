@@ -147,6 +147,9 @@ Cumulative Flow Diagram — eine Zeile pro Kalendertag, Stage-Spalten enthalten 
 !!! info "Closed Date"
     Das Closed Date wird beim **letzten** Eintritt in die `<Closed>`-Stage gesetzt. Bei Issues die wiedereröffnet und erneut geschlossen wurden, zählt der jüngste Schließzeitpunkt.
 
+!!! info "Übersprungene Closed-Stage"
+    Hat ein Issue ein First Date, aber die `<Closed>`-Stage wurde übersprungen (z. B. direkter Wechsel von Implementation nach Done), gilt die **erste Stage chronologisch nach der Closed-Stage** im Workflow als Closed Date. Damit werden Issues, bei denen Entwicklung stattgefunden hat und ein Status im Prozess übersprungen wurde, korrekt als geschlossen gezählt. Issues ohne First Date (z. B. direkt nach Canceled) erhalten kein Closed Date.
+
 ## Tests
 
 ```bash
