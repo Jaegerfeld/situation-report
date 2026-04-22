@@ -3,7 +3,7 @@
 # Repository:     https://github.com/Jaegerfeld/situation-report
 # KI-Unterstuetzung: Erstellt mit Unterstuetzung von Claude (Anthropic)
 # Erstellt:       17.04.2026
-# Geaendert:      18.04.2026
+# Geaendert:      22.04.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
@@ -371,7 +371,7 @@ def content(st):
         st))
     story.append(SP(4))
     story.append(tbl(
-        ["Filter", "Beschreibung"],
+        ["Filter / Ausschluss", "Beschreibung"],
         [
             ["Von / Bis",
              "Nur Issues beruecksichtigen, die in diesem Zeitraum abgeschlossen wurden. "
@@ -384,8 +384,19 @@ def content(st):
             ["Issuetypen",
              "Nur bestimmte Issue-Typen auswerten, z.B. Feature, Bug. "
              "Leer lassen = alle Typen. Der Auswahl-Button zeigt eine Auswahlliste."],
+            ["Ausschliessen: Status",
+             "Issues mit bestimmten Jira-Status vollstaendig aus allen Metriken entfernen, "
+             "z.B. 'Canceled'. Der Auswahl-Button zeigt alle vorhandenen Status."],
+            ["Ausschliessen: Resolution",
+             "Issues mit bestimmten Abschlussarten ausschliessen, z.B. 'Won't Do' oder "
+             "'Duplicate'. Der Auswahl-Button zeigt alle vorhandenen Resolutions."],
+            ["Zero-Day-Issues ausschliessen",
+             "Checkbox: Issues, deren Durchlaufzeit (First bis Closed Date) kuerzer als "
+             "der eingestellte Schwellwert ist, werden komplett entfernt. Standard: "
+             "5 Minuten. Typisch fuer Issues, die manuell durch den Workflow geklickt "
+             "wurden ohne echte Entwicklungsarbeit."],
         ],
-        col_widths=[3.5*cm, 12.5*cm]))
+        col_widths=[3.8*cm, 12.2*cm]))
 
     story.append(H2("4.3  Metriken und CT-Methode auswaehlen", st))
     story.append(P(
@@ -417,7 +428,7 @@ def content(st):
         "Datenpunkte per Hover-Tooltip inspizieren und einzelne Kategorien in der "
         "Legende ein- und ausblenden.", st))
     story.append(BL(
-        "<b>Als PDF speichern</b> - Alle Diagramme werden in eine mehrseitige PDF-Datei "
+        "<b>Reports exportieren</b> - Alle Diagramme werden in eine mehrseitige PDF-Datei "
         "exportiert. Ein Speicherdialog fragt nach Dateiname und Speicherort. "
         "Zusaetzlich zur PDF werden automatisch zwei Excel-Dateien erstellt: eine "
         "Report-Excel mit allen Issues, Statusgruppen und Durchlaufzeiten sowie -- bei "
@@ -618,7 +629,7 @@ def content(st):
         [
             ["1", "Dateien laden und Filter setzen (wie in Kapitel 4 beschrieben)."],
             ["2", "Gewuenschte Metriken per Checkbox auswaehlen."],
-            ["3", "Auf 'Als PDF speichern' klicken."],
+            ["3", "Auf 'Reports exportieren' klicken."],
             ["4", "Im Speicherdialog Dateiname und Speicherort waehlen und bestaetigen."],
             ["5", "Das Programm rechnet und exportiert; der Fortschritt erscheint im Log."],
             ["6", "Nach Abschluss stehen PDF und Report-Excel am gewaehlten Speicherort bereit."],
@@ -648,10 +659,16 @@ def content(st):
         col_widths=[5*cm, 11*cm]))
     story.append(SP(8))
     story.append(box(
-        "<b>Zero-Day Issues:</b> Wenn Issues mit einer Durchlaufzeit von 0 Tagen "
-        "vorhanden sind, wird zusaetzlich eine separate Datei erstellt "
-        "(z.B. report_zero_day_issues.xlsx im gleichen Ordner). "
-        "Diese Issues werden in der Flow-Time-Metrik nicht beruecksichtigt.", st,
+        "<b>Zero-Day Issues:</b> Zwei Mechanismen greifen unabhaengig voneinander:<br/>"
+        "1. <b>Ausschluss-Filter (vor der Berechnung):</b> Ist die Checkbox "
+        "'Zero-Day-Issues ausschliessen' aktiv, werden Issues mit einer Durchlaufzeit "
+        "unterhalb des eingestellten Schwellwerts (Standard: 5 Minuten) komplett aus "
+        "allen Metriken entfernt.<br/>"
+        "2. <b>Innerhalb der Flow-Time-Metrik:</b> Issues mit einer Durchlaufzeit von "
+        "0 Tagen (gleicher Kalendertag) werden separat ausgewiesen und nicht in die "
+        "Statistik eingerechnet.<br/>"
+        "In beiden Faellen wird eine separate Excel-Datei erstellt "
+        "(z.B. report_zero_day_issues.xlsx im gleichen Ordner).", st,
         "#fff8e1"))
 
     # =========================================================================
@@ -701,7 +718,17 @@ def content(st):
             "Wie sichere ich meine Einstellungen?",
             "Nutzen Sie das Menue 'Templates' -> 'Speichern...', um alle aktuellen "
             "Einstellungen in einer JSON-Datei zu sichern. Beim naechsten Mal: "
-            "'Templates' -> 'Laden...'"
+            "'Templates' -> 'Laden...'. Ausschluss-Einstellungen koennen zusaetzlich "
+            "dauerhaft unter 'Templates' -> 'Ausschluesse als Standard speichern' "
+            "hinterlegt werden."
+        ),
+        (
+            "Ein Issue erscheint in den Metriken, obwohl es nie wirklich bearbeitet wurde.",
+            "Das kommt vor, wenn ein Issue manuell innerhalb von Sekunden durch alle "
+            "Workflow-Stages geklickt wurde -- ohne echte Entwicklungsarbeit. Aktivieren "
+            "Sie in der GUI unter 'Ausschluesse' die Checkbox 'Zero-Day-Issues "
+            "ausschliessen' (Schwellwert z.B. 5 Minuten). Das Issue wird dann komplett "
+            "aus allen Metriken entfernt und in einer separaten Excel-Datei dokumentiert."
         ),
         (
             "Kann ich die Ergebnisse auch ohne Computer vorfahren?",
@@ -736,11 +763,16 @@ def content(st):
             ["LOESS",          "Statistisches Glaettungsverfahren fuer Trendlinien."],
             ["P85 / P95",      "85. bzw. 95. Perzentil der Durchlaufzeiten."],
             ["PI",             "Program Increment -- ein fester Planungs- und Lieferzeitraum."],
+            ["Resolution",     "Abschlussart eines Issues, z.B. 'Done', 'Won't Do', 'Duplicate'."],
             ["SAFe",           "Scaled Agile Framework -- ein Framework fuer agile Skalierung."],
             ["Stage",          "Ein Schritt im Workflow, z.B. Analyse, Implementierung, Done."],
             ["Template",       "Gespeicherte Konfigurationsdatei mit allen Einstellungen."],
             ["Throughput",     "Andere Bezeichnung fuer Flow Velocity (Global-Terminologie)."],
             ["WIP",            "Work in Progress -- Issues, die aktuell in Bearbeitung sind."],
+            ["Zero-Day Issue", "Issue, dessen Durchlaufzeit (First bis Closed Date) so kurz "
+                               "ist, dass es keine echte Bearbeitungszeit repraesentiert. "
+                               "Entsteht meist durch manuelles Durchklicken im Workflow. "
+                               "Kann per Schwellwert-Filter aus allen Metriken entfernt werden."],
         ],
         col_widths=[4*cm, 12*cm]))
 

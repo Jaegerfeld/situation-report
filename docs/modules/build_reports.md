@@ -34,6 +34,10 @@ python -m build_reports.cli <IssueTimes.xlsx> [Optionen]
 | `--to-date YYYY-MM-DD` | Nur Issues einschließen, die bis zu diesem Datum geschlossen wurden |
 | `--projects KEY …` | Auf diese Projektschlüssel einschränken |
 | `--issuetypes TYPE …` | Auf diese Issuetypen einschränken |
+| `--exclude-status STATUS …` | Issues mit diesen Jira-Status vollständig ausschließen |
+| `--exclude-resolution RES …` | Issues mit diesen Resolutions vollständig ausschließen |
+| `--exclude-zero-day` | Zero-Day-Issues ausschließen (CT < Schwellwert) |
+| `--zero-day-threshold MINUTEN` | Schwellwert in Minuten für Zero-Day-Erkennung (Standard: 5) |
 | `--terminology` | Terminologie: `SAFe` (Standard) oder `Global` |
 | `--ct-method` | CT-Berechnungsmethode: `A` (Kalendertage, Standard) oder `B` (Stage-Minuten) |
 | `--pdf FILE` | Alle Diagramme als PDF speichern |
@@ -99,6 +103,21 @@ Das Menüband enthält zwei Menüs:
 | Projekte | Kommagetrennte Projektschlüssel, z. B. `ARTA, ARTB`. Leer = alle. ▾-Button öffnet eine Auswahlliste aus der geladenen Datei. |
 | Issuetypen | Kommagetrennte Issuetypen, z. B. `Feature, Bug`. Leer = alle. ▾-Button öffnet eine Auswahlliste. |
 
+### Ausschlüsse
+
+Bestimmte Issues können vollständig aus allen Metriken entfernt werden — auch wenn sie ein Closed Date besitzen.
+
+| Feld | Beschreibung |
+|------|-------------|
+| Status | Kommagetrennte Jira-Status, z. B. `Canceled`. ▾-Button öffnet Auswahlliste. |
+| Resolution | Kommagetrennte Resolutions, z. B. `Won't Do, Duplicate`. ▾-Button öffnet Auswahlliste. |
+| Zero-Day-Issues ausschließen | Checkbox + Spinbox (1–60 min). Issues, deren Cycle Time (First → Closed Date) kleiner als der Schwellwert ist, werden entfernt. Standard: 5 Minuten. |
+
+Ausschluss-Defaults können über **Templates → Ausschlüsse als Standard speichern** dauerhaft gespeichert und mit **Standard-Ausschlüsse laden** wiederhergestellt werden.
+
+!!! info "Zero-Day-Issues"
+    Typisches Beispiel: Ein Issue wurde manuell innerhalb von Sekunden durch alle Workflow-Stages geklickt, ohne dass tatsächlich Entwicklungsarbeit stattfand. Solche Issues verzerren Flow-Time-Statistiken und sollten per Schwellwert ausgeschlossen werden.
+
 ### Metriken und CT-Methode
 
 Über Checkboxen können einzelne Metriken aktiviert oder deaktiviert werden. **Alle** und **Keine** setzen alle Checkboxen auf einmal.
@@ -147,7 +166,10 @@ Berechnet die Durchlaufzeit (in Tagen) von der ersten Aktivität (`First Date`) 
 
 **Zero-Day Issues:**
 
-Issues mit Durchlaufzeit ≤ 0 werden aus der Berechnung ausgeschlossen:
+Zwei Mechanismen greifen unabhängig voneinander:
+
+1. **Vor der Metrikberechnung (Ausschluss-Filter):** Issues deren Cycle Time (First → Closed Date) kleiner als der konfigurierte Schwellwert ist (Standard: 5 Minuten), werden vollständig aus allen Metriken entfernt — bei aktivierter Checkbox in den Ausschlüssen.
+2. **Innerhalb der Metrik:** Issues mit einer Durchlaufzeit ≤ 0 Tage (z. B. selber Kalendertag) werden aus der Berechnung herausgenommen und separat ausgewiesen.
 
 - **PDF-Export**: Automatisch als `<reportname>_zero_day_issues.xlsx` im selben Ordner gespeichert (wenn Issues vorhanden).
 - **Browser-Anzeige**: Issue-Keys im Log-Fenster aufgelistet.
@@ -232,9 +254,13 @@ Filter können in der GUI über die Eingabefelder gesetzt oder per CLI als Argum
 | Bis-Datum | Feld „Bis", 📅-Button oder „Letzte 365 Tage" | `--to-date` |
 | Projekte | Feld „Projekte" (kommagetrennt) oder ▾-Auswahl | `--projects` |
 | Issuetypen | Feld „Issuetypen" (kommagetrennt) oder ▾-Auswahl | `--issuetypes` |
+| Status-Ausschluss | Ausschlüsse → Status (kommagetrennt) oder ▾-Auswahl | `--exclude-status` |
+| Resolution-Ausschluss | Ausschlüsse → Resolution (kommagetrennt) oder ▾-Auswahl | `--exclude-resolution` |
+| Zero-Day-Ausschluss | Ausschlüsse → Checkbox + Schwellwert (Minuten) | `--exclude-zero-day` / `--zero-day-threshold` |
 
 - Der Datumsfilter bezieht sich auf das `Closed Date` der Issues.
 - Issues ohne `Closed Date` werden bei gesetztem Datumsfilter ausgeschlossen.
+- Ausgeschlossene Issues (Status, Resolution, Zero-Day) werden **vor** der Metrikberechnung entfernt und erscheinen in keiner Auswertung.
 - CFD-Daten werden nur nach Datum gefiltert (keine Projekt- oder Issuetyp-Dimension).
 - Standard-Datumsbereich: die letzten 365 Tage bis heute.
 

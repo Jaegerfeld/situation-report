@@ -34,6 +34,10 @@ python -m build_reports.cli <IssueTimes.xlsx> [options]
 | `--to-date YYYY-MM-DD` | Include only issues closed on or before this date |
 | `--projects KEY …` | Restrict to these project keys |
 | `--issuetypes TYPE …` | Restrict to these issue types |
+| `--exclude-status STATUS …` | Completely exclude issues with these Jira statuses |
+| `--exclude-resolution RES …` | Completely exclude issues with these resolutions |
+| `--exclude-zero-day` | Exclude zero-day issues (CT below threshold) |
+| `--zero-day-threshold MINUTES` | Cycle time threshold in minutes for zero-day detection (default: 5) |
 | `--terminology` | Terminology mode: `SAFe` (default) or `Global` |
 | `--ct-method` | CT calculation method: `A` (calendar days, default) or `B` (stage minutes) |
 | `--pdf FILE` | Export all charts to this PDF file |
@@ -99,6 +103,21 @@ The menu bar contains two menus:
 | Projects | Comma-separated project keys, e.g. `ARTA, ARTB`. Empty = all. The ▾ button opens a selection list from the loaded file. |
 | Issue types | Comma-separated issue types, e.g. `Feature, Bug`. Empty = all. The ▾ button opens a selection list. |
 
+### Exclusions
+
+Specific issues can be completely removed from all metrics — even if they have a Closed Date.
+
+| Field | Description |
+|-------|-------------|
+| Status | Comma-separated Jira statuses, e.g. `Canceled`. The ▾ button opens a selection list. |
+| Resolution | Comma-separated resolutions, e.g. `Won't Do, Duplicate`. The ▾ button opens a selection list. |
+| Exclude zero-day issues | Checkbox + spinbox (1–60 min). Issues whose cycle time (First → Closed Date) is below the threshold are removed. Default: 5 minutes. |
+
+Exclusion defaults can be saved permanently via **Templates → Save exclusions as default** and restored with **Load default exclusions**.
+
+!!! info "Zero-day issues"
+    Typical example: an issue was manually clicked through all workflow stages within seconds, without any actual development work taking place. Such issues distort flow time statistics and should be excluded using the threshold.
+
 ### Metrics and CT method
 
 Individual metrics can be enabled or disabled via checkboxes. **All** and **None** set all checkboxes at once.
@@ -147,7 +166,10 @@ Computes lead time (in days) from first activity (`First Date`) to completion (`
 
 **Zero-day issues:**
 
-Issues with a lead time ≤ 0 are excluded from the calculation:
+Two mechanisms apply independently:
+
+1. **Before metric computation (exclusion filter):** Issues whose cycle time (First → Closed Date) is below the configured threshold (default: 5 minutes) are completely removed from all metrics — when the checkbox in the Exclusions section is active.
+2. **Within the metric:** Issues with a lead time ≤ 0 days (e.g. same calendar day) are removed from the calculation and reported separately.
 
 - **PDF export**: Automatically saved as `<reportname>_zero_day_issues.xlsx` in the same folder (when issues are present).
 - **Browser display**: Issue keys are listed in the log window.
@@ -232,9 +254,13 @@ Filters can be set in the GUI via input fields or passed as CLI arguments.
 | To date | "To" field, 📅 button, or "Last 365 days" | `--to-date` |
 | Projects | "Projects" field (comma-separated) or ▾ selection | `--projects` |
 | Issue types | "Issue types" field (comma-separated) or ▾ selection | `--issuetypes` |
+| Status exclusion | Exclusions → Status (comma-separated) or ▾ selection | `--exclude-status` |
+| Resolution exclusion | Exclusions → Resolution (comma-separated) or ▾ selection | `--exclude-resolution` |
+| Zero-day exclusion | Exclusions → checkbox + threshold (minutes) | `--exclude-zero-day` / `--zero-day-threshold` |
 
 - The date filter applies to the `Closed Date` of issues.
 - Issues without a `Closed Date` are excluded when a date range is set.
+- Excluded issues (status, resolution, zero-day) are removed **before** metric computation and do not appear in any output.
 - CFD data is filtered by date only (no project or issue type dimension).
 - Default date range: the last 365 days up to today.
 
