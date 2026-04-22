@@ -8,6 +8,13 @@
         <xhtml:link rel="alternate" hreflang="en" href="https://jaegerfeld.github.io/situation-report/en/"/>
     </url>
     <url>
+        <loc>https://jaegerfeld.github.io/situation-report/architecture/</loc>
+        <lastmod>2026-04-22</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="de" href="https://jaegerfeld.github.io/situation-report/architecture/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://jaegerfeld.github.io/situation-report/en/architecture/"/>
+    </url>
+    <url>
         <loc>https://jaegerfeld.github.io/situation-report/development/</loc>
         <lastmod>2026-04-22</lastmod>
         <changefreq>daily</changefreq>
@@ -62,6 +69,13 @@
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://jaegerfeld.github.io/situation-report/en/"/>
         <xhtml:link rel="alternate" hreflang="de" href="https://jaegerfeld.github.io/situation-report/"/>
+    </url>
+    <url>
+        <loc>https://jaegerfeld.github.io/situation-report/en/architecture/</loc>
+        <lastmod>2026-04-22</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://jaegerfeld.github.io/situation-report/en/architecture/"/>
+        <xhtml:link rel="alternate" hreflang="de" href="https://jaegerfeld.github.io/situation-report/architecture/"/>
     </url>
     <url>
         <loc>https://jaegerfeld.github.io/situation-report/en/development/</loc>
