@@ -22,7 +22,7 @@ python -m transform_data.gui
 
 Startet die GUI direkt (ohne Argument-Prüfung).
 
-Alternativ: Doppelklick auf `start_gui.pyw` im Projektverzeichnis — öffnet die GUI ohne Konsolenfenster.
+Alternativ: Doppelklick auf `transform_data_gui.pyw` im Projektverzeichnis — öffnet die GUI ohne Konsolenfenster.
 
 ### Kommandozeile
 
@@ -63,7 +63,7 @@ Erzeugt:
 | `python -m transform_data.gui` | GUI (direkt) |
 | `python -m transform_data.transform <json> <workflow>` | CLI (direkt) |
 | `python -m transform_data --help` | CLI-Hilfe |
-| Doppelklick auf `start_gui.pyw` | GUI ohne Konsolenfenster |
+| Doppelklick auf `transform_data_gui.pyw` | GUI ohne Konsolenfenster |
 
 ## Workflow-Definitionsdatei
 
