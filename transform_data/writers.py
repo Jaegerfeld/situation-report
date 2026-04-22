@@ -10,7 +10,7 @@
 #   Schreibt die verarbeiteten Issue-Daten in drei XLSX-Ausgabedateien:
 #   Transitions (chronologische Statuswechsel je Issue), IssueTimes
 #   (Verweildauer in Minuten je Stage pro Issue) und CFD (Cumulative Flow
-#   Diagram mit täglichen Stage-Belegungszahlen). Alle Ausgaben enthalten
+#   Diagram mit täglichen Eintrittszählungen je Stage). Alle Ausgaben enthalten
 #   fett gedruckte Kopfzeilen.
 # =============================================================================
 
@@ -91,7 +91,9 @@ def write_cfd(
     """
     Write Cumulative Flow Diagram XLSX.
     One row per calendar day from the earliest issue creation to reference_dt.
-    Each stage column contains the count of issues in that stage on that day.
+    Each stage column contains the count of issues that ENTERED that stage on
+    that day. build_reports accumulates these daily counts into a running total
+    to produce the stacked area chart.
 
     Columns: Day, <stage columns...>
     """
@@ -99,33 +101,36 @@ def write_cfd(
         return
 
     stage_cols = workflow.stages
+    stage_set = set(stage_cols)
     min_date = min(r.created.date() for r in records)
     max_date = reference_dt.date()
 
-    def stage_at_day(record: IssueRecord, day: date) -> str | None:
-        if record.created.date() > day:
-            return None
-        current = record.initial_stage
+    # Collect daily entry counts: day → stage → count
+    daily: dict[date, dict[str, int]] = {}
+    current_date = min_date
+    while current_date <= max_date:
+        daily[current_date] = {s: 0 for s in stage_cols}
+        current_date += timedelta(days=1)
+
+    for record in records:
+        # Initial stage entry on creation date
+        if record.initial_stage and record.initial_stage in stage_set:
+            day = record.created.date()
+            if day in daily:
+                daily[day][record.initial_stage] += 1
+
+        # Each subsequent transition into a mapped stage
         for t in record.transitions[1:]:   # skip "Created" entry
-            if t.timestamp.date() <= day:
-                # carry-forward: only advance if the transition target is mapped
-                mapped_stage = workflow.status_to_stage.get(t.label)
-                if mapped_stage is not None:
-                    current = mapped_stage
-            else:
-                break
-        return current
+            if t.label in stage_set:
+                day = t.timestamp.date()
+                if day in daily:
+                    daily[day][t.label] += 1
 
     wb, ws = _new_wb(["Day"] + stage_cols)
 
     current_date = min_date
     while current_date <= max_date:
-        counts: dict[str, int] = {s: 0 for s in stage_cols}
-        for record in records:
-            stage = stage_at_day(record, current_date)
-            if stage and stage in counts:
-                counts[stage] += 1
-        ws.append([current_date.strftime("%d.%m.%Y")] + [counts[s] for s in stage_cols])
+        ws.append([current_date.strftime("%d.%m.%Y")] + [daily[current_date][s] for s in stage_cols])
         current_date += timedelta(days=1)
 
     wb.save(output_path)

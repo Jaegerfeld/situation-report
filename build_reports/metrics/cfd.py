@@ -148,6 +148,14 @@ class CfdMetric(MetricPlugin):
             for s in stages:
                 stage_series[s].append(record.stage_counts.get(s, 0))
 
+        # Accumulate daily entry counts into a running cumulative total so the
+        # chart shows how many issues have entered each stage up to each day.
+        for s in stages:
+            cumsum = 0
+            for i in range(len(stage_series[s])):
+                cumsum += stage_series[s][i]
+                stage_series[s][i] = cumsum
+
         # Total stacked height per day (= top of first-stage area)
         totals = [
             sum(stage_series[s][i] for s in stages)

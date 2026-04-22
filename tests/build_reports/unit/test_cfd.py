@@ -43,13 +43,17 @@ def metric() -> CfdMetric:
 
 @pytest.fixture
 def simple_cfd_data() -> ReportData:
-    """ReportData with three CFD records (Jan 1–3 2025) and two stages: Funnel and Done."""
+    """ReportData with three CFD records (Jan 1–3 2025) and two stages: Funnel and Done.
+
+    Values represent daily ENTRY COUNTS (how many issues entered each stage that day).
+    build_reports accumulates these into running totals before charting.
+    """
     return ReportData(
         issues=[],
         cfd=[
             _cfd(date(2025, 1, 1), funnel=10, done=0),
-            _cfd(date(2025, 1, 2), funnel=20, done=2),
-            _cfd(date(2025, 1, 3), funnel=30, done=5),
+            _cfd(date(2025, 1, 2), funnel=5,  done=2),
+            _cfd(date(2025, 1, 3), funnel=5,  done=3),
         ],
         stages=["Funnel", "Done"],
         source_prefix="TEST",
@@ -65,22 +69,34 @@ class TestCompute:
         assert result.stats["days"] == 3
 
     def test_in_total_is_total_stacked_at_last_day(self, metric, simple_cfd_data):
-        """in_total equals the sum of all stage counts on the last day."""
-        # Last day: Funnel=30, Done=5 → total=35
+        """in_total equals the sum of cumulated stage counts on the last day.
+
+        Daily entries: Funnel [10,5,5] → cumulated [10,15,20]; Done [0,2,3] → [0,2,5].
+        Last day cumulated: Funnel=20, Done=5 → total=25.
+        """
         result = metric.compute(simple_cfd_data, SAFE)
-        assert result.stats["in_total"] == 35
+        assert result.stats["in_total"] == 25
 
     def test_out_total_is_last_stage_value_at_last_day(self, metric, simple_cfd_data):
-        """out_total equals the count of the last stage (Done) on the last day."""
-        # Last day: Done=5
+        """out_total equals the cumulated count of the last stage (Done) on the last day."""
+        # Done: [0,2,3] → cumulated [0,2,5] → last day = 5
         result = metric.compute(simple_cfd_data, SAFE)
         assert result.stats["out_total"] == 5
 
     def test_ratio_calculation(self, metric, simple_cfd_data):
         """In/Out ratio is computed as in_total / out_total rounded to 2 decimals."""
-        # 35 / 5 = 7.0
+        # 25 / 5 = 5.0
         result = metric.compute(simple_cfd_data, SAFE)
-        assert result.stats["ratio"] == pytest.approx(7.0)
+        assert result.stats["ratio"] == pytest.approx(5.0)
+
+    def test_series_cumulated(self, metric, simple_cfd_data):
+        """Stage series are accumulated into running totals before charting."""
+        result = metric.compute(simple_cfd_data, SAFE)
+        cd = result.chart_data
+        # Funnel: daily [10,5,5] → cumulated [10,15,20]
+        assert cd.stage_series["Funnel"] == [10, 15, 20]
+        # Done: daily [0,2,3] → cumulated [0,2,5]
+        assert cd.stage_series["Done"] == [0, 2, 5]
 
     def test_dates_are_iso_format(self, metric, simple_cfd_data):
         """All dates in chart_data.dates are valid ISO-8601 strings."""
@@ -121,10 +137,10 @@ class TestRender:
         assert len(figs) == 1
 
     def test_title_contains_ratio(self, metric, simple_cfd_data):
-        """The figure title contains the computed In/Out ratio value."""
+        """The figure title contains the computed In/Out ratio value (5.0)."""
         result = metric.compute(simple_cfd_data, SAFE)
         figs = metric.render(result, SAFE)
-        assert "7.0" in figs[0].layout.title.text
+        assert "5.0" in figs[0].layout.title.text
 
     def test_returns_empty_on_no_data(self, metric):
         """render() returns an empty list when compute() produced no chart data."""

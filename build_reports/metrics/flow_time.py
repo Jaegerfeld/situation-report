@@ -178,7 +178,7 @@ def _compute_stats(values: list[float]) -> dict:
 
     Returns:
         Dict with keys: min, q1, mean, median, q3, max, pct85, pct90, pct95,
-        sd, cv.
+        sd, cv. pct90 is the percentage of issues completed within 90 days (SLE).
     """
     sorted_v = sorted(values)
     n = len(sorted_v)
@@ -189,8 +189,9 @@ def _compute_stats(values: list[float]) -> dict:
     sd = statistics.stdev(sorted_v) if n > 1 else 0.0
     cv = (sd / mean * 100) if mean else 0.0
     pct85 = sorted_v[min(int(n * 0.85), n - 1)]
-    pct90 = sorted_v[min(int(n * 0.90), n - 1)]
     pct95 = sorted_v[min(int(n * 0.95), n - 1)]
+    # Percentage of issues completed within 90 days (SLE: how many % are under the threshold)
+    pct90 = round(sum(1 for v in sorted_v if v <= 90) / n * 100, 1)
     return dict(
         min=sorted_v[0], q1=q1, mean=mean, median=med,
         q3=q3, max=sorted_v[-1],
