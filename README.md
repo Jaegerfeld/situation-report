@@ -2,7 +2,8 @@
 
 Toolsuite zur Abfrage von Jira-Issuedaten sowie zur Aufbereitung für Metriken und Reports.
 
-**Dokumentation:** https://jaegerfeld.github.io/situation-report/
+**Dokumentation:** https://jaegerfeld.github.io/situation-report/  
+**Architektur:** https://jaegerfeld.github.io/situation-report/architecture/
 
 ## Module
 
