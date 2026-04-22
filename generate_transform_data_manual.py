@@ -257,7 +257,7 @@ def content(st):
     story.append(H2("2.2  Programm starten", st))
     story.append(P("Es gibt zwei Moeglichkeiten, transform_data zu starten:", st))
     story.append(BL(
-        "<b>Doppelklick</b> auf die Datei <b>start_gui.pyw</b> im Projektordner "
+        "<b>Doppelklick</b> auf die Datei <b>transform_data_gui.pyw</b> im Projektordner "
         "-- oeffnet die grafische Oberflaeche ohne ein Konsolenfenster.", st))
     story.append(BL(
         "<b>Terminal / Eingabeaufforderung</b>: Ins Projektverzeichnis wechseln und "
@@ -265,7 +265,7 @@ def content(st):
     story.append(SP(4))
     story.append(box(
         "<b>Tipp:</b> Wer die GUI regelmaessig nutzt, kann eine Verknuepfung zur Datei "
-        "<b>start_gui.pyw</b> auf dem Desktop erstellen.", st, "#e8f8f0"))
+        "<b>transform_data_gui.pyw</b> auf dem Desktop erstellen.", st, "#e8f8f0"))
 
     # =========================================================================
     # 3. Eingabedateien
