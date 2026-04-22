@@ -1299,11 +1299,15 @@
 </ul>
 <div class="admonition info">
 <p class="admonition-title">Closed Date</p>
-<p>The Closed Date is set on the <strong>last</strong> entry into the <code>&lt;Closed&gt;</code> stage. For issues that were reopened and closed again, the most recent closing timestamp is used.</p>
+<p>The Closed Date is set on the <strong>last</strong> entry into the <code>&lt;Closed&gt;</code> stage. For issues that were reopened and closed again, the most recent closing timestamp is used. If an issue's current status maps to a stage <strong>before</strong> the <code>&lt;Closed&gt;</code> stage, no Closed Date is set — even if the stage was reached previously.</p>
 </div>
 <div class="admonition info">
 <p class="admonition-title">Skipped Closed Stage</p>
 <p>If an issue has a First Date but the <code>&lt;Closed&gt;</code> stage was skipped (e.g. a direct transition from Implementation to Done), the <strong>first stage chronologically after the Closed stage</strong> in the workflow order is used as the Closed Date. This ensures that issues where development took place but a status was skipped are correctly counted as closed. Issues without a First Date (e.g. cancelled before development started) receive no Closed Date.</p>
+</div>
+<div class="admonition info">
+<p class="admonition-title">Skipped First or InProgress Stage</p>
+<p>If an issue enters a stage that lies <strong>after</strong> the <code>&lt;First&gt;</code> stage but <strong>before</strong> the <code>&lt;Closed&gt;</code> stage in the workflow, without ever entering the First stage itself, the entry timestamp of that later stage is used as the First Date. The same logic applies to the <code>&lt;InProgress&gt;</code> stage: if it is skipped but a subsequent stage (before Closed) is entered, that timestamp becomes the Implementation Date — provided a First Date exists. Issues that only reach the Closed stage or later receive no First Date.</p>
 </div>
 <h2 id="tests">Tests<a class="headerlink" href="#tests" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>python<span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> </span>tests/transform_data/

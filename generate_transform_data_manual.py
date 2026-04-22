@@ -3,7 +3,7 @@
 # Repository:     https://github.com/Jaegerfeld/situation-report
 # KI-Unterstuetzung: Erstellt mit Unterstuetzung von Claude (Anthropic)
 # Erstellt:       21.04.2026
-# Geaendert:      21.04.2026
+# Geaendert:      22.04.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
@@ -519,10 +519,16 @@ def content(st):
         "Workflow-Datei mit <b>&lt;First&gt;</b> markierte Stage wechselt. "
         "Es repraesentiert den Beginn der aktiven Bearbeitung.", st))
     story.append(SP(4))
-    story.append(P(
-        "Issues, die die &lt;First&gt;-Stage nie erreicht haben (z.B. direkt aus dem "
-        "Eingang in 'Canceled' gewechselt), erhalten kein First Date. "
-        "Sie werden in build_reports als 'To Do' (noch nicht begonnen) gezaehlt.", st))
+    story.append(box(
+        "<b>Uebersprungene First-Stage:</b> Betritt ein Issue eine Stage, die im Workflow "
+        "<b>nach</b> der &lt;First&gt;-Stage, aber <b>vor</b> der &lt;Closed&gt;-Stage liegt, "
+        "ohne die First-Stage selbst zu betreten, wird der Eintrittszeitpunkt dieser "
+        "spaeter erreichten Stage als First Date verwendet. "
+        "Gleiches gilt fuer die &lt;InProgress&gt;-Stage: wird sie uebersprungen, aber "
+        "eine Stage danach (vor Closed) betreten, gilt deren Zeitstempel als "
+        "Implementation Date -- sofern ein First Date vorhanden ist.<br/><br/>"
+        "Issues, die ausschliesslich die Closed-Stage oder spaetere Stages erreichen "
+        "ohne vorherige Entwicklungsschritte, erhalten kein First Date.", st, "#e8f5e9"))
 
     story.append(H2("7.3  Closed Date", st))
     story.append(P(
@@ -535,13 +541,16 @@ def content(st):
         "&lt;Closed&gt;-Stage wurde im Prozess uebersprungen (z.B. direkter Wechsel "
         "von 'Implementation' nach 'Done'), gilt die <b>erste Stage chronologisch nach "
         "der Closed-Stage</b> im Workflow als Abschlusszeitpunkt. "
-        "Damit werden Issues, bei denen Entwicklung stattgefunden hat und ein Status "
-        "uebersprungen wurde, korrekt als abgeschlossen gezaehlt.<br/><br/>"
-        "Issues ohne First Date (z.B. direkt storniert, bevor Entwicklung begann) "
-        "erhalten kein Closed Date.", st, "#fff8e1"))
+        "Issues ohne First Date erhalten kein Closed Date.", st, "#fff8e1"))
+    story.append(SP(4))
+    story.append(box(
+        "<b>Wiedergeoeffnete Issues:</b> Befindet sich ein Issue aktuell in einer Stage "
+        "<b>vor</b> der &lt;Closed&gt;-Stage, wird kein Closed Date gesetzt -- auch wenn "
+        "die Stage oder eine spaetere Stage zuvor schon einmal erreicht wurde. "
+        "Das Issue gilt als noch offen.", st, "#fce4ec"))
 
-    story.append(H2("7.4  Beispiel", st))
-    story.append(P("Issue ART_A-615 mit Statusverlauf:", st))
+    story.append(H2("7.4  Beispiele", st))
+    story.append(P("Beispiel 1 -- Uebersprungene Closed-Stage (ART_A-615):", st))
     story.append(SP(4))
     story.append(tbl(
         ["Datum", "Statuswechsel", "Ergebnis"],
@@ -552,8 +561,36 @@ def content(st):
             ["07.11.2025", "Program Backlog -> Implementation",
              "Implementation Date = 07.11.2025"],
             ["21.11.2025", "Implementation -> Done",
-             "Done liegt nach Releasing (<Closed>-Stage) im Workflow -> "
-             "Closed Date = 21.11.2025"],
+             "Done liegt nach Releasing (<Closed>-Stage) -> Closed Date = 21.11.2025"],
+        ],
+        col_widths=[3*cm, 5.5*cm, 7.5*cm]))
+    story.append(SP(8))
+    story.append(P("Beispiel 2 -- Uebersprungene First-Stage (ART_A-583):", st))
+    story.append(SP(4))
+    story.append(tbl(
+        ["Datum", "Statuswechsel", "Ergebnis"],
+        [
+            ["08.09.2025", "Funnel -> Program Backlog",
+             "First Date = 08.09.2025 (Program Backlog liegt nach Analysis im Workflow)"],
+            ["13.10.2025", "Program Backlog -> Implementation",
+             "Implementation Date = 13.10.2025"],
+            ["02.11.2025", "Implementation -> Releasing",
+             "Closed Date = 02.11.2025 (Releasing ist <Closed>-Stage)"],
+        ],
+        col_widths=[3*cm, 5.5*cm, 7.5*cm]))
+    story.append(SP(8))
+    story.append(P("Beispiel 3 -- Wiedergeoeffnetes Issue (ART_A-2):", st))
+    story.append(SP(4))
+    story.append(tbl(
+        ["Datum", "Statuswechsel", "Ergebnis"],
+        [
+            ["10.01.2025", "Funnel -> Implementation",
+             "First Date = 10.01.2025 (Fallback: Implementation nach Analysis)"],
+            ["16.01.2025", "Implementation -> Done", "Done liegt nach Releasing -> vorl. Closed Date"],
+            ["17.01.2025", "Done -> Program Backlog",
+             "Issue wiedergeoeffnet -- Program Backlog liegt VOR Releasing"],
+            ["17.01.2025", "... -> Program Backlog (aktueller Status)",
+             "Closed Date = leer (Issue ist aktuell noch offen)"],
         ],
         col_widths=[3*cm, 5.5*cm, 7.5*cm]))
 
@@ -566,16 +603,19 @@ def content(st):
     faqs = [
         (
             "Ein Issue hat kein First Date -- warum?",
-            "Das Issue hat die <First>-Stage (in der Regel der erste aktive "
-            "Bearbeitungsschritt, z.B. Analysis) nie erreicht. Es ist moeglicherweise "
-            "direkt aus dem Eingang storniert oder zurueckgestellt worden. "
+            "Das Issue hat weder die <First>-Stage noch eine Stage danach (vor Closed) "
+            "erreicht. Es ist moeglicherweise direkt aus dem Eingang storniert oder "
+            "ausschliesslich in Stages vor der <First>-Stage verblieben. "
             "In build_reports wird es als 'To Do' gezaehlt."
         ),
         (
             "Ein Issue hat kein Closed Date -- warum?",
-            "Entweder ist das Issue noch offen (hat den Abschlusspunkt im Prozess "
-            "noch nicht erreicht), oder es hat kein First Date und wurde direkt "
-            "storniert. Pruefen Sie den aktuellen Status in der IssueTimes.xlsx."
+            "Drei moegliche Gruende: (1) Das Issue ist noch offen und hat den "
+            "Abschlusspunkt im Prozess noch nicht erreicht. "
+            "(2) Es hat kein First Date und wurde direkt storniert. "
+            "(3) Das Issue wurde nach dem Abschluss wieder geoeffnet -- sein aktueller "
+            "Status liegt vor der <Closed>-Stage. Pruefen Sie den aktuellen Status "
+            "in der IssueTimes.xlsx."
         ),
         (
             "Im Log erscheint eine Warnung ueber nicht gemappte Status.",

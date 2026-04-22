@@ -1299,11 +1299,15 @@
 </ul>
 <div class="admonition info">
 <p class="admonition-title">Closed Date</p>
-<p>Das Closed Date wird beim <strong>letzten</strong> Eintritt in die <code>&lt;Closed&gt;</code>-Stage gesetzt. Bei Issues die wiedereröffnet und erneut geschlossen wurden, zählt der jüngste Schließzeitpunkt.</p>
+<p>Das Closed Date wird beim <strong>letzten</strong> Eintritt in die <code>&lt;Closed&gt;</code>-Stage gesetzt. Bei Issues die wiedereröffnet und erneut geschlossen wurden, zählt der jüngste Schließzeitpunkt. Befindet sich ein Issue aktuell in einer Stage <strong>vor</strong> der <code>&lt;Closed&gt;</code>-Stage, wird kein Closed Date gesetzt — auch wenn die Stage zuvor schon einmal erreicht wurde.</p>
 </div>
 <div class="admonition info">
 <p class="admonition-title">Übersprungene Closed-Stage</p>
 <p>Hat ein Issue ein First Date, aber die <code>&lt;Closed&gt;</code>-Stage wurde übersprungen (z. B. direkter Wechsel von Implementation nach Done), gilt die <strong>erste Stage chronologisch nach der Closed-Stage</strong> im Workflow als Closed Date. Damit werden Issues, bei denen Entwicklung stattgefunden hat und ein Status im Prozess übersprungen wurde, korrekt als geschlossen gezählt. Issues ohne First Date (z. B. direkt nach Canceled) erhalten kein Closed Date.</p>
+</div>
+<div class="admonition info">
+<p class="admonition-title">Übersprungene First-Stage</p>
+<p>Erreicht ein Issue eine Stage, die im Workflow <strong>nach</strong> der <code>&lt;First&gt;</code>-Stage aber <strong>vor</strong> der <code>&lt;Closed&gt;</code>-Stage liegt, ohne die First-Stage selbst zu betreten, wird der Eintrittszeitpunkt dieser späteren Stage als First Date verwendet. Gleiches gilt für die <code>&lt;InProgress&gt;</code>-Stage: wird sie übersprungen, aber eine Stage danach (vor Closed) betreten, gilt deren Zeitstempel als Implementation Date — sofern ein First Date vorhanden ist. Issues, die ausschließlich die Closed-Stage oder spätere Stages erreichen, erhalten kein First Date.</p>
 </div>
 <h2 id="tests">Tests<a class="headerlink" href="#tests" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>python<span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> </span>tests/transform_data/
