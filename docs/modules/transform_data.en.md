@@ -149,7 +149,7 @@ Cumulative Flow Diagram — one row per calendar day. Stage columns contain the 
 - Issues without transitions have zero for all stages.
 
 !!! info "Closed Date"
-    The Closed Date is set on the **last** entry into the `<Closed>` stage. For issues that were reopened and closed again, the most recent closing timestamp is used.
+    The Closed Date is set on the **last** entry into the `<Closed>` stage. For issues that were reopened and closed again, the most recent closing timestamp is used. If an issue's current status maps to a stage **before** the `<Closed>` stage, no Closed Date is set — even if the stage was reached previously.
 
 !!! info "Skipped Closed Stage"
     If an issue has a First Date but the `<Closed>` stage was skipped (e.g. a direct transition from Implementation to Done), the **first stage chronologically after the Closed stage** in the workflow order is used as the Closed Date. This ensures that issues where development took place but a status was skipped are correctly counted as closed. Issues without a First Date (e.g. cancelled before development started) receive no Closed Date.

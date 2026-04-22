@@ -219,6 +219,13 @@ def process_issues(
                     closed_date = entry_ts
                     break
 
+        # Guard: if the issue's current status maps to a stage before Closed,
+        # the issue has been reopened and is not closed — clear the closed_date.
+        if closed_date is not None and workflow.closed_stage is not None:
+            current_mapped = workflow.status_to_stage.get(current_status)
+            if current_mapped is not None and workflow.stages.index(current_mapped) < closed_idx:
+                closed_date = None
+
         records.append(IssueRecord(
             project=project,
             key=key,

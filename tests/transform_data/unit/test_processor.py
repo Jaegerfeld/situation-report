@@ -221,6 +221,7 @@ class TestMilestoneDates:
         t2 = datetime(2025, 12, 1, 12, 0, tzinfo=timezone.utc)
         records, _ = _process([_issue(
             "T-1", created,
+            status="Done",  # current status = closed stage → closed_date kept
             transitions=[
                 ("Funnel", "Analysis", t1),
                 ("Analysis", "Done", t2),
@@ -236,6 +237,7 @@ class TestMilestoneDates:
         t3 = datetime(2025, 12, 1, 13, 0, tzinfo=timezone.utc)  # → Done (zweite Schließung)
         records, _ = _process([_issue(
             "T-1", created,
+            status="Done",  # current status = closed stage → closed_date kept
             transitions=[
                 ("Funnel", "Done", t1),
                 ("Done", "Funnel", t2),
@@ -304,6 +306,67 @@ class TestMilestoneDates:
         )], workflow=wf)
         assert records[0].first_date == t1        # set normally
         assert records[0].inprogress_date == t2   # fallback: Validating is after Implementation
+
+    def test_closed_date_cleared_when_issue_reopened_before_closed_stage(self):
+        """Closed Date is cleared if the issue's current status is before the Closed stage."""
+        created = datetime(2025, 12, 1, 10, 0, tzinfo=timezone.utc)
+        t1 = datetime(2025, 12, 1, 11, 0, tzinfo=timezone.utc)  # → Analysis
+        t2 = datetime(2025, 12, 1, 12, 0, tzinfo=timezone.utc)  # → Done (= closed_stage)
+        t3 = datetime(2025, 12, 1, 13, 0, tzinfo=timezone.utc)  # → Analysis (reopened!)
+        records, _ = _process([_issue(
+            "T-1", created,
+            status="Analysis",  # current status: before Done (closed stage)
+            transitions=[
+                ("Funnel", "Analysis", t1),
+                ("Analysis", "Done", t2),      # closed
+                ("Done", "Analysis", t3),      # reopened
+            ],
+        )])
+        assert records[0].closed_date is None
+
+    def test_closed_date_cleared_when_issue_reopened_via_fallback(self):
+        """Closed Date from fallback is cleared if the issue is currently before Closed stage."""
+        created = datetime(2025, 12, 1, 10, 0, tzinfo=timezone.utc)
+        t1 = datetime(2025, 12, 1, 11, 0, tzinfo=timezone.utc)  # → Implementation
+        t2 = datetime(2025, 12, 1, 12, 0, tzinfo=timezone.utc)  # → Done (after closed_stage)
+        t3 = datetime(2025, 12, 1, 13, 0, tzinfo=timezone.utc)  # → Funnel (reopened!)
+        records, _ = _process([_issue(
+            "T-1", created,
+            status="Funnel",  # current status: before Done (closed stage)
+            transitions=[
+                ("Funnel", "Implementation", t1),
+                ("Implementation", "Done", t2),  # fallback closed_date
+                ("Done", "Funnel", t3),           # reopened
+            ],
+        )])
+        assert records[0].closed_date is None
+
+    def test_closed_date_kept_when_current_status_after_closed_stage(self):
+        """Closed Date is preserved if the issue's current status is after the Closed stage."""
+        created = datetime(2025, 12, 1, 10, 0, tzinfo=timezone.utc)
+        t1 = datetime(2025, 12, 1, 11, 0, tzinfo=timezone.utc)
+        t2 = datetime(2025, 12, 1, 12, 0, tzinfo=timezone.utc)
+        # SIMPLE_WORKFLOW: Done is the closed_stage; no stage after it in this workflow
+        # Use a workflow where a stage follows Done to test "status after closed"
+        wf = Workflow(
+            stages=["Funnel", "Analysis", "Implementation", "Done", "Archived"],
+            status_to_stage={
+                "Funnel": "Funnel", "Analysis": "Analysis",
+                "Implementation": "Implementation", "Done": "Done", "Archived": "Archived",
+            },
+            first_stage="Analysis",
+            closed_stage="Done",
+            inprogress_stage="Implementation",
+        )
+        records, _ = _process([_issue(
+            "T-1", created,
+            status="Archived",  # current status: after Done (closed_stage)
+            transitions=[
+                ("Funnel", "Analysis", t1),
+                ("Analysis", "Done", t2),
+            ],
+        )], workflow=wf)
+        assert records[0].closed_date == t2
 
     def test_no_inprogress_fallback_without_first_date(self):
         """InProgress fallback does not fire if first_date is not set."""
