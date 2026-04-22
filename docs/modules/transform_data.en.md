@@ -138,7 +138,7 @@ One row per issue with time spent (in minutes) per stage.
 
 ### CFD.xlsx
 
-Cumulative Flow Diagram — one row per calendar day. Stage columns contain the number of issues in each stage on that day.
+Cumulative Flow Diagram — one row per calendar day. Stage columns contain the number of issues that **entered** that stage on that day (daily entry counts, not snapshots). build_reports accumulates these values into a running cumulative total.
 
 ## Stage-time calculation
 

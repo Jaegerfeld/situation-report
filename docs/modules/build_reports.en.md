@@ -157,7 +157,7 @@ Computes lead time (in days) from first activity (`First Date`) to completion (`
 
 **Charts:**
 
-- **Boxplot** — Distribution of lead times with a statistics header (Min, Q1, Mean, Median, Q3, Max, 90th percentile, standard deviation, coefficient of variation, zero-day issue count).
+- **Boxplot** — Distribution of lead times with a statistics header (Min, Q1, Mean, Median, Q3, Max, **90d CT%** = share of issues with CT ≤ 90 days, standard deviation, coefficient of variation, zero-day issue count).
 - **Scatterplot** — Lead time per closing date with:
   - **LOESS trend line** (blue, solid) — locally weighted regression, no external dependency.
   - **Reference lines** (dotted): Median (red), 85th percentile (light green), 95th percentile (cyan).
@@ -216,12 +216,12 @@ Analyses **open** issues (without `Closed Date`) by their current stage and age 
 
 **Metric ID:** `cfd`
 
-Reads the daily stage counts from `CFD.xlsx`. Shows the state of the system over time.
+Reads the daily entry counts from `CFD.xlsx` and accumulates them cumulatively. Shows how many issues have entered each stage in total up to a given day.
 
-**Chart:** Stacked area chart (first stage on top) with two trend lines (inflow/outflow) and the In/Out ratio in the title.
+**Chart:** Stacked area chart (first stage on top) with two trend lines (inflow/outflow) and the In/Out ratio in the title. The chart always starts at 0 — regardless of the selected start date.
 
-- **Upper trend line** — runs from the total backlog (sum of all stages) on the first to the last day (inflow).
-- **Lower trend line** — runs from the value of the last stage (e.g. "Done" / "Closed") on the first to the last day (outflow).
+- **Upper trend line** — runs from the cumulative total inflow on the first to the last day.
+- **Lower trend line** — runs from the cumulative value of the last stage (e.g. "Done" / "Closed") on the first to the last day.
 - **X-axis** — month boundaries are labelled prominently (e.g. "Jan 2025"); ISO calendar-week Mondays are shown small and in grey (e.g. "W03") to prevent label overlap.
 
 | SAFe | Global |

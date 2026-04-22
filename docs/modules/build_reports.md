@@ -157,7 +157,7 @@ Berechnet die Durchlaufzeit (in Tagen) von der ersten Aktivität (`First Date`) 
 
 **Diagramme:**
 
-- **Boxplot** — Verteilung der Durchlaufzeiten mit Statistik-Header (Min, Q1, Mittelwert, Median, Q3, Max, 90. Perzentil, Standardabweichung, Variationskoeffizient, Anzahl Zero-Day Issues).
+- **Boxplot** — Verteilung der Durchlaufzeiten mit Statistik-Header (Min, Q1, Mittelwert, Median, Q3, Max, **90d CT%** = Anteil der Issues mit CT ≤ 90 Tagen, Standardabweichung, Variationskoeffizient, Anzahl Zero-Day Issues).
 - **Scatterplot** — Durchlaufzeit je Abschlussdatum mit:
   - **LOESS-Trendlinie** (blau, durchgezogen) — lokal gewichtete Regression ohne externe Abhängigkeit.
   - **Referenzlinien** (gepunktet): Median (rot), 85. Perzentil (hellgrün), 95. Perzentil (cyan).
@@ -216,12 +216,12 @@ Analysiert **offene** Issues (ohne `Closed Date`) nach ihrer aktuellen Stage und
 
 **Metrik-ID:** `cfd`
 
-Liest die tagesgenauen Stage-Zählungen aus `CFD.xlsx`. Zeigt den Zustand des Systems über Zeit.
+Liest die täglichen Eintrittszählungen aus `CFD.xlsx` und akkumuliert diese kumulativ. Zeigt, wie viele Issues bis zu einem bestimmten Tag insgesamt in jede Stage eingetreten sind.
 
-**Diagramm:** Gestapeltes Flächendiagramm (erste Stage oben) mit zwei Trendlinien (Zufluss/Abfluss) und In/Out-Ratio im Titel.
+**Diagramm:** Gestapeltes Flächendiagramm (erste Stage oben) mit zwei Trendlinien (Zufluss/Abfluss) und In/Out-Ratio im Titel. Das Diagramm beginnt immer bei 0 — unabhängig vom gewählten Startdatum.
 
-- **Obere Trendlinie** — verläuft vom Gesamtbestand (Summe aller Stages) am ersten bis zum letzten Tag (Zufluss).
-- **Untere Trendlinie** — verläuft vom Wert der letzten Stage (z. B. „Done"/„Closed") am ersten bis zum letzten Tag (Abfluss).
+- **Obere Trendlinie** — verläuft vom kumulierten Gesamtzufluss am ersten bis zum letzten Tag.
+- **Untere Trendlinie** — verläuft vom kumulierten Wert der letzten Stage (z. B. „Done"/„Closed") am ersten bis zum letzten Tag.
 - **X-Achse** — Monatsgrenzen werden groß beschriftet (z. B. „Jan 2025"); ISO-Kalenderwochen-Montage werden klein und in Grau dargestellt (z. B. „W03"), damit sich die Labels nicht überlappen.
 
 | SAFe | Global |

@@ -138,7 +138,7 @@ Eine Zeile pro Issue mit der verbrachten Zeit (in Minuten) je Stage.
 
 ### CFD.xlsx
 
-Cumulative Flow Diagram — eine Zeile pro Kalendertag, Stage-Spalten enthalten die Anzahl der Issues in der jeweiligen Stage.
+Cumulative Flow Diagram — eine Zeile pro Kalendertag. Stage-Spalten enthalten die Anzahl der Issues, die an diesem Tag in die jeweilige Stage **eingetreten** sind (tägliche Eintrittszählungen, keine Snapshots). build_reports akkumuliert diese Werte kumulativ zu einem laufenden Gesamtwert.
 
 ## Stage-Zeit-Berechnung
 
