@@ -23,7 +23,8 @@ from build_reports.loader import CfdRecord, IssueRecord, ReportData
 
 def _issue(key: str, project: str = "A", issuetype: str = "Feature",
            closed: datetime | None = None, status: str = "Done",
-           resolution: str = "") -> IssueRecord:
+           resolution: str = "",
+           first_date: datetime | None = datetime(2025, 1, 2)) -> IssueRecord:
     """Create a minimal IssueRecord with optional closed date.
 
     Args:
@@ -33,13 +34,14 @@ def _issue(key: str, project: str = "A", issuetype: str = "Feature",
         closed:     Closed datetime, or None for open issues.
         status:     Jira status string (default 'Done').
         resolution: Jira resolution string (default '').
+        first_date: First Date datetime (default 2025-01-02).
 
     Returns:
         IssueRecord with minimal non-null fields.
     """
     return IssueRecord(
         project=project, key=key, issuetype=issuetype, status=status,
-        created=datetime(2025, 1, 1), component="", first_date=datetime(2025, 1, 2),
+        created=datetime(2025, 1, 1), component="", first_date=first_date,
         implementation_date=None, closed_date=closed, stage_minutes={}, resolution=resolution,
     )
 
@@ -241,3 +243,91 @@ class TestExclusionFilter:
         keys = {i.key for i in result.issues}
         assert "C-1" not in keys
         assert "N-1" not in keys  # excluded by date filter (no closed date)
+
+
+class TestZeroDayFilter:
+    """Tests for apply_filters() with exclude_zero_day / zero_day_threshold_minutes."""
+
+    def _zd_issue(self, key: str, first: datetime, closed: datetime) -> IssueRecord:
+        """Issue with explicit first_date and closed_date for zero-day testing."""
+        return _issue(key, first_date=first, closed=closed)
+
+    def test_zero_day_excluded_when_enabled(self):
+        """An issue with CT < threshold minutes is excluded when exclude_zero_day is True."""
+        t0 = datetime(2025, 5, 16, 15, 50, 0)
+        t1 = datetime(2025, 5, 16, 15, 50, 8)  # 8 seconds — well below 5 min
+        data = ReportData(
+            issues=[self._zd_issue("Z-1", t0, t1)],
+            cfd=[], stages=[], source_prefix="T",
+        )
+        cfg = FilterConfig(exclude_zero_day=True, zero_day_threshold_minutes=5)
+        result = apply_filters(data, cfg)
+        assert len(result.issues) == 0
+
+    def test_zero_day_not_excluded_when_disabled(self):
+        """An issue with CT < threshold is kept when exclude_zero_day is False."""
+        t0 = datetime(2025, 5, 16, 15, 50, 0)
+        t1 = datetime(2025, 5, 16, 15, 50, 8)
+        data = ReportData(
+            issues=[self._zd_issue("Z-1", t0, t1)],
+            cfd=[], stages=[], source_prefix="T",
+        )
+        cfg = FilterConfig(exclude_zero_day=False)
+        result = apply_filters(data, cfg)
+        assert len(result.issues) == 1
+
+    def test_zero_day_threshold_respected(self):
+        """An issue with CT >= threshold minutes is retained."""
+        t0 = datetime(2025, 5, 16, 15, 50, 0)
+        t1 = datetime(2025, 5, 16, 15, 55, 0)  # exactly 5 minutes — not below threshold
+        data = ReportData(
+            issues=[self._zd_issue("Z-1", t0, t1)],
+            cfd=[], stages=[], source_prefix="T",
+        )
+        cfg = FilterConfig(exclude_zero_day=True, zero_day_threshold_minutes=5)
+        result = apply_filters(data, cfg)
+        assert len(result.issues) == 1
+
+    def test_zero_day_without_first_date_not_excluded(self):
+        """An issue without a first_date is never removed by the zero-day filter."""
+        data = ReportData(
+            issues=[_issue("Z-1", first_date=None, closed=datetime(2025, 5, 16, 15, 50, 8))],
+            cfd=[], stages=[], source_prefix="T",
+        )
+        cfg = FilterConfig(exclude_zero_day=True, zero_day_threshold_minutes=5)
+        result = apply_filters(data, cfg)
+        assert len(result.issues) == 1
+
+    def test_zero_day_without_closed_date_not_excluded(self):
+        """An issue without a closed_date is never removed by the zero-day filter."""
+        data = ReportData(
+            issues=[_issue("Z-1", first_date=datetime(2025, 5, 16, 15, 50, 0), closed=None)],
+            cfd=[], stages=[], source_prefix="T",
+        )
+        cfg = FilterConfig(exclude_zero_day=True, zero_day_threshold_minutes=5)
+        result = apply_filters(data, cfg)
+        assert len(result.issues) == 1
+
+    def test_zero_day_custom_threshold(self):
+        """The threshold is configurable — a 10-minute issue passes a 5 min threshold."""
+        t0 = datetime(2025, 5, 16, 15, 50, 0)
+        t1 = datetime(2025, 5, 16, 16, 0, 0)  # 10 minutes
+        data = ReportData(
+            issues=[self._zd_issue("Z-1", t0, t1)],
+            cfd=[], stages=[], source_prefix="T",
+        )
+        cfg = FilterConfig(exclude_zero_day=True, zero_day_threshold_minutes=5)
+        result = apply_filters(data, cfg)
+        assert len(result.issues) == 1  # 10 min >= 5 min threshold
+
+    def test_zero_day_custom_threshold_excludes(self):
+        """A 10-minute issue is excluded when the threshold is set to 15 minutes."""
+        t0 = datetime(2025, 5, 16, 15, 50, 0)
+        t1 = datetime(2025, 5, 16, 16, 0, 0)  # 10 minutes
+        data = ReportData(
+            issues=[self._zd_issue("Z-1", t0, t1)],
+            cfd=[], stages=[], source_prefix="T",
+        )
+        cfg = FilterConfig(exclude_zero_day=True, zero_day_threshold_minutes=15)
+        result = apply_filters(data, cfg)
+        assert len(result.issues) == 0  # 10 min < 15 min threshold

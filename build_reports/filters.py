@@ -3,20 +3,20 @@
 # Repository:     https://github.com/Jaegerfeld/situation-report
 # KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
 # Erstellt:       15.04.2026
-# Geändert:       21.04.2026
+# Geändert:       22.04.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
 #   Definiert die Filterkriterien für Reports (Zeitraum, Projekte, Issuetype,
-#   Ausschlüsse nach Status/Resolution) und wendet sie auf ReportData an.
-#   Issues werden nach Closed Date gefiltert, CFD-Einträge nach dem Tagesdatum.
-#   Leere Filterlisten bedeuten "kein Filter".
+#   Ausschlüsse nach Status/Resolution, Zero-Day-Ausschluss) und wendet sie auf
+#   ReportData an. Issues werden nach Closed Date gefiltert, CFD-Einträge nach
+#   dem Tagesdatum. Leere Filterlisten bedeuten "kein Filter".
 # =============================================================================
 
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import date
+from datetime import date, datetime
 
 from .loader import CfdRecord, IssueRecord, ReportData
 
@@ -29,12 +29,15 @@ class FilterConfig:
     All fields are optional — None or empty list means no restriction.
 
     Attributes:
-        from_date:            Include only issues closed on or after this date.
-        to_date:              Include only issues closed on or before this date.
-        projects:             Restrict to these project keys (empty = all projects).
-        issuetypes:           Restrict to these issue types (empty = all types).
-        excluded_statuses:    Remove issues whose current status is in this list.
-        excluded_resolutions: Remove issues whose resolution is in this list.
+        from_date:                Include only issues closed on or after this date.
+        to_date:                  Include only issues closed on or before this date.
+        projects:                 Restrict to these project keys (empty = all projects).
+        issuetypes:               Restrict to these issue types (empty = all types).
+        excluded_statuses:        Remove issues whose current status is in this list.
+        excluded_resolutions:     Remove issues whose resolution is in this list.
+        exclude_zero_day:         Remove issues whose cycle time (First → Closed Date)
+                                  is below zero_day_threshold_minutes.
+        zero_day_threshold_minutes: Threshold in minutes for zero-day detection (default 5).
     """
     from_date: date | None = None
     to_date: date | None = None
@@ -42,6 +45,8 @@ class FilterConfig:
     issuetypes: list[str] = field(default_factory=list)
     excluded_statuses: list[str] = field(default_factory=list)
     excluded_resolutions: list[str] = field(default_factory=list)
+    exclude_zero_day: bool = False
+    zero_day_threshold_minutes: int = 5
 
 
 def _issue_passes(issue: IssueRecord, cfg: FilterConfig) -> bool:
@@ -75,6 +80,12 @@ def _issue_passes(issue: IssueRecord, cfg: FilterConfig) -> bool:
         return False
     if cfg.excluded_resolutions and issue.resolution in cfg.excluded_resolutions:
         return False
+    if (cfg.exclude_zero_day
+            and issue.first_date is not None
+            and issue.closed_date is not None):
+        delta_minutes = (issue.closed_date - issue.first_date).total_seconds() / 60
+        if delta_minutes < cfg.zero_day_threshold_minutes:
+            return False
     return True
 
 

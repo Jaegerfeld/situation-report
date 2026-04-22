@@ -3,7 +3,7 @@
 # Repository:     https://github.com/Jaegerfeld/situation-report
 # KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
 # Erstellt:       15.04.2026
-# Geändert:       21.04.2026
+# Geändert:       22.04.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
@@ -63,6 +63,8 @@ def run_reports(
     issuetypes: list[str] | None = None,
     excluded_statuses: list[str] | None = None,
     excluded_resolutions: list[str] | None = None,
+    exclude_zero_day: bool = False,
+    zero_day_threshold_minutes: int = 5,
     terminology: str = SAFE,
     ct_method: str = CT_METHOD_A,
     pi_config: Path | None = None,
@@ -84,8 +86,11 @@ def run_reports(
         to_date:              Filter: include only issues closed on or before this date.
         projects:             Filter: restrict to these project keys (empty = all).
         issuetypes:           Filter: restrict to these issue types (empty = all).
-        excluded_statuses:    Exclude issues whose current status is in this list.
-        excluded_resolutions: Exclude issues whose resolution is in this list.
+        excluded_statuses:          Exclude issues whose current status is in this list.
+        excluded_resolutions:       Exclude issues whose resolution is in this list.
+        exclude_zero_day:           Exclude issues whose cycle time (First → Closed Date)
+                                    is below zero_day_threshold_minutes.
+        zero_day_threshold_minutes: Threshold in minutes for zero-day detection (default 5).
         terminology:          Display mode — SAFE or GLOBAL.
         ct_method:            Cycle time calculation method: CT_METHOD_A (date diff)
                               or CT_METHOD_B (sum of stage minutes).
@@ -107,6 +112,8 @@ def run_reports(
         issuetypes=issuetypes or [],
         excluded_statuses=excluded_statuses or [],
         excluded_resolutions=excluded_resolutions or [],
+        exclude_zero_day=exclude_zero_day,
+        zero_day_threshold_minutes=zero_day_threshold_minutes,
     )
     data = apply_filters(data, cfg)
     log(f"  After filters: {len(data.issues)} issues, {len(data.cfd)} CFD days.")
@@ -212,6 +219,13 @@ def main() -> None:
     parser.add_argument("--exclude-resolution", nargs="+", default=None,
                         metavar="RESOLUTION", dest="excluded_resolutions",
                         help="Exclude issues with these resolutions (e.g. \"Won't Do\")")
+    parser.add_argument("--exclude-zero-day", action="store_true", default=False,
+                        dest="exclude_zero_day",
+                        help="Exclude issues whose cycle time (First → Closed Date) "
+                             "is below the zero-day threshold")
+    parser.add_argument("--zero-day-threshold", type=int, default=5,
+                        metavar="MINUTES", dest="zero_day_threshold_minutes",
+                        help="Cycle time threshold in minutes for zero-day detection (default: 5)")
     parser.add_argument("--terminology", choices=[SAFE, GLOBAL], default=SAFE,
                         help=f"Terminology mode (default: {SAFE})")
     parser.add_argument("--ct-method", choices=[CT_METHOD_A, CT_METHOD_B],
@@ -240,6 +254,8 @@ def main() -> None:
         issuetypes=args.issuetypes,
         excluded_statuses=args.excluded_statuses,
         excluded_resolutions=args.excluded_resolutions,
+        exclude_zero_day=args.exclude_zero_day,
+        zero_day_threshold_minutes=args.zero_day_threshold_minutes,
         terminology=args.terminology,
         ct_method=args.ct_method,
         pi_config=args.pi_config,

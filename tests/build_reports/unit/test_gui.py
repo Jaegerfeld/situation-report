@@ -455,6 +455,8 @@ def _sample_template(**overrides) -> dict:
         issuetypes="Feature",
         excluded_statuses="",
         excluded_resolutions="",
+        exclude_zero_day=False,
+        zero_day_threshold_minutes=5,
         terminology="safe",
         ct_method="A",
         metrics={"flow_time": True, "throughput": False},
@@ -558,7 +560,27 @@ class TestParseTemplateDict:
         assert parsed["excluded_resolutions"] == "Won't Do"
 
     def test_old_template_without_exclusions_loads_with_defaults(self):
-        """A v1 template without exclusion keys defaults to empty strings."""
+        """A v1/v2 template without exclusion keys defaults to empty strings and False."""
         parsed = _parse_template_dict({"version": 1})
         assert parsed["excluded_statuses"] == ""
         assert parsed["excluded_resolutions"] == ""
+        assert parsed["exclude_zero_day"] is False
+        assert parsed["zero_day_threshold_minutes"] == 5
+
+    def test_exclude_zero_day_stored(self):
+        """exclude_zero_day is stored in the template dict."""
+        tpl = _build_template_dict(**_sample_template(exclude_zero_day=True))
+        assert tpl["exclude_zero_day"] is True
+
+    def test_zero_day_threshold_stored(self):
+        """zero_day_threshold_minutes is stored in the template dict."""
+        tpl = _build_template_dict(**_sample_template(zero_day_threshold_minutes=10))
+        assert tpl["zero_day_threshold_minutes"] == 10
+
+    def test_zero_day_fields_roundtrip(self):
+        """Zero-day fields survive a build → parse roundtrip unchanged."""
+        state = _sample_template(exclude_zero_day=True, zero_day_threshold_minutes=15)
+        tpl = _build_template_dict(**state)
+        parsed = _parse_template_dict(tpl)
+        assert parsed["exclude_zero_day"] is True
+        assert parsed["zero_day_threshold_minutes"] == 15

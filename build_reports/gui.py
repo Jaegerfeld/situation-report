@@ -142,6 +142,9 @@ _T: dict[str, dict[str, str]] = {
         "dlg_excl_resolution": "Resolutions zum Ausschließen wählen",
         "tip_excl_status":   "Issues mit diesen Jira-Status vollständig aus allen Metriken ausschließen (z.\u202fB. Canceled).",
         "tip_excl_resolution": "Issues mit diesen Resolutions vollständig ausschließen (z.\u202fB. Won\u2019t Do).",
+        "chk_zero_day":      "Zero-Day-Issues ausschließen  (<",
+        "lbl_zero_day_min":  "min)",
+        "tip_zero_day":      "Issues, deren Cycle Time (First \u2192 Closed Date) kleiner als der Schwellwert ist, werden vollst\u00e4ndig aus allen Metriken entfernt.",
         "menu_excl_save":    "Ausschlüsse als Standard speichern\u2026",
         "menu_excl_load":    "Standard-Ausschlüsse laden",
         "log_excl_saved":    "Ausschluss-Defaults gespeichert.",
@@ -240,6 +243,9 @@ _T: dict[str, dict[str, str]] = {
         "dlg_excl_resolution": "Select resolutions to exclude",
         "tip_excl_status":   "Completely exclude issues with these Jira statuses from all metrics (e.g. Canceled).",
         "tip_excl_resolution": "Completely exclude issues with these resolutions (e.g. Won\u2019t Do).",
+        "chk_zero_day":      "Exclude zero-day issues  (<",
+        "lbl_zero_day_min":  "min)",
+        "tip_zero_day":      "Issues whose cycle time (First \u2192 Closed Date) is below the threshold are completely removed from all metrics.",
         "menu_excl_save":    "Save exclusions as default\u2026",
         "menu_excl_load":    "Load default exclusions",
         "log_excl_saved":    "Exclusion defaults saved.",
@@ -489,7 +495,7 @@ class _ToolTip:
 
 
 # Template version bump when the schema changes in a backward-incompatible way.
-_TEMPLATE_VERSION = 2
+_TEMPLATE_VERSION = 3
 
 
 def _build_template_dict(
@@ -506,6 +512,8 @@ def _build_template_dict(
     pi_config: str = "",
     excluded_statuses: str = "",
     excluded_resolutions: str = "",
+    exclude_zero_day: bool = False,
+    zero_day_threshold_minutes: int = 5,
 ) -> dict:
     """
     Assemble the template dictionary that is written to JSON.
@@ -525,8 +533,10 @@ def _build_template_dict(
         metrics:              Dict mapping metric_id → bool (True = selected).
         language:             Language code (LANG_DE or LANG_EN).
         pi_config:            Absolute path string for PI config JSON (may be empty).
-        excluded_statuses:    Comma-separated Jira statuses to exclude (may be empty).
-        excluded_resolutions: Comma-separated resolutions to exclude (may be empty).
+        excluded_statuses:          Comma-separated Jira statuses to exclude (may be empty).
+        excluded_resolutions:       Comma-separated resolutions to exclude (may be empty).
+        exclude_zero_day:           True if zero-day issues should be excluded.
+        zero_day_threshold_minutes: Cycle time threshold in minutes for zero-day detection.
 
     Returns:
         JSON-serialisable dict with a ``version`` key.
@@ -542,6 +552,8 @@ def _build_template_dict(
         "issuetypes": issuetypes,
         "excluded_statuses": excluded_statuses,
         "excluded_resolutions": excluded_resolutions,
+        "exclude_zero_day": exclude_zero_day,
+        "zero_day_threshold_minutes": zero_day_threshold_minutes,
         "terminology": terminology,
         "ct_method": ct_method,
         "metrics": metrics,
@@ -584,6 +596,8 @@ def _parse_template_dict(data: dict) -> dict:
         "issuetypes": str(data.get("issuetypes", "")),
         "excluded_statuses": str(data.get("excluded_statuses", "")),
         "excluded_resolutions": str(data.get("excluded_resolutions", "")),
+        "exclude_zero_day": bool(data.get("exclude_zero_day", False)),
+        "zero_day_threshold_minutes": int(data.get("zero_day_threshold_minutes", 5)),
         "terminology": str(data.get("terminology", SAFE)),
         "ct_method": str(data.get("ct_method", CT_METHOD_A)),
         "metrics": dict(data.get("metrics", {})),
@@ -626,6 +640,8 @@ class BuildReportsApp(tk.Tk):
         self._ct_method_var = tk.StringVar(value=CT_METHOD_A)
         self._excl_statuses_var = tk.StringVar()
         self._excl_resolutions_var = tk.StringVar()
+        self._excl_zero_day_var = tk.BooleanVar(value=False)
+        self._zero_day_minutes_var = tk.StringVar(value="5")
         self._available_projects: list[str] = []
         self._available_issuetypes: list[str] = []
         self._available_statuses: list[str] = []
@@ -867,6 +883,24 @@ class BuildReportsApp(tk.Tk):
         self._tips.append((_ToolTip(btn, self._tr("tip_pick")), "tip_pick"))
         row += 1
 
+        chk = tk.Checkbutton(
+            self,
+            text=self._tr("chk_zero_day"),
+            variable=self._excl_zero_day_var,
+            anchor="w",
+        )
+        chk.grid(row=row, column=0, sticky="w", **pad)
+        self._i18n.append((chk, "chk_zero_day"))
+        self._tips.append((_ToolTip(chk, self._tr("tip_zero_day")), "tip_zero_day"))
+        zd_spin = ttk.Spinbox(self, from_=1, to=60, width=4,
+                              textvariable=self._zero_day_minutes_var)
+        zd_spin.grid(row=row, column=1, sticky="w", **pad)
+        self._tips.append((_ToolTip(zd_spin, self._tr("tip_zero_day")), "tip_zero_day"))
+        lbl_min = tk.Label(self, text=self._tr("lbl_zero_day_min"), anchor="w")
+        lbl_min.grid(row=row, column=2, sticky="w", **pad)
+        self._i18n.append((lbl_min, "lbl_zero_day_min"))
+        row += 1
+
         # --- Metrics ---
         row = self._section_header("sec_metrics", row)
 
@@ -1027,6 +1061,8 @@ class BuildReportsApp(tk.Tk):
                 issuetypes=self._issuetypes_var.get(),
                 excluded_statuses=self._excl_statuses_var.get(),
                 excluded_resolutions=self._excl_resolutions_var.get(),
+                exclude_zero_day=self._excl_zero_day_var.get(),
+                zero_day_threshold_minutes=int(self._zero_day_minutes_var.get() or 5),
                 terminology=self._terminology_var.get(),
                 ct_method=self._ct_method_var.get(),
                 metrics={mid: var.get() for mid, var in self._metric_vars.items()},
@@ -1071,6 +1107,8 @@ class BuildReportsApp(tk.Tk):
         self._issuetypes_var.set(state["issuetypes"])
         self._excl_statuses_var.set(state["excluded_statuses"])
         self._excl_resolutions_var.set(state["excluded_resolutions"])
+        self._excl_zero_day_var.set(state["exclude_zero_day"])
+        self._zero_day_minutes_var.set(str(state["zero_day_threshold_minutes"]))
         self._terminology_var.set(state["terminology"])
         self._ct_method_var.set(state["ct_method"])
 
@@ -1107,6 +1145,8 @@ class BuildReportsApp(tk.Tk):
             data = {
                 "excluded_statuses": self._excl_statuses_var.get(),
                 "excluded_resolutions": self._excl_resolutions_var.get(),
+                "exclude_zero_day": self._excl_zero_day_var.get(),
+                "zero_day_threshold_minutes": int(self._zero_day_minutes_var.get() or 5),
             }
             self._EXCL_DEFAULTS_PATH.write_text(
                 json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8"
@@ -1124,6 +1164,8 @@ class BuildReportsApp(tk.Tk):
             data = json.loads(self._EXCL_DEFAULTS_PATH.read_text(encoding="utf-8"))
             self._excl_statuses_var.set(str(data.get("excluded_statuses", "")))
             self._excl_resolutions_var.set(str(data.get("excluded_resolutions", "")))
+            self._excl_zero_day_var.set(bool(data.get("exclude_zero_day", False)))
+            self._zero_day_minutes_var.set(str(data.get("zero_day_threshold_minutes", 5)))
             self._log(self._tr("log_excl_loaded"))
         except Exception as exc:
             self._log(self._tr("log_excl_error").format(exc))
@@ -1386,6 +1428,11 @@ class BuildReportsApp(tk.Tk):
         issuetypes = _split_csv(self._issuetypes_var.get())
         excl_statuses = _split_csv(self._excl_statuses_var.get())
         excl_resolutions = _split_csv(self._excl_resolutions_var.get())
+        exclude_zero_day = self._excl_zero_day_var.get()
+        try:
+            zero_day_minutes = int(self._zero_day_minutes_var.get() or 5)
+        except ValueError:
+            zero_day_minutes = 5
         terminology = self._terminology_var.get()
         ct_method = self._ct_method_var.get()
 
@@ -1402,6 +1449,8 @@ class BuildReportsApp(tk.Tk):
             issuetypes=issuetypes,
             excl_statuses=excl_statuses,
             excl_resolutions=excl_resolutions,
+            exclude_zero_day=exclude_zero_day,
+            zero_day_minutes=zero_day_minutes,
             terminology=terminology,
             ct_method=ct_method,
             metrics=metrics,
@@ -1443,6 +1492,8 @@ class BuildReportsApp(tk.Tk):
                     issuetypes=inputs["issuetypes"] or [],
                     excluded_statuses=inputs.get("excl_statuses") or [],
                     excluded_resolutions=inputs.get("excl_resolutions") or [],
+                    exclude_zero_day=inputs.get("exclude_zero_day", False),
+                    zero_day_threshold_minutes=inputs.get("zero_day_minutes", 5),
                 )
                 data = apply_filters(data, cfg)
 
@@ -1542,6 +1593,8 @@ class BuildReportsApp(tk.Tk):
                     issuetypes=inputs["issuetypes"],
                     excluded_statuses=inputs.get("excl_statuses"),
                     excluded_resolutions=inputs.get("excl_resolutions"),
+                    exclude_zero_day=inputs.get("exclude_zero_day", False),
+                    zero_day_threshold_minutes=inputs.get("zero_day_minutes", 5),
                     terminology=inputs["terminology"],
                     ct_method=inputs["ct_method"],
                     pi_config=inputs.get("pi_config"),
