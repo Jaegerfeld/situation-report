@@ -154,6 +154,9 @@ Cumulative Flow Diagram — eine Zeile pro Kalendertag, Stage-Spalten enthalten 
 !!! info "Übersprungene Closed-Stage"
     Hat ein Issue ein First Date, aber die `<Closed>`-Stage wurde übersprungen (z. B. direkter Wechsel von Implementation nach Done), gilt die **erste Stage chronologisch nach der Closed-Stage** im Workflow als Closed Date. Damit werden Issues, bei denen Entwicklung stattgefunden hat und ein Status im Prozess übersprungen wurde, korrekt als geschlossen gezählt. Issues ohne First Date (z. B. direkt nach Canceled) erhalten kein Closed Date.
 
+!!! info "Übersprungene First-Stage"
+    Erreicht ein Issue eine Stage, die im Workflow **nach** der `<First>`-Stage aber **vor** der `<Closed>`-Stage liegt, ohne die First-Stage selbst zu betreten, wird der Eintrittszeitpunkt dieser späteren Stage als First Date verwendet. Gleiches gilt für die `<InProgress>`-Stage: wird sie übersprungen, aber eine Stage danach (vor Closed) betreten, gilt deren Zeitstempel als Implementation Date — sofern ein First Date vorhanden ist. Issues, die ausschließlich die Closed-Stage oder spätere Stages erreichen, erhalten kein First Date.
+
 ## Tests
 
 ```bash

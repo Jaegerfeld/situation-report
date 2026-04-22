@@ -3,14 +3,15 @@
 # Repository:     https://github.com/Jaegerfeld/situation-report
 # KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
 # Erstellt:       14.04.2026
-# Geändert:       15.04.2026
+# Geändert:       22.04.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
 #   Unit-Tests für die Verarbeitungslogik von Jira-Issues. Prüft mit
 #   synthetischen Testdaten die Berechnung von Stage-Verweildauern,
 #   die Vorab-Zeitattribution (Pre-Transition), den Carry-forward bei nicht
-#   gemappten Status, die Setzung von Meilenstein-Daten sowie die korrekte
+#   gemappten Status, die Setzung von Meilenstein-Daten (inkl. Fallbacks für
+#   übersprungene First/InProgress/Closed-Stages) sowie die korrekte
 #   Sortierung und Struktur der Transitions-Liste.
 # =============================================================================
 
@@ -243,14 +244,91 @@ class TestMilestoneDates:
         )])
         assert records[0].closed_date == t3  # nicht t1
 
-    def test_no_first_date_if_issue_never_reaches_first_stage(self):
+    def test_first_date_fallback_when_first_stage_skipped(self):
+        """First Date is set to the earliest stage after first_stage (before closed) if skipped."""
         created = datetime(2025, 12, 1, 10, 0, tzinfo=timezone.utc)
         t1 = datetime(2025, 12, 1, 11, 0, tzinfo=timezone.utc)
+        # Funnel -> Implementation (skips Analysis which is first_stage)
         records, _ = _process([_issue(
             "T-1", created,
             transitions=[("Funnel", "Implementation", t1)],
         )])
+        assert records[0].first_date == t1
+
+    def test_no_first_date_if_only_stages_before_first_stage_entered(self):
+        """No First Date fallback if issue only enters stages at or before first_stage."""
+        created = datetime(2025, 12, 1, 10, 0, tzinfo=timezone.utc)
+        t1 = datetime(2025, 12, 1, 11, 0, tzinfo=timezone.utc)
+        # Funnel -> Funnel (stays before Analysis, no stage after first_stage)
+        records, _ = _process([_issue(
+            "T-1", created,
+            transitions=[("Funnel", "New", t1)],  # New maps to Funnel
+        )])
         assert records[0].first_date is None
+
+    def test_no_first_date_if_only_closed_or_later_entered(self):
+        """No First Date fallback if issue only enters the Closed stage or later (not between)."""
+        created = datetime(2025, 12, 1, 10, 0, tzinfo=timezone.utc)
+        t1 = datetime(2025, 12, 1, 11, 0, tzinfo=timezone.utc)
+        # Funnel -> Done (Done IS the closed_stage, not strictly between first and closed)
+        records, _ = _process([_issue(
+            "T-1", created,
+            transitions=[("Funnel", "Done", t1)],
+        )])
+        assert records[0].first_date is None
+
+    def test_inprogress_date_fallback_when_inprogress_stage_skipped(self):
+        """InProgress Date falls back to earliest stage after inprogress_stage if first_date is set."""
+        # Extended workflow: Funnel, Analysis, Implementation, Validating, Done
+        wf = Workflow(
+            stages=["Funnel", "Analysis", "Implementation", "Validating", "Done"],
+            status_to_stage={
+                "Funnel": "Funnel", "Analysis": "Analysis",
+                "Implementation": "Implementation", "Validating": "Validating",
+                "Done": "Done",
+            },
+            first_stage="Analysis",
+            closed_stage="Done",
+            inprogress_stage="Implementation",
+        )
+        created = datetime(2025, 12, 1, 10, 0, tzinfo=timezone.utc)
+        t1 = datetime(2025, 12, 1, 11, 0, tzinfo=timezone.utc)
+        t2 = datetime(2025, 12, 1, 12, 0, tzinfo=timezone.utc)
+        # Analysis -> Validating (skips Implementation, goes before Done)
+        records, _ = _process([_issue(
+            "T-1", created,
+            transitions=[
+                ("Funnel", "Analysis", t1),
+                ("Analysis", "Validating", t2),
+            ],
+        )], workflow=wf)
+        assert records[0].first_date == t1        # set normally
+        assert records[0].inprogress_date == t2   # fallback: Validating is after Implementation
+
+    def test_no_inprogress_fallback_without_first_date(self):
+        """InProgress fallback does not fire if first_date is not set."""
+        wf = Workflow(
+            stages=["Funnel", "Analysis", "Implementation", "Validating", "Done"],
+            status_to_stage={
+                "Funnel": "Funnel", "Analysis": "Analysis",
+                "Implementation": "Implementation", "Validating": "Validating",
+                "Done": "Done",
+            },
+            first_stage="Analysis",
+            closed_stage="Done",
+            inprogress_stage="Implementation",
+        )
+        created = datetime(2025, 12, 1, 10, 0, tzinfo=timezone.utc)
+        t1 = datetime(2025, 12, 1, 11, 0, tzinfo=timezone.utc)
+        # Funnel -> Validating only; with new rule first_date would be t1 (between Analysis and Done)
+        # which then triggers inprogress fallback too — let's test pure no-first case by
+        # going directly to Done (not between first and closed)
+        records, _ = _process([_issue(
+            "T-1", created,
+            transitions=[("Funnel", "Done", t1)],
+        )], workflow=wf)
+        assert records[0].first_date is None
+        assert records[0].inprogress_date is None
 
 
 class TestTransitions:

@@ -154,6 +154,9 @@ Cumulative Flow Diagram — one row per calendar day. Stage columns contain the 
 !!! info "Skipped Closed Stage"
     If an issue has a First Date but the `<Closed>` stage was skipped (e.g. a direct transition from Implementation to Done), the **first stage chronologically after the Closed stage** in the workflow order is used as the Closed Date. This ensures that issues where development took place but a status was skipped are correctly counted as closed. Issues without a First Date (e.g. cancelled before development started) receive no Closed Date.
 
+!!! info "Skipped First or InProgress Stage"
+    If an issue enters a stage that lies **after** the `<First>` stage but **before** the `<Closed>` stage in the workflow, without ever entering the First stage itself, the entry timestamp of that later stage is used as the First Date. The same logic applies to the `<InProgress>` stage: if it is skipped but a subsequent stage (before Closed) is entered, that timestamp becomes the Implementation Date — provided a First Date exists. Issues that only reach the Closed stage or later receive no First Date.
+
 ## Tests
 
 ```bash

@@ -3,7 +3,7 @@
 # Repository:     https://github.com/Jaegerfeld/situation-report
 # KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
 # Erstellt:       09.04.2026
-# Geändert:       21.04.2026
+# Geändert:       22.04.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
@@ -12,7 +12,8 @@
 #   und gemeldet; ihre Zeit wird der letzten bekannten Stage zugerechnet
 #   (Carry-forward). Liefert außerdem die Meilenstein-Zeitstempel First Date,
 #   Implementation Date und Closed Date sowie die vollständige Transitions-
-#   Historie je Issue.
+#   Historie je Issue. Wird eine Milestone-Stage übersprungen, gilt der erste
+#   Eintritt in eine spätere Stage (aber vor Closed) als Fallback-Datum.
 # =============================================================================
 
 import json
@@ -176,10 +177,43 @@ def process_issues(
                 if stage == workflow.closed_stage:
                     closed_date = entry_ts  # letzter Eintritt zählt
 
-        # If development started (first_date set) but the closed stage was skipped,
-        # use the first stage that comes after the closed stage in workflow order.
+        # Compute stage indices for milestone fallbacks once, reused below.
+        first_idx = (
+            workflow.stages.index(workflow.first_stage)
+            if workflow.first_stage is not None else -1
+        )
+        inprog_idx = (
+            workflow.stages.index(workflow.inprogress_stage)
+            if workflow.inprogress_stage is not None else -1
+        )
+        closed_idx = (
+            workflow.stages.index(workflow.closed_stage)
+            if workflow.closed_stage is not None else len(workflow.stages)
+        )
+
+        # Fallback: First stage was skipped — use the earliest entry in a stage
+        # that lies chronologically after First (and before Closed) in workflow order.
+        if first_date is None and first_idx >= 0:
+            for stage, entry_ts in mapped:
+                if stage is not None:
+                    s_idx = workflow.stages.index(stage)
+                    if first_idx < s_idx < closed_idx:
+                        first_date = entry_ts
+                        break
+
+        # Fallback: InProgress stage was skipped (but development occurred) — use
+        # the earliest entry in a stage after InProgress (and before Closed).
+        if first_date is not None and inprogress_date is None and inprog_idx >= 0:
+            for stage, entry_ts in mapped:
+                if stage is not None:
+                    s_idx = workflow.stages.index(stage)
+                    if inprog_idx < s_idx < closed_idx:
+                        inprogress_date = entry_ts
+                        break
+
+        # Fallback: development started but Closed stage was skipped — use the first
+        # stage that comes after the Closed stage in workflow order.
         if first_date is not None and closed_date is None and workflow.closed_stage is not None:
-            closed_idx = workflow.stages.index(workflow.closed_stage)
             for stage, entry_ts in mapped:
                 if stage is not None and workflow.stages.index(stage) > closed_idx:
                     closed_date = entry_ts
