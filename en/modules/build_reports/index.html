@@ -1672,7 +1672,7 @@
 </ul>
 <p><strong>Charts:</strong></p>
 <ul>
-<li><strong>Boxplot</strong> — Distribution of lead times with a statistics header (Min, Q1, Mean, Median, Q3, Max, 90th percentile, standard deviation, coefficient of variation, zero-day issue count).</li>
+<li><strong>Boxplot</strong> — Distribution of lead times with a statistics header (Min, Q1, Mean, Median, Q3, Max, <strong>90d CT%</strong> = share of issues with CT ≤ 90 days, standard deviation, coefficient of variation, zero-day issue count).</li>
 <li><strong>Scatterplot</strong> — Lead time per closing date with:</li>
 <li><strong>LOESS trend line</strong> (blue, solid) — locally weighted regression, no external dependency.</li>
 <li><strong>Reference lines</strong> (dotted): Median (red), 85th percentile (light green), 95th percentile (cyan).</li>
@@ -1751,11 +1751,11 @@
 <hr />
 <h3 id="cumulative-flow-diagram">Cumulative Flow Diagram<a class="headerlink" href="#cumulative-flow-diagram" title="Permanent link">&para;</a></h3>
 <p><strong>Metric ID:</strong> <code>cfd</code></p>
-<p>Reads the daily stage counts from <code>CFD.xlsx</code>. Shows the state of the system over time.</p>
-<p><strong>Chart:</strong> Stacked area chart (first stage on top) with two trend lines (inflow/outflow) and the In/Out ratio in the title.</p>
+<p>Reads the daily entry counts from <code>CFD.xlsx</code> and accumulates them cumulatively. Shows how many issues have entered each stage in total up to a given day.</p>
+<p><strong>Chart:</strong> Stacked area chart (first stage on top) with two trend lines (inflow/outflow) and the In/Out ratio in the title. The chart always starts at 0 — regardless of the selected start date.</p>
 <ul>
-<li><strong>Upper trend line</strong> — runs from the total backlog (sum of all stages) on the first to the last day (inflow).</li>
-<li><strong>Lower trend line</strong> — runs from the value of the last stage (e.g. "Done" / "Closed") on the first to the last day (outflow).</li>
+<li><strong>Upper trend line</strong> — runs from the cumulative total inflow on the first to the last day.</li>
+<li><strong>Lower trend line</strong> — runs from the cumulative value of the last stage (e.g. "Done" / "Closed") on the first to the last day.</li>
 <li><strong>X-axis</strong> — month boundaries are labelled prominently (e.g. "Jan 2025"); ISO calendar-week Mondays are shown small and in grey (e.g. "W03") to prevent label overlap.</li>
 </ul>
 <table>

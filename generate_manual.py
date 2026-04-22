@@ -299,15 +299,16 @@ def content(st):
     story.append(SP(8))
     story.append(H2("3.2  CFD.xlsx  (optional, fuer Cumulative Flow Diagram)", st))
     story.append(P(
-        "Diese Datei enthaelt tagesgenaue Zaehlungen, wie viele Issues sich an jedem "
-        "Tag in welchem Status befanden. Sie wird nur benoetigt, wenn das Cumulative "
-        "Flow Diagram berechnet werden soll.", st))
+        "Diese Datei enthaelt tagesgenaue Eintrittszaehlungen: wie viele Issues sind an "
+        "diesem Tag in die jeweilige Stage <b>eingetreten</b> (keine Snapshots). "
+        "build_reports akkumuliert diese Werte zu einem laufenden Gesamtwert. "
+        "Sie wird nur benoetigt, wenn das Cumulative Flow Diagram berechnet werden soll.", st))
     story.append(SP(4))
     story.append(tbl(
         ["Spalte", "Bedeutung"],
         [
             ["Day",           "Datum (YYYY-MM-DD)"],
-            ["Stage-Spalten", "Je eine Spalte pro Status mit der Anzahl Issues an diesem Tag"],
+            ["Stage-Spalten", "Je eine Spalte pro Stage mit der Anzahl neuer Eintritte an diesem Tag"],
         ],
         col_widths=[4*cm, 12*cm]))
 
@@ -493,6 +494,7 @@ def content(st):
             ["Q1 / Q3",     "25% bzw. 75% der Issues liegen unterhalb dieses Werts"],
             ["Median",      "Die mittlere Durchlaufzeit -- 50% der Issues liegen darunter"],
             ["Mittelwert",  "Durchschnittliche Durchlaufzeit (kann durch Ausreisser verzerrt sein)"],
+            ["90d CT%",     "Anteil der Issues mit Durchlaufzeit <= 90 Tagen (Service Level Expectation)"],
             ["P85 / P95",   "85% bzw. 95% der Issues wurden innerhalb dieser Zeit fertig"],
             ["Std.abw.",    "Standardabweichung -- wie stark streuen die Werte?"],
             ["VK",          "Variationskoeffizient -- relative Streuung (kleiner = stabiler Prozess)"],
@@ -573,19 +575,20 @@ def content(st):
     # --- 5.4 CFD -------------------------------------------------------------
     story.append(H2("5.4  Cumulative Flow Diagram (CFD)", st))
     story.append(P(
-        "<b>Was wird gemessen?</b> Die Entwicklung des Gesamtbestands ueber Zeit, "
-        "aufgeteilt nach Workflow-Stage. Ein gut funktionierendes System zeigt "
-        "parallele, gleichmaessig steigende Baender ohne Aufblehungen in einzelnen "
-        "Stages.", st))
+        "<b>Was wird gemessen?</b> Wie viele Issues insgesamt in jede Stage eingetreten "
+        "sind -- kumuliert ueber die Zeit, aufgeteilt nach Workflow-Stage. Ein gut "
+        "funktionierendes System zeigt parallele, gleichmaessig steigende Baender ohne "
+        "Aufblehungen in einzelnen Stages.", st))
     story.append(SP(4))
     story.append(P(
         "Das Diagramm ist ein gestapeltes Flaechendiagramm: Jede farbige Schicht "
         "entspricht einer Stage. Die erste Stage liegt oben, die letzte (Done/Closed) "
-        "unten. Zwei schwarze Trendlinien zeigen:", st))
+        "unten. Das Diagramm beginnt immer bei 0 -- unabhaengig vom gewahlten Startdatum. "
+        "Zwei schwarze Trendlinien zeigen:", st))
     story.append(BL(
-        "<b>Obere Linie (Zufluss):</b> Wie schnell waechst der Gesamtbestand?", st))
+        "<b>Obere Linie (Zufluss):</b> Wie schnell wachst der kumulierte Gesamtzufluss?", st))
     story.append(BL(
-        "<b>Untere Linie (Abfluss):</b> Wie schnell werden Issues abgeschlossen?", st))
+        "<b>Untere Linie (Abfluss):</b> Wie schnell steigt die Anzahl abgeschlossener Issues?", st))
     story.append(SP(4))
     story.append(P(
         "Das <b>In/Out-Verhaeltnis</b> im Diagrammtitel (z.B. 'Ratio In/out 1.80 : 1') "

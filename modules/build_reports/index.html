@@ -1672,7 +1672,7 @@
 </ul>
 <p><strong>Diagramme:</strong></p>
 <ul>
-<li><strong>Boxplot</strong> — Verteilung der Durchlaufzeiten mit Statistik-Header (Min, Q1, Mittelwert, Median, Q3, Max, 90. Perzentil, Standardabweichung, Variationskoeffizient, Anzahl Zero-Day Issues).</li>
+<li><strong>Boxplot</strong> — Verteilung der Durchlaufzeiten mit Statistik-Header (Min, Q1, Mittelwert, Median, Q3, Max, <strong>90d CT%</strong> = Anteil der Issues mit CT ≤ 90 Tagen, Standardabweichung, Variationskoeffizient, Anzahl Zero-Day Issues).</li>
 <li><strong>Scatterplot</strong> — Durchlaufzeit je Abschlussdatum mit:</li>
 <li><strong>LOESS-Trendlinie</strong> (blau, durchgezogen) — lokal gewichtete Regression ohne externe Abhängigkeit.</li>
 <li><strong>Referenzlinien</strong> (gepunktet): Median (rot), 85. Perzentil (hellgrün), 95. Perzentil (cyan).</li>
@@ -1751,11 +1751,11 @@
 <hr />
 <h3 id="cumulative-flow-diagram">Cumulative Flow Diagram<a class="headerlink" href="#cumulative-flow-diagram" title="Permanent link">&para;</a></h3>
 <p><strong>Metrik-ID:</strong> <code>cfd</code></p>
-<p>Liest die tagesgenauen Stage-Zählungen aus <code>CFD.xlsx</code>. Zeigt den Zustand des Systems über Zeit.</p>
-<p><strong>Diagramm:</strong> Gestapeltes Flächendiagramm (erste Stage oben) mit zwei Trendlinien (Zufluss/Abfluss) und In/Out-Ratio im Titel.</p>
+<p>Liest die täglichen Eintrittszählungen aus <code>CFD.xlsx</code> und akkumuliert diese kumulativ. Zeigt, wie viele Issues bis zu einem bestimmten Tag insgesamt in jede Stage eingetreten sind.</p>
+<p><strong>Diagramm:</strong> Gestapeltes Flächendiagramm (erste Stage oben) mit zwei Trendlinien (Zufluss/Abfluss) und In/Out-Ratio im Titel. Das Diagramm beginnt immer bei 0 — unabhängig vom gewählten Startdatum.</p>
 <ul>
-<li><strong>Obere Trendlinie</strong> — verläuft vom Gesamtbestand (Summe aller Stages) am ersten bis zum letzten Tag (Zufluss).</li>
-<li><strong>Untere Trendlinie</strong> — verläuft vom Wert der letzten Stage (z. B. „Done"/„Closed") am ersten bis zum letzten Tag (Abfluss).</li>
+<li><strong>Obere Trendlinie</strong> — verläuft vom kumulierten Gesamtzufluss am ersten bis zum letzten Tag.</li>
+<li><strong>Untere Trendlinie</strong> — verläuft vom kumulierten Wert der letzten Stage (z. B. „Done"/„Closed") am ersten bis zum letzten Tag.</li>
 <li><strong>X-Achse</strong> — Monatsgrenzen werden groß beschriftet (z. B. „Jan 2025"); ISO-Kalenderwochen-Montage werden klein und in Grau dargestellt (z. B. „W03"), damit sich die Labels nicht überlappen.</li>
 </ul>
 <table>

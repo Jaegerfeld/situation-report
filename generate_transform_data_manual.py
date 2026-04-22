@@ -235,7 +235,7 @@ def content(st):
         "- <b>IssueTimes.xlsx</b>: Alle Issues mit Meilensteinzeitpunkten und Minuten "
         "pro Workflow-Stage.<br/>"
         "- <b>Transitions.xlsx</b>: Vollstaendige Statushistorie aller Issues.<br/>"
-        "- <b>CFD.xlsx</b>: Tagesaktuelle Bestandszaehlung fuer das Cumulative Flow Diagram.", st))
+        "- <b>CFD.xlsx</b>: Taeglich Eintrittszaehlungen je Stage fuer das Cumulative Flow Diagram.", st))
     story.append(SP(8))
     story.append(P(
         "Die erzeugten Excel-Dateien werden anschliessend vom Modul <b>build_reports</b> "
@@ -471,14 +471,16 @@ def content(st):
 
     story.append(H2("6.3  CFD.xlsx", st))
     story.append(P(
-        "Enthaelt fuer jeden Kalendertag die Anzahl der Issues in jeder Workflow-Stage. "
-        "Diese Datei wird von build_reports fuer das Cumulative Flow Diagram benoetigt.", st))
+        "Enthaelt fuer jeden Kalendertag die Anzahl der Issues, die an diesem Tag in "
+        "die jeweilige Stage <b>eingetreten</b> sind (taeglich Eintrittszaehlungen, "
+        "keine Snapshots). build_reports akkumuliert diese Werte kumulativ zu einem "
+        "laufenden Gesamtwert und erzeugt daraus das Cumulative Flow Diagram.", st))
     story.append(SP(4))
     story.append(tbl(
         ["Spalte", "Inhalt"],
         [
             ["Day",           "Datum (YYYY-MM-DD)"],
-            ["Stage-Spalten", "Je eine Spalte pro Stage: Anzahl Issues an diesem Tag"],
+            ["Stage-Spalten", "Je eine Spalte pro Stage: Anzahl neuer Eintritte an diesem Tag"],
         ],
         col_widths=[4*cm, 12*cm]))
 
