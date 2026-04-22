@@ -149,7 +149,7 @@ Cumulative Flow Diagram — eine Zeile pro Kalendertag, Stage-Spalten enthalten 
 - Issues ohne Transitionen haben für alle Stages den Wert 0.
 
 !!! info "Closed Date"
-    Das Closed Date wird beim **letzten** Eintritt in die `<Closed>`-Stage gesetzt. Bei Issues die wiedereröffnet und erneut geschlossen wurden, zählt der jüngste Schließzeitpunkt. Befindet sich ein Issue aktuell in einer Stage **vor** der `<Closed>`-Stage, wird kein Closed Date gesetzt — auch wenn die Stage zuvor schon einmal erreicht wurde.
+    Das Closed Date wird beim **letzten** Eintritt in die `<Closed>`-Stage gesetzt. Bei Issues die wiedereröffnet und erneut geschlossen wurden, zählt der jüngste Schließzeitpunkt. Befindet sich ein Issue aktuell in einer Stage **vor** der `<Closed>`-Stage, wird kein Closed Date gesetzt — auch wenn die Stage zuvor schon einmal erreicht wurde. Issues ohne First Date (nie in Bearbeitung gewesen) erhalten ebenfalls kein Closed Date, auch wenn sie die `<Closed>`-Stage betreten haben.
 
 !!! info "Übersprungene Closed-Stage"
     Hat ein Issue ein First Date, aber die `<Closed>`-Stage wurde übersprungen (z. B. direkter Wechsel von Implementation nach Done), gilt die **erste Stage chronologisch nach der Closed-Stage** im Workflow als Closed Date. Damit werden Issues, bei denen Entwicklung stattgefunden hat und ein Status im Prozess übersprungen wurde, korrekt als geschlossen gezählt. Issues ohne First Date (z. B. direkt nach Canceled) erhalten kein Closed Date.

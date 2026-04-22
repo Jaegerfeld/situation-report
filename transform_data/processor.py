@@ -226,6 +226,12 @@ def process_issues(
             if current_mapped is not None and workflow.stages.index(current_mapped) < closed_idx:
                 closed_date = None
 
+        # Guard: no Closed Date without First Date. Issues that jumped directly
+        # from To Do to Closed without ever being In Progress were never worked on
+        # and must not appear as closed in any metric.
+        if closed_date is not None and first_date is None:
+            closed_date = None
+
         records.append(IssueRecord(
             project=project,
             key=key,

@@ -232,6 +232,7 @@ class TestMilestoneDates:
     def test_closed_date_uses_last_entry_not_first(self):
         """Issue wird wiedereröffnet und erneut geschlossen — letzter Schließzeitpunkt zählt."""
         created = datetime(2025, 12, 1, 10, 0, tzinfo=timezone.utc)
+        t0 = datetime(2025, 12, 1, 10, 30, tzinfo=timezone.utc)  # → Analysis (First Date)
         t1 = datetime(2025, 12, 1, 11, 0, tzinfo=timezone.utc)  # → Done (erste Schließung)
         t2 = datetime(2025, 12, 1, 12, 0, tzinfo=timezone.utc)  # → Funnel (Wiedereröffnung)
         t3 = datetime(2025, 12, 1, 13, 0, tzinfo=timezone.utc)  # → Done (zweite Schließung)
@@ -239,11 +240,13 @@ class TestMilestoneDates:
             "T-1", created,
             status="Done",  # current status = closed stage → closed_date kept
             transitions=[
-                ("Funnel", "Done", t1),
+                ("Funnel", "Analysis", t0),
+                ("Analysis", "Done", t1),
                 ("Done", "Funnel", t2),
                 ("Funnel", "Done", t3),
             ],
         )])
+        assert records[0].first_date == t0
         assert records[0].closed_date == t3  # nicht t1
 
     def test_first_date_fallback_when_first_stage_skipped(self):
@@ -392,6 +395,61 @@ class TestMilestoneDates:
         )], workflow=wf)
         assert records[0].first_date is None
         assert records[0].inprogress_date is None
+
+
+    def test_no_closed_date_if_no_first_date(self):
+        """Issue that jumps directly from To Do to Closed without First stage gets no Closed Date."""
+        created = datetime(2025, 12, 1, 10, 0, tzinfo=timezone.utc)
+        t1 = datetime(2025, 12, 1, 10, 0, 23, tzinfo=timezone.utc)  # 23 sec after creation
+        records, _ = _process([_issue(
+            "T-1", created,
+            transitions=[("Funnel", "Done", t1)],  # skips Analysis (First) entirely
+        )])
+        assert records[0].first_date is None
+        assert records[0].closed_date is None
+
+    def test_no_closed_date_if_no_first_date_via_closed_stage_entry(self):
+        """Issue reaching Closed stage without First stage: Closed Date cleared by guard."""
+        wf = Workflow(
+            stages=["Funnel", "Analysis", "Implementation", "Releasing", "Done"],
+            status_to_stage={
+                "Funnel": "Funnel", "Analysis": "Analysis",
+                "Implementation": "Implementation", "Releasing": "Releasing",
+                "Done": "Done",
+            },
+            first_stage="Analysis",
+            closed_stage="Releasing",
+            inprogress_stage="Implementation",
+        )
+        created = datetime(2025, 2, 13, 12, 48, tzinfo=timezone.utc)
+        t1 = datetime(2025, 2, 13, 12, 49, tzinfo=timezone.utc)  # Funnel -> Releasing (skips all)
+        t2 = datetime(2025, 11, 30, 8, 16, tzinfo=timezone.utc)  # Releasing -> Done
+        records, _ = _process([_issue(
+            "T-1", created,
+            status="Done",
+            transitions=[
+                ("Funnel", "Releasing", t1),
+                ("Releasing", "Done", t2),
+            ],
+        )], workflow=wf)
+        assert records[0].first_date is None
+        assert records[0].closed_date is None
+
+    def test_closed_date_kept_when_first_date_present(self):
+        """Normal flow: First Date exists → Closed Date is not affected by the guard."""
+        created = datetime(2025, 12, 1, 10, 0, tzinfo=timezone.utc)
+        t1 = datetime(2025, 12, 1, 11, 0, tzinfo=timezone.utc)
+        t2 = datetime(2025, 12, 10, 9, 0, tzinfo=timezone.utc)
+        records, _ = _process([_issue(
+            "T-1", created,
+            status="Done",
+            transitions=[
+                ("Funnel", "Analysis", t1),
+                ("Analysis", "Done", t2),
+            ],
+        )])
+        assert records[0].first_date == t1
+        assert records[0].closed_date == t2
 
 
 class TestTransitions:

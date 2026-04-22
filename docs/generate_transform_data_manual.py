@@ -548,6 +548,14 @@ def content(st):
         "<b>vor</b> der &lt;Closed&gt;-Stage, wird kein Closed Date gesetzt -- auch wenn "
         "die Stage oder eine spaetere Stage zuvor schon einmal erreicht wurde. "
         "Das Issue gilt als noch offen.", st, "#fce4ec"))
+    story.append(SP(4))
+    story.append(box(
+        "<b>Nie bearbeitete Issues:</b> Issues, die direkt von einer 'To Do'-Stage "
+        "in die &lt;Closed&gt;-Stage gesprungen sind, ohne je in Bearbeitung zu sein "
+        "(kein First Date), erhalten <b>kein Closed Date</b>. Sie erscheinen in keiner "
+        "Metrik als abgeschlossen und zaehlen auch nicht in der Flow Velocity. "
+        "Typisches Muster: Issue wurde im Ticketsystem manuell in wenigen Sekunden "
+        "durch alle Status geklickt ohne echte Entwicklungsarbeit.", st, "#e8eaf6"))
 
     story.append(H2("7.4  Beispiele", st))
     story.append(P("Beispiel 1 -- Uebersprungene Closed-Stage (ART_A-615):", st))
@@ -610,12 +618,16 @@ def content(st):
         ),
         (
             "Ein Issue hat kein Closed Date -- warum?",
-            "Drei moegliche Gruende: (1) Das Issue ist noch offen und hat den "
+            "Vier moegliche Gruende: (1) Das Issue ist noch offen und hat den "
             "Abschlusspunkt im Prozess noch nicht erreicht. "
-            "(2) Es hat kein First Date und wurde direkt storniert. "
+            "(2) Es hat kein First Date -- es war nie in Bearbeitung (z. B. direkt "
+            "storniert oder von To Do nach Closed gesprungen ohne Entwicklungsarbeit). "
+            "Ohne First Date wird kein Closed Date gesetzt. "
             "(3) Das Issue wurde nach dem Abschluss wieder geoeffnet -- sein aktueller "
-            "Status liegt vor der <Closed>-Stage. Pruefen Sie den aktuellen Status "
-            "in der IssueTimes.xlsx."
+            "Status liegt vor der <Closed>-Stage. "
+            "(4) Die <Closed>-Stage wurde uebersprungen und es existiert auch keine "
+            "spaeteren Stage danach in der Workflow-Reihenfolge. Pruefen Sie den "
+            "aktuellen Status in der IssueTimes.xlsx."
         ),
         (
             "Im Log erscheint eine Warnung ueber nicht gemappte Status.",
