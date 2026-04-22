@@ -701,6 +701,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#ausschlusse" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Ausschlüsse
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#metriken-und-ct-methode" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1163,6 +1174,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#ausschlusse" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Ausschlüsse
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#metriken-und-ct-methode" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1456,6 +1478,22 @@
 <td>Auf diese Issuetypen einschränken</td>
 </tr>
 <tr>
+<td><code>--exclude-status STATUS …</code></td>
+<td>Issues mit diesen Jira-Status vollständig ausschließen</td>
+</tr>
+<tr>
+<td><code>--exclude-resolution RES …</code></td>
+<td>Issues mit diesen Resolutions vollständig ausschließen</td>
+</tr>
+<tr>
+<td><code>--exclude-zero-day</code></td>
+<td>Zero-Day-Issues ausschließen (CT &lt; Schwellwert)</td>
+</tr>
+<tr>
+<td><code>--zero-day-threshold MINUTEN</code></td>
+<td>Schwellwert in Minuten für Zero-Day-Erkennung (Standard: 5)</td>
+</tr>
+<tr>
 <td><code>--terminology</code></td>
 <td>Terminologie: <code>SAFe</code> (Standard) oder <code>Global</code></td>
 </tr>
@@ -1566,6 +1604,35 @@
 </tr>
 </tbody>
 </table>
+<h3 id="ausschlusse">Ausschlüsse<a class="headerlink" href="#ausschlusse" title="Permanent link">&para;</a></h3>
+<p>Bestimmte Issues können vollständig aus allen Metriken entfernt werden — auch wenn sie ein Closed Date besitzen.</p>
+<table>
+<thead>
+<tr>
+<th>Feld</th>
+<th>Beschreibung</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Status</td>
+<td>Kommagetrennte Jira-Status, z. B. <code>Canceled</code>. ▾-Button öffnet Auswahlliste.</td>
+</tr>
+<tr>
+<td>Resolution</td>
+<td>Kommagetrennte Resolutions, z. B. <code>Won't Do, Duplicate</code>. ▾-Button öffnet Auswahlliste.</td>
+</tr>
+<tr>
+<td>Zero-Day-Issues ausschließen</td>
+<td>Checkbox + Spinbox (1–60 min). Issues, deren Cycle Time (First → Closed Date) kleiner als der Schwellwert ist, werden entfernt. Standard: 5 Minuten.</td>
+</tr>
+</tbody>
+</table>
+<p>Ausschluss-Defaults können über <strong>Templates → Ausschlüsse als Standard speichern</strong> dauerhaft gespeichert und mit <strong>Standard-Ausschlüsse laden</strong> wiederhergestellt werden.</p>
+<div class="admonition info">
+<p class="admonition-title">Zero-Day-Issues</p>
+<p>Typisches Beispiel: Ein Issue wurde manuell innerhalb von Sekunden durch alle Workflow-Stages geklickt, ohne dass tatsächlich Entwicklungsarbeit stattfand. Solche Issues verzerren Flow-Time-Statistiken und sollten per Schwellwert ausgeschlossen werden.</p>
+</div>
 <h3 id="metriken-und-ct-methode">Metriken und CT-Methode<a class="headerlink" href="#metriken-und-ct-methode" title="Permanent link">&para;</a></h3>
 <p>Über Checkboxen können einzelne Metriken aktiviert oder deaktiviert werden. <strong>Alle</strong> und <strong>Keine</strong> setzen alle Checkboxen auf einmal.</p>
 <p>Die CT-Methode (nur für Flow Time relevant) wird per Radiobutton gewählt:</p>
@@ -1613,11 +1680,17 @@
 <li><strong>X-Achse</strong>: monatliche Ticks; ungerade Monate mit Namenskürzel, gerade Monate mit „·".</li>
 </ul>
 <p><strong>Zero-Day Issues:</strong></p>
-<p>Issues mit Durchlaufzeit ≤ 0 werden aus der Berechnung ausgeschlossen:</p>
-<ul>
-<li><strong>PDF-Export</strong>: Automatisch als <code>&lt;reportname&gt;_zero_day_issues.xlsx</code> im selben Ordner gespeichert (wenn Issues vorhanden).</li>
+<p>Zwei Mechanismen greifen unabhängig voneinander:</p>
+<ol>
+<li><strong>Vor der Metrikberechnung (Ausschluss-Filter):</strong> Issues deren Cycle Time (First → Closed Date) kleiner als der konfigurierte Schwellwert ist (Standard: 5 Minuten), werden vollständig aus allen Metriken entfernt — bei aktivierter Checkbox in den Ausschlüssen.</li>
+<li>
+<p><strong>Innerhalb der Metrik:</strong> Issues mit einer Durchlaufzeit ≤ 0 Tage (z. B. selber Kalendertag) werden aus der Berechnung herausgenommen und separat ausgewiesen.</p>
+</li>
+<li>
+<p><strong>PDF-Export</strong>: Automatisch als <code>&lt;reportname&gt;_zero_day_issues.xlsx</code> im selben Ordner gespeichert (wenn Issues vorhanden).</p>
+</li>
 <li><strong>Browser-Anzeige</strong>: Issue-Keys im Log-Fenster aufgelistet.</li>
-</ul>
+</ol>
 <table>
 <thead>
 <tr>
@@ -1750,11 +1823,27 @@
 <td>Feld „Issuetypen" (kommagetrennt) oder ▾-Auswahl</td>
 <td><code>--issuetypes</code></td>
 </tr>
+<tr>
+<td>Status-Ausschluss</td>
+<td>Ausschlüsse → Status (kommagetrennt) oder ▾-Auswahl</td>
+<td><code>--exclude-status</code></td>
+</tr>
+<tr>
+<td>Resolution-Ausschluss</td>
+<td>Ausschlüsse → Resolution (kommagetrennt) oder ▾-Auswahl</td>
+<td><code>--exclude-resolution</code></td>
+</tr>
+<tr>
+<td>Zero-Day-Ausschluss</td>
+<td>Ausschlüsse → Checkbox + Schwellwert (Minuten)</td>
+<td><code>--exclude-zero-day</code> / <code>--zero-day-threshold</code></td>
+</tr>
 </tbody>
 </table>
 <ul>
 <li>Der Datumsfilter bezieht sich auf das <code>Closed Date</code> der Issues.</li>
 <li>Issues ohne <code>Closed Date</code> werden bei gesetztem Datumsfilter ausgeschlossen.</li>
+<li>Ausgeschlossene Issues (Status, Resolution, Zero-Day) werden <strong>vor</strong> der Metrikberechnung entfernt und erscheinen in keiner Auswertung.</li>
 <li>CFD-Daten werden nur nach Datum gefiltert (keine Projekt- oder Issuetyp-Dimension).</li>
 <li>Standard-Datumsbereich: die letzten 365 Tage bis heute.</li>
 </ul>

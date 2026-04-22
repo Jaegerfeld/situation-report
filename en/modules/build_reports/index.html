@@ -701,6 +701,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#exclusions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Exclusions
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#metrics-and-ct-method" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1163,6 +1174,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#exclusions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Exclusions
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#metrics-and-ct-method" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1456,6 +1478,22 @@
 <td>Restrict to these issue types</td>
 </tr>
 <tr>
+<td><code>--exclude-status STATUS …</code></td>
+<td>Completely exclude issues with these Jira statuses</td>
+</tr>
+<tr>
+<td><code>--exclude-resolution RES …</code></td>
+<td>Completely exclude issues with these resolutions</td>
+</tr>
+<tr>
+<td><code>--exclude-zero-day</code></td>
+<td>Exclude zero-day issues (CT below threshold)</td>
+</tr>
+<tr>
+<td><code>--zero-day-threshold MINUTES</code></td>
+<td>Cycle time threshold in minutes for zero-day detection (default: 5)</td>
+</tr>
+<tr>
 <td><code>--terminology</code></td>
 <td>Terminology mode: <code>SAFe</code> (default) or <code>Global</code></td>
 </tr>
@@ -1566,6 +1604,35 @@
 </tr>
 </tbody>
 </table>
+<h3 id="exclusions">Exclusions<a class="headerlink" href="#exclusions" title="Permanent link">&para;</a></h3>
+<p>Specific issues can be completely removed from all metrics — even if they have a Closed Date.</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Status</td>
+<td>Comma-separated Jira statuses, e.g. <code>Canceled</code>. The ▾ button opens a selection list.</td>
+</tr>
+<tr>
+<td>Resolution</td>
+<td>Comma-separated resolutions, e.g. <code>Won't Do, Duplicate</code>. The ▾ button opens a selection list.</td>
+</tr>
+<tr>
+<td>Exclude zero-day issues</td>
+<td>Checkbox + spinbox (1–60 min). Issues whose cycle time (First → Closed Date) is below the threshold are removed. Default: 5 minutes.</td>
+</tr>
+</tbody>
+</table>
+<p>Exclusion defaults can be saved permanently via <strong>Templates → Save exclusions as default</strong> and restored with <strong>Load default exclusions</strong>.</p>
+<div class="admonition info">
+<p class="admonition-title">Zero-day issues</p>
+<p>Typical example: an issue was manually clicked through all workflow stages within seconds, without any actual development work taking place. Such issues distort flow time statistics and should be excluded using the threshold.</p>
+</div>
 <h3 id="metrics-and-ct-method">Metrics and CT method<a class="headerlink" href="#metrics-and-ct-method" title="Permanent link">&para;</a></h3>
 <p>Individual metrics can be enabled or disabled via checkboxes. <strong>All</strong> and <strong>None</strong> set all checkboxes at once.</p>
 <p>The CT method (relevant for Flow Time only) is selected via radio button:</p>
@@ -1613,11 +1680,17 @@
 <li><strong>X-axis</strong>: monthly ticks; odd months show an abbreviated name, even months show "·".</li>
 </ul>
 <p><strong>Zero-day issues:</strong></p>
-<p>Issues with a lead time ≤ 0 are excluded from the calculation:</p>
-<ul>
-<li><strong>PDF export</strong>: Automatically saved as <code>&lt;reportname&gt;_zero_day_issues.xlsx</code> in the same folder (when issues are present).</li>
+<p>Two mechanisms apply independently:</p>
+<ol>
+<li><strong>Before metric computation (exclusion filter):</strong> Issues whose cycle time (First → Closed Date) is below the configured threshold (default: 5 minutes) are completely removed from all metrics — when the checkbox in the Exclusions section is active.</li>
+<li>
+<p><strong>Within the metric:</strong> Issues with a lead time ≤ 0 days (e.g. same calendar day) are removed from the calculation and reported separately.</p>
+</li>
+<li>
+<p><strong>PDF export</strong>: Automatically saved as <code>&lt;reportname&gt;_zero_day_issues.xlsx</code> in the same folder (when issues are present).</p>
+</li>
 <li><strong>Browser display</strong>: Issue keys are listed in the log window.</li>
-</ul>
+</ol>
 <table>
 <thead>
 <tr>
@@ -1750,11 +1823,27 @@
 <td>"Issue types" field (comma-separated) or ▾ selection</td>
 <td><code>--issuetypes</code></td>
 </tr>
+<tr>
+<td>Status exclusion</td>
+<td>Exclusions → Status (comma-separated) or ▾ selection</td>
+<td><code>--exclude-status</code></td>
+</tr>
+<tr>
+<td>Resolution exclusion</td>
+<td>Exclusions → Resolution (comma-separated) or ▾ selection</td>
+<td><code>--exclude-resolution</code></td>
+</tr>
+<tr>
+<td>Zero-day exclusion</td>
+<td>Exclusions → checkbox + threshold (minutes)</td>
+<td><code>--exclude-zero-day</code> / <code>--zero-day-threshold</code></td>
+</tr>
 </tbody>
 </table>
 <ul>
 <li>The date filter applies to the <code>Closed Date</code> of issues.</li>
 <li>Issues without a <code>Closed Date</code> are excluded when a date range is set.</li>
+<li>Excluded issues (status, resolution, zero-day) are removed <strong>before</strong> metric computation and do not appear in any output.</li>
 <li>CFD data is filtered by date only (no project or issue type dimension).</li>
 <li>Default date range: the last 365 days up to today.</li>
 </ul>
