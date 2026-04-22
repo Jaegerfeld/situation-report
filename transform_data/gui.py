@@ -3,7 +3,7 @@
 # Repository:     https://github.com/Jaegerfeld/situation-report
 # KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
 # Erstellt:       10.04.2026
-# Geändert:       10.04.2026
+# Geändert:       22.04.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
@@ -12,7 +12,8 @@
 #   über Dateidialoge. Ausgabeordner und Präfix werden beim Öffnen der JSON-
 #   Datei automatisch vorbelegt. Die Transformation läuft in einem separaten
 #   Thread, sodass die Oberfläche während der Verarbeitung reaktionsfähig
-#   bleibt. Warnungen und Ergebnisse werden im Log-Bereich angezeigt.
+#   bleibt. Bei Operationen über 3 Sekunden erscheint ein Ladebalken.
+#   Warnungen und Ergebnisse werden im Log-Bereich angezeigt.
 # =============================================================================
 
 import threading
@@ -34,6 +35,7 @@ class TransformApp(tk.Tk):
         self._output_dir_var = tk.StringVar()
         self._prefix_var = tk.StringVar()
         self._auto_prefix: str = ""   # tracks the last auto-filled prefix value
+        self._progress_after_id: str | None = None
 
         self._build_ui()
 
@@ -76,13 +78,20 @@ class TransformApp(tk.Tk):
         self._run_btn = ttk.Button(self, text="Ausführen", command=self._run)
         self._run_btn.grid(row=4, column=0, columnspan=3, pady=8)
 
+        # --- Progress bar (hidden until operation runs > 3 s) ---
+        self._progress_bar = ttk.Progressbar(
+            self, mode="indeterminate", length=300
+        )
+        self._progress_bar.grid(row=5, column=0, columnspan=3, pady=(0, 4))
+        self._progress_bar.grid_remove()
+
         # --- Log area ---
-        tk.Label(self, text="Log", anchor="w").grid(row=5, column=0, sticky="w", **pad)
+        tk.Label(self, text="Log", anchor="w").grid(row=6, column=0, sticky="w", **pad)
         self._log_area = scrolledtext.ScrolledText(
             self, height=12, state="disabled", wrap="word"
         )
-        self._log_area.grid(row=6, column=0, columnspan=3, sticky="nsew", **pad)
-        self.rowconfigure(6, weight=1)
+        self._log_area.grid(row=7, column=0, columnspan=3, sticky="nsew", **pad)
+        self.rowconfigure(7, weight=1)
 
     # --- File pickers ---
 
@@ -174,6 +183,26 @@ class TransformApp(tk.Tk):
 
     def _set_running(self, running: bool) -> None:
         self._run_btn.configure(state="disabled" if running else "normal")
+        if running:
+            self._start_progress()
+        else:
+            self._stop_progress()
+
+    def _start_progress(self) -> None:
+        """Schedule the progress bar to appear after 3 seconds."""
+        def _show() -> None:
+            self._progress_bar.grid()
+            self._progress_bar.start(10)
+
+        self._progress_after_id = self.after(3000, _show)
+
+    def _stop_progress(self) -> None:
+        """Cancel any pending progress bar and hide it immediately."""
+        if self._progress_after_id is not None:
+            self.after_cancel(self._progress_after_id)
+            self._progress_after_id = None
+        self._progress_bar.stop()
+        self._progress_bar.grid_remove()
 
 
 if __name__ == "__main__":
