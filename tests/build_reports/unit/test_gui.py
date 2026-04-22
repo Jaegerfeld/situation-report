@@ -3,12 +3,14 @@
 # Repository:     https://github.com/Jaegerfeld/situation-report
 # KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
 # Erstellt:       16.04.2026
-# Geändert:       16.04.2026
+# Geändert:       22.04.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
 #   Unit-Tests für die Display-unabhängigen Hilfsfunktionen in gui.py:
-#   _parse_date_safe, _split_csv, _build_combined_html und _TRANSLATIONS.
+#   _parse_date_safe, _split_csv, _build_combined_html, _TRANSLATIONS sowie
+#   die erweiterten _read_available_filters() (4-Tuple mit Status/Resolution)
+#   und Template-Funktionen inkl. excluded_statuses/excluded_resolutions.
 #   Der tkinter-Teil (BuildReportsApp) wird hier nicht instanziiert, da dies
 #   eine laufende Anzeige erfordern würde.
 # =============================================================================
@@ -246,13 +248,13 @@ class TestReadAvailableFilters:
         from openpyxl import Workbook
         wb = Workbook()
         ws = wb.active
-        ws.append(["Project", "Key", "Issuetype", "Status"])
-        ws.append(["ARTB", "ARTB-1", "Feature", "Done"])
-        ws.append(["ARTA", "ARTA-1", "Bug", "Open"])
-        ws.append(["ARTA", "ARTA-2", "Feature", "Done"])
+        ws.append(["Project", "Key", "Issuetype", "Status", "Resolution"])
+        ws.append(["ARTB", "ARTB-1", "Feature", "Done", ""])
+        ws.append(["ARTA", "ARTA-1", "Bug", "Open", ""])
+        ws.append(["ARTA", "ARTA-2", "Feature", "Done", ""])
         path = tmp_path / "test.xlsx"
         wb.save(path)
-        projects, _ = _read_available_filters(path)
+        projects, _, _, _ = _read_available_filters(path)
         assert projects == ["ARTA", "ARTB"]
 
     def test_returns_sorted_issuetypes(self, tmp_path):
@@ -260,26 +262,56 @@ class TestReadAvailableFilters:
         from openpyxl import Workbook
         wb = Workbook()
         ws = wb.active
-        ws.append(["Project", "Key", "Issuetype", "Status"])
-        ws.append(["ART", "ART-1", "Story", "Done"])
-        ws.append(["ART", "ART-2", "Feature", "Done"])
-        ws.append(["ART", "ART-3", "Story", "Open"])
+        ws.append(["Project", "Key", "Issuetype", "Status", "Resolution"])
+        ws.append(["ART", "ART-1", "Story", "Done", ""])
+        ws.append(["ART", "ART-2", "Feature", "Done", ""])
+        ws.append(["ART", "ART-3", "Story", "Open", ""])
         path = tmp_path / "test.xlsx"
         wb.save(path)
-        _, issuetypes = _read_available_filters(path)
+        _, issuetypes, _, _ = _read_available_filters(path)
         assert issuetypes == ["Feature", "Story"]
 
-    def test_empty_file_returns_empty_lists(self, tmp_path):
-        """A file with only the header row produces empty project and issuetype lists."""
+    def test_returns_sorted_statuses(self, tmp_path):
+        """Statuses extracted from the XLSX are sorted and deduplicated."""
         from openpyxl import Workbook
         wb = Workbook()
         ws = wb.active
-        ws.append(["Project", "Key", "Issuetype", "Status"])
+        ws.append(["Project", "Key", "Issuetype", "Status", "Resolution"])
+        ws.append(["ART", "ART-1", "Feature", "Done", ""])
+        ws.append(["ART", "ART-2", "Feature", "Canceled", ""])
+        ws.append(["ART", "ART-3", "Feature", "Done", ""])
+        path = tmp_path / "test.xlsx"
+        wb.save(path)
+        _, _, statuses, _ = _read_available_filters(path)
+        assert statuses == ["Canceled", "Done"]
+
+    def test_returns_sorted_resolutions(self, tmp_path):
+        """Resolutions extracted from the XLSX are sorted and deduplicated."""
+        from openpyxl import Workbook
+        wb = Workbook()
+        ws = wb.active
+        ws.append(["Project", "Key", "Issuetype", "Status", "Resolution"])
+        ws.append(["ART", "ART-1", "Feature", "Done", "Done"])
+        ws.append(["ART", "ART-2", "Feature", "Canceled", "Won't Do"])
+        ws.append(["ART", "ART-3", "Feature", "Done", "Done"])
+        path = tmp_path / "test.xlsx"
+        wb.save(path)
+        _, _, _, resolutions = _read_available_filters(path)
+        assert resolutions == ["Done", "Won't Do"]
+
+    def test_empty_file_returns_empty_lists(self, tmp_path):
+        """A file with only the header row produces empty lists for all four fields."""
+        from openpyxl import Workbook
+        wb = Workbook()
+        ws = wb.active
+        ws.append(["Project", "Key", "Issuetype", "Status", "Resolution"])
         path = tmp_path / "empty.xlsx"
         wb.save(path)
-        projects, issuetypes = _read_available_filters(path)
+        projects, issuetypes, statuses, resolutions = _read_available_filters(path)
         assert projects == []
         assert issuetypes == []
+        assert statuses == []
+        assert resolutions == []
 
 
 class TestDefaultDateRange:
@@ -363,6 +395,19 @@ class TestTranslations:
             assert "log_tpl_loaded" in _T[lang]
             assert "log_tpl_error" in _T[lang]
 
+    def test_exclusion_translation_keys_present(self):
+        """Translation keys for the Exclusions section exist in both languages."""
+        required = [
+            "sec_exclusions", "lbl_excl_status", "lbl_excl_resolution",
+            "dlg_excl_status", "dlg_excl_resolution",
+            "tip_excl_status", "tip_excl_resolution",
+            "menu_excl_save", "menu_excl_load",
+            "log_excl_saved", "log_excl_loaded", "log_excl_not_found", "log_excl_error",
+        ]
+        for lang in (LANG_DE, LANG_EN):
+            for key in required:
+                assert key in _T[lang], f"Missing exclusion key [{lang}][{key}]"
+
     def test_tooltip_keys_present(self):
         """All required tooltip translation keys exist in both languages."""
         required = [
@@ -408,6 +453,8 @@ def _sample_template(**overrides) -> dict:
         to_date="2024-12-31",
         projects="ARTA, ARTB",
         issuetypes="Feature",
+        excluded_statuses="",
+        excluded_resolutions="",
         terminology="safe",
         ct_method="A",
         metrics={"flow_time": True, "throughput": False},
@@ -491,3 +538,27 @@ class TestParseTemplateDict:
         tpl = _build_template_dict(**state)
         # Must not raise
         json.dumps(tpl)
+
+    def test_excluded_statuses_stored(self):
+        """excluded_statuses is stored in the template dict."""
+        tpl = _build_template_dict(**_sample_template(excluded_statuses="Canceled, Done"))
+        assert tpl["excluded_statuses"] == "Canceled, Done"
+
+    def test_excluded_resolutions_stored(self):
+        """excluded_resolutions is stored in the template dict."""
+        tpl = _build_template_dict(**_sample_template(excluded_resolutions="Won't Do"))
+        assert tpl["excluded_resolutions"] == "Won't Do"
+
+    def test_excluded_fields_roundtrip(self):
+        """Exclusion fields survive a build → parse roundtrip unchanged."""
+        state = _sample_template(excluded_statuses="Canceled", excluded_resolutions="Won't Do")
+        tpl = _build_template_dict(**state)
+        parsed = _parse_template_dict(tpl)
+        assert parsed["excluded_statuses"] == "Canceled"
+        assert parsed["excluded_resolutions"] == "Won't Do"
+
+    def test_old_template_without_exclusions_loads_with_defaults(self):
+        """A v1 template without exclusion keys defaults to empty strings."""
+        parsed = _parse_template_dict({"version": 1})
+        assert parsed["excluded_statuses"] == ""
+        assert parsed["excluded_resolutions"] == ""

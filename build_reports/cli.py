@@ -3,7 +3,7 @@
 # Repository:     https://github.com/Jaegerfeld/situation-report
 # KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
 # Erstellt:       15.04.2026
-# Geändert:       18.04.2026
+# Geändert:       21.04.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
@@ -61,6 +61,8 @@ def run_reports(
     to_date: date | None = None,
     projects: list[str] | None = None,
     issuetypes: list[str] | None = None,
+    excluded_statuses: list[str] | None = None,
+    excluded_resolutions: list[str] | None = None,
     terminology: str = SAFE,
     ct_method: str = CT_METHOD_A,
     pi_config: Path | None = None,
@@ -75,21 +77,23 @@ def run_reports(
     any callable that takes a single string — defaults to print for CLI use.
 
     Args:
-        issue_times:  Path to IssueTimes.xlsx (required).
-        cfd:          Path to CFD.xlsx (optional, needed for CFD metric).
-        metrics:      List of metric IDs to run. None or empty = all metrics.
-        from_date:    Filter: include only issues closed on or after this date.
-        to_date:      Filter: include only issues closed on or before this date.
-        projects:     Filter: restrict to these project keys (empty = all).
-        issuetypes:   Filter: restrict to these issue types (empty = all).
-        terminology:  Display mode — SAFE or GLOBAL.
-        ct_method:    Cycle time calculation method: CT_METHOD_A (date diff)
-                      or CT_METHOD_B (sum of stage minutes).
-        pi_config:    Path to a JSON PI interval config file (optional).
-                      If None, quarterly intervals are used for Flow Velocity.
-        output_pdf:   If set, export all figures to this PDF file.
-        open_browser: If True, open each figure in the default browser.
-        log:          Callable for progress/warning output.
+        issue_times:          Path to IssueTimes.xlsx (required).
+        cfd:                  Path to CFD.xlsx (optional, needed for CFD metric).
+        metrics:              List of metric IDs to run. None or empty = all metrics.
+        from_date:            Filter: include only issues closed on or after this date.
+        to_date:              Filter: include only issues closed on or before this date.
+        projects:             Filter: restrict to these project keys (empty = all).
+        issuetypes:           Filter: restrict to these issue types (empty = all).
+        excluded_statuses:    Exclude issues whose current status is in this list.
+        excluded_resolutions: Exclude issues whose resolution is in this list.
+        terminology:          Display mode — SAFE or GLOBAL.
+        ct_method:            Cycle time calculation method: CT_METHOD_A (date diff)
+                              or CT_METHOD_B (sum of stage minutes).
+        pi_config:            Path to a JSON PI interval config file (optional).
+                              If None, quarterly intervals are used for Flow Velocity.
+        output_pdf:           If set, export all figures to this PDF file.
+        open_browser:         If True, open each figure in the default browser.
+        log:                  Callable for progress/warning output.
     """
     log(f"Loading data from {issue_times.name} ...")
     data = load_report_data(issue_times, cfd)
@@ -101,6 +105,8 @@ def run_reports(
         to_date=to_date,
         projects=projects or [],
         issuetypes=issuetypes or [],
+        excluded_statuses=excluded_statuses or [],
+        excluded_resolutions=excluded_resolutions or [],
     )
     data = apply_filters(data, cfg)
     log(f"  After filters: {len(data.issues)} issues, {len(data.cfd)} CFD days.")
@@ -200,6 +206,12 @@ def main() -> None:
     parser.add_argument("--issuetypes", nargs="+", default=None,
                         metavar="TYPE",
                         help="Restrict to these issue types")
+    parser.add_argument("--exclude-status", nargs="+", default=None,
+                        metavar="STATUS", dest="excluded_statuses",
+                        help="Exclude issues with these Jira statuses (e.g. Canceled)")
+    parser.add_argument("--exclude-resolution", nargs="+", default=None,
+                        metavar="RESOLUTION", dest="excluded_resolutions",
+                        help="Exclude issues with these resolutions (e.g. \"Won't Do\")")
     parser.add_argument("--terminology", choices=[SAFE, GLOBAL], default=SAFE,
                         help=f"Terminology mode (default: {SAFE})")
     parser.add_argument("--ct-method", choices=[CT_METHOD_A, CT_METHOD_B],
@@ -226,6 +238,8 @@ def main() -> None:
         to_date=args.to_date,
         projects=args.projects,
         issuetypes=args.issuetypes,
+        excluded_statuses=args.excluded_statuses,
+        excluded_resolutions=args.excluded_resolutions,
         terminology=args.terminology,
         ct_method=args.ct_method,
         pi_config=args.pi_config,

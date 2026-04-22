@@ -3,13 +3,14 @@
 # Repository:     https://github.com/Jaegerfeld/situation-report
 # KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
 # Erstellt:       15.04.2026
-# Geändert:       15.04.2026
+# Geändert:       22.04.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
-#   Unit-Tests für filters.py. Prüft Datum-, Projekt- und Issuetype-Filter
-#   isoliert sowie in Kombination. Stellt sicher, dass ReportData nicht
-#   mutiert wird und dass CFD-Einträge korrekt nach Datum gefiltert werden.
+#   Unit-Tests für filters.py. Prüft Datum-, Projekt-, Issuetype- und
+#   Ausschluss-Filter (Status/Resolution) isoliert sowie in Kombination.
+#   Stellt sicher, dass ReportData nicht mutiert wird und dass CFD-Einträge
+#   korrekt nach Datum gefiltert werden.
 # =============================================================================
 
 from datetime import date, datetime
@@ -21,22 +22,25 @@ from build_reports.loader import CfdRecord, IssueRecord, ReportData
 
 
 def _issue(key: str, project: str = "A", issuetype: str = "Feature",
-           closed: datetime | None = None) -> IssueRecord:
+           closed: datetime | None = None, status: str = "Done",
+           resolution: str = "") -> IssueRecord:
     """Create a minimal IssueRecord with optional closed date.
 
     Args:
-        key:       Unique issue key.
-        project:   Project key string (default 'A').
-        issuetype: Issue type string (default 'Feature').
-        closed:    Closed datetime, or None for open issues.
+        key:        Unique issue key.
+        project:    Project key string (default 'A').
+        issuetype:  Issue type string (default 'Feature').
+        closed:     Closed datetime, or None for open issues.
+        status:     Jira status string (default 'Done').
+        resolution: Jira resolution string (default '').
 
     Returns:
         IssueRecord with minimal non-null fields.
     """
     return IssueRecord(
-        project=project, key=key, issuetype=issuetype, status="Done",
+        project=project, key=key, issuetype=issuetype, status=status,
         created=datetime(2025, 1, 1), component="", first_date=datetime(2025, 1, 2),
-        implementation_date=None, closed_date=closed, stage_minutes={}, resolution="",
+        implementation_date=None, closed_date=closed, stage_minutes={}, resolution=resolution,
     )
 
 
@@ -54,10 +58,11 @@ def _cfd(day: date) -> CfdRecord:
 
 @pytest.fixture
 def sample_data() -> ReportData:
-    """ReportData with 5 issues across two projects and 3 CFD records.
+    """ReportData with 7 issues across two projects and 3 CFD records.
 
     Issues: A-1 (closed Mar), A-2 (closed Jun), B-1 (closed Sep),
-            X-1 (Bug, closed Apr), N-1 (open, no closed date).
+            X-1 (Bug, closed Apr), N-1 (open, no closed date),
+            C-1 (Canceled status), W-1 (Won't Do resolution).
     CFD records: Jan, Jun, Dec 2025.
     """
     return ReportData(
@@ -67,6 +72,10 @@ def sample_data() -> ReportData:
             _issue("B-1", project="ART_B", closed=datetime(2025, 9, 1)),
             _issue("X-1", project="ART_A", issuetype="Bug", closed=datetime(2025, 4, 1)),
             _issue("N-1", project="ART_A", closed=None),
+            _issue("C-1", project="ART_A", closed=datetime(2025, 5, 1),
+                   status="Canceled"),
+            _issue("W-1", project="ART_A", closed=datetime(2025, 5, 1),
+                   resolution="Won't Do"),
         ],
         cfd=[
             _cfd(date(2025, 1, 1)),
@@ -183,3 +192,52 @@ class TestIssuetypeFilter:
         result = apply_filters(sample_data, cfg)
         assert all(i.project == "ART_A" and i.issuetype == "Feature"
                    for i in result.issues)
+
+
+class TestExclusionFilter:
+    """Tests for apply_filters() with excluded_statuses / excluded_resolutions."""
+
+    def test_excluded_status_removes_issue(self, sample_data):
+        """Issues whose status is in excluded_statuses are completely removed."""
+        cfg = FilterConfig(excluded_statuses=["Canceled"])
+        result = apply_filters(sample_data, cfg)
+        assert all(i.key != "C-1" for i in result.issues)
+
+    def test_excluded_resolution_removes_issue(self, sample_data):
+        """Issues whose resolution is in excluded_resolutions are completely removed."""
+        cfg = FilterConfig(excluded_resolutions=["Won't Do"])
+        result = apply_filters(sample_data, cfg)
+        assert all(i.key != "W-1" for i in result.issues)
+
+    def test_non_excluded_status_retained(self, sample_data):
+        """Issues whose status is not in the exclusion list are retained."""
+        cfg = FilterConfig(excluded_statuses=["Canceled"])
+        result = apply_filters(sample_data, cfg)
+        keys = {i.key for i in result.issues}
+        assert "A-1" in keys
+        assert "A-2" in keys
+
+    def test_empty_excluded_lists_no_effect(self, sample_data):
+        """Empty exclusion lists do not remove any issues."""
+        cfg = FilterConfig(excluded_statuses=[], excluded_resolutions=[])
+        result = apply_filters(sample_data, cfg)
+        assert len(result.issues) == len(sample_data.issues)
+
+    def test_combined_status_and_resolution_exclusion(self, sample_data):
+        """Both excluded_statuses and excluded_resolutions are applied together."""
+        cfg = FilterConfig(excluded_statuses=["Canceled"], excluded_resolutions=["Won't Do"])
+        result = apply_filters(sample_data, cfg)
+        keys = {i.key for i in result.issues}
+        assert "C-1" not in keys
+        assert "W-1" not in keys
+
+    def test_exclusion_combined_with_date_filter(self, sample_data):
+        """Exclusion and date filters are applied conjunctively."""
+        cfg = FilterConfig(
+            from_date=date(2025, 1, 1),
+            excluded_statuses=["Canceled"],
+        )
+        result = apply_filters(sample_data, cfg)
+        keys = {i.key for i in result.issues}
+        assert "C-1" not in keys
+        assert "N-1" not in keys  # excluded by date filter (no closed date)

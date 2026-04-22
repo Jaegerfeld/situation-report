@@ -3,17 +3,18 @@
 # Repository:     https://github.com/Jaegerfeld/situation-report
 # KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
 # Erstellt:       16.04.2026
-# Geändert:       16.04.2026
+# Geändert:       22.04.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
 #   Grafische Benutzeroberfläche (tkinter) für build_reports. Ermöglicht die
 #   Auswahl von IssueTimes- und CFD-XLSX, optionale Filter (Datum, Projekte,
-#   Issuetypen), Metrik-Auswahl (Checkboxen) sowie CT-Methode (A/B). Sprache
-#   (DE/EN) und Terminologie (SAFe/Global) werden über ein Optionsmenü gewählt.
-#   Templates ermöglichen das Speichern und Laden der gesamten Konfiguration
-#   als JSON-Datei. Die Berechnung läuft in einem separaten Thread, sodass
-#   die Oberfläche reaktionsfähig bleibt.
+#   Issuetypen, Ausschlüsse nach Status/Resolution), Metrik-Auswahl (Checkboxen)
+#   sowie CT-Methode (A/B). Sprache (DE/EN) und Terminologie (SAFe/Global) werden
+#   über ein Optionsmenü gewählt. Templates ermöglichen das Speichern und Laden
+#   der gesamten Konfiguration als JSON-Datei. Ausschluss-Defaults können separat
+#   unter ~/.situation_report/excl_defaults.json gespeichert werden. Die Berechnung
+#   läuft in einem separaten Thread, sodass die Oberfläche reaktionsfähig bleibt.
 # =============================================================================
 
 from __future__ import annotations
@@ -133,6 +134,20 @@ _T: dict[str, dict[str, str]] = {
         "tip_metric_flow_load":         "Wie viele Issues befinden sich gleichzeitig in Bearbeitung?",
         "tip_metric_cfd":               "Kumulative Anzahl von Issues pro Stage \u00fcber die Zeit.",
         "tip_metric_flow_distribution": "Verteilung der Issues nach Typ oder Kategorie.",
+        # Exclusions
+        "sec_exclusions":    "Ausschlüsse",
+        "lbl_excl_status":   "Status",
+        "lbl_excl_resolution": "Resolution",
+        "dlg_excl_status":   "Status zum Ausschließen wählen",
+        "dlg_excl_resolution": "Resolutions zum Ausschließen wählen",
+        "tip_excl_status":   "Issues mit diesen Jira-Status vollständig aus allen Metriken ausschließen (z.\u202fB. Canceled).",
+        "tip_excl_resolution": "Issues mit diesen Resolutions vollständig ausschließen (z.\u202fB. Won\u2019t Do).",
+        "menu_excl_save":    "Ausschlüsse als Standard speichern\u2026",
+        "menu_excl_load":    "Standard-Ausschlüsse laden",
+        "log_excl_saved":    "Ausschluss-Defaults gespeichert.",
+        "log_excl_loaded":   "Ausschluss-Defaults geladen.",
+        "log_excl_not_found": "Keine Ausschluss-Defaults gefunden.",
+        "log_excl_error":    "Fehler beim Laden/Speichern der Ausschluss-Defaults: {}",
     },
     LANG_EN: {
         "window_title":      "build_reports",
@@ -217,6 +232,20 @@ _T: dict[str, dict[str, str]] = {
         "tip_metric_flow_load":         "How many issues are simultaneously in progress?",
         "tip_metric_cfd":               "Cumulative count of issues per stage over time.",
         "tip_metric_flow_distribution": "Distribution of issues by type or category.",
+        # Exclusions
+        "sec_exclusions":    "Exclusions",
+        "lbl_excl_status":   "Status",
+        "lbl_excl_resolution": "Resolution",
+        "dlg_excl_status":   "Select statuses to exclude",
+        "dlg_excl_resolution": "Select resolutions to exclude",
+        "tip_excl_status":   "Completely exclude issues with these Jira statuses from all metrics (e.g. Canceled).",
+        "tip_excl_resolution": "Completely exclude issues with these resolutions (e.g. Won\u2019t Do).",
+        "menu_excl_save":    "Save exclusions as default\u2026",
+        "menu_excl_load":    "Load default exclusions",
+        "log_excl_saved":    "Exclusion defaults saved.",
+        "log_excl_loaded":   "Exclusion defaults loaded.",
+        "log_excl_not_found": "No exclusion defaults found.",
+        "log_excl_error":    "Error loading/saving exclusion defaults: {}",
     },
 }
 
@@ -225,18 +254,17 @@ _T: dict[str, dict[str, str]] = {
 # Module-level helpers (testable without a running display)
 # ---------------------------------------------------------------------------
 
-def _read_available_filters(path: Path) -> tuple[list[str], list[str]]:
+def _read_available_filters(path: Path) -> tuple[list[str], list[str], list[str], list[str]]:
     """
-    Read unique project keys and issue types from an IssueTimes.xlsx file.
+    Read unique project keys, issue types, statuses, and resolutions from IssueTimes.xlsx.
 
-    Only the Project and Issuetype columns are read; all other columns are
-    skipped for efficiency.
+    Only the Project, Issuetype, Status, and Resolution columns are read.
 
     Args:
         path: Path to the IssueTimes.xlsx file.
 
     Returns:
-        Tuple of (sorted project list, sorted issuetype list).
+        Tuple of (sorted projects, sorted issuetypes, sorted statuses, sorted resolutions).
     """
     wb = load_workbook(path, read_only=True, data_only=True)
     ws = wb.active
@@ -246,6 +274,8 @@ def _read_available_filters(path: Path) -> tuple[list[str], list[str]]:
 
     projects: set[str] = set()
     issuetypes: set[str] = set()
+    statuses: set[str] = set()
+    resolutions: set[str] = set()
     for row in rows:
         if not any(row):
             continue
@@ -253,9 +283,13 @@ def _read_available_filters(path: Path) -> tuple[list[str], list[str]]:
             projects.add(str(row[col["Project"]]))
         if "Issuetype" in col and row[col["Issuetype"]]:
             issuetypes.add(str(row[col["Issuetype"]]))
+        if "Status" in col and row[col["Status"]]:
+            statuses.add(str(row[col["Status"]]))
+        if "Resolution" in col and row[col["Resolution"]]:
+            resolutions.add(str(row[col["Resolution"]]))
 
     wb.close()
-    return sorted(projects), sorted(issuetypes)
+    return sorted(projects), sorted(issuetypes), sorted(statuses), sorted(resolutions)
 
 
 def _check_stage_consistency(
@@ -455,7 +489,7 @@ class _ToolTip:
 
 
 # Template version bump when the schema changes in a backward-incompatible way.
-_TEMPLATE_VERSION = 1
+_TEMPLATE_VERSION = 2
 
 
 def _build_template_dict(
@@ -470,6 +504,8 @@ def _build_template_dict(
     metrics: dict[str, bool],
     language: str,
     pi_config: str = "",
+    excluded_statuses: str = "",
+    excluded_resolutions: str = "",
 ) -> dict:
     """
     Assemble the template dictionary that is written to JSON.
@@ -478,17 +514,19 @@ def _build_template_dict(
     template remains portable (the caller decides whether to resolve them).
 
     Args:
-        issue_times:  Absolute path string for IssueTimes.xlsx (may be empty).
-        cfd:          Absolute path string for CFD.xlsx (may be empty).
-        from_date:    ISO date string (YYYY-MM-DD) or empty.
-        to_date:      ISO date string (YYYY-MM-DD) or empty.
-        projects:     Comma-separated project keys (may be empty).
-        issuetypes:   Comma-separated issue types (may be empty).
-        terminology:  Terminology mode constant (SAFE or GLOBAL).
-        ct_method:    CT calculation method constant (CT_METHOD_A or CT_METHOD_B).
-        metrics:      Dict mapping metric_id → bool (True = selected).
-        language:     Language code (LANG_DE or LANG_EN).
-        pi_config:    Absolute path string for PI config JSON (may be empty).
+        issue_times:          Absolute path string for IssueTimes.xlsx (may be empty).
+        cfd:                  Absolute path string for CFD.xlsx (may be empty).
+        from_date:            ISO date string (YYYY-MM-DD) or empty.
+        to_date:              ISO date string (YYYY-MM-DD) or empty.
+        projects:             Comma-separated project keys (may be empty).
+        issuetypes:           Comma-separated issue types (may be empty).
+        terminology:          Terminology mode constant (SAFE or GLOBAL).
+        ct_method:            CT calculation method constant (CT_METHOD_A or CT_METHOD_B).
+        metrics:              Dict mapping metric_id → bool (True = selected).
+        language:             Language code (LANG_DE or LANG_EN).
+        pi_config:            Absolute path string for PI config JSON (may be empty).
+        excluded_statuses:    Comma-separated Jira statuses to exclude (may be empty).
+        excluded_resolutions: Comma-separated resolutions to exclude (may be empty).
 
     Returns:
         JSON-serialisable dict with a ``version`` key.
@@ -502,6 +540,8 @@ def _build_template_dict(
         "to_date": to_date,
         "projects": projects,
         "issuetypes": issuetypes,
+        "excluded_statuses": excluded_statuses,
+        "excluded_resolutions": excluded_resolutions,
         "terminology": terminology,
         "ct_method": ct_method,
         "metrics": metrics,
@@ -542,6 +582,8 @@ def _parse_template_dict(data: dict) -> dict:
         "to_date": str(data.get("to_date", "")),
         "projects": str(data.get("projects", "")),
         "issuetypes": str(data.get("issuetypes", "")),
+        "excluded_statuses": str(data.get("excluded_statuses", "")),
+        "excluded_resolutions": str(data.get("excluded_resolutions", "")),
         "terminology": str(data.get("terminology", SAFE)),
         "ct_method": str(data.get("ct_method", CT_METHOD_A)),
         "metrics": dict(data.get("metrics", {})),
@@ -582,8 +624,12 @@ class BuildReportsApp(tk.Tk):
         self._issuetypes_var = tk.StringVar()
         self._terminology_var = tk.StringVar(value=SAFE)
         self._ct_method_var = tk.StringVar(value=CT_METHOD_A)
+        self._excl_statuses_var = tk.StringVar()
+        self._excl_resolutions_var = tk.StringVar()
         self._available_projects: list[str] = []
         self._available_issuetypes: list[str] = []
+        self._available_statuses: list[str] = []
+        self._available_resolutions: list[str] = []
         self._metric_vars: dict[str, tk.BooleanVar] = {
             p.metric_id: tk.BooleanVar(value=True) for p in self._plugins
         }
@@ -656,6 +702,9 @@ class BuildReportsApp(tk.Tk):
         menubar.add_cascade(label=self._tr("menu_template"), menu=tpl_menu)
         tpl_menu.add_command(label=self._tr("menu_tpl_save"), command=self._save_template)
         tpl_menu.add_command(label=self._tr("menu_tpl_load"), command=self._load_template)
+        tpl_menu.add_separator()
+        tpl_menu.add_command(label=self._tr("menu_excl_save"), command=self._save_excl_defaults)
+        tpl_menu.add_command(label=self._tr("menu_excl_load"), command=self._load_excl_defaults)
 
         self.config(menu=menubar)
 
@@ -780,6 +829,37 @@ class BuildReportsApp(tk.Tk):
         btn = ttk.Button(self, text=self._tr("btn_pick"), width=3,
                          command=lambda: self._open_multiselect(
                              self._issuetypes_var, self._available_issuetypes, "dlg_issuetypes"))
+        btn.grid(row=row, column=2, sticky="w", **pad)
+        self._i18n.append((btn, "btn_pick"))
+        self._tips.append((_ToolTip(btn, self._tr("tip_pick")), "tip_pick"))
+        row += 1
+
+        # --- Exclusions ---
+        row = self._section_header("sec_exclusions", row)
+
+        lbl = tk.Label(self, text=self._tr("lbl_excl_status"), anchor="w")
+        lbl.grid(row=row, column=0, sticky="w", **pad)
+        self._i18n.append((lbl, "lbl_excl_status"))
+        excl_st_entry = tk.Entry(self, textvariable=self._excl_statuses_var, width=44)
+        excl_st_entry.grid(row=row, column=1, sticky="ew", **pad)
+        self._tips.append((_ToolTip(excl_st_entry, self._tr("tip_excl_status")), "tip_excl_status"))
+        btn = ttk.Button(self, text=self._tr("btn_pick"), width=3,
+                         command=lambda: self._open_multiselect(
+                             self._excl_statuses_var, self._available_statuses, "dlg_excl_status"))
+        btn.grid(row=row, column=2, sticky="w", **pad)
+        self._i18n.append((btn, "btn_pick"))
+        self._tips.append((_ToolTip(btn, self._tr("tip_pick")), "tip_pick"))
+        row += 1
+
+        lbl = tk.Label(self, text=self._tr("lbl_excl_resolution"), anchor="w")
+        lbl.grid(row=row, column=0, sticky="w", **pad)
+        self._i18n.append((lbl, "lbl_excl_resolution"))
+        excl_res_entry = tk.Entry(self, textvariable=self._excl_resolutions_var, width=44)
+        excl_res_entry.grid(row=row, column=1, sticky="ew", **pad)
+        self._tips.append((_ToolTip(excl_res_entry, self._tr("tip_excl_resolution")), "tip_excl_resolution"))
+        btn = ttk.Button(self, text=self._tr("btn_pick"), width=3,
+                         command=lambda: self._open_multiselect(
+                             self._excl_resolutions_var, self._available_resolutions, "dlg_excl_resolution"))
         btn.grid(row=row, column=2, sticky="w", **pad)
         self._i18n.append((btn, "btn_pick"))
         self._tips.append((_ToolTip(btn, self._tr("tip_pick")), "tip_pick"))
@@ -935,6 +1015,8 @@ class BuildReportsApp(tk.Tk):
                 to_date=self._to_date_var.get(),
                 projects=self._projects_var.get(),
                 issuetypes=self._issuetypes_var.get(),
+                excluded_statuses=self._excl_statuses_var.get(),
+                excluded_resolutions=self._excl_resolutions_var.get(),
                 terminology=self._terminology_var.get(),
                 ct_method=self._ct_method_var.get(),
                 metrics={mid: var.get() for mid, var in self._metric_vars.items()},
@@ -977,6 +1059,8 @@ class BuildReportsApp(tk.Tk):
         self._to_date_var.set(state["to_date"])
         self._projects_var.set(state["projects"])
         self._issuetypes_var.set(state["issuetypes"])
+        self._excl_statuses_var.set(state["excluded_statuses"])
+        self._excl_resolutions_var.set(state["excluded_resolutions"])
         self._terminology_var.set(state["terminology"])
         self._ct_method_var.set(state["ct_method"])
 
@@ -999,6 +1083,40 @@ class BuildReportsApp(tk.Tk):
         self._lang_var.set(state["language"])
 
         self._log(self._tr("log_tpl_loaded").format(Path(path).name))
+
+    # -------------------------------------------------------------------------
+    # Exclusion defaults (global, stored in ~/.situation_report/excl_defaults.json)
+    # -------------------------------------------------------------------------
+
+    _EXCL_DEFAULTS_PATH = Path.home() / ".situation_report" / "excl_defaults.json"
+
+    def _save_excl_defaults(self) -> None:
+        """Save current exclusion values as the global default to ~/.situation_report/excl_defaults.json."""
+        try:
+            self._EXCL_DEFAULTS_PATH.parent.mkdir(parents=True, exist_ok=True)
+            data = {
+                "excluded_statuses": self._excl_statuses_var.get(),
+                "excluded_resolutions": self._excl_resolutions_var.get(),
+            }
+            self._EXCL_DEFAULTS_PATH.write_text(
+                json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8"
+            )
+            self._log(self._tr("log_excl_saved"))
+        except Exception as exc:
+            self._log(self._tr("log_excl_error").format(exc))
+
+    def _load_excl_defaults(self) -> None:
+        """Load exclusion defaults from ~/.situation_report/excl_defaults.json into the UI."""
+        if not self._EXCL_DEFAULTS_PATH.is_file():
+            self._log(self._tr("log_excl_not_found"))
+            return
+        try:
+            data = json.loads(self._EXCL_DEFAULTS_PATH.read_text(encoding="utf-8"))
+            self._excl_statuses_var.set(str(data.get("excluded_statuses", "")))
+            self._excl_resolutions_var.set(str(data.get("excluded_resolutions", "")))
+            self._log(self._tr("log_excl_loaded"))
+        except Exception as exc:
+            self._log(self._tr("log_excl_error").format(exc))
 
     # -------------------------------------------------------------------------
     # File pickers
@@ -1049,11 +1167,14 @@ class BuildReportsApp(tk.Tk):
         """
         def worker() -> None:
             try:
-                projects, issuetypes = _read_available_filters(path)
+                projects, issuetypes, statuses, resolutions = _read_available_filters(path)
                 self._available_projects = projects
                 self._available_issuetypes = issuetypes
+                self._available_statuses = statuses
+                self._available_resolutions = resolutions
                 self._log(
-                    f"  {len(projects)} Projekte, {len(issuetypes)} Issuetypen geladen."
+                    f"  {len(projects)} Projekte, {len(issuetypes)} Issuetypen, "
+                    f"{len(statuses)} Status, {len(resolutions)} Resolutions geladen."
                 )
             except Exception as exc:
                 self._log(self._tr("log_error").format(exc))
@@ -1253,6 +1374,8 @@ class BuildReportsApp(tk.Tk):
 
         projects = _split_csv(self._projects_var.get())
         issuetypes = _split_csv(self._issuetypes_var.get())
+        excl_statuses = _split_csv(self._excl_statuses_var.get())
+        excl_resolutions = _split_csv(self._excl_resolutions_var.get())
         terminology = self._terminology_var.get()
         ct_method = self._ct_method_var.get()
 
@@ -1267,6 +1390,8 @@ class BuildReportsApp(tk.Tk):
             to_date=to_date,
             projects=projects,
             issuetypes=issuetypes,
+            excl_statuses=excl_statuses,
+            excl_resolutions=excl_resolutions,
             terminology=terminology,
             ct_method=ct_method,
             metrics=metrics,
@@ -1306,6 +1431,8 @@ class BuildReportsApp(tk.Tk):
                     to_date=inputs["to_date"],
                     projects=inputs["projects"] or [],
                     issuetypes=inputs["issuetypes"] or [],
+                    excluded_statuses=inputs.get("excl_statuses") or [],
+                    excluded_resolutions=inputs.get("excl_resolutions") or [],
                 )
                 data = apply_filters(data, cfg)
 
@@ -1403,6 +1530,8 @@ class BuildReportsApp(tk.Tk):
                     to_date=inputs["to_date"],
                     projects=inputs["projects"],
                     issuetypes=inputs["issuetypes"],
+                    excluded_statuses=inputs.get("excl_statuses"),
+                    excluded_resolutions=inputs.get("excl_resolutions"),
                     terminology=inputs["terminology"],
                     ct_method=inputs["ct_method"],
                     pi_config=inputs.get("pi_config"),

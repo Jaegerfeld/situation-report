@@ -3,13 +3,14 @@
 # Repository:     https://github.com/Jaegerfeld/situation-report
 # KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
 # Erstellt:       15.04.2026
-# Geändert:       15.04.2026
+# Geändert:       21.04.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
-#   Definiert die Filterkriterien für Reports (Zeitraum, Projekte, Issuetype)
-#   und wendet sie auf ReportData an. Issues werden nach Closed Date gefiltert,
-#   CFD-Einträge nach dem Tagesdatum. Leere Filterlisten bedeuten "kein Filter".
+#   Definiert die Filterkriterien für Reports (Zeitraum, Projekte, Issuetype,
+#   Ausschlüsse nach Status/Resolution) und wendet sie auf ReportData an.
+#   Issues werden nach Closed Date gefiltert, CFD-Einträge nach dem Tagesdatum.
+#   Leere Filterlisten bedeuten "kein Filter".
 # =============================================================================
 
 from __future__ import annotations
@@ -28,15 +29,19 @@ class FilterConfig:
     All fields are optional — None or empty list means no restriction.
 
     Attributes:
-        from_date:   Include only issues closed on or after this date.
-        to_date:     Include only issues closed on or before this date.
-        projects:    Restrict to these project keys (empty = all projects).
-        issuetypes:  Restrict to these issue types (empty = all types).
+        from_date:            Include only issues closed on or after this date.
+        to_date:              Include only issues closed on or before this date.
+        projects:             Restrict to these project keys (empty = all projects).
+        issuetypes:           Restrict to these issue types (empty = all types).
+        excluded_statuses:    Remove issues whose current status is in this list.
+        excluded_resolutions: Remove issues whose resolution is in this list.
     """
     from_date: date | None = None
     to_date: date | None = None
     projects: list[str] = field(default_factory=list)
     issuetypes: list[str] = field(default_factory=list)
+    excluded_statuses: list[str] = field(default_factory=list)
+    excluded_resolutions: list[str] = field(default_factory=list)
 
 
 def _issue_passes(issue: IssueRecord, cfg: FilterConfig) -> bool:
@@ -44,7 +49,8 @@ def _issue_passes(issue: IssueRecord, cfg: FilterConfig) -> bool:
     Check whether a single issue matches the filter criteria.
 
     Date filtering is based on closed_date. Issues with no closed_date
-    are excluded when a date range is specified.
+    are excluded when a date range is specified. Issues whose status or
+    resolution appears in the exclusion lists are always removed.
 
     Args:
         issue: The issue record to evaluate.
@@ -65,6 +71,10 @@ def _issue_passes(issue: IssueRecord, cfg: FilterConfig) -> bool:
             return False
         if cfg.to_date is not None and closed > cfg.to_date:
             return False
+    if cfg.excluded_statuses and issue.status in cfg.excluded_statuses:
+        return False
+    if cfg.excluded_resolutions and issue.resolution in cfg.excluded_resolutions:
+        return False
     return True
 
 
