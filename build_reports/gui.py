@@ -634,6 +634,8 @@ class BuildReportsApp(tk.Tk):
             p.metric_id: tk.BooleanVar(value=True) for p in self._plugins
         }
 
+        self._progress_after_id: str | None = None
+
         # Translatable widget references: list of (widget, tr_key)
         self._i18n: list[tuple[Any, str]] = []
         # Metric checkbuttons for terminology-driven label updates
@@ -935,6 +937,14 @@ class BuildReportsApp(tk.Tk):
         self._pdf_btn.pack(side="left", padx=8)
         self._i18n.append((self._pdf_btn, "btn_pdf"))
         self._tips.append((_ToolTip(self._pdf_btn, self._tr("tip_pdf")), "tip_pdf"))
+        row += 1
+
+        # --- Progress bar (hidden until operation runs > 3 s) ---
+        self._progress_bar = ttk.Progressbar(
+            self, mode="indeterminate", length=300
+        )
+        self._progress_bar.grid(row=row, column=0, columnspan=3, pady=(0, 4))
+        self._progress_bar.grid_remove()
         row += 1
 
         # --- Log area ---
@@ -1567,14 +1577,34 @@ class BuildReportsApp(tk.Tk):
 
     def _set_buttons_enabled(self, enabled: bool) -> None:
         """
-        Enable or disable the action buttons.
+        Enable or disable the action buttons and manage the progress indicator.
 
         Args:
-            enabled: True to enable, False to disable.
+            enabled: True to enable (operation done), False to disable (operation running).
         """
         state = "normal" if enabled else "disabled"
         self._show_btn.configure(state=state)
         self._pdf_btn.configure(state=state)
+        if enabled:
+            self._stop_progress()
+        else:
+            self._start_progress()
+
+    def _start_progress(self) -> None:
+        """Schedule the progress bar to appear after 3 seconds of inactivity."""
+        def _show() -> None:
+            self._progress_bar.grid()
+            self._progress_bar.start(10)
+
+        self._progress_after_id = self.after(3000, _show)
+
+    def _stop_progress(self) -> None:
+        """Cancel any pending progress bar and hide it immediately."""
+        if self._progress_after_id is not None:
+            self.after_cancel(self._progress_after_id)
+            self._progress_after_id = None
+        self._progress_bar.stop()
+        self._progress_bar.grid_remove()
 
 
 def main() -> None:
