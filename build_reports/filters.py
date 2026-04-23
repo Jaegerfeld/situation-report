@@ -3,7 +3,7 @@
 # Repository:     https://github.com/Jaegerfeld/situation-report
 # KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
 # Erstellt:       15.04.2026
-# Geändert:       22.04.2026
+# Geändert:       23.04.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
@@ -53,9 +53,11 @@ def _issue_passes(issue: IssueRecord, cfg: FilterConfig) -> bool:
     """
     Check whether a single issue matches the filter criteria.
 
-    Date filtering is based on closed_date. Issues with no closed_date
-    are excluded when a date range is specified. Issues whose status or
-    resolution appears in the exclusion lists are always removed.
+    Date filtering is based on closed_date and only applies to issues that
+    have a closed_date. Open issues (no closed_date) are always passed through
+    the date filter so that Flow Load and Flow Distribution can work correctly
+    even when a date range is active. Issues whose status or resolution appears
+    in the exclusion lists are always removed.
 
     Args:
         issue: The issue record to evaluate.
@@ -68,9 +70,7 @@ def _issue_passes(issue: IssueRecord, cfg: FilterConfig) -> bool:
         return False
     if cfg.issuetypes and issue.issuetype not in cfg.issuetypes:
         return False
-    if cfg.from_date is not None or cfg.to_date is not None:
-        if issue.closed_date is None:
-            return False
+    if issue.closed_date is not None:
         closed = issue.closed_date.date()
         if cfg.from_date is not None and closed < cfg.from_date:
             return False

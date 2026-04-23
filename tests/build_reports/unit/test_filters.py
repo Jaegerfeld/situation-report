@@ -145,12 +145,12 @@ class TestDateFilter:
         assert "A-1" in keys
         assert "A-2" in keys
 
-    def test_no_closed_date_excluded_when_range_set(self, sample_data):
-        """Issues without a Closed Date are excluded when a date range is active."""
+    def test_open_issues_pass_through_date_filter(self, sample_data):
+        """Issues without a Closed Date are always included, even when a date range is active."""
         cfg = FilterConfig(from_date=date(2025, 1, 1))
         result = apply_filters(sample_data, cfg)
         keys = {i.key for i in result.issues}
-        assert "N-1" not in keys
+        assert "N-1" in keys
 
     def test_cfd_filtered_by_date(self, sample_data):
         """CFD records outside the date range are removed."""
@@ -234,15 +234,15 @@ class TestExclusionFilter:
         assert "W-1" not in keys
 
     def test_exclusion_combined_with_date_filter(self, sample_data):
-        """Exclusion and date filters are applied conjunctively."""
+        """Exclusion and date filters are applied conjunctively; open issues are retained."""
         cfg = FilterConfig(
             from_date=date(2025, 1, 1),
             excluded_statuses=["Canceled"],
         )
         result = apply_filters(sample_data, cfg)
         keys = {i.key for i in result.issues}
-        assert "C-1" not in keys
-        assert "N-1" not in keys  # excluded by date filter (no closed date)
+        assert "C-1" not in keys   # removed by status exclusion
+        assert "N-1" in keys       # open issue: passes date filter regardless
 
 
 class TestZeroDayFilter:
