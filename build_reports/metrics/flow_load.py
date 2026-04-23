@@ -3,7 +3,7 @@
 # Repository:     https://github.com/Jaegerfeld/situation-report
 # KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
 # Erstellt:       15.04.2026
-# Geändert:       15.04.2026
+# Geändert:       23.04.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
@@ -213,21 +213,31 @@ class FlowLoadMetric(MetricPlugin):
                 marker=dict(color="red", size=4, opacity=0.6),
                 line=dict(color="black"),
                 fillcolor="white",
+                showlegend=False,
             ))
 
         # Reference lines (cycle time from done items)
         ref_lines = [
-            (ld.ct_mean, "blue", "dash", "CT Mean"),
-            (ld.ct_median, "red", "dot", "CT Median"),
-            (ld.ct_pct85, "green", "dashdot", "CT 85%"),
-            (ld.ct_pct95, "purple", "longdash", "CT 95%"),
+            (ld.ct_mean,   "blue",   "dash",     "CT Mean"),
+            (ld.ct_median, "red",    "dot",      "CT Median"),
+            (ld.ct_pct85,  "green",  "dashdot",  "CT P85"),
+            (ld.ct_pct95,  "purple", "longdash", "CT P95"),
         ]
         for val, color, dash, lbl in ref_lines:
             if val is not None:
+                # Dummy trace for legend entry
+                fig.add_trace(go.Scatter(
+                    x=[None], y=[None],
+                    mode="lines",
+                    name=f"{lbl}: {val}d",
+                    line=dict(color=color, dash=dash, width=1.5),
+                    showlegend=True,
+                ))
                 fig.add_hline(
-                    y=val, line_color=color, line_dash=dash,
-                    annotation_text=f"{lbl}: {val}",
+                    y=val, line_color=color, line_dash=dash, line_width=1.5,
+                    annotation_text=f"{val}d",
                     annotation_position="right",
+                    annotation_font_size=9,
                 )
 
         ct_footer = ""
@@ -244,7 +254,14 @@ class FlowLoadMetric(MetricPlugin):
             yaxis_title="Total Age (days)",
             plot_bgcolor="#e8e8e8",
             paper_bgcolor="#e8e8e8",
-            showlegend=False,
+            showlegend=True,
+            legend=dict(
+                title="Cycle Time Reference<br>(from closed issues)",
+                bgcolor="rgba(255,255,255,0.85)",
+                bordercolor="#bdc3c7",
+                borderwidth=1,
+                font=dict(size=10),
+            ),
             height=550,
             annotations=[dict(
                 text=ct_footer, xref="paper", yref="paper",
