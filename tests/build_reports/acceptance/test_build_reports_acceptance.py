@@ -191,14 +191,14 @@ class TestFlowDistributionOnRealData:
         result = FlowDistributionMetric().compute(art_a_data, SAFE)
         assert result.stats["total"] == len(art_a_data.issues)
 
-    def test_render_one_figure_with_two_pies(self, art_a_data):
-        """render() returns one figure containing exactly two pie traces."""
+    def test_render_one_figure_with_two_pies_and_one_bar(self, art_a_data):
+        """render() returns one figure with two pie traces and one bar trace."""
         metric = FlowDistributionMetric()
         result = metric.compute(art_a_data, SAFE)
         figs = metric.render(result, SAFE)
         assert len(figs) == 1
-        pie_traces = [t for t in figs[0].data if t.type == "pie"]
-        assert len(pie_traces) == 2
+        assert len([t for t in figs[0].data if t.type == "pie"]) == 2
+        assert len([t for t in figs[0].data if t.type == "bar"]) == 1
 
 
 class TestCliPipelineOnRealData:

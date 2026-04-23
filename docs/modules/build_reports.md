@@ -234,9 +234,13 @@ Liest die täglichen Eintrittszählungen aus `CFD.xlsx` und akkumuliert diese ku
 
 **Metrik-ID:** `flow_distribution`
 
-Zeigt die Zusammensetzung des Issue-Bestands nach Issuetyp und aktuellem Status.
+Zeigt die Zusammensetzung des Issue-Bestands in drei Diagrammen nebeneinander.
 
-**Diagramm:** Zwei Kreisdiagramme (Donut) nebeneinander — links nach Issuetyp, rechts nach Status.
+**Diagramme:**
+
+- **By Issue Type** — Donut-Kreisdiagramm: Anzahl und Prozentanteil der Issues je Issuetyp. Alle Issues fließen ein.
+- **Stage Prominence** — Donut-Kreisdiagramm: Für jedes Issue wird die Stage mit den meisten Minuten ermittelt; das Diagramm zählt, wie oft jede Stage über alle Issues hinweg die dominante war. Bei geschlossenen Issues wird die terminale Done-Stage (aktueller Status) von der Bewertung ausgeschlossen, damit Wartezeit nach dem Schließen das Ergebnis nicht verfälscht. Die Titelzeile zeigt `n = <Anzahl beitragender Issues>`. Issues ohne Stage-Daten (alle Minuten = 0) werden nicht gezählt.
+- **Avg Cycle Time by Type** — Balkendiagramm: Durchschnittliche Cycle Time in Tagen pro Issuetyp (Methode A: `Closed Date − First Date`). Nur Issues mit beiden Datumswerten und CT > 0 fließen ein. Balkenbeschriftung im Format `"15.0d"`.
 
 | SAFe | Global |
 |------|--------|

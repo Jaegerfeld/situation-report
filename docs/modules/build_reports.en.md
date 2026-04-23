@@ -234,9 +234,13 @@ Reads the daily entry counts from `CFD.xlsx` and accumulates them cumulatively. 
 
 **Metric ID:** `flow_distribution`
 
-Shows the composition of the issue backlog by issue type and current status.
+Shows the composition of the issue backlog across three charts side by side.
 
-**Chart:** Two donut pie charts side by side — left by issue type, right by status.
+**Charts:**
+
+- **By Issue Type** — Donut pie chart: count and percentage share of issues per issue type. All issues are included.
+- **Stage Prominence** — Donut pie chart: for each issue the stage with the most minutes is identified; the chart counts how often each stage was dominant across all issues. For closed issues the terminal Done stage (current status) is excluded from the evaluation so that accumulated wait time after closing does not distort the result. The subtitle shows `n = <number of contributing issues>`. Issues with no stage data (all minutes = 0) are not counted.
+- **Avg Cycle Time by Type** — Bar chart: average cycle time in days per issue type (Method A: `Closed Date − First Date`). Only issues with both dates and CT > 0 are included. Bar labels are formatted as `"15.0d"`.
 
 | SAFe | Global |
 |------|--------|
