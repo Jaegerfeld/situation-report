@@ -1775,8 +1775,13 @@
 <hr />
 <h3 id="flow-distribution">Flow Distribution<a class="headerlink" href="#flow-distribution" title="Permanent link">&para;</a></h3>
 <p><strong>Metrik-ID:</strong> <code>flow_distribution</code></p>
-<p>Zeigt die Zusammensetzung des Issue-Bestands nach Issuetyp und aktuellem Status.</p>
-<p><strong>Diagramm:</strong> Zwei Kreisdiagramme (Donut) nebeneinander — links nach Issuetyp, rechts nach Status.</p>
+<p>Zeigt die Zusammensetzung des Issue-Bestands in drei Diagrammen nebeneinander.</p>
+<p><strong>Diagramme:</strong></p>
+<ul>
+<li><strong>By Issue Type</strong> — Donut-Kreisdiagramm: Anzahl und Prozentanteil der Issues je Issuetyp. Alle Issues fließen ein.</li>
+<li><strong>Stage Prominence</strong> — Donut-Kreisdiagramm: Für jedes Issue wird die Stage mit den meisten Minuten ermittelt; das Diagramm zählt, wie oft jede Stage über alle Issues hinweg die dominante war. Bei geschlossenen Issues wird die terminale Done-Stage (aktueller Status) von der Bewertung ausgeschlossen, damit Wartezeit nach dem Schließen das Ergebnis nicht verfälscht. Die Titelzeile zeigt <code>n = &lt;Anzahl beitragender Issues&gt;</code>. Issues ohne Stage-Daten (alle Minuten = 0) werden nicht gezählt.</li>
+<li><strong>Avg Cycle Time by Type</strong> — Balkendiagramm: Durchschnittliche Cycle Time in Tagen pro Issuetyp (Methode A: <code>Closed Date − First Date</code>). Nur Issues mit beiden Datumswerten und CT &gt; 0 fließen ein. Balkenbeschriftung im Format <code>"15.0d"</code>.</li>
+</ul>
 <table>
 <thead>
 <tr>
