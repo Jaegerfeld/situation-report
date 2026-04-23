@@ -82,13 +82,14 @@ class TestFiltersOnRealData:
         filtered = apply_filters(art_a_data, cfg)
         assert len(filtered.issues) < len(art_a_data.issues)
 
-    def test_date_filter_all_closed_in_range(self, art_a_data):
-        """All issues returned by a date-range filter have a Closed Date within that range."""
+    def test_date_filter_closed_issues_in_range(self, art_a_data):
+        """Issues with a Closed Date are within the filter range; open issues pass through."""
         cfg = FilterConfig(from_date=date(2026, 1, 1), to_date=date(2026, 12, 31))
         filtered = apply_filters(art_a_data, cfg)
         for issue in filtered.issues:
-            assert issue.closed_date is not None
-            assert issue.closed_date.date() >= date(2026, 1, 1)
+            if issue.closed_date is not None:
+                assert issue.closed_date.date() >= date(2026, 1, 1)
+                assert issue.closed_date.date() <= date(2026, 12, 31)
 
     def test_cfd_filter_reduces_records(self, art_a_data):
         """A from_date filter returns fewer CFD records than the unfiltered dataset."""
