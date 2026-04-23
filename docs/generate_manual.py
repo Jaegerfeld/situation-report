@@ -9,21 +9,32 @@
 # Fachliche Funktion:
 #   Erzeugt das Benutzerhandbuch fuer build_reports als PDF-Datei.
 #   Enthaelt alle Kapitel fuer Nicht-Techniker: Einleitung, Dateien,
-#   GUI-Bedienung, Metriken-Erklaerungen und Tipps.
+#   GUI-Bedienung, Metriken-Erklaerungen mit echten Beispieldiagrammen
+#   (aus den ART_A-Testdaten) und Tipps.
 # =============================================================================
 
+import tempfile
+from datetime import date
 from pathlib import Path
 
+import plotly.io as pio
 from reportlab.lib import colors
 from reportlab.lib.enums import TA_CENTER, TA_JUSTIFY
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.styles import ParagraphStyle
 from reportlab.lib.units import cm
 from reportlab.platypus import (
-    BaseDocTemplate, Frame, HRFlowable, NextPageTemplate, PageBreak,
-    PageTemplate, Paragraph, Spacer, Table, TableStyle,
+    BaseDocTemplate, Frame, HRFlowable, Image as RLImage, NextPageTemplate,
+    PageBreak, PageTemplate, Paragraph, Spacer, Table, TableStyle,
 )
 from reportlab.platypus.tableofcontents import TableOfContents
+
+# ---------------------------------------------------------------------------
+# Test data paths (for chart generation)
+# ---------------------------------------------------------------------------
+_TESTDATA = Path(__file__).parent.parent / "tests" / "testdata" / "ART_A"
+_ISSUE_TIMES = _TESTDATA / "ART_A_IssueTimes.xlsx"
+_CFD_FILE    = _TESTDATA / "ART_A_CFD.xlsx"
 
 # ---------------------------------------------------------------------------
 # Colors
@@ -36,6 +47,103 @@ C_WHITE  = colors.white
 C_HINT   = colors.HexColor("#7f8c8d")
 
 OUTPUT = Path(__file__).parent / "build_reports_Benutzerhandbuch.pdf"
+
+CONTENT_WIDTH_CM = 15.5
+
+
+# ---------------------------------------------------------------------------
+# Chart image generation
+# ---------------------------------------------------------------------------
+
+def _generate_chart_images(out_dir: Path) -> dict[str, Path]:
+    """
+    Render all metric charts from the ART_A test dataset as PNG files.
+
+    Uses the last 365 days of data relative to the latest closed date in the
+    dataset. Flow Load and Flow Distribution use the full unfiltered dataset
+    so that open issues are always included.
+
+    Args:
+        out_dir: Directory where PNG files are written.
+
+    Returns:
+        Dict mapping image key to PNG file path.
+    """
+    from build_reports.filters import FilterConfig, apply_filters
+    from build_reports.loader import load_report_data
+    from build_reports.metrics.cfd import CfdMetric
+    from build_reports.metrics.flow_distribution import FlowDistributionMetric
+    from build_reports.metrics.flow_load import FlowLoadMetric
+    from build_reports.metrics.flow_time import FlowTimeMetric
+    from build_reports.metrics.flow_velocity import FlowVelocityMetric
+    from build_reports.terminology import SAFE
+
+    out_dir.mkdir(parents=True, exist_ok=True)
+    data = load_report_data(_ISSUE_TIMES, _CFD_FILE)
+
+    closed = [i.closed_date for i in data.issues if i.closed_date]
+    to_dt  = max(closed).date() if closed else date.today()
+    from_dt = date(to_dt.year - 1, to_dt.month, to_dt.day)
+    filtered = apply_filters(data, FilterConfig(from_date=from_dt, to_date=to_dt))
+
+    def save(fig, name, w=1400, h=580):
+        p = out_dir / f"{name}.png"
+        pio.write_image(fig, str(p), format="png", width=w, height=h)
+        return p
+
+    imgs: dict[str, Path] = {}
+
+    # Flow Time
+    m = FlowTimeMetric()
+    r = m.compute(filtered, SAFE)
+    figs = m.render(r, SAFE)
+    imgs["flow_time_box"]     = save(figs[0], "flow_time_box",     h=480)
+    imgs["flow_time_scatter"] = save(figs[1], "flow_time_scatter", h=540)
+
+    # Flow Velocity
+    m = FlowVelocityMetric()
+    r = m.compute(filtered, SAFE)
+    figs = m.render(r, SAFE)
+    imgs["velocity_daily"]  = save(figs[0], "velocity_daily",  h=460)
+    imgs["velocity_weekly"] = save(figs[1], "velocity_weekly", h=480)
+    imgs["velocity_pi"]     = save(figs[2], "velocity_pi",     h=480)
+
+    # Flow Load (unfiltered – open issues must be present)
+    m = FlowLoadMetric()
+    r = m.compute(data, SAFE)
+    figs = m.render(r, SAFE)
+    imgs["flow_load"] = save(figs[0], "flow_load", h=540)
+
+    # CFD
+    m = CfdMetric()
+    r = m.compute(filtered, SAFE)
+    figs = m.render(r, SAFE)
+    imgs["cfd"] = save(figs[0], "cfd", h=680)
+
+    # Flow Distribution (unfiltered – all issue types should appear)
+    m = FlowDistributionMetric()
+    r = m.compute(data, SAFE)
+    figs = m.render(r, SAFE)
+    imgs["flow_dist"] = save(figs[0], "flow_dist", w=1600, h=560)
+
+    return imgs
+
+
+def _img(path: Path, width_cm: float = CONTENT_WIDTH_CM) -> RLImage:
+    """
+    Create a ReportLab Image flowable scaled to width_cm with correct aspect ratio.
+
+    Args:
+        path:      Path to the PNG file.
+        width_cm:  Target display width in centimetres.
+
+    Returns:
+        RLImage flowable ready for insertion into a Platypus story.
+    """
+    ri = RLImage(str(path))
+    aspect = ri.imageHeight / ri.imageWidth
+    w = width_cm * cm
+    return RLImage(str(path), width=w, height=w * aspect)
 
 
 # ---------------------------------------------------------------------------
@@ -59,6 +167,8 @@ def make_styles():
                  leftIndent=16, spaceAfter=3, bulletIndent=4),
         hint=s("Hint", fontName="Helvetica-Oblique", fontSize=9, textColor=C_HINT,
                leading=13, leftIndent=12, spaceAfter=4),
+        caption=s("Caption", fontName="Helvetica-Oblique", fontSize=8,
+                  textColor=C_HINT, leading=11, alignment=TA_CENTER, spaceAfter=8),
         code=s("Code", fontName="Courier", fontSize=9, leading=13,
                leftIndent=12, spaceBefore=4, spaceAfter=4,
                backColor=colors.HexColor("#f4f4f4"), textColor=C_BLUE),
@@ -157,6 +267,7 @@ def BL(text, st): return Paragraph("- " + text, st["bullet"])
 def HI(text, st): return Paragraph(text, st["hint"])
 def CD(text, st): return Paragraph(text, st["code"])
 def SP(n=6):      return Spacer(1, n)
+def CAP(text, st): return Paragraph(text, st["caption"])
 
 
 def box(text, st, bg="#eaf4fb"):
@@ -196,8 +307,25 @@ def tbl(headers, rows, col_widths=None):
 # Content
 # ---------------------------------------------------------------------------
 
-def content(st):
+def content(st, images: dict[str, Path] | None = None):
+    """
+    Build the full document story with optional embedded chart images.
+
+    Args:
+        st:     Style dict from make_styles().
+        images: Dict of image key -> PNG path from _generate_chart_images(),
+                or None to omit all images.
+
+    Returns:
+        Tuple of (story list, TableOfContents instance).
+    """
     story = []
+
+    def add_img(key, caption_text, width_cm=CONTENT_WIDTH_CM):
+        if images and key in images:
+            story.append(SP(6))
+            story.append(_img(images[key], width_cm))
+            story.append(CAP(caption_text, st))
 
     # TOC
     story.append(PageBreak())
@@ -473,7 +601,8 @@ def content(st):
     story.append(H1("5  Die Metriken im Ueberblick", st))
     story.append(P(
         "Dieser Abschnitt erklaert jede Metrik in einfachen Worten: was sie misst, "
-        "was die Diagramme zeigen und wie man die Ergebnisse interpretiert.", st))
+        "was die Diagramme zeigen und wie man die Ergebnisse interpretiert. "
+        "Die Beispieldiagramme stammen aus einem Beispiel-Datensatz.", st))
 
     # --- 5.1 Flow Time -------------------------------------------------------
     story.append(H2("5.1  Flow Time / Cycle Time", st))
@@ -505,6 +634,8 @@ def content(st):
     story.append(HI(
         "Roter Punkt im Boxplot = statistischer Ausreisser. Im Browser koennen Sie den "
         "Issue-Schluessel per Hover-Tooltip ablesen.", st))
+    add_img("flow_time_box",
+            "Abb. 1: Boxplot der Durchlaufzeiten -- Verteilung, Quartile und Statistik-Header.")
 
     story.append(H3("Diagramm 2: Scatterplot (Verlauf ueber Zeit)", st))
     story.append(P(
@@ -524,7 +655,9 @@ def content(st):
             ["Cyan-Linie",     "95. Perzentil-Referenzlinie"],
         ],
         col_widths=[4.5*cm, 11.5*cm]))
-    story.append(SP(8))
+    add_img("flow_time_scatter",
+            "Abb. 2: Scatterplot -- Durchlaufzeit je Abschlussdatum mit LOESS-Trendlinie und Referenzlinien.")
+    story.append(SP(4))
     story.append(box(
         "<b>Interpretation:</b> Steigt die LOESS-Trendlinie nach rechts an, werden "
         "Issues mit der Zeit langsamer. Eine flache Linie signalisiert einen stabilen "
@@ -553,6 +686,12 @@ def content(st):
              "Hellgrau = zukuenftige PIs."],
         ],
         col_widths=[4.5*cm, 11.5*cm]))
+    add_img("velocity_daily",
+            "Abb. 3: Tagesfrequenz -- Haeufigkeit der taeglichen Abschlussanzahl.")
+    add_img("velocity_weekly",
+            "Abb. 4: Wochenverlauf -- abgeschlossene Issues pro Kalenderwoche.")
+    add_img("velocity_pi",
+            "Abb. 5: PI-Verlauf -- abgeschlossene Issues pro PI oder Quartal mit Durchschnittslinie.")
 
     # --- 5.3 Flow Load -------------------------------------------------------
     story.append(H2("5.3  Flow Load / WIP  (Work in Progress)", st))
@@ -571,6 +710,8 @@ def content(st):
         "Gestrichelte Referenzlinien aus den abgeschlossenen Issues (Median, 85. "
         "Perzentil, 95. Perzentil) geben Orientierung: Issues, die bereits ueber dem "
         "95. Perzentil der abgeschlossenen Issues liegen, sind stark verzoegert.", st))
+    add_img("flow_load",
+            "Abb. 6: Flow Load -- Alter der offenen Issues je Stage mit Referenzlinien aus abgeschlossenen Issues.")
 
     # --- 5.4 CFD -------------------------------------------------------------
     story.append(H2("5.4  Cumulative Flow Diagram (CFD)", st))
@@ -586,9 +727,11 @@ def content(st):
         "unten. Das Diagramm beginnt immer bei 0 -- unabhaengig vom gewahlten Startdatum. "
         "Zwei schwarze Trendlinien zeigen:", st))
     story.append(BL(
-        "<b>Obere Linie (Zufluss):</b> Wie schnell wachst der kumulierte Gesamtzufluss?", st))
+        "<b>Obere Linie (Zufluss):</b> Wie schnell waechst der kumulierte Gesamtzufluss?", st))
     story.append(BL(
         "<b>Untere Linie (Abfluss):</b> Wie schnell steigt die Anzahl abgeschlossener Issues?", st))
+    add_img("cfd",
+            "Abb. 7: Cumulative Flow Diagram -- kumulierte Eintritte je Stage mit Zufluss- und Abfluss-Trendlinie.")
     story.append(SP(4))
     story.append(P(
         "Das <b>In/Out-Verhaeltnis</b> im Diagrammtitel (z.B. 'Ratio In/out 1.80 : 1') "
@@ -635,6 +778,8 @@ def content(st):
              "CT > 0 fliessen ein. Balkenbeschriftung im Format '15.0d'."],
         ],
         col_widths=[4.5*cm, 11.5*cm]))
+    add_img("flow_dist",
+            "Abb. 8: Flow Distribution -- Issue-Typ-Verteilung, Stage Prominence und Ø Cycle Time je Typ.")
     story.append(SP(4))
     story.append(box(
         "<b>Interpretation Stage Prominence:</b> Dominiert eine Stage besonders haeufig, "
@@ -811,23 +956,34 @@ def content(st):
 # ---------------------------------------------------------------------------
 
 def main():
+    """Generate the build_reports user manual PDF with embedded chart images."""
     st = make_styles()
-    doc = ManualDoc(
-        str(OUTPUT),
-        title="build_reports Benutzerhandbuch",
-        author="Robert Seebauer",
-        subject="Flow-Metriken fuer agile Teams",
-    )
 
-    story = [
-        Spacer(1, 1),             # fills the cover frame (drawn by build_cover)
-        NextPageTemplate("normal"),
-    ]
-    story_content, toc = content(st)
-    story.extend(story_content)
+    print("Generating chart images from ART_A test data...")
+    tmp_dir = Path(tempfile.mkdtemp(prefix="br_manual_"))
+    try:
+        images = _generate_chart_images(tmp_dir)
+        print(f"  {len(images)} chart(s) rendered.")
 
-    doc.multiBuild(story)
-    print("PDF erstellt: %s" % OUTPUT)
+        doc = ManualDoc(
+            str(OUTPUT),
+            title="build_reports Benutzerhandbuch",
+            author="Robert Seebauer",
+            subject="Flow-Metriken fuer agile Teams",
+        )
+
+        story = [
+            Spacer(1, 1),
+            NextPageTemplate("normal"),
+        ]
+        story_content, toc = content(st, images)
+        story.extend(story_content)
+
+        doc.multiBuild(story)
+        print("PDF erstellt: %s" % OUTPUT)
+    finally:
+        import shutil
+        shutil.rmtree(tmp_dir, ignore_errors=True)
 
 
 if __name__ == "__main__":
