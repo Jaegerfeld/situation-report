@@ -3,7 +3,7 @@
 # Repository:     https://github.com/Jaegerfeld/situation-report
 # KI-Unterstuetzung: Erstellt mit Unterstuetzung von Claude (Anthropic)
 # Erstellt:       17.04.2026
-# Geaendert:      22.04.2026
+# Geaendert:      23.04.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
@@ -236,7 +236,7 @@ def content(st):
         "- <b>Flow Velocity / Throughput</b>: Wie viele Issues schliesst das Team pro Woche ab?<br/>"
         "- <b>Flow Load / WIP</b>: Wie viele Issues sind gleichzeitig in Bearbeitung?<br/>"
         "- <b>Cumulative Flow Diagram</b>: Wie entwickelt sich der Bestand ueber die Zeit?<br/>"
-        "- <b>Flow Distribution</b>: Wie verteilen sich die Issues auf Typen und Status?", st))
+        "- <b>Flow Distribution</b>: Wie verteilen sich die Issues auf Typen, Stages und Durchlaufzeiten?", st))
 
     # =========================================================================
     # 2. Voraussetzungen
@@ -608,15 +608,39 @@ def content(st):
     # --- 5.5 Flow Distribution -----------------------------------------------
     story.append(H2("5.5  Flow Distribution", st))
     story.append(P(
-        "<b>Was wird gemessen?</b> Die Zusammensetzung aller Issues nach Typ (z.B. "
-        "Feature, Bug, Story) und nach aktuellem Status. Zeigt auf einen Blick, "
-        "welche Issue-Arten dominieren und wie der Bestand ueber die Status verteilt "
-        "ist.", st))
+        "<b>Was wird gemessen?</b> Die Zusammensetzung aller Issues nach Typ, "
+        "dominanter Stage und durchschnittlicher Durchlaufzeit. Zeigt auf einen Blick, "
+        "welche Issue-Arten dominieren, wo Issues die meiste Zeit verbringen, und "
+        "welche Typen am schnellsten oder langsamsten bearbeitet werden.", st))
     story.append(SP(4))
     story.append(P(
-        "Das Diagramm besteht aus zwei Donut-Diagrammen nebeneinander: links nach "
-        "Issuetyp, rechts nach Status. Jede Kategorie zeigt Anzahl und prozentualen "
-        "Anteil.", st))
+        "Das Diagramm besteht aus drei Teildiagrammen nebeneinander:", st))
+    story.append(SP(4))
+    story.append(tbl(
+        ["Diagramm", "Was wird gezeigt?"],
+        [
+            ["By Issue Type (Donut)",
+             "Anzahl und Prozentanteil der Issues je Issuetyp. Alle Issues fliessen ein."],
+            ["Stage Prominence (Donut)",
+             "Fuer jedes Issue wird die Stage ermittelt, in der es die laengste Zeit "
+             "verbracht hat. Das Diagramm zaehlt, wie haeufig jede Stage ueber alle "
+             "Issues hinweg die dominante war. Bei abgeschlossenen Issues wird die "
+             "terminale Done-Stage (aktueller Status) ausgeschlossen, damit "
+             "Wartezeit nach dem Schliessen das Ergebnis nicht verfaelscht. "
+             "Der Untertitel zeigt die Anzahl der beitragenden Issues (n=...). "
+             "Issues ohne Stage-Daten werden nicht gezaehlt."],
+            ["Avg Cycle Time by Type (Balken)",
+             "Durchschnittliche Durchlaufzeit in Tagen je Issuetyp (Methode A: "
+             "Closed Date - First Date). Nur Issues mit beiden Datumsfeldern und "
+             "CT > 0 fliessen ein. Balkenbeschriftung im Format '15.0d'."],
+        ],
+        col_widths=[4.5*cm, 11.5*cm]))
+    story.append(SP(4))
+    story.append(box(
+        "<b>Interpretation Stage Prominence:</b> Dominiert eine Stage besonders haeufig, "
+        "verweilen Issues dort ueberproportional lange -- ein moeglicher Engpass im Workflow. "
+        "Abgeschlossene Issues werden einbezogen, ihre terminale Done-Stage jedoch "
+        "ausgeblendet, damit tatsaechliche Bearbeitungsschwerpunkte sichtbar bleiben.", st))
 
     # =========================================================================
     # 6. PDF-Export
