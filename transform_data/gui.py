@@ -3,7 +3,7 @@
 # Repository:     https://github.com/Jaegerfeld/situation-report
 # KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
 # Erstellt:       10.04.2026
-# Geändert:       22.04.2026
+# Geändert:       25.04.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
@@ -18,6 +18,7 @@
 
 import threading
 import tkinter as tk
+import webbrowser
 from tkinter import filedialog, scrolledtext, ttk
 from pathlib import Path
 
@@ -37,7 +38,22 @@ class TransformApp(tk.Tk):
         self._auto_prefix: str = ""   # tracks the last auto-filled prefix value
         self._progress_after_id: str | None = None
 
+        self._build_menubar()
         self._build_ui()
+
+    def _build_menubar(self) -> None:
+        """Build the top menu bar with a Help → Manual entry."""
+        menubar = tk.Menu(self)
+        help_menu = tk.Menu(menubar, tearoff=0)
+        menubar.add_cascade(label="Hilfe", menu=help_menu)
+        help_menu.add_command(label="Manual", command=self._open_manual)
+        self.config(menu=menubar)
+
+    def _open_manual(self) -> None:
+        """Open the transform_data user manual PDF on GitHub Pages in the default browser."""
+        webbrowser.open(
+            "https://jaegerfeld.github.io/situation-report/transform_data_Benutzerhandbuch.pdf"
+        )
 
     def _build_ui(self) -> None:
         pad = {"padx": 8, "pady": 4}

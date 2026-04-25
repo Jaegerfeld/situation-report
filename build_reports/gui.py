@@ -157,6 +157,8 @@ _T: dict[str, dict[str, str]] = {
         "log_excl_loaded":   "Ausschluss-Defaults geladen.",
         "log_excl_not_found": "Keine Ausschluss-Defaults gefunden.",
         "log_excl_error":    "Fehler beim Laden/Speichern der Ausschluss-Defaults: {}",
+        "menu_help":         "Hilfe",
+        "menu_manual":       "Manual",
     },
     LANG_EN: {
         "window_title":      "build_reports",
@@ -263,6 +265,8 @@ _T: dict[str, dict[str, str]] = {
         "log_excl_loaded":   "Exclusion defaults loaded.",
         "log_excl_not_found": "No exclusion defaults found.",
         "log_excl_error":    "Error loading/saving exclusion defaults: {}",
+        "menu_help":         "Help",
+        "menu_manual":       "Manual",
     },
 }
 
@@ -745,6 +749,11 @@ class BuildReportsApp(tk.Tk):
         tpl_menu.add_command(label=self._tr("menu_excl_save"), command=self._save_excl_defaults)
         tpl_menu.add_command(label=self._tr("menu_excl_load"), command=self._load_excl_defaults)
 
+        # Help menu
+        help_menu = tk.Menu(menubar, tearoff=0)
+        menubar.add_cascade(label=self._tr("menu_help"), menu=help_menu)
+        help_menu.add_command(label=self._tr("menu_manual"), command=self._open_manual)
+
         self.config(menu=menubar)
 
     def _build_terminology_menu(self, parent: tk.Menu) -> tk.Menu:
@@ -753,6 +762,12 @@ class BuildReportsApp(tk.Tk):
         term_menu.add_radiobutton(label="SAFe",   variable=self._terminology_var, value=SAFE)
         term_menu.add_radiobutton(label="Global", variable=self._terminology_var, value=GLOBAL)
         return term_menu
+
+    def _open_manual(self) -> None:
+        """Open the build_reports user manual PDF on GitHub Pages in the default browser."""
+        webbrowser.open(
+            "https://jaegerfeld.github.io/situation-report/build_reports_Benutzerhandbuch.pdf"
+        )
 
     # -------------------------------------------------------------------------
     # UI construction
