@@ -13,9 +13,13 @@
 #   (aus den ART_A-Testdaten) und Tipps.
 # =============================================================================
 
+import sys
 import tempfile
 from datetime import date
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).parent.parent))
+from version import __version__ as _VERSION
 
 import plotly.io as pio
 from reportlab.lib import colors
@@ -246,7 +250,7 @@ def build_cover(canvas, doc):
     canvas.drawCentredString(w/2, h*0.12,
                              "situation-report - github.com/Jaegerfeld/situation-report")
     canvas.drawCentredString(w/2, h*0.09,
-                             "Fuer nicht-technische Anwender - Version 2026")
+                             f"Fuer nicht-technische Anwender — Version {_VERSION}")
     canvas.restoreState()
 
 
