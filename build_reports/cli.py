@@ -3,7 +3,7 @@
 # Repository:     https://github.com/Jaegerfeld/situation-report
 # KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
 # Erstellt:       15.04.2026
-# Geändert:       22.04.2026
+# Geändert:       25.04.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
@@ -67,6 +67,7 @@ def run_reports(
     zero_day_threshold_minutes: int = 5,
     terminology: str = SAFE,
     ct_method: str = CT_METHOD_A,
+    target_ct: int = 90,
     pi_config: Path | None = None,
     output_pdf: Path | None = None,
     open_browser: bool = False,
@@ -94,6 +95,8 @@ def run_reports(
         terminology:          Display mode — SAFE or GLOBAL.
         ct_method:            Cycle time calculation method: CT_METHOD_A (date diff)
                               or CT_METHOD_B (sum of stage minutes).
+        target_ct:            Cycle time threshold in days for the "Target CT" percentage
+                              shown in the Flow Time header (default 90).
         pi_config:            Path to a JSON PI interval config file (optional).
                               If None, quarterly intervals are used for Flow Velocity.
         output_pdf:           If set, export all figures to this PDF file.
@@ -133,6 +136,7 @@ def run_reports(
     for plugin in plugins:
         if isinstance(plugin, FlowTimeMetric):
             plugin.ct_method = ct_method
+            plugin.target_ct = target_ct
         if isinstance(plugin, FlowVelocityMetric):
             plugin.pi_config_path = str(pi_config) if pi_config else ""
 
@@ -232,6 +236,10 @@ def main() -> None:
                         default=CT_METHOD_A, dest="ct_method",
                         help="Cycle time method: A=date diff, B=sum of stage minutes "
                              f"(default: {CT_METHOD_A})")
+    parser.add_argument("--target-ct", type=int, default=90,
+                        metavar="DAYS", dest="target_ct",
+                        help="Cycle time target in days for the Target CT%% shown in "
+                             "the Flow Time header (default: 90)")
     parser.add_argument("--pi-config", type=Path, default=None,
                         metavar="FILE", dest="pi_config",
                         help="JSON file defining custom PI intervals for Flow Velocity "
@@ -258,6 +266,7 @@ def main() -> None:
         zero_day_threshold_minutes=args.zero_day_threshold_minutes,
         terminology=args.terminology,
         ct_method=args.ct_method,
+        target_ct=args.target_ct,
         pi_config=args.pi_config,
         output_pdf=args.pdf,
         open_browser=args.browser,

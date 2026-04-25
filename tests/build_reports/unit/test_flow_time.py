@@ -3,7 +3,7 @@
 # Repository:     https://github.com/Jaegerfeld/situation-report
 # KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
 # Erstellt:       15.04.2026
-# Geändert:       16.04.2026
+# Geändert:       25.04.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
@@ -315,6 +315,32 @@ class TestRender:
         result = metric.compute(simple_data, SAFE)
         assert "pct85" in result.stats
         assert "pct95" in result.stats
+
+    def test_target_ct_in_stats(self, metric, simple_data):
+        """stats contains 'target_ct' key reflecting the configured threshold."""
+        result = metric.compute(simple_data, SAFE)
+        assert "target_ct" in result.stats
+        assert result.stats["target_ct"] == 90
+
+    def test_target_ct_pct_default(self, metric, simple_data):
+        """Default target_ct=90 captures all issues with cycle time ≤ 90 days."""
+        result = metric.compute(simple_data, SAFE)
+        # simple_data: 10, 20, 30 days — all ≤ 90 → 100 %
+        assert result.stats["target_ct_pct"] == 100.0
+
+    def test_target_ct_pct_custom(self, metric, simple_data):
+        """Custom target_ct captures only issues within that threshold."""
+        metric.target_ct = 20
+        result = metric.compute(simple_data, SAFE)
+        # simple_data: 10, 20, 30 days — 10 and 20 ≤ 20 → 2/3 = 66.7 %
+        assert result.stats["target_ct_pct"] == pytest.approx(66.7, abs=0.1)
+
+    def test_target_ct_in_header(self, metric, simple_data):
+        """The Flow Time figure title shows 'Target CT' with the threshold and percentage."""
+        result = metric.compute(simple_data, SAFE)
+        figures = metric.render(result, SAFE)
+        assert "Target CT" in figures[0].layout.title.text
+        assert "90d" in figures[0].layout.title.text
 
     def test_boxplot_outlier_marker_color_is_red(self, metric, simple_data):
         """Outlier markers in the boxplot are colored red."""

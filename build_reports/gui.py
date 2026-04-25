@@ -3,7 +3,7 @@
 # Repository:     https://github.com/Jaegerfeld/situation-report
 # KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
 # Erstellt:       16.04.2026
-# Geändert:       22.04.2026
+# Geändert:       25.04.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
@@ -127,6 +127,8 @@ _T: dict[str, dict[str, str]] = {
         "tip_pick":          "Aus der geladenen IssueTimes-Datei ausw\u00e4hlen.",
         "tip_ct_a":          "Berechnet CT als Differenz der Kalendertage zwischen First Date und Closed Date.",
         "tip_ct_b":          "Berechnet CT als Summe der Stage-Minuten von First Date bis Closed Date (letzte Stage ausgeschlossen).",
+        "lbl_target_ct":     "Target CT",
+        "tip_target_ct":     "Cycle-Time-Ziel in Tagen. Issues, die innerhalb dieser Grenze abgeschlossen wurden, werden im Flow-Time-Header als 'Target CT X%' angezeigt.",
         "tip_show":          "Metriken berechnen und Ergebnisse im Standard-Browser anzeigen.",
         "tip_pdf":           "Metriken berechnen und alle Diagramme als PDF-Datei exportieren.",
         "tip_metric_flow_time":         "Wie lange braucht ein Issue von Start bis Abschluss?",
@@ -228,6 +230,8 @@ _T: dict[str, dict[str, str]] = {
         "tip_pick":          "Select from the loaded IssueTimes file.",
         "tip_ct_a":          "Computes CT as the calendar-day difference between First Date and Closed Date.",
         "tip_ct_b":          "Computes CT as the sum of stage minutes from First Date to Closed Date (last stage excluded).",
+        "lbl_target_ct":     "Target CT",
+        "tip_target_ct":     "Cycle time target in days. Issues closed within this threshold are shown as 'Target CT X%' in the Flow Time header.",
         "tip_show":          "Compute metrics and display results in the default browser.",
         "tip_pdf":           "Compute metrics and export all charts as a PDF file.",
         "tip_metric_flow_time":         "How long does an issue take from start to close?",
@@ -514,6 +518,7 @@ def _build_template_dict(
     excluded_resolutions: str = "",
     exclude_zero_day: bool = False,
     zero_day_threshold_minutes: int = 5,
+    target_ct: int = 90,
 ) -> dict:
     """
     Assemble the template dictionary that is written to JSON.
@@ -537,6 +542,7 @@ def _build_template_dict(
         excluded_resolutions:       Comma-separated resolutions to exclude (may be empty).
         exclude_zero_day:           True if zero-day issues should be excluded.
         zero_day_threshold_minutes: Cycle time threshold in minutes for zero-day detection.
+        target_ct:                  Cycle time target in days for the Target CT% display.
 
     Returns:
         JSON-serialisable dict with a ``version`` key.
@@ -554,6 +560,7 @@ def _build_template_dict(
         "excluded_resolutions": excluded_resolutions,
         "exclude_zero_day": exclude_zero_day,
         "zero_day_threshold_minutes": zero_day_threshold_minutes,
+        "target_ct": target_ct,
         "terminology": terminology,
         "ct_method": ct_method,
         "metrics": metrics,
@@ -598,6 +605,7 @@ def _parse_template_dict(data: dict) -> dict:
         "excluded_resolutions": str(data.get("excluded_resolutions", "")),
         "exclude_zero_day": bool(data.get("exclude_zero_day", False)),
         "zero_day_threshold_minutes": int(data.get("zero_day_threshold_minutes", 5)),
+        "target_ct": int(data.get("target_ct", 90)),
         "terminology": str(data.get("terminology", SAFE)),
         "ct_method": str(data.get("ct_method", CT_METHOD_A)),
         "metrics": dict(data.get("metrics", {})),
@@ -642,6 +650,7 @@ class BuildReportsApp(tk.Tk):
         self._excl_resolutions_var = tk.StringVar()
         self._excl_zero_day_var = tk.BooleanVar(value=False)
         self._zero_day_minutes_var = tk.StringVar(value="5")
+        self._target_ct_var = tk.StringVar(value="90")
         self._available_projects: list[str] = []
         self._available_issuetypes: list[str] = []
         self._available_statuses: list[str] = []
@@ -951,6 +960,16 @@ class BuildReportsApp(tk.Tk):
             self._tips.append((_ToolTip(rb, self._tr(tip_key)), tip_key))
         row += 1
 
+        lbl = tk.Label(self, text=self._tr("lbl_target_ct"), anchor="w")
+        lbl.grid(row=row, column=0, sticky="w", **pad)
+        self._i18n.append((lbl, "lbl_target_ct"))
+        tct_spin = ttk.Spinbox(self, from_=1, to=9999, width=6,
+                               textvariable=self._target_ct_var)
+        tct_spin.grid(row=row, column=1, sticky="w", **pad)
+        self._tips.append((_ToolTip(tct_spin, self._tr("tip_target_ct")), "tip_target_ct"))
+        tk.Label(self, text="d", anchor="w").grid(row=row, column=2, sticky="w", **pad)
+        row += 1
+
         # --- Action buttons ---
         ttk.Separator(self, orient="horizontal").grid(
             row=row, column=0, columnspan=3, sticky="ew", pady=6
@@ -1063,6 +1082,7 @@ class BuildReportsApp(tk.Tk):
                 excluded_resolutions=self._excl_resolutions_var.get(),
                 exclude_zero_day=self._excl_zero_day_var.get(),
                 zero_day_threshold_minutes=int(self._zero_day_minutes_var.get() or 5),
+                target_ct=int(self._target_ct_var.get() or 90),
                 terminology=self._terminology_var.get(),
                 ct_method=self._ct_method_var.get(),
                 metrics={mid: var.get() for mid, var in self._metric_vars.items()},
@@ -1109,6 +1129,7 @@ class BuildReportsApp(tk.Tk):
         self._excl_resolutions_var.set(state["excluded_resolutions"])
         self._excl_zero_day_var.set(state["exclude_zero_day"])
         self._zero_day_minutes_var.set(str(state["zero_day_threshold_minutes"]))
+        self._target_ct_var.set(str(state["target_ct"]))
         self._terminology_var.set(state["terminology"])
         self._ct_method_var.set(state["ct_method"])
 
@@ -1435,6 +1456,10 @@ class BuildReportsApp(tk.Tk):
             zero_day_minutes = 5
         terminology = self._terminology_var.get()
         ct_method = self._ct_method_var.get()
+        try:
+            target_ct = int(self._target_ct_var.get() or 90)
+        except ValueError:
+            target_ct = 90
 
         selected = [mid for mid, var in self._metric_vars.items() if var.get()]
         metrics = selected if selected else None
@@ -1453,6 +1478,7 @@ class BuildReportsApp(tk.Tk):
             zero_day_minutes=zero_day_minutes,
             terminology=terminology,
             ct_method=ct_method,
+            target_ct=target_ct,
             metrics=metrics,
         )
 
@@ -1510,6 +1536,7 @@ class BuildReportsApp(tk.Tk):
                 for plugin in plugins:
                     if isinstance(plugin, FlowTimeMetric):
                         plugin.ct_method = inputs.get("ct_method", CT_METHOD_A)
+                        plugin.target_ct = inputs.get("target_ct", 90)
                     if isinstance(plugin, FlowVelocityMetric):
                         pi_cfg = inputs.get("pi_config")
                         plugin.pi_config_path = str(pi_cfg) if pi_cfg else ""
@@ -1597,6 +1624,7 @@ class BuildReportsApp(tk.Tk):
                     zero_day_threshold_minutes=inputs.get("zero_day_minutes", 5),
                     terminology=inputs["terminology"],
                     ct_method=inputs["ct_method"],
+                    target_ct=inputs.get("target_ct", 90),
                     pi_config=inputs.get("pi_config"),
                     output_pdf=Path(out_path),
                     log=self._log,
