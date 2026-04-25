@@ -3,7 +3,7 @@
 # Repository:     https://github.com/Jaegerfeld/situation-report
 # KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
 # Erstellt:       15.04.2026
-# Geändert:       17.04.2026
+# Geändert:       25.04.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
@@ -68,26 +68,83 @@ class TestCompute:
         result = metric.compute(simple_cfd_data, SAFE)
         assert result.stats["days"] == 3
 
-    def test_in_total_is_total_stacked_at_last_day(self, metric, simple_cfd_data):
-        """in_total equals the sum of cumulated stage counts on the last day.
+    def test_in_total_uses_first_stage_when_no_workflow(self, metric, simple_cfd_data):
+        """Without workflow markers, in_total falls back to the first stage (Funnel).
 
-        Daily entries: Funnel [10,5,5] → cumulated [10,15,20]; Done [0,2,3] → [0,2,5].
-        Last day cumulated: Funnel=20, Done=5 → total=25.
+        Funnel: daily [10,5,5] → cumulated [10,15,20] → last day = 20.
         """
         result = metric.compute(simple_cfd_data, SAFE)
-        assert result.stats["in_total"] == 25
+        assert result.stats["in_total"] == 20
 
-    def test_out_total_is_last_stage_value_at_last_day(self, metric, simple_cfd_data):
-        """out_total equals the cumulated count of the last stage (Done) on the last day."""
-        # Done: [0,2,3] → cumulated [0,2,5] → last day = 5
+    def test_out_total_uses_last_stage_when_no_workflow(self, metric, simple_cfd_data):
+        """Without workflow markers, out_total falls back to the last stage (Done).
+
+        Done: daily [0,2,3] → cumulated [0,2,5] → last day = 5.
+        """
         result = metric.compute(simple_cfd_data, SAFE)
         assert result.stats["out_total"] == 5
 
     def test_ratio_calculation(self, metric, simple_cfd_data):
         """In/Out ratio is computed as in_total / out_total rounded to 2 decimals."""
-        # 25 / 5 = 5.0
+        # fallback: Funnel=20, Done=5 → 20/5 = 4.0
         result = metric.compute(simple_cfd_data, SAFE)
-        assert result.stats["ratio"] == pytest.approx(5.0)
+        assert result.stats["ratio"] == pytest.approx(4.0)
+
+    def test_in_total_uses_first_stage_from_workflow(self, metric):
+        """When first_stage is set, in_total uses that stage's cumulated count."""
+        data = ReportData(
+            issues=[],
+            cfd=[
+                CfdRecord(day=date(2025, 1, 1), stage_counts={"Funnel": 10, "Active": 3, "Done": 0}),
+                CfdRecord(day=date(2025, 1, 2), stage_counts={"Funnel": 5, "Active": 2, "Done": 1}),
+            ],
+            stages=["Funnel", "Active", "Done"],
+            source_prefix="TEST",
+            first_stage="Active",
+            closed_stage="Done",
+        )
+        result = metric.compute(data, SAFE)
+        # Active: daily [3,2] → cumulated [3,5] → last = 5
+        assert result.stats["in_total"] == 5
+
+    def test_out_total_uses_closed_stage_from_workflow(self, metric):
+        """When closed_stage is set, out_total uses that stage's cumulated count."""
+        data = ReportData(
+            issues=[],
+            cfd=[
+                CfdRecord(day=date(2025, 1, 1), stage_counts={"Funnel": 10, "Done": 0, "Archive": 0}),
+                CfdRecord(day=date(2025, 1, 2), stage_counts={"Funnel": 5, "Done": 4, "Archive": 1}),
+            ],
+            stages=["Funnel", "Done", "Archive"],
+            source_prefix="TEST",
+            first_stage="Funnel",
+            closed_stage="Done",
+        )
+        result = metric.compute(data, SAFE)
+        # Done: daily [0,4] → cumulated [0,4] → last = 4 (not Archive's 1)
+        assert result.stats["out_total"] == 4
+
+    def test_first_stage_stored_in_chart_data(self, metric):
+        """chart_data.first_stage matches the effective first_stage."""
+        data = ReportData(
+            issues=[],
+            cfd=[
+                CfdRecord(day=date(2025, 1, 1), stage_counts={"Funnel": 5, "Active": 2, "Done": 0}),
+            ],
+            stages=["Funnel", "Active", "Done"],
+            source_prefix="TEST",
+            first_stage="Active",
+            closed_stage="Done",
+        )
+        result = metric.compute(data, SAFE)
+        assert result.chart_data.first_stage == "Active"
+        assert result.chart_data.closed_stage == "Done"
+
+    def test_unknown_first_stage_falls_back(self, metric, simple_cfd_data):
+        """If first_stage is not in the CFD data, it falls back to stages[0]."""
+        simple_cfd_data.first_stage = "NonExistentStage"
+        result = metric.compute(simple_cfd_data, SAFE)
+        assert result.chart_data.first_stage == "Funnel"
 
     def test_series_cumulated(self, metric, simple_cfd_data):
         """Stage series are accumulated into running totals before charting."""
@@ -137,10 +194,13 @@ class TestRender:
         assert len(figs) == 1
 
     def test_title_contains_ratio(self, metric, simple_cfd_data):
-        """The figure title contains the computed In/Out ratio value (5.0)."""
+        """The figure title contains the computed In/Out ratio value.
+
+        Fallback (no workflow): in_total=Funnel[20], out_total=Done[5] → ratio=4.0.
+        """
         result = metric.compute(simple_cfd_data, SAFE)
         figs = metric.render(result, SAFE)
-        assert "5.0" in figs[0].layout.title.text
+        assert "4.0" in figs[0].layout.title.text
 
     def test_returns_empty_on_no_data(self, metric):
         """render() returns an empty list when compute() produced no chart data."""
@@ -153,6 +213,37 @@ class TestRender:
         result = metric.compute(simple_cfd_data, SAFE)
         figs = metric.render(result, SAFE)
         assert figs[0].layout.xaxis.type == "date"
+
+    def test_trend_lines_anchored_to_stacked_boundary(self, metric):
+        """Inflow/outflow trend lines sit at the visual stacked top-edge of their stage.
+
+        Three stages [A, B, C] with first_stage='B' and closed_stage='C'.
+        After cumulation: A=[10,15], B=[3,5], C=[1,3].
+        Stacked top-edge of B = B+C = [4, 8]; of C = C only = [1, 3].
+        """
+        data = ReportData(
+            issues=[],
+            cfd=[
+                CfdRecord(day=date(2025, 1, 1), stage_counts={"A": 10, "B": 3, "C": 1}),
+                CfdRecord(day=date(2025, 1, 2), stage_counts={"A": 5,  "B": 2, "C": 2}),
+            ],
+            stages=["A", "B", "C"],
+            source_prefix="TEST",
+            first_stage="B",
+            closed_stage="C",
+        )
+        result = metric.compute(data, SAFE)
+        figs = metric.render(result, SAFE)
+        fig = figs[0]
+
+        # Trend traces have no stackgroup; stacked area traces do
+        trend = [t for t in fig.data if not t.stackgroup]
+        assert len(trend) == 2
+
+        # Inflow (B): B+C at day0=3+1=4, day1=5+3=8
+        assert list(trend[0].y) == [4, 8]
+        # Outflow (C): C at day0=1, day1=3
+        assert list(trend[1].y) == [1, 3]
 
 
 class TestCfdTickLabels:

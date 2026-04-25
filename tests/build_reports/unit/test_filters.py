@@ -331,3 +331,28 @@ class TestZeroDayFilter:
         cfg = FilterConfig(exclude_zero_day=True, zero_day_threshold_minutes=15)
         result = apply_filters(data, cfg)
         assert len(result.issues) == 0  # 10 min < 15 min threshold
+
+
+class TestWorkflowMarkerPassthrough:
+    """apply_filters() must forward first_stage and closed_stage to the filtered ReportData."""
+
+    def test_first_stage_preserved(self):
+        """first_stage survives apply_filters unchanged."""
+        data = ReportData(issues=[], cfd=[], stages=["A", "B"], source_prefix="T",
+                         first_stage="B", closed_stage="A")
+        result = apply_filters(data, FilterConfig())
+        assert result.first_stage == "B"
+
+    def test_closed_stage_preserved(self):
+        """closed_stage survives apply_filters unchanged."""
+        data = ReportData(issues=[], cfd=[], stages=["A", "B"], source_prefix="T",
+                         first_stage="B", closed_stage="A")
+        result = apply_filters(data, FilterConfig())
+        assert result.closed_stage == "A"
+
+    def test_none_markers_preserved(self):
+        """None markers (no workflow file) remain None after filtering."""
+        data = ReportData(issues=[], cfd=[], stages=["A", "B"], source_prefix="T")
+        result = apply_filters(data, FilterConfig())
+        assert result.first_stage is None
+        assert result.closed_stage is None

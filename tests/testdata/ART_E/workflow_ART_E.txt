@@ -1,0 +1,11 @@
+Funnel:Inbound Channel:Open:To Do
+In Analysis:Analysis
+Backlog:Program Backlog:Selected for Development:Ready for Dev:Ready for dev
+In Implementation:In Development:In Dev:In Progress:E2E Test:Implementation
+On Hold:Blocker:BLOCKED:Pending   
+Completed:Validating On Staging: Deploying To Production
+Monitoring
+Done:Closed:Canceled:Resolved:Rejected
+<First>In Analysis
+<Closed>Completed
+<InProgress>In Implementation
