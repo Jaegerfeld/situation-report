@@ -52,6 +52,11 @@ from .terminology import GLOBAL, SAFE, term
 LANG_DE = "de"
 LANG_EN = "en"
 
+_MANUAL_URLS: dict[str, str] = {
+    LANG_DE: "https://jaegerfeld.github.io/situation-report/build_reports_Benutzerhandbuch.pdf",
+    LANG_EN: "https://jaegerfeld.github.io/situation-report/build_reports_UserManual.pdf",
+}
+
 # ---------------------------------------------------------------------------
 # Translations
 # ---------------------------------------------------------------------------
@@ -769,10 +774,8 @@ class BuildReportsApp(tk.Tk):
         return term_menu
 
     def _open_manual(self) -> None:
-        """Open the build_reports user manual PDF on GitHub Pages in the default browser."""
-        webbrowser.open(
-            "https://jaegerfeld.github.io/situation-report/build_reports_Benutzerhandbuch.pdf"
-        )
+        """Open the language-appropriate user manual PDF on GitHub Pages."""
+        webbrowser.open(_MANUAL_URLS.get(self._lang_var.get(), _MANUAL_URLS[LANG_DE]))
 
     # -------------------------------------------------------------------------
     # UI construction
