@@ -1458,6 +1458,10 @@
 <td>CFD-Ausgabedatei (für CFD-Metrik erforderlich)</td>
 </tr>
 <tr>
+<td><code>--workflow DATEI</code></td>
+<td>Workflow-Textdatei — definiert <code>&lt;First&gt;</code>- und <code>&lt;Closed&gt;</code>-Grenzen für die CFD-Trendlinien</td>
+</tr>
+<tr>
 <td><code>--metrics ID …</code></td>
 <td>Metriken auswählen (Standard: alle)</td>
 </tr>
@@ -1576,6 +1580,7 @@
 <ul>
 <li><strong>IssueTimes</strong> — Pflichtfeld. Nach der Auswahl werden Projekte und Issuetypen automatisch aus der Datei geladen (Hintergrund-Thread). Falls eine CFD-Datei bereits gesetzt ist, wird gleichzeitig ein Stage-Konsistenz-Check durchgeführt.</li>
 <li><strong>CFD (optional)</strong> — Wird nur für die CFD-Metrik benötigt. Beim Setzen wird der Stage-Konsistenz-Check ausgeführt.</li>
+<li><strong>Workflow (optional)</strong> — Textdatei aus <code>transform_data</code>, die die Workflow-Stages definiert. Enthält <code>&lt;First&gt;</code>- und <code>&lt;Closed&gt;</code>-Marker, die festlegen, welche Stage-Grenzen die CFD-Trendlinien markieren sollen.</li>
 </ul>
 <h3 id="filter">Filter<a class="headerlink" href="#filter" title="Permanent link">&para;</a></h3>
 <table>
@@ -1754,8 +1759,8 @@
 <p>Liest die täglichen Eintrittszählungen aus <code>CFD.xlsx</code> und akkumuliert diese kumulativ. Zeigt, wie viele Issues bis zu einem bestimmten Tag insgesamt in jede Stage eingetreten sind.</p>
 <p><strong>Diagramm:</strong> Gestapeltes Flächendiagramm (erste Stage oben) mit zwei Trendlinien (Zufluss/Abfluss) und In/Out-Ratio im Titel. Das Diagramm beginnt immer bei 0 — unabhängig vom gewählten Startdatum.</p>
 <ul>
-<li><strong>Obere Trendlinie</strong> — verläuft vom kumulierten Gesamtzufluss am ersten bis zum letzten Tag.</li>
-<li><strong>Untere Trendlinie</strong> — verläuft vom kumulierten Wert der letzten Stage (z. B. „Done"/„Closed") am ersten bis zum letzten Tag.</li>
+<li><strong>Obere Trendlinie (Inflow)</strong> — verläuft an der visuellen Oberkante der <code>&lt;First&gt;</code>-Stage (= Summe dieser Stage + aller dahinterliegenden Stages im Stapel). Ohne Workflow-Datei fällt die Linie auf die erste Stage zurück.</li>
+<li><strong>Untere Trendlinie (Outflow)</strong> — verläuft an der visuellen Oberkante der <code>&lt;Closed&gt;</code>-Stage. Ohne Workflow-Datei fällt die Linie auf die letzte Stage zurück.</li>
 <li><strong>X-Achse</strong> — Monatsgrenzen werden groß beschriftet (z. B. „Jan 2025"); ISO-Kalenderwochen-Montage werden klein und in Grau dargestellt (z. B. „W03"), damit sich die Labels nicht überlappen.</li>
 </ul>
 <table>
@@ -1970,7 +1975,7 @@
 <tr>
 <td>Acceptance</td>
 <td><code>tests/build_reports/acceptance/</code></td>
-<td>Tests gegen den realen ART_A-Datensatz; prüfen fachliche Korrektheit der Metriken, des Exports und der GUI-Eingabeverarbeitung</td>
+<td>Tests gegen die realen Datensätze (ART_A, ART_E); prüfen fachliche Korrektheit der Metriken, des Exports, der GUI-Eingabeverarbeitung und der CFD-Trendlinien-Positionierung</td>
 </tr>
 </tbody>
 </table>

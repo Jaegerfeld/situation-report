@@ -1458,6 +1458,10 @@
 <td>CFD output file (required for the CFD metric)</td>
 </tr>
 <tr>
+<td><code>--workflow FILE</code></td>
+<td>Workflow text file — defines <code>&lt;First&gt;</code> and <code>&lt;Closed&gt;</code> boundaries for the CFD trend lines</td>
+</tr>
+<tr>
 <td><code>--metrics ID …</code></td>
 <td>Select metrics to compute (default: all)</td>
 </tr>
@@ -1576,6 +1580,7 @@
 <ul>
 <li><strong>IssueTimes</strong> — Required. After selection, projects and issue types are automatically loaded from the file (background thread). If a CFD file is already set, a stage consistency check is run at the same time.</li>
 <li><strong>CFD (optional)</strong> — Only needed for the CFD metric. Setting it triggers the stage consistency check.</li>
+<li><strong>Workflow (optional)</strong> — Workflow text file from <code>transform_data</code> that defines the workflow stages. Contains <code>&lt;First&gt;</code> and <code>&lt;Closed&gt;</code> markers specifying which stage boundaries the CFD trend lines should mark.</li>
 </ul>
 <h3 id="filters">Filters<a class="headerlink" href="#filters" title="Permanent link">&para;</a></h3>
 <table>
@@ -1754,8 +1759,8 @@
 <p>Reads the daily entry counts from <code>CFD.xlsx</code> and accumulates them cumulatively. Shows how many issues have entered each stage in total up to a given day.</p>
 <p><strong>Chart:</strong> Stacked area chart (first stage on top) with two trend lines (inflow/outflow) and the In/Out ratio in the title. The chart always starts at 0 — regardless of the selected start date.</p>
 <ul>
-<li><strong>Upper trend line</strong> — runs from the cumulative total inflow on the first to the last day.</li>
-<li><strong>Lower trend line</strong> — runs from the cumulative value of the last stage (e.g. "Done" / "Closed") on the first to the last day.</li>
+<li><strong>Upper trend line (Inflow)</strong> — runs along the visual top edge of the <code>&lt;First&gt;</code> stage (= that stage's cumulative series + all stages stacked below it). Falls back to the first stage when no workflow file is provided.</li>
+<li><strong>Lower trend line (Outflow)</strong> — runs along the visual top edge of the <code>&lt;Closed&gt;</code> stage. Falls back to the last stage when no workflow file is provided.</li>
 <li><strong>X-axis</strong> — month boundaries are labelled prominently (e.g. "Jan 2025"); ISO calendar-week Mondays are shown small and in grey (e.g. "W03") to prevent label overlap.</li>
 </ul>
 <table>
@@ -1970,7 +1975,7 @@
 <tr>
 <td>Acceptance</td>
 <td><code>tests/build_reports/acceptance/</code></td>
-<td>Tests against the real ART_A dataset; verify business correctness of metrics, export, and GUI input handling</td>
+<td>Tests against the real datasets (ART_A, ART_E); verify business correctness of metrics, export, GUI input handling, and CFD trend line positioning</td>
 </tr>
 </tbody>
 </table>
