@@ -27,6 +27,7 @@ from .export import export_pdf, write_report_excel, write_zero_day_excel
 from .filters import FilterConfig, apply_filters
 from .loader import load_report_data
 from .metrics import all_metrics, get_metric
+from .metrics.flow_load import FlowLoadMetric
 from .metrics.flow_time import CT_METHOD_A, CT_METHOD_B, FlowTimeMetric
 from .metrics.flow_velocity import FlowVelocityMetric
 from .terminology import GLOBAL, SAFE
@@ -136,6 +137,8 @@ def run_reports(
     for plugin in plugins:
         if isinstance(plugin, FlowTimeMetric):
             plugin.ct_method = ct_method
+            plugin.target_ct = target_ct
+        if isinstance(plugin, FlowLoadMetric):
             plugin.target_ct = target_ct
         if isinstance(plugin, FlowVelocityMetric):
             plugin.pi_config_path = str(pi_config) if pi_config else ""

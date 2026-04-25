@@ -35,6 +35,7 @@ from tkcalendar import Calendar
 from .cli import run_reports
 from .export import write_zero_day_excel
 from .metrics import all_metrics
+from .metrics.flow_load import FlowLoadMetric
 from .metrics.flow_time import CT_METHOD_A, CT_METHOD_B, FlowTimeMetric
 from .metrics.flow_velocity import FlowVelocityMetric
 from .terminology import GLOBAL, SAFE, term
@@ -1536,6 +1537,8 @@ class BuildReportsApp(tk.Tk):
                 for plugin in plugins:
                     if isinstance(plugin, FlowTimeMetric):
                         plugin.ct_method = inputs.get("ct_method", CT_METHOD_A)
+                        plugin.target_ct = inputs.get("target_ct", 90)
+                    if isinstance(plugin, FlowLoadMetric):
                         plugin.target_ct = inputs.get("target_ct", 90)
                     if isinstance(plugin, FlowVelocityMetric):
                         pi_cfg = inputs.get("pi_config")

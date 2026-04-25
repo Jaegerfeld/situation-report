@@ -3,16 +3,16 @@
 # Repository:     https://github.com/Jaegerfeld/situation-report
 # KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
 # Erstellt:       15.04.2026
-# Geändert:       25.04.2026
+# Geändert:       26.04.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
 #   Implementiert die Flow Load / WIP / Aging WIP Metrik. Zeigt für alle
 #   offenen Issues (kein Closed Date) die Verweildauer in Tagen je aktueller
-#   Stage als gruppierten Boxplot. Referenzlinien zeigen Mean und Median der
-#   abgeschlossenen Issues (aus der Flow Time Metrik). Die aktuelle Stage eines
-#   Issues wird als letzte Stage in Workflow-Reihenfolge mit stage_minutes > 0
-#   bestimmt.
+#   Stage als gruppierten Boxplot. Referenzlinien zeigen Median, 85. Perzentil
+#   der Cycle Time sowie das konfigurierte Target CT der abgeschlossenen Issues.
+#   Die aktuelle Stage eines Issues wird als letzte Stage in Workflow-Reihenfolge
+#   mit stage_minutes > 0 bestimmt.
 # =============================================================================
 
 from __future__ import annotations
@@ -76,10 +76,9 @@ class _LoadData:
     mean_age: float
     median_age: float
     # Reference lines from closed issues (cycle time)
-    ct_mean: float | None = None
     ct_median: float | None = None
     ct_pct85: float | None = None
-    ct_pct95: float | None = None
+    target_ct_days: int = 90
     done_count: int = 0
 
 
@@ -92,6 +91,7 @@ class FlowLoadMetric(MetricPlugin):
     """
 
     metric_id = FLOW_LOAD
+    target_ct: int = 90
 
     def compute(self, data: ReportData, terminology: str) -> MetricResult:
         """
@@ -100,8 +100,8 @@ class FlowLoadMetric(MetricPlugin):
         Open issues are those without a Closed Date. Age is measured from
         First Date (or Created if First Date is absent) to today.
 
-        Cycle time stats (mean, median, 85th/95th percentile) are computed
-        from closed issues and used as reference lines in the chart.
+        Cycle time stats (median, 85th percentile) are computed from closed
+        issues and used as reference lines in the chart alongside target_ct.
 
         Args:
             data:        Filtered ReportData.
@@ -136,7 +136,7 @@ class FlowLoadMetric(MetricPlugin):
         median_age = statistics.median(all_ages) if all_ages else 0.0
 
         # Cycle time reference from closed issues
-        ct_mean = ct_median = ct_p85 = ct_p95 = None
+        ct_median = ct_p85 = None
         done_count = 0
         if closed_issues:
             ct_days = sorted([
@@ -146,10 +146,8 @@ class FlowLoadMetric(MetricPlugin):
             ])
             if ct_days:
                 n = len(ct_days)
-                ct_mean = round(statistics.mean(ct_days), 1)
                 ct_median = round(statistics.median(ct_days), 1)
                 ct_p85 = round(ct_days[int(n * 0.85)], 1)
-                ct_p95 = round(ct_days[int(n * 0.95)], 1)
                 done_count = n
 
         chart_data = _LoadData(
@@ -158,10 +156,9 @@ class FlowLoadMetric(MetricPlugin):
             open_count=len(open_issues),
             mean_age=round(mean_age, 1),
             median_age=round(median_age, 1),
-            ct_mean=ct_mean,
             ct_median=ct_median,
             ct_pct85=ct_p85,
-            ct_pct95=ct_p95,
+            target_ct_days=self.target_ct,
             done_count=done_count,
         )
 
@@ -170,8 +167,9 @@ class FlowLoadMetric(MetricPlugin):
             mean_age=round(mean_age, 1),
             median_age=round(median_age, 1),
             done_count=done_count,
-            ct_mean=ct_mean,
             ct_median=ct_median,
+            ct_pct85=ct_p85,
+            target_ct_days=self.target_ct,
         )
 
         return MetricResult(metric_id=self.metric_id, stats=stats,
@@ -181,8 +179,8 @@ class FlowLoadMetric(MetricPlugin):
         """
         Render a grouped boxplot of open issue ages per workflow stage.
 
-        Reference lines show cycle time mean, median, 85th and 95th percentile
-        from closed issues. Individual issue ages are shown as overlay dots.
+        Reference lines show CT Median (blue), CT P85 (red), and Target CT
+        (green) from closed issues. Individual issue ages are shown as dots.
 
         Args:
             result:      MetricResult from compute().
@@ -218,41 +216,44 @@ class FlowLoadMetric(MetricPlugin):
             ))
 
         # Legend entries for reference lines (dummy traces)
-        ref_lines = [
-            (ld.ct_mean,   "blue",   "dash",     "CT Mean"),
-            (ld.ct_median, "red",    "dot",      "CT Median"),
-            (ld.ct_pct85,  "green",  "dashdot",  "CT P85"),
-            (ld.ct_pct95,  "purple", "longdash", "CT P95"),
-        ]
-        for val, color, dash, lbl in ref_lines:
-            if val is not None:
-                fig.add_trace(go.Scatter(
-                    x=[None], y=[None],
-                    mode="lines",
-                    name=f"{lbl}: {val}d",
-                    line=dict(color=color, dash=dash, width=1.5),
-                    showlegend=True,
-                ))
+        # Target CT is always shown; CT Median and P85 only when closed issues exist
+        if ld.ct_median is not None:
+            fig.add_trace(go.Scatter(
+                x=[None], y=[None], mode="lines",
+                name=f"CT Median: {ld.ct_median}d",
+                line=dict(color="blue", dash="dot", width=1.5),
+                showlegend=True,
+            ))
+        if ld.ct_pct85 is not None:
+            fig.add_trace(go.Scatter(
+                x=[None], y=[None], mode="lines",
+                name=f"CT P85: {ld.ct_pct85}d",
+                line=dict(color="red", dash="dot", width=1.5),
+                showlegend=True,
+            ))
+        fig.add_trace(go.Scatter(
+            x=[None], y=[None], mode="lines",
+            name=f"Target CT: {ld.target_ct_days}d",
+            line=dict(color="green", dash="dot", width=1.5),
+            showlegend=True,
+        ))
 
         # Reference lines — repelled so annotations don't overlap when values are close
         all_ages = [a for ages in ld.by_stage.values() for a in ages]
         y_max = max(all_ages) if all_ages else 1.0
-        add_repelled_hlines(
-            fig,
-            lines=[
-                (ld.ct_mean,   "blue",   "dash",     f"{ld.ct_mean}d"),
-                (ld.ct_median, "red",    "dot",      f"{ld.ct_median}d"),
-                (ld.ct_pct85,  "green",  "dashdot",  f"{ld.ct_pct85}d"),
-                (ld.ct_pct95,  "purple", "longdash", f"{ld.ct_pct95}d"),
-            ],
-            y_max=y_max,
-            fig_height=550,
-        )
+        hlines = []
+        if ld.ct_median is not None:
+            hlines.append((ld.ct_median, "blue", "dot", f"{ld.ct_median}d"))
+        if ld.ct_pct85 is not None:
+            hlines.append((ld.ct_pct85, "red", "dot", f"{ld.ct_pct85}d"))
+        hlines.append((ld.target_ct_days, "green", "dot", f"{ld.target_ct_days}d"))
+        add_repelled_hlines(fig, lines=hlines, y_max=y_max, fig_height=550)
 
         ct_footer = ""
-        if ld.ct_mean is not None:
+        if ld.ct_median is not None:
             ct_footer = (
-                f"Current CycleTime | Mean: {ld.ct_mean} | Median: {ld.ct_median} | "
+                f"Cycle Time Reference | Median: {ld.ct_median}d | "
+                f"P85: {ld.ct_pct85}d | Target CT: {ld.target_ct_days}d | "
                 f"# Done items: {ld.done_count}"
             )
 
