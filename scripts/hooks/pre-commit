@@ -1,0 +1,6 @@
+#!/bin/sh
+# Auto-update README.md version badge when version.py is staged.
+if git diff --cached --name-only | grep -q "^version\.py$"; then
+    python scripts/update_readme_version.py
+    git add README.md
+fi
