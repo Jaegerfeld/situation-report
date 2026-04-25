@@ -3,7 +3,7 @@
 # Repository:     https://github.com/Jaegerfeld/situation-report
 # KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
 # Erstellt:       15.04.2026
-# Geändert:       23.04.2026
+# Geändert:       25.04.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
@@ -263,12 +263,28 @@ class FlowLoadMetric(MetricPlugin):
                 font=dict(size=10),
             ),
             height=550,
-            annotations=[dict(
+        )
+
+        # Add annotations after update_layout so they don't get merged with hline annotations
+        if ct_footer:
+            fig.add_annotation(
                 text=ct_footer, xref="paper", yref="paper",
                 x=1.0, y=-0.12, showarrow=False,
                 font=dict(size=10), xanchor="right",
-            )] if ct_footer else [],
-        )
+            )
+        for stage in ld.stages_ordered:
+            fig.add_annotation(
+                x=stage, y=1.0,
+                xref="x", yref="paper",
+                text=f"n={len(ld.by_stage[stage])}",
+                showarrow=False,
+                font=dict(size=9),
+                bgcolor="white",
+                bordercolor="#bdc3c7",
+                borderwidth=1,
+                xanchor="center",
+                yanchor="top",
+            )
 
         return [fig]
 
