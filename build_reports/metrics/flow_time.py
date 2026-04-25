@@ -191,12 +191,10 @@ def _compute_stats(values: list[float]) -> dict:
     cv = (sd / mean * 100) if mean else 0.0
     pct85 = sorted_v[min(int(n * 0.85), n - 1)]
     pct95 = sorted_v[min(int(n * 0.95), n - 1)]
-    # Percentage of issues completed within 90 days (SLE: how many % are under the threshold)
-    pct90 = round(sum(1 for v in sorted_v if v <= 90) / n * 100, 1)
     return dict(
         min=sorted_v[0], q1=q1, mean=mean, median=med,
         q3=q3, max=sorted_v[-1],
-        pct85=pct85, pct90=pct90, pct95=pct95,
+        pct85=pct85, pct95=pct95,
         sd=sd, cv=cv,
     )
 
@@ -215,6 +213,7 @@ class FlowTimeMetric(MetricPlugin):
 
     metric_id = FLOW_TIME
     ct_method: str = CT_METHOD_A
+    target_ct: int = 90
 
     def _cycle_days_method_b(self, issue: IssueRecord, stages: list[str]) -> float:
         """
@@ -290,6 +289,10 @@ class FlowTimeMetric(MetricPlugin):
         stats["zero_day_count"] = zero_day_count
         stats["zero_day_records"] = zero_day_records
         stats["ct_method"] = self.ct_method
+        stats["target_ct"] = self.target_ct
+        stats["target_ct_pct"] = round(
+            sum(1 for v in values if v <= self.target_ct) / len(values) * 100, 1
+        )
 
         return MetricResult(
             metric_id=self.metric_id,
@@ -327,7 +330,7 @@ class FlowTimeMetric(MetricPlugin):
             f"{label} ({method_label})  "
             f"Min: {s['min']} | Q1: {s['q1']} | Mean: {round(s['mean'], 2)} | "
             f"Median: {s['median']} | Q3: {s['q3']} | Max: {s['max']} | "
-            f"#Items: {s['count']} | 90d CT%: {s['pct90']} | "
+            f"#Items: {s['count']} | Target CT ({s['target_ct']}d): {s['target_ct_pct']}% | "
             f"SD: {round(s['sd'], 2)} | SD%(CV): {round(s['cv'], 2)} | "
             f"Zero Day Issues removed: {s['zero_day_count']}"
         )
