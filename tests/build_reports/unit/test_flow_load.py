@@ -3,7 +3,7 @@
 # Repository:     https://github.com/Jaegerfeld/situation-report
 # KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
 # Erstellt:       15.04.2026
-# Geändert:       15.04.2026
+# Geändert:       25.04.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
@@ -138,3 +138,21 @@ class TestRender:
         )
         result = metric.compute(data, SAFE)
         assert metric.render(result, SAFE) == []
+
+    def test_stage_count_annotations_present(self, metric, mixed_data):
+        """render() adds one 'n=...' annotation per active stage at the top of each column."""
+        result = metric.compute(mixed_data, SAFE)
+        fig = metric.render(result, SAFE)[0]
+        count_annotations = [a for a in fig.layout.annotations if a.text.startswith("n=")]
+        active_stages = [s for s in STAGES if s in result.chart_data.by_stage
+                         and result.chart_data.by_stage[s]]
+        assert len(count_annotations) == len(active_stages)
+
+    def test_stage_count_annotation_values(self, metric, mixed_data):
+        """Each stage count annotation shows the correct number of issues for that stage."""
+        result = metric.compute(mixed_data, SAFE)
+        fig = metric.render(result, SAFE)[0]
+        count_annotations = {a.x: int(a.text[2:]) for a in fig.layout.annotations
+                              if a.text.startswith("n=")}
+        for stage, ages in result.chart_data.by_stage.items():
+            assert count_annotations[stage] == len(ages)
