@@ -3,7 +3,7 @@
 # Repository:     https://github.com/Jaegerfeld/situation-report
 # KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
 # Erstellt:       15.04.2026
-# Geändert:       17.04.2026
+# Geändert:       25.04.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
@@ -26,6 +26,7 @@ from datetime import datetime
 import plotly.graph_objects as go
 
 from ..loader import IssueRecord, ReportData
+from ..repel import add_repelled_hlines
 from ..terminology import FLOW_TIME, term
 from . import register
 from .base import MetricPlugin, MetricResult
@@ -397,21 +398,18 @@ class FlowTimeMetric(MetricPlugin):
             name="Trend (LOESS)",
         ))
 
-        # Reference lines (dotted)
-        ref_lines = [
-            (s["median"],  "red",        f"Median: {round(s['median'], 1)}"),
-            (s["pct85"],   "lightgreen", f"85th %: {round(s['pct85'], 1)}"),
-            (s["pct95"],   "cyan",       f"95th %: {round(s['pct95'], 1)}"),
-        ]
-        for y_val, color, annotation in ref_lines:
-            fig_scatter.add_hline(
-                y=y_val,
-                line_color=color,
-                line_dash="dot",
-                line_width=2,
-                annotation_text=annotation,
-                annotation_position="right",
-            )
+        # Reference lines (dotted) — repelled so labels don't overlap
+        add_repelled_hlines(
+            fig_scatter,
+            lines=[
+                (s["median"], "red",        "dot", f"Median: {round(s['median'], 1)}"),
+                (s["pct85"],  "lightgreen", "dot", f"85th %: {round(s['pct85'], 1)}"),
+                (s["pct95"],  "cyan",       "dot", f"95th %: {round(s['pct95'], 1)}"),
+            ],
+            y_max=max(values),
+            fig_height=500,
+            line_width=2,
+        )
 
         fig_scatter.update_layout(
             title=header,

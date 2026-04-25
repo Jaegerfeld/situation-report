@@ -24,6 +24,7 @@ from datetime import date
 import plotly.graph_objects as go
 
 from ..loader import IssueRecord, ReportData
+from ..repel import add_repelled_hlines
 from ..terminology import FLOW_LOAD, term
 from . import register
 from .base import MetricPlugin, MetricResult
@@ -216,7 +217,7 @@ class FlowLoadMetric(MetricPlugin):
                 showlegend=False,
             ))
 
-        # Reference lines (cycle time from done items)
+        # Legend entries for reference lines (dummy traces)
         ref_lines = [
             (ld.ct_mean,   "blue",   "dash",     "CT Mean"),
             (ld.ct_median, "red",    "dot",      "CT Median"),
@@ -225,7 +226,6 @@ class FlowLoadMetric(MetricPlugin):
         ]
         for val, color, dash, lbl in ref_lines:
             if val is not None:
-                # Dummy trace for legend entry
                 fig.add_trace(go.Scatter(
                     x=[None], y=[None],
                     mode="lines",
@@ -233,12 +233,21 @@ class FlowLoadMetric(MetricPlugin):
                     line=dict(color=color, dash=dash, width=1.5),
                     showlegend=True,
                 ))
-                fig.add_hline(
-                    y=val, line_color=color, line_dash=dash, line_width=1.5,
-                    annotation_text=f"{val}d",
-                    annotation_position="right",
-                    annotation_font_size=9,
-                )
+
+        # Reference lines — repelled so annotations don't overlap when values are close
+        all_ages = [a for ages in ld.by_stage.values() for a in ages]
+        y_max = max(all_ages) if all_ages else 1.0
+        add_repelled_hlines(
+            fig,
+            lines=[
+                (ld.ct_mean,   "blue",   "dash",     f"{ld.ct_mean}d"),
+                (ld.ct_median, "red",    "dot",      f"{ld.ct_median}d"),
+                (ld.ct_pct85,  "green",  "dashdot",  f"{ld.ct_pct85}d"),
+                (ld.ct_pct95,  "purple", "longdash", f"{ld.ct_pct95}d"),
+            ],
+            y_max=y_max,
+            fig_height=550,
+        )
 
         ct_footer = ""
         if ld.ct_mean is not None:
