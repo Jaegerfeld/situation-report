@@ -22,13 +22,18 @@ import webbrowser
 from tkinter import filedialog, scrolledtext, ttk
 from pathlib import Path
 
+try:
+    from version import __version__ as _VERSION
+except ImportError:
+    _VERSION = "?"
+
 from .transform import run_transform
 
 
 class TransformApp(tk.Tk):
     def __init__(self) -> None:
         super().__init__()
-        self.title("transform_data")
+        self.title(f"transform_data  v{_VERSION}")
         self.resizable(True, True)
 
         self._json_var = tk.StringVar()

@@ -29,6 +29,11 @@ from pathlib import Path
 from tkinter import filedialog, messagebox, scrolledtext, ttk
 from typing import Any
 
+try:
+    from version import __version__ as _VERSION
+except ImportError:
+    _VERSION = "?"
+
 from openpyxl import load_workbook
 from tkcalendar import Calendar
 
@@ -1078,7 +1083,7 @@ class BuildReportsApp(tk.Tk):
 
     def _apply_language(self) -> None:
         """Update all translatable widgets, tooltips, and the window title."""
-        self.title(self._tr("window_title"))
+        self.title(f"{self._tr('window_title')}  v{_VERSION}")
         for widget, key in self._i18n:
             widget.config(text=self._tr(key))
         for tip, key in self._tips:
