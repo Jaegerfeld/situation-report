@@ -17,6 +17,7 @@
 #   Warnungen und Ergebnisse werden im Log-Bereich angezeigt.
 # =============================================================================
 
+import json
 import threading
 import tkinter as tk
 import webbrowser
@@ -97,13 +98,41 @@ _MANUAL_URLS: dict[int, str] = {
     LANG_EN: "https://jaegerfeld.github.io/situation-report/transform_data_UserManual.pdf",
 }
 
+_LANG_FLAGS: dict[int, str] = {LANG_DE: "🇩🇪", LANG_EN: "🇬🇧"}
+
+_PREFS_PATH = Path.home() / ".situation_report" / "prefs.json"
+
+
+def _load_lang_pref() -> int:
+    """Load the last-used language preference from disk, defaulting to English."""
+    try:
+        with open(_PREFS_PATH) as f:
+            val = json.load(f).get("lang", "en")
+            return LANG_DE if val == "de" else LANG_EN
+    except Exception:
+        return LANG_EN
+
+
+def _save_lang_pref(lang: int) -> None:
+    """Persist the language preference to disk."""
+    _PREFS_PATH.parent.mkdir(parents=True, exist_ok=True)
+    prefs: dict = {}
+    try:
+        with open(_PREFS_PATH) as f:
+            prefs = json.load(f)
+    except Exception:
+        pass
+    prefs["lang"] = "de" if lang == LANG_DE else "en"
+    with open(_PREFS_PATH, "w") as f:
+        json.dump(prefs, f, indent=2)
+
 
 class TransformApp(tk.Tk):
     def __init__(self) -> None:
         super().__init__()
         self.resizable(True, True)
 
-        self._lang_var = tk.IntVar(value=LANG_DE)
+        self._lang_var = tk.IntVar(value=_load_lang_pref())
         self._lang_var.trace_add("write", lambda *_: self._apply_language())
 
         self._json_var = tk.StringVar()
@@ -140,28 +169,18 @@ class TransformApp(tk.Tk):
     # -------------------------------------------------------------------------
 
     def _build_menubar(self) -> None:
-        """Build (or rebuild) the top menu bar with Options → Language and Help → Manual."""
+        """Build (or rebuild) the top menu bar with Help → Manual and a language flag."""
         menubar = tk.Menu(self)
-
-        options_menu = tk.Menu(menubar, tearoff=0)
-        menubar.add_cascade(label=self._tr("menu_options"), menu=options_menu)
-
-        lang_menu = tk.Menu(options_menu, tearoff=0)
-        options_menu.add_cascade(label=self._tr("menu_language"), menu=lang_menu)
-        lang_menu.add_radiobutton(
-            label=self._tr("menu_lang_de"),
-            variable=self._lang_var,
-            value=LANG_DE,
-        )
-        lang_menu.add_radiobutton(
-            label=self._tr("menu_lang_en"),
-            variable=self._lang_var,
-            value=LANG_EN,
-        )
 
         help_menu = tk.Menu(menubar, tearoff=0)
         menubar.add_cascade(label=self._tr("menu_help"), menu=help_menu)
         help_menu.add_command(label=self._tr("menu_manual"), command=self._open_manual)
+
+        # Language flag (rightmost)
+        lang_menu = tk.Menu(menubar, tearoff=0)
+        lang_menu.add_radiobutton(label="🇩🇪  Deutsch", variable=self._lang_var, value=LANG_DE)
+        lang_menu.add_radiobutton(label="🇬🇧  English", variable=self._lang_var, value=LANG_EN)
+        menubar.add_cascade(label=_LANG_FLAGS[self._lang_var.get()], menu=lang_menu)
 
         self.config(menu=menubar)
 
@@ -225,6 +244,7 @@ class TransformApp(tk.Tk):
 
     def _apply_language(self) -> None:
         """Update window title, menu bar, and all translatable widget labels."""
+        _save_lang_pref(self._lang_var.get())
         self.title(f"{self._tr('window_title')}  v{_VERSION}")
         self._build_menubar()
         self._lbl_json.config(text=self._tr("lbl_json"))
