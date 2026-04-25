@@ -3,7 +3,7 @@
 # Repository:     https://github.com/Jaegerfeld/situation-report
 # KI-Unterstuetzung: Erstellt mit Unterstuetzung von Claude (Anthropic)
 # Erstellt:       17.04.2026
-# Geaendert:      23.04.2026
+# Geaendert:      25.04.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
@@ -32,9 +32,10 @@ from reportlab.platypus.tableofcontents import TableOfContents
 # ---------------------------------------------------------------------------
 # Test data paths (for chart generation)
 # ---------------------------------------------------------------------------
-_TESTDATA = Path(__file__).parent.parent / "tests" / "testdata" / "ART_A"
-_ISSUE_TIMES = _TESTDATA / "ART_A_IssueTimes.xlsx"
-_CFD_FILE    = _TESTDATA / "ART_A_CFD.xlsx"
+_TESTDATA      = Path(__file__).parent.parent / "tests" / "testdata" / "ART_A"
+_ISSUE_TIMES   = _TESTDATA / "ART_A_IssueTimes.xlsx"
+_CFD_FILE      = _TESTDATA / "ART_A_CFD.xlsx"
+_WORKFLOW_FILE = _TESTDATA / "workflow_ART_A.txt"
 
 # ---------------------------------------------------------------------------
 # Colors
@@ -79,7 +80,7 @@ def _generate_chart_images(out_dir: Path) -> dict[str, Path]:
     from build_reports.terminology import SAFE
 
     out_dir.mkdir(parents=True, exist_ok=True)
-    data = load_report_data(_ISSUE_TIMES, _CFD_FILE)
+    data = load_report_data(_ISSUE_TIMES, _CFD_FILE, _WORKFLOW_FILE)
 
     closed = [i.closed_date for i in data.issues if i.closed_date]
     to_dt  = max(closed).date() if closed else date.today()
@@ -486,6 +487,11 @@ def content(st, images: dict[str, Path] | None = None):
         "<b>CFD (optional)</b> - Waehlen Sie die <b>CFD.xlsx</b>-Datei, wenn Sie das "
         "Cumulative Flow Diagram benoetigen.", st))
     story.append(BL(
+        "<b>Workflow (optional)</b> - Waehlen Sie die Workflow-Textdatei aus "
+        "transform_data. Sie enthaelt <b>&lt;First&gt;</b>- und "
+        "<b>&lt;Closed&gt;</b>-Marker, die festlegen, welche Stage-Grenzen die "
+        "CFD-Trendlinien markieren.", st))
+    story.append(BL(
         "<b>PI-Konfig (optional)</b> - Waehlen Sie Ihre JSON-Konfigurationsdatei fuer "
         "eigene PI-Intervalle. Lassen Sie das Feld leer, um Kalenderquartale zu "
         "verwenden.", st))
@@ -727,9 +733,11 @@ def content(st, images: dict[str, Path] | None = None):
         "unten. Das Diagramm beginnt immer bei 0 -- unabhaengig vom gewahlten Startdatum. "
         "Zwei schwarze Trendlinien zeigen:", st))
     story.append(BL(
-        "<b>Obere Linie (Zufluss):</b> Wie schnell waechst der kumulierte Gesamtzufluss?", st))
+        "<b>Obere Linie (Zufluss):</b> Verlaeuft an der visuellen Oberkante der "
+        "&lt;First&gt;-Stage (Systemeintritt). Ohne Workflow-Datei: erste Stage.", st))
     story.append(BL(
-        "<b>Untere Linie (Abfluss):</b> Wie schnell steigt die Anzahl abgeschlossener Issues?", st))
+        "<b>Untere Linie (Abfluss):</b> Verlaeuft an der visuellen Oberkante der "
+        "&lt;Closed&gt;-Stage (Systemabschluss). Ohne Workflow-Datei: letzte Stage.", st))
     add_img("cfd",
             "Abb. 7: Cumulative Flow Diagram -- kumulierte Eintritte je Stage mit Zufluss- und Abfluss-Trendlinie.")
     story.append(SP(4))
