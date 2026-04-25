@@ -156,3 +156,37 @@ class TestRender:
                               if a.text.startswith("n=")}
         for stage, ages in result.chart_data.by_stage.items():
             assert count_annotations[stage] == len(ages)
+
+    def test_has_three_reference_shapes(self, metric, mixed_data):
+        """render() produces exactly 3 hline shapes (CT Median, CT P85, Target CT)."""
+        result = metric.compute(mixed_data, SAFE)
+        fig = metric.render(result, SAFE)[0]
+        hlines = [s for s in fig.layout.shapes if s.type == "line" and s.x0 == 0]
+        assert len(hlines) == 3
+
+    def test_target_ct_line_always_present(self, metric):
+        """Target CT reference line appears even when there are no closed issues."""
+        data = ReportData(
+            issues=[
+                _issue("O-1", closed=None,
+                       stage_minutes={"Funnel": 100, "Analysis": 0}),
+            ],
+            cfd=[], stages=["Funnel", "Analysis"], source_prefix="",
+        )
+        result = metric.compute(data, SAFE)
+        fig = metric.render(result, SAFE)[0]
+        hlines = [s for s in fig.layout.shapes if s.type == "line" and s.x0 == 0]
+        assert len(hlines) == 1  # only Target CT line; no CT Median/P85 without closed issues
+
+    def test_legend_shows_target_ct(self, metric, mixed_data):
+        """A dummy trace for Target CT appears in the legend regardless of closed issues."""
+        result = metric.compute(mixed_data, SAFE)
+        fig = metric.render(result, SAFE)[0]
+        legend_names = [t.name for t in fig.data if t.showlegend]
+        assert any("Target CT" in name for name in legend_names)
+
+    def test_target_ct_configurable(self, metric, mixed_data):
+        """FlowLoadMetric.target_ct is passed through to chart_data.target_ct_days."""
+        metric.target_ct = 30
+        result = metric.compute(mixed_data, SAFE)
+        assert result.chart_data.target_ct_days == 30

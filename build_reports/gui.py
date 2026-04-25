@@ -35,6 +35,7 @@ from tkcalendar import Calendar
 from .cli import run_reports
 from .export import write_zero_day_excel
 from .metrics import all_metrics
+from .metrics.flow_load import FlowLoadMetric
 from .metrics.flow_time import CT_METHOD_A, CT_METHOD_B, FlowTimeMetric
 from .metrics.flow_velocity import FlowVelocityMetric
 from .terminology import GLOBAL, SAFE, term
@@ -64,6 +65,7 @@ _T: dict[str, dict[str, str]] = {
         "sec_ct":            "CT-Methode (Flow Time)",
         "lbl_issue_times":   "IssueTimes",
         "lbl_cfd":           "CFD (optional)",
+        "lbl_workflow":      "Workflow (optional)",
         "lbl_pi_config":     "PI-Konfig (optional)",
         "lbl_from":          "Von (YYYY-MM-DD)",
         "lbl_to":            "Bis (YYYY-MM-DD)",
@@ -81,6 +83,7 @@ _T: dict[str, dict[str, str]] = {
         "ct_b":              "B \u2013 Stage-Minuten (First bis Closed, exkl.)",
         "dlg_issue_times":   "IssueTimes-Datei w\u00e4hlen",
         "dlg_cfd":           "CFD-Datei w\u00e4hlen",
+        "dlg_workflow":      "Workflow-Datei w\u00e4hlen",
         "dlg_pi_config":     "PI-Konfigurationsdatei w\u00e4hlen",
         "dlg_pdf":           "PDF speichern unter",
         "dlg_pick_date":     "Datum w\u00e4hlen",
@@ -116,6 +119,7 @@ _T: dict[str, dict[str, str]] = {
         # Tooltips
         "tip_issue_times":   "IssueTimes.xlsx aus transform_data \u2014 enth\u00e4lt alle Issues mit Datums- und Stufenangaben.",
         "tip_cfd":           "CFD.xlsx aus transform_data \u2014 optional, wird nur f\u00fcr die CFD-Metrik ben\u00f6tigt.",
+        "tip_workflow":      "Workflow-Textdatei \u2014 definiert <First>- und <Closed>-Grenzen f\u00fcr die CFD In/Out-Trendlinien.",
         "tip_pi_config":     "JSON-Konfigdatei mit PI-Intervallen f\u00fcr Flow Velocity. Ohne Datei werden Quartale verwendet.",
         "tip_browse":        "Datei ausw\u00e4hlen \u2026",
         "tip_from":          "Nur Issues einbeziehen, die ab diesem Datum abgeschlossen wurden (inkl.).",
@@ -167,6 +171,7 @@ _T: dict[str, dict[str, str]] = {
         "sec_ct":            "CT Method (Flow Time)",
         "lbl_issue_times":   "IssueTimes",
         "lbl_cfd":           "CFD (optional)",
+        "lbl_workflow":      "Workflow (optional)",
         "lbl_pi_config":     "PI Config (optional)",
         "lbl_from":          "From (YYYY-MM-DD)",
         "lbl_to":            "To (YYYY-MM-DD)",
@@ -184,6 +189,7 @@ _T: dict[str, dict[str, str]] = {
         "ct_b":              "B \u2013 Stage minutes (First to Closed, excl.)",
         "dlg_issue_times":   "Select IssueTimes file",
         "dlg_cfd":           "Select CFD file",
+        "dlg_workflow":      "Select workflow file",
         "dlg_pi_config":     "Select PI configuration file",
         "dlg_pdf":           "Save PDF as",
         "dlg_pick_date":     "Pick Date",
@@ -219,6 +225,7 @@ _T: dict[str, dict[str, str]] = {
         # Tooltips
         "tip_issue_times":   "IssueTimes.xlsx from transform_data \u2014 contains all issues with dates and stage data.",
         "tip_cfd":           "CFD.xlsx from transform_data \u2014 optional, only required for the CFD metric.",
+        "tip_workflow":      "Workflow text file \u2014 defines <First> and <Closed> boundaries for the CFD In/Out trend lines.",
         "tip_pi_config":     "JSON config file defining PI intervals for Flow Velocity. Without a file, quarterly intervals are used.",
         "tip_browse":        "Select file \u2026",
         "tip_from":          "Include only issues closed on or after this date (inclusive).",
@@ -514,6 +521,7 @@ def _build_template_dict(
     metrics: dict[str, bool],
     language: str,
     pi_config: str = "",
+    workflow: str = "",
     excluded_statuses: str = "",
     excluded_resolutions: str = "",
     exclude_zero_day: bool = False,
@@ -538,6 +546,7 @@ def _build_template_dict(
         metrics:              Dict mapping metric_id → bool (True = selected).
         language:             Language code (LANG_DE or LANG_EN).
         pi_config:            Absolute path string for PI config JSON (may be empty).
+        workflow:             Absolute path string for workflow .txt file (may be empty).
         excluded_statuses:          Comma-separated Jira statuses to exclude (may be empty).
         excluded_resolutions:       Comma-separated resolutions to exclude (may be empty).
         exclude_zero_day:           True if zero-day issues should be excluded.
@@ -551,6 +560,7 @@ def _build_template_dict(
         "version": _TEMPLATE_VERSION,
         "issue_times": issue_times,
         "cfd": cfd,
+        "workflow": workflow,
         "pi_config": pi_config,
         "from_date": from_date,
         "to_date": to_date,
@@ -596,6 +606,7 @@ def _parse_template_dict(data: dict) -> dict:
         "version": version,
         "issue_times": str(data.get("issue_times", "")),
         "cfd": str(data.get("cfd", "")),
+        "workflow": str(data.get("workflow", "")),
         "pi_config": str(data.get("pi_config", "")),
         "from_date": str(data.get("from_date", "")),
         "to_date": str(data.get("to_date", "")),
@@ -638,6 +649,7 @@ class BuildReportsApp(tk.Tk):
         self._lang_var = tk.StringVar(value=LANG_DE)
         self._issue_times_var = tk.StringVar()
         self._cfd_var = tk.StringVar()
+        self._workflow_var = tk.StringVar()
         self._pi_config_var = tk.StringVar()
         _from_default, _to_default = _default_date_range()
         self._from_date_var = tk.StringVar(value=str(_from_default))
@@ -778,6 +790,20 @@ class BuildReportsApp(tk.Tk):
         self._tips.append((_ToolTip(cfd_entry, self._tr("tip_cfd")), "tip_cfd"))
 
         btn = ttk.Button(self, text=self._tr("btn_browse"), command=self._pick_cfd)
+        btn.grid(row=row, column=2, **pad)
+        self._i18n.append((btn, "btn_browse"))
+        self._tips.append((_ToolTip(btn, self._tr("tip_browse")), "tip_browse"))
+        row += 1
+
+        lbl = tk.Label(self, text=self._tr("lbl_workflow"), anchor="w")
+        lbl.grid(row=row, column=0, sticky="w", **pad)
+        self._i18n.append((lbl, "lbl_workflow"))
+
+        wf_entry = tk.Entry(self, textvariable=self._workflow_var, state="readonly", width=50)
+        wf_entry.grid(row=row, column=1, sticky="ew", **pad)
+        self._tips.append((_ToolTip(wf_entry, self._tr("tip_workflow")), "tip_workflow"))
+
+        btn = ttk.Button(self, text=self._tr("btn_browse"), command=self._pick_workflow)
         btn.grid(row=row, column=2, **pad)
         self._i18n.append((btn, "btn_browse"))
         self._tips.append((_ToolTip(btn, self._tr("tip_browse")), "tip_browse"))
@@ -1073,6 +1099,7 @@ class BuildReportsApp(tk.Tk):
             tpl = _build_template_dict(
                 issue_times=self._issue_times_var.get(),
                 cfd=self._cfd_var.get(),
+                workflow=self._workflow_var.get(),
                 pi_config=self._pi_config_var.get(),
                 from_date=self._from_date_var.get(),
                 to_date=self._to_date_var.get(),
@@ -1120,6 +1147,7 @@ class BuildReportsApp(tk.Tk):
 
         self._issue_times_var.set(state["issue_times"])
         self._cfd_var.set(state["cfd"])
+        self._workflow_var.set(state["workflow"])
         self._pi_config_var.set(state["pi_config"])
         self._from_date_var.set(state["from_date"])
         self._to_date_var.set(state["to_date"])
@@ -1138,7 +1166,7 @@ class BuildReportsApp(tk.Tk):
                 var.set(bool(state["metrics"][mid]))
 
         # Warn if stored file paths have gone missing
-        for key in ("issue_times", "cfd", "pi_config"):
+        for key in ("issue_times", "cfd", "workflow", "pi_config"):
             p = state[key]
             if p and not Path(p).is_file():
                 self._log(self._tr("err_not_found").format(p))
@@ -1219,6 +1247,15 @@ class BuildReportsApp(tk.Tk):
             it = self._issue_times_var.get().strip()
             if it:
                 self._check_consistency_async(Path(it), Path(path))
+
+    def _pick_workflow(self) -> None:
+        """Open a file dialog to select a workflow .txt file."""
+        path = filedialog.askopenfilename(
+            title=self._tr("dlg_workflow"),
+            filetypes=[("Textdateien", "*.txt"), ("Alle Dateien", "*.*")],
+        )
+        if path:
+            self._workflow_var.set(path)
 
     def _pick_pi_config(self) -> None:
         """Open a file dialog to select a PI configuration JSON file."""
@@ -1430,6 +1467,9 @@ class BuildReportsApp(tk.Tk):
         cfd_str = self._cfd_var.get().strip()
         cfd = Path(cfd_str) if cfd_str else None
 
+        workflow_str = self._workflow_var.get().strip()
+        workflow = Path(workflow_str) if workflow_str else None
+
         pi_config_str = self._pi_config_var.get().strip()
         pi_config = Path(pi_config_str) if pi_config_str else None
 
@@ -1467,6 +1507,7 @@ class BuildReportsApp(tk.Tk):
         return dict(
             issue_times=issue_times,
             cfd=cfd,
+            workflow=workflow,
             pi_config=pi_config,
             from_date=from_date,
             to_date=to_date,
@@ -1510,7 +1551,7 @@ class BuildReportsApp(tk.Tk):
             from .metrics import get_metric
 
             try:
-                data = load_report_data(inputs["issue_times"], inputs["cfd"])
+                data = load_report_data(inputs["issue_times"], inputs["cfd"], inputs.get("workflow"))
                 cfg = FilterConfig(
                     from_date=inputs["from_date"],
                     to_date=inputs["to_date"],
@@ -1536,6 +1577,8 @@ class BuildReportsApp(tk.Tk):
                 for plugin in plugins:
                     if isinstance(plugin, FlowTimeMetric):
                         plugin.ct_method = inputs.get("ct_method", CT_METHOD_A)
+                        plugin.target_ct = inputs.get("target_ct", 90)
+                    if isinstance(plugin, FlowLoadMetric):
                         plugin.target_ct = inputs.get("target_ct", 90)
                     if isinstance(plugin, FlowVelocityMetric):
                         pi_cfg = inputs.get("pi_config")
@@ -1613,6 +1656,7 @@ class BuildReportsApp(tk.Tk):
                 run_reports(
                     issue_times=inputs["issue_times"],
                     cfd=inputs["cfd"],
+                    workflow=inputs.get("workflow"),
                     metrics=inputs["metrics"],
                     from_date=inputs["from_date"],
                     to_date=inputs["to_date"],

@@ -3,7 +3,7 @@
 # Repository:     https://github.com/Jaegerfeld/situation-report
 # KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
 # Erstellt:       15.04.2026
-# Geändert:       17.04.2026
+# Geändert:       25.04.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
@@ -97,12 +97,14 @@ _STAGE_COLORS = [
 class _CfdData:
     """Preprocessed data for the CFD chart."""
     dates: list[str]                    # ISO date strings "YYYY-MM-DD" (for plotly date axis)
-    stage_series: dict[str, list[int]]  # stage -> daily counts
+    stage_series: dict[str, list[int]]  # stage -> cumulated entry counts
     stages: list[str]                   # ordered stage names
-    totals: list[int]                   # sum of all stages per day (top of stacked area)
-    in_total: int                       # cumulative total first-stage at end
-    out_total: int                      # cumulative total last-stage at end
+    totals: list[int]                   # sum of all stages per day
+    in_total: int                       # cumulative entries into first_stage at end
+    out_total: int                      # cumulative entries into closed_stage at end
     ratio: float                        # in/out ratio
+    first_stage: str                    # stage marking system entry (<First> or fallback)
+    closed_stage: str                   # stage marking system exit (<Closed> or fallback)
 
 
 class CfdMetric(MetricPlugin):
@@ -156,15 +158,29 @@ class CfdMetric(MetricPlugin):
                 cumsum += stage_series[s][i]
                 stage_series[s][i] = cumsum
 
-        # Total stacked height per day (= top of first-stage area)
+        # Total stacked height per day
         totals = [
             sum(stage_series[s][i] for s in stages)
             for i in range(len(records))
         ]
 
-        # In/Out ratio: total inflow (top of stack at end) vs outflow (last stage at end)
-        in_total = totals[-1] if totals else 0
-        out_total = stage_series[stages[-1]][-1] if stage_series[stages[-1]] else 0
+        # Resolve <First> and <Closed> boundaries; fall back to the outermost
+        # stages when the workflow file is not available or the named stage is
+        # not present in the CFD data.
+        eff_first = (
+            data.first_stage
+            if data.first_stage and data.first_stage in stage_series
+            else stages[0]
+        )
+        eff_closed = (
+            data.closed_stage
+            if data.closed_stage and data.closed_stage in stage_series
+            else stages[-1]
+        )
+
+        # In/Out ratio based on the correct workflow boundaries
+        in_total = stage_series[eff_first][-1] if stage_series[eff_first] else 0
+        out_total = stage_series[eff_closed][-1] if stage_series[eff_closed] else 0
         ratio = round(in_total / out_total, 2) if out_total else 0.0
 
         chart_data = _CfdData(
@@ -175,6 +191,8 @@ class CfdMetric(MetricPlugin):
             in_total=in_total,
             out_total=out_total,
             ratio=ratio,
+            first_stage=eff_first,
+            closed_stage=eff_closed,
         )
         stats = dict(in_total=in_total, out_total=out_total, ratio=ratio,
                      days=len(records))
@@ -219,23 +237,34 @@ class CfdMetric(MetricPlugin):
                 hovertemplate=f"<b>{stage}</b><br>%{{x}}<br>Count: %{{y}}<extra></extra>",
             ))
 
-        # Trend lines: anchored to actual start/end values
-        # Upper trend: top of stacked area (total of all stages = "First" stage top edge)
-        # Lower trend: last stage (Closed/Done) values
+        # Trend lines anchored to the <First> stage (inflow) and <Closed> stage (outflow).
+        # In a stacked chart the visual top-edge of stage S = S + all stages that come
+        # after it in workflow order (they render below S in the reversed stack).
         if n > 1:
             trend_x = [cd.dates[0], cd.dates[-1]]
-            last_stage = cd.stages[-1]
+
+            first_idx = cd.stages.index(cd.first_stage)
+            closed_idx = cd.stages.index(cd.closed_stage)
+
+            def _stacked_y(idx: int) -> list[int]:
+                return [
+                    sum(cd.stage_series[cd.stages[j]][i] for j in range(idx, len(cd.stages)))
+                    for i in range(n)
+                ]
+
+            first_y = _stacked_y(first_idx)
+            closed_y = _stacked_y(closed_idx)
 
             fig.add_trace(go.Scatter(
                 x=trend_x,
-                y=[cd.totals[0], cd.totals[-1]],
+                y=[first_y[0], first_y[-1]],
                 mode="lines", name="Inflow trend",
                 line=dict(color="black", width=1.5, dash="solid"),
                 showlegend=False,
             ))
             fig.add_trace(go.Scatter(
                 x=trend_x,
-                y=[cd.stage_series[last_stage][0], cd.stage_series[last_stage][-1]],
+                y=[closed_y[0], closed_y[-1]],
                 mode="lines", name="Outflow trend",
                 line=dict(color="black", width=1.5, dash="solid"),
                 showlegend=False,

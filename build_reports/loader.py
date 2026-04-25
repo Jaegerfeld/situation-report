@@ -3,7 +3,7 @@
 # Repository:     https://github.com/Jaegerfeld/situation-report
 # KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
 # Erstellt:       15.04.2026
-# Geändert:       15.04.2026
+# Geändert:       25.04.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
@@ -110,11 +110,15 @@ class ReportData:
 
     Holds issue records, CFD records, the ordered list of workflow stages,
     and the source prefix (e.g. 'ART_A') derived from the file names.
+    Optional first_stage / closed_stage mark the system entry and exit
+    boundaries from the workflow file (<First> and <Closed> markers).
     """
     issues: list[IssueRecord] = field(default_factory=list)
     cfd: list[CfdRecord] = field(default_factory=list)
     stages: list[str] = field(default_factory=list)
     source_prefix: str = ""
+    first_stage: str | None = None   # <First> marker from workflow file
+    closed_stage: str | None = None  # <Closed> marker from workflow file
 
 
 def load_issue_times(path: Path) -> tuple[list[IssueRecord], list[str]]:
@@ -209,16 +213,46 @@ def load_cfd(path: Path) -> tuple[list[CfdRecord], list[str]]:
     return records, stages
 
 
-def load_report_data(issue_times_path: Path, cfd_path: Path | None = None) -> ReportData:
+def _parse_workflow_markers(path: Path) -> tuple[str | None, str | None]:
+    """
+    Extract <First> and <Closed> stage names from a workflow definition file.
+
+    Only reads lines starting with <First> or <Closed>; all other content is ignored.
+
+    Args:
+        path: Path to the workflow .txt file.
+
+    Returns:
+        Tuple of (first_stage, closed_stage), each None if the marker is absent.
+    """
+    first_stage: str | None = None
+    closed_stage: str | None = None
+    for line in path.read_text(encoding="utf-8").splitlines():
+        line = line.strip()
+        if line.startswith("<First>"):
+            first_stage = line[7:]
+        elif line.startswith("<Closed>"):
+            closed_stage = line[8:]
+    return first_stage, closed_stage
+
+
+def load_report_data(
+    issue_times_path: Path,
+    cfd_path: Path | None = None,
+    workflow_path: Path | None = None,
+) -> ReportData:
     """
     Load a complete ReportData set from IssueTimes and optionally CFD XLSX files.
 
     The source_prefix is derived from the IssueTimes filename by stripping
     the '_IssueTimes' suffix (e.g. 'ART_A_IssueTimes.xlsx' → 'ART_A').
+    If a workflow file is provided, <First> and <Closed> markers are read
+    and stored in first_stage / closed_stage for use by the CFD metric.
 
     Args:
         issue_times_path: Path to the IssueTimes.xlsx file (required).
         cfd_path:         Path to the CFD.xlsx file (optional).
+        workflow_path:    Path to the workflow .txt file (optional).
 
     Returns:
         Populated ReportData instance.
@@ -229,7 +263,19 @@ def load_report_data(issue_times_path: Path, cfd_path: Path | None = None) -> Re
     if cfd_path is not None:
         cfd, _ = load_cfd(cfd_path)
 
+    first_stage: str | None = None
+    closed_stage: str | None = None
+    if workflow_path is not None:
+        first_stage, closed_stage = _parse_workflow_markers(workflow_path)
+
     stem = issue_times_path.stem
     prefix = stem.removesuffix("_IssueTimes")
 
-    return ReportData(issues=issues, cfd=cfd, stages=stages, source_prefix=prefix)
+    return ReportData(
+        issues=issues,
+        cfd=cfd,
+        stages=stages,
+        source_prefix=prefix,
+        first_stage=first_stage,
+        closed_stage=closed_stage,
+    )

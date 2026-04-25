@@ -154,7 +154,7 @@ class TestRunReports:
              patch("build_reports.cli.apply_filters", return_value=mock_filtered), \
              patch("build_reports.cli.all_metrics", return_value=[plugin]):
             run_reports(issue_times, log=lambda *_: None)
-        mock_load.assert_called_once_with(issue_times, None)
+        mock_load.assert_called_once_with(issue_times, None, None)
 
     def test_passes_cfd_to_loader(self, issue_times, tmp_path, mock_data, mock_filtered):
         """The cfd path is forwarded to load_report_data when provided."""
@@ -164,7 +164,17 @@ class TestRunReports:
              patch("build_reports.cli.apply_filters", return_value=mock_filtered), \
              patch("build_reports.cli.all_metrics", return_value=[plugin]):
             run_reports(issue_times, cfd=cfd, log=lambda *_: None)
-        mock_load.assert_called_once_with(issue_times, cfd)
+        mock_load.assert_called_once_with(issue_times, cfd, None)
+
+    def test_passes_workflow_to_loader(self, issue_times, tmp_path, mock_data, mock_filtered):
+        """The workflow path is forwarded to load_report_data when provided."""
+        workflow = tmp_path / "workflow.txt"
+        plugin = _make_plugin()
+        with patch("build_reports.cli.load_report_data", return_value=mock_data) as mock_load, \
+             patch("build_reports.cli.apply_filters", return_value=mock_filtered), \
+             patch("build_reports.cli.all_metrics", return_value=[plugin]):
+            run_reports(issue_times, workflow=workflow, log=lambda *_: None)
+        mock_load.assert_called_once_with(issue_times, None, workflow)
 
     # --- filter passthrough -------------------------------------------------
 

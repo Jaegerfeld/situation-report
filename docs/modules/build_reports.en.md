@@ -29,6 +29,7 @@ python -m build_reports.cli <IssueTimes.xlsx> [options]
 |----------|-------------|
 | `IssueTimes.xlsx` | Output file from `transform_data` (required) |
 | `--cfd CFD.xlsx` | CFD output file (required for the CFD metric) |
+| `--workflow FILE` | Workflow text file — defines `<First>` and `<Closed>` boundaries for the CFD trend lines |
 | `--metrics ID …` | Select metrics to compute (default: all) |
 | `--from-date YYYY-MM-DD` | Include only issues closed on or after this date |
 | `--to-date YYYY-MM-DD` | Include only issues closed on or before this date |
@@ -93,6 +94,7 @@ The menu bar contains two menus:
 
 - **IssueTimes** — Required. After selection, projects and issue types are automatically loaded from the file (background thread). If a CFD file is already set, a stage consistency check is run at the same time.
 - **CFD (optional)** — Only needed for the CFD metric. Setting it triggers the stage consistency check.
+- **Workflow (optional)** — Workflow text file from `transform_data` that defines the workflow stages. Contains `<First>` and `<Closed>` markers specifying which stage boundaries the CFD trend lines should mark.
 
 ### Filters
 
@@ -220,8 +222,8 @@ Reads the daily entry counts from `CFD.xlsx` and accumulates them cumulatively. 
 
 **Chart:** Stacked area chart (first stage on top) with two trend lines (inflow/outflow) and the In/Out ratio in the title. The chart always starts at 0 — regardless of the selected start date.
 
-- **Upper trend line** — runs from the cumulative total inflow on the first to the last day.
-- **Lower trend line** — runs from the cumulative value of the last stage (e.g. "Done" / "Closed") on the first to the last day.
+- **Upper trend line (Inflow)** — runs along the visual top edge of the `<First>` stage (= that stage's cumulative series + all stages stacked below it). Falls back to the first stage when no workflow file is provided.
+- **Lower trend line (Outflow)** — runs along the visual top edge of the `<Closed>` stage. Falls back to the last stage when no workflow file is provided.
 - **X-axis** — month boundaries are labelled prominently (e.g. "Jan 2025"); ISO calendar-week Mondays are shown small and in grey (e.g. "W03") to prevent label overlap.
 
 | SAFe | Global |
@@ -347,4 +349,4 @@ python -m pytest tests/build_reports/
 | Type | Directory | Content |
 |------|-----------|---------|
 | Unit | `tests/build_reports/unit/` | Isolated tests for each module using synthetic fixtures; kaleido is mocked |
-| Acceptance | `tests/build_reports/acceptance/` | Tests against the real ART_A dataset; verify business correctness of metrics, export, and GUI input handling |
+| Acceptance | `tests/build_reports/acceptance/` | Tests against the real datasets (ART_A, ART_E); verify business correctness of metrics, export, GUI input handling, and CFD trend line positioning |

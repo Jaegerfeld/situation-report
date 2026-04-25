@@ -29,6 +29,7 @@ python -m build_reports.cli <IssueTimes.xlsx> [Optionen]
 |----------|-------------|
 | `IssueTimes.xlsx` | Ausgabedatei von `transform_data` (Pflichtfeld) |
 | `--cfd CFD.xlsx` | CFD-Ausgabedatei (für CFD-Metrik erforderlich) |
+| `--workflow DATEI` | Workflow-Textdatei — definiert `<First>`- und `<Closed>`-Grenzen für die CFD-Trendlinien |
 | `--metrics ID …` | Metriken auswählen (Standard: alle) |
 | `--from-date YYYY-MM-DD` | Nur Issues einschließen, die ab diesem Datum geschlossen wurden |
 | `--to-date YYYY-MM-DD` | Nur Issues einschließen, die bis zu diesem Datum geschlossen wurden |
@@ -93,6 +94,7 @@ Das Menüband enthält zwei Menüs:
 
 - **IssueTimes** — Pflichtfeld. Nach der Auswahl werden Projekte und Issuetypen automatisch aus der Datei geladen (Hintergrund-Thread). Falls eine CFD-Datei bereits gesetzt ist, wird gleichzeitig ein Stage-Konsistenz-Check durchgeführt.
 - **CFD (optional)** — Wird nur für die CFD-Metrik benötigt. Beim Setzen wird der Stage-Konsistenz-Check ausgeführt.
+- **Workflow (optional)** — Textdatei aus `transform_data`, die die Workflow-Stages definiert. Enthält `<First>`- und `<Closed>`-Marker, die festlegen, welche Stage-Grenzen die CFD-Trendlinien markieren sollen.
 
 ### Filter
 
@@ -220,8 +222,8 @@ Liest die täglichen Eintrittszählungen aus `CFD.xlsx` und akkumuliert diese ku
 
 **Diagramm:** Gestapeltes Flächendiagramm (erste Stage oben) mit zwei Trendlinien (Zufluss/Abfluss) und In/Out-Ratio im Titel. Das Diagramm beginnt immer bei 0 — unabhängig vom gewählten Startdatum.
 
-- **Obere Trendlinie** — verläuft vom kumulierten Gesamtzufluss am ersten bis zum letzten Tag.
-- **Untere Trendlinie** — verläuft vom kumulierten Wert der letzten Stage (z. B. „Done"/„Closed") am ersten bis zum letzten Tag.
+- **Obere Trendlinie (Inflow)** — verläuft an der visuellen Oberkante der `<First>`-Stage (= Summe dieser Stage + aller dahinterliegenden Stages im Stapel). Ohne Workflow-Datei fällt die Linie auf die erste Stage zurück.
+- **Untere Trendlinie (Outflow)** — verläuft an der visuellen Oberkante der `<Closed>`-Stage. Ohne Workflow-Datei fällt die Linie auf die letzte Stage zurück.
 - **X-Achse** — Monatsgrenzen werden groß beschriftet (z. B. „Jan 2025"); ISO-Kalenderwochen-Montage werden klein und in Grau dargestellt (z. B. „W03"), damit sich die Labels nicht überlappen.
 
 | SAFe | Global |
@@ -347,4 +349,4 @@ python -m pytest tests/build_reports/
 | Testtyp | Verzeichnis | Inhalt |
 |---------|-------------|--------|
 | Unit | `tests/build_reports/unit/` | Isolierte Tests für jedes Modul mit synthetischen Fixtures; kaleido wird gemockt |
-| Acceptance | `tests/build_reports/acceptance/` | Tests gegen den realen ART_A-Datensatz; prüfen fachliche Korrektheit der Metriken, des Exports und der GUI-Eingabeverarbeitung |
+| Acceptance | `tests/build_reports/acceptance/` | Tests gegen die realen Datensätze (ART_A, ART_E); prüfen fachliche Korrektheit der Metriken, des Exports, der GUI-Eingabeverarbeitung und der CFD-Trendlinien-Positionierung |
