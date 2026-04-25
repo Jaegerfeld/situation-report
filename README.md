@@ -1,19 +1,21 @@
-# SituationReport
+# situation-report
 
-Toolsuite zur Abfrage von Jira-Issuedaten sowie zur Aufbereitung für Metriken und Reports.
+**Version 0.2.0**
 
-**Dokumentation:** https://jaegerfeld.github.io/situation-report/  
-**Architektur:** https://jaegerfeld.github.io/situation-report/architecture/
+Toolsuite for querying Jira issue data and processing it into flow metrics and reports.
 
-## Module
+**Documentation:** https://jaegerfeld.github.io/situation-report/  
+**Architecture:** https://jaegerfeld.github.io/situation-report/architecture/
 
-| Modul | Beschreibung | Status |
-|-------|-------------|--------|
-| [`transform_data`](https://jaegerfeld.github.io/situation-report/modules/transform_data/) | Transformation von Jira-Rohdaten in Stage-Time-Metriken | verfügbar |
-| [`build_reports`](https://jaegerfeld.github.io/situation-report/modules/build_reports/) | Erzeugung von Metriken und Reports | verfügbar |
-| `get_data` | Datenabruf aus Jira via REST API | geplant |
-| `testdata_generator` | Generierung synthetischer Testdaten | geplant |
-| `simulate` | Simulationen und Vorhersagemodelle | geplant |
+## Modules
+
+| Module | Description | Status |
+|--------|-------------|--------|
+| [`transform_data`](https://jaegerfeld.github.io/situation-report/modules/transform_data/) | Transform raw Jira data into stage-time metrics | available |
+| [`build_reports`](https://jaegerfeld.github.io/situation-report/modules/build_reports/) | Generate flow metrics and reports | available |
+| `get_data` | Fetch issue data from Jira via REST API | planned |
+| `testdata_generator` | Generate synthetic test data | planned |
+| `simulate` | Simulations and forecasting models | planned |
 
 ## Setup
 
@@ -25,6 +27,6 @@ python -m venv .venv
 pip install -e .
 ```
 
-## Lizenz
+## License
 
-BSD-3-Clause — siehe [LICENSE](LICENSE)
+BSD-3-Clause — see [LICENSE](LICENSE)
