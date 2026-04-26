@@ -3,14 +3,14 @@
 # Repository:     https://github.com/Jaegerfeld/situation-report
 # KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
 # Erstellt:       15.04.2026
-# Geändert:       25.04.2026
+# Geändert:       26.04.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
-#   Liest die von transform_data erzeugten XLSX-Dateien (IssueTimes, CFD) ein
-#   und wandelt sie in typisierte Datenstrukturen um. Die Stage-Spalten werden
-#   dynamisch aus der Kopfzeile der IssueTimes-Datei ermittelt. Fehlende oder
-#   leere Datumswerte werden als None behandelt.
+#   Liest die von transform_data erzeugten XLSX-Dateien (IssueTimes, CFD,
+#   Transitions) ein und wandelt sie in typisierte Datenstrukturen um. Die
+#   Stage-Spalten werden dynamisch aus der Kopfzeile der IssueTimes-Datei
+#   ermittelt. Fehlende oder leere Datumswerte werden als None behandelt.
 # =============================================================================
 
 from __future__ import annotations
@@ -104,17 +104,26 @@ class CfdRecord:
 
 
 @dataclass
+class TransitionEntry:
+    """One row from Transitions.xlsx — a single status transition for one issue."""
+    key: str        # issue key, e.g. 'ART_A-1'
+    label: str      # target stage / status name after the transition
+    timestamp: str  # DD.MM.YYYY HH:MM:SS (kept as string; ordering is not required here)
+
+
+@dataclass
 class ReportData:
     """
     Container for all data loaded from a transform_data output set.
 
-    Holds issue records, CFD records, the ordered list of workflow stages,
-    and the source prefix (e.g. 'ART_A') derived from the file names.
-    Optional first_stage / closed_stage mark the system entry and exit
-    boundaries from the workflow file (<First> and <Closed> markers).
+    Holds issue records, CFD records, transition entries, the ordered list of
+    workflow stages, and the source prefix (e.g. 'ART_A') derived from the
+    file names. Optional first_stage / closed_stage mark the system entry and
+    exit boundaries from the workflow file (<First> and <Closed> markers).
     """
     issues: list[IssueRecord] = field(default_factory=list)
     cfd: list[CfdRecord] = field(default_factory=list)
+    transitions: list[TransitionEntry] = field(default_factory=list)
     stages: list[str] = field(default_factory=list)
     source_prefix: str = ""
     first_stage: str | None = None   # <First> marker from workflow file
@@ -236,13 +245,45 @@ def _parse_workflow_markers(path: Path) -> tuple[str | None, str | None]:
     return first_stage, closed_stage
 
 
+def load_transitions(path: Path) -> list[TransitionEntry]:
+    """
+    Read a Transitions.xlsx file and return a list of TransitionEntry records.
+
+    Rows are returned in file order (which is chronological per issue as
+    produced by transform_data). Empty rows are skipped.
+
+    Args:
+        path: Path to the Transitions.xlsx file.
+
+    Returns:
+        List of TransitionEntry, one per data row.
+    """
+    wb = load_workbook(path, read_only=True, data_only=True)
+    ws = wb.active
+    rows = iter(ws.iter_rows(values_only=True))
+    next(rows)  # skip header (Key | Transition | Timestamp)
+    entries: list[TransitionEntry] = []
+    for row in rows:
+        if not any(row):
+            continue
+        entries.append(TransitionEntry(
+            key=str(row[0] or ""),
+            label=str(row[1] or ""),
+            timestamp=str(row[2] or ""),
+        ))
+    wb.close()
+    return entries
+
+
 def load_report_data(
     issue_times_path: Path,
     cfd_path: Path | None = None,
     workflow_path: Path | None = None,
+    transitions_path: Path | None = None,
 ) -> ReportData:
     """
-    Load a complete ReportData set from IssueTimes and optionally CFD XLSX files.
+    Load a complete ReportData set from IssueTimes and optionally CFD, workflow,
+    and Transitions XLSX files.
 
     The source_prefix is derived from the IssueTimes filename by stripping
     the '_IssueTimes' suffix (e.g. 'ART_A_IssueTimes.xlsx' → 'ART_A').
@@ -253,6 +294,7 @@ def load_report_data(
         issue_times_path: Path to the IssueTimes.xlsx file (required).
         cfd_path:         Path to the CFD.xlsx file (optional).
         workflow_path:    Path to the workflow .txt file (optional).
+        transitions_path: Path to the Transitions.xlsx file (optional).
 
     Returns:
         Populated ReportData instance.
@@ -268,12 +310,17 @@ def load_report_data(
     if workflow_path is not None:
         first_stage, closed_stage = _parse_workflow_markers(workflow_path)
 
+    transitions: list[TransitionEntry] = []
+    if transitions_path is not None:
+        transitions = load_transitions(transitions_path)
+
     stem = issue_times_path.stem
     prefix = stem.removesuffix("_IssueTimes")
 
     return ReportData(
         issues=issues,
         cfd=cfd,
+        transitions=transitions,
         stages=stages,
         source_prefix=prefix,
         first_stage=first_stage,
