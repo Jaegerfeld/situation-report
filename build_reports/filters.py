@@ -3,7 +3,7 @@
 # Repository:     https://github.com/Jaegerfeld/situation-report
 # KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
 # Erstellt:       15.04.2026
-# Geändert:       25.04.2026
+# Geändert:       26.04.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
@@ -128,6 +128,7 @@ def apply_filters(data: ReportData, cfg: FilterConfig) -> ReportData:
     return ReportData(
         issues=filtered_issues,
         cfd=filtered_cfd,
+        transitions=data.transitions,
         stages=data.stages,
         source_prefix=data.source_prefix,
         first_stage=data.first_stage,
