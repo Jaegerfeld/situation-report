@@ -35,6 +35,8 @@ _LOOP_RADIUS = 0.10     # radius of self-loop arc
 _MAX_EDGE_WIDTH = 10.0  # maximum plotly line width for the heaviest edge
 _MIN_EDGE_WIDTH = 1.0   # minimum plotly line width
 
+_LABEL_WRAP_AT = 9      # wrap multi-word labels longer than this many chars
+
 _COLOR_EDGE = "#5b8db8"
 _COLOR_EDGE_BACK = "#c0392b"   # rework / backward transitions
 _COLOR_SELF_LOOP = "#e67e22"
@@ -58,6 +60,53 @@ class _FlowData:
     total_transitions: int
     issue_count: int
     workflow_stages: list[str]        # from ReportData.stages (may be empty)
+
+
+# ---------------------------------------------------------------------------
+# Label helpers
+# ---------------------------------------------------------------------------
+
+def _format_label(label: str) -> str:
+    """
+    Insert a <br> near the midpoint of multi-word labels longer than
+    _LABEL_WRAP_AT chars. Single long words without spaces are returned
+    unchanged (node size is enlarged instead).
+
+    Args:
+        label: Raw status/stage name.
+
+    Returns:
+        Label string, optionally containing a single <br> break.
+    """
+    if len(label) <= _LABEL_WRAP_AT or " " not in label:
+        return label
+    words = label.split()
+    mid = len(label) / 2
+    cum, best_i, best_dist = 0, 0, float("inf")
+    for i, w in enumerate(words[:-1]):
+        cum += len(w) + 1
+        d = abs(cum - mid)
+        if d < best_dist:
+            best_dist, best_i = d, i
+    return " ".join(words[: best_i + 1]) + "<br>" + " ".join(words[best_i + 1 :])
+
+
+def _node_size(formatted_label: str) -> int:
+    """
+    Return marker size (px) based on the longest line in the formatted label.
+
+    Args:
+        formatted_label: Label string, possibly containing <br>.
+
+    Returns:
+        Marker size in screen pixels.
+    """
+    max_line = max(len(ln) for ln in formatted_label.split("<br>"))
+    if max_line <= 6:
+        return 44
+    if max_line <= 9:
+        return 58
+    return 72
 
 
 # ---------------------------------------------------------------------------
@@ -316,6 +365,10 @@ def _add_nodes(
     """
     Draw all nodes as filled circles with centered label text.
 
+    Node size scales with label length; multi-word labels are wrapped with
+    <br> to keep lines short. Original names are preserved in hover via
+    customdata.
+
     Args:
         fig:   Plotly Figure.
         nodes: Ordered list of node labels.
@@ -323,19 +376,22 @@ def _add_nodes(
     """
     xs = [pos[n][0] for n in nodes]
     ys = [pos[n][1] for n in nodes]
+    formatted = [_format_label(n) for n in nodes]
+    sizes = [_node_size(f) for f in formatted]
 
     fig.add_trace(go.Scatter(
         x=xs, y=ys,
         mode="markers+text",
         marker=dict(
-            size=42,
+            size=sizes,
             color=_COLOR_NODE_FILL,
             line=dict(color="#ffffff", width=2),
         ),
-        text=nodes,
+        text=formatted,
+        customdata=nodes,
         textposition="middle center",
         textfont=dict(color=_COLOR_NODE_TEXT, size=10),
-        hovertemplate="<b>%{text}</b><extra></extra>",
+        hovertemplate="<b>%{customdata}</b><extra></extra>",
         showlegend=False,
     ))
 
@@ -375,10 +431,30 @@ class ProcessFlowMetric(MetricPlugin):
             warnings.append("No transition data available. Load a Transitions.xlsx file.")
             return MetricResult(metric_id=self.metric_id, warnings=warnings)
 
-        # Group labels per issue key (preserving file order = chronological)
+        # "Created" is a synthetic entry from transform_data; it coincides with
+        # the issue entering the first workflow stage (Jira never logs the
+        # initial status as a changelog transition).  Map it to stages[0] so
+        # both concepts share one node.
+        #
+        # Edge case: if the very next real transition is also first_stage (e.g.
+        # [Created, Funnel, Analysis]), mapping Created→Funnel would produce
+        # [Funnel, Funnel, Analysis] — a spurious self-loop.  skip_next tracks
+        # these issues so the redundant follow-up first_stage entry is dropped.
+        # Genuine self-loops ([Funnel, Funnel] without Created) are unaffected.
+        first_stage = data.stages[0] if data.stages else None
+        skip_next: set[str] = set()
+
         by_issue: dict[str, list[str]] = defaultdict(list)
         for t in data.transitions:
-            by_issue[t.key].append(t.label)
+            if t.label == "Created" and first_stage is not None:
+                by_issue[t.key].append(first_stage)
+                skip_next.add(t.key)
+            elif t.key in skip_next:
+                skip_next.discard(t.key)
+                if t.label != first_stage:
+                    by_issue[t.key].append(t.label)
+            else:
+                by_issue[t.key].append(t.label)
 
         # Count consecutive transition pairs
         edge_counter: Counter[tuple[str, str]] = Counter()

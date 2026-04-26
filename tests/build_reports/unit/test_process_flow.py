@@ -22,6 +22,8 @@ from build_reports.metrics.process_flow import (
     ProcessFlowMetric,
     _circular_positions,
     _edge_width,
+    _format_label,
+    _node_size,
     _Edge,
 )
 from build_reports.terminology import PROCESS_FLOW, SAFE
@@ -98,18 +100,19 @@ class TestComputeEdgeCounting:
 class TestComputeNodeOrdering:
 
     def test_workflow_stages_come_first(self, metric):
+        """Workflow stages appear before non-workflow nodes."""
         t = [
-            _entry("A-1", "Created"), _entry("A-1", "Funnel"),
             _entry("A-1", "Funnel"), _entry("A-1", "Analysis"),
+            _entry("A-1", "Analysis"), _entry("A-1", "Limbo"),
         ]
         data = _make_data(t, stages=["Funnel", "Analysis"])
         result = metric.compute(data, SAFE)
         nodes = result.chart_data.nodes
         funnel_idx = nodes.index("Funnel")
         analysis_idx = nodes.index("Analysis")
-        created_idx = nodes.index("Created")
-        assert funnel_idx < created_idx
-        assert analysis_idx < created_idx
+        limbo_idx = nodes.index("Limbo")
+        assert funnel_idx < limbo_idx
+        assert analysis_idx < limbo_idx
 
     def test_extra_statuses_appended_alphabetically(self, metric):
         t = [
@@ -120,6 +123,37 @@ class TestComputeNodeOrdering:
         result = metric.compute(data, SAFE)
         nodes = result.chart_data.nodes
         assert nodes == sorted(nodes)
+
+    def test_created_maps_to_first_stage(self, metric):
+        """'Created' label is replaced by stages[0]; no separate Created node."""
+        t = [_entry("A-1", "Created"), _entry("A-1", "Analysis")]
+        data = _make_data(t, stages=["Funnel", "Analysis"])
+        result = metric.compute(data, SAFE)
+        assert result.chart_data is not None
+        assert "Created" not in result.chart_data.nodes
+        assert any(
+            e.source == "Funnel" and e.target == "Analysis"
+            for e in result.chart_data.edges
+        )
+
+    def test_created_followed_by_first_stage_no_self_loop(self, metric):
+        """Created → first_stage → X collapses to first_stage → X, no self-loop."""
+        t = [
+            _entry("A-1", "Created"),
+            _entry("A-1", "Funnel"),
+            _entry("A-1", "Analysis"),
+        ]
+        data = _make_data(t, stages=["Funnel", "Analysis"])
+        result = metric.compute(data, SAFE)
+        assert not any(e.is_self_loop for e in result.chart_data.edges)
+
+    def test_created_without_workflow_stays_as_created(self, metric):
+        """When no stages are defined, 'Created' is kept as-is (no first stage to map to)."""
+        t = [_entry("A-1", "Created"), _entry("A-1", "Analysis")]
+        data = _make_data(t, stages=[])
+        result = metric.compute(data, SAFE)
+        assert result.chart_data is not None
+        assert "Created" in result.chart_data.nodes
 
 
 # ---------------------------------------------------------------------------
@@ -227,3 +261,43 @@ class TestRender:
 
     def test_metric_id_is_process_flow(self, metric):
         assert metric.metric_id == PROCESS_FLOW
+
+
+# ---------------------------------------------------------------------------
+# label helpers
+# ---------------------------------------------------------------------------
+
+class TestFormatLabel:
+
+    def test_short_label_unchanged(self):
+        assert _format_label("Funnel") == "Funnel"
+
+    def test_long_single_word_unchanged(self):
+        assert _format_label("Implementation") == "Implementation"
+
+    def test_long_multiword_wraps(self):
+        result = _format_label("In Progress")
+        assert "<br>" in result
+        parts = result.split("<br>")
+        assert len(parts) == 2
+        assert all(p.strip() for p in parts)
+
+    def test_wrapped_parts_contain_all_words(self):
+        result = _format_label("On Hold Now")
+        joined = result.replace("<br>", " ")
+        assert joined == "On Hold Now"
+
+    def test_label_at_threshold_unchanged(self):
+        # exactly _LABEL_WRAP_AT chars should not be wrapped
+        label = "A" * 9
+        assert _format_label(label) == label
+
+
+class TestNodeSize:
+
+    def test_size_increases_with_label_length(self):
+        assert _node_size("Done") <= _node_size("Analysis") <= _node_size("Implementation")
+
+    def test_wrapped_label_uses_longest_line_for_sizing(self):
+        # "In<br>Progress" → max line "Progress" = 8 chars → same tier as "Analysis" (8)
+        assert _node_size("In<br>Progress") == _node_size("Analysis")
