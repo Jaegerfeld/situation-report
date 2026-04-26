@@ -1,6 +1,6 @@
 # situation-report
 
-**Version 0.4.0**
+**Version 0.4.1**
 
 Toolsuite for querying Jira issue data and processing it into flow metrics and reports.
 
