@@ -74,3 +74,4 @@ from . import flow_velocity      # noqa: E402, F401
 from . import flow_load          # noqa: E402, F401
 from . import cfd                # noqa: E402, F401
 from . import flow_distribution  # noqa: E402, F401
+from . import process_flow       # noqa: E402, F401
