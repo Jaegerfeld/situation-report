@@ -21,7 +21,7 @@ testpaths = ["tests"]
 
 [tool.coverage.run]
 source = ["build_reports", "transform_data", "get_data", "simulate", "testdata_generator"]
-omit = ["*/tests/*", "*/docs/*", "*_gui.pyw", "*_gui.py"]
+omit = ["*/tests/*", "*/docs/*", "*_gui.pyw", "*_gui.py", "*/gui.py", "*/__main__.py"]
 
 [tool.coverage.report]
 exclude_lines = ["pragma: no cover", "if __name__ == .__main__.:"]
