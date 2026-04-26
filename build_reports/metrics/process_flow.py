@@ -81,10 +81,18 @@ class _NodeTimeStats:
 
 
 @dataclass
+class _EdgeTimeStats:
+    """Dwell time statistics for one specific directed transition (source → target)."""
+    avg_minutes: float
+    n: int                            # number of issues that took this exact edge
+
+
+@dataclass
 class _FlowTimeData:
     nodes: list[str]
     edges: list[_Edge]
-    stats_by_node: dict[str, _NodeTimeStats]   # key = status; missing = no data
+    stats_by_node: dict[str, _NodeTimeStats]         # for node colour/label
+    stats_by_edge: dict[tuple[str, str], _EdgeTimeStats]  # for edge width/label
     issue_count: int
     workflow_stages: list[str]
 
@@ -876,8 +884,10 @@ class ProcessFlowTimeMetric(MetricPlugin):
         first_stage = data.stages[0] if data.stages else None
         by_issue = _group_transitions(data.transitions, first_stage)
 
-        # Compute dwell times and edge counts simultaneously
-        dwell_times: dict[str, list[float]] = defaultdict(list)
+        # Compute dwell times per status (for node colouring) and per edge
+        # (for edge width/label — only issues that took this exact transition).
+        dwell_by_node: dict[str, list[float]] = defaultdict(list)
+        dwell_by_edge: dict[tuple[str, str], list[float]] = defaultdict(list)
         edge_counter: Counter[tuple[str, str]] = Counter()
 
         for entries in by_issue.values():
@@ -890,7 +900,8 @@ class ProcessFlowTimeMetric(MetricPlugin):
                 if dt_a and dt_b:
                     minutes = (dt_b - dt_a).total_seconds() / 60
                     if minutes >= 0:
-                        dwell_times[lbl_a].append(minutes)
+                        dwell_by_node[lbl_a].append(minutes)
+                        dwell_by_edge[(lbl_a, lbl_b)].append(minutes)
 
         if not edge_counter:
             warnings.append("No transitions found (each issue has at most one status entry).")
@@ -917,9 +928,9 @@ class ProcessFlowTimeMetric(MetricPlugin):
             for (fr, to), cnt in sorted(edge_counter.items(), key=lambda x: -x[1])
         ]
 
-        # Build per-node stats
+        # Per-node stats (overall dwell time in that status, for node colour/label)
         stats_by_node: dict[str, _NodeTimeStats] = {}
-        for status, times in dwell_times.items():
+        for status, times in dwell_by_node.items():
             if len(times) >= 2:
                 qs = statistics.quantiles(times, n=4)
                 q1, med, q3 = qs[0], qs[1], qs[2]
@@ -933,10 +944,20 @@ class ProcessFlowTimeMetric(MetricPlugin):
                 n=len(times),
             )
 
+        # Per-edge stats (only issues that took this exact transition)
+        stats_by_edge: dict[tuple[str, str], _EdgeTimeStats] = {
+            (src, tgt): _EdgeTimeStats(
+                avg_minutes=statistics.mean(times),
+                n=len(times),
+            )
+            for (src, tgt), times in dwell_by_edge.items()
+        }
+
         flow_data = _FlowTimeData(
             nodes=ordered_nodes,
             edges=edges,
             stats_by_node=stats_by_node,
+            stats_by_edge=stats_by_edge,
             issue_count=len(by_issue),
             workflow_stages=list(data.stages),
         )
@@ -983,13 +1004,11 @@ class ProcessFlowTimeMetric(MetricPlugin):
 
         pos = _circular_positions(fd.nodes)
 
-        # Edge width and label are based on avg dwell time in the source status
-        avgs_with_data = [
-            fd.stats_by_node[n].avg_minutes
-            for n in fd.nodes
-            if n in fd.stats_by_node
-        ]
-        max_minutes = max(avgs_with_data) if avgs_with_data else 1.0
+        # Edge width and label: avg dwell time of issues that took this exact edge
+        max_minutes = max(
+            (s.avg_minutes for s in fd.stats_by_edge.values()),
+            default=1.0,
+        )
 
         bidirectional: set[tuple[str, str]] = {
             (e.source, e.target)
@@ -1005,20 +1024,24 @@ class ProcessFlowTimeMetric(MetricPlugin):
         fig = go.Figure()
 
         for edge in fd.edges:
-            src_stats = fd.stats_by_node.get(edge.source)
-            if src_stats is not None and max_minutes > 0:
+            edge_stats = fd.stats_by_edge.get((edge.source, edge.target))
+            if edge_stats is not None and max_minutes > 0:
                 width = _MIN_EDGE_WIDTH + (
-                    src_stats.avg_minutes / max_minutes
+                    edge_stats.avg_minutes / max_minutes
                 ) * (_MAX_EDGE_WIDTH - _MIN_EDGE_WIDTH)
-                lbl = f"Ø {_format_duration(src_stats.avg_minutes)}"
+                lbl = f"Ø {_format_duration(edge_stats.avg_minutes)}"
+                hover = (
+                    f"<b>{edge.source} → {edge.target}</b><br>"
+                    f"Ø {_format_duration(edge_stats.avg_minutes)} in {edge.source}"
+                    f" (n={edge_stats.n})<extra></extra>"
+                )
             else:
                 width = _MIN_EDGE_WIDTH
                 lbl = "—"
-
-            hover = (
-                f"<b>{edge.source} → {edge.target}</b><br>"
-                f"Ø {lbl} in {edge.source}<extra></extra>"
-            )
+                hover = (
+                    f"<b>{edge.source} → {edge.target}</b><br>"
+                    "keine Zeitdaten<extra></extra>"
+                )
             color = _edge_color(edge, fd.workflow_stages)
             if edge.is_self_loop:
                 _add_self_loop(

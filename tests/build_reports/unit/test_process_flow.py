@@ -422,3 +422,28 @@ class TestProcessFlowTimeCompute:
     def test_render_empty_returns_no_figures(self, time_metric):
         result = time_metric.compute(ReportData(), SAFE)
         assert time_metric.render(result, SAFE) == []
+
+    def test_edge_stats_differ_per_edge_not_per_source(self, time_metric):
+        """
+        Two edges leaving the same source (Funnel→Analysis, Funnel→Done) must
+        show the avg time of the issues that actually took each edge, not the
+        overall avg in Funnel.
+        """
+        t = [
+            # A-1: 60 min in Funnel, then Analysis
+            _entry("A-1", "Funnel",   "01.01.2025 09:00:00"),
+            _entry("A-1", "Analysis", "01.01.2025 10:00:00"),
+            # A-2: 240 min in Funnel, then Done (different destination)
+            _entry("A-2", "Funnel",   "01.01.2025 09:00:00"),
+            _entry("A-2", "Done",     "01.01.2025 13:00:00"),
+        ]
+        result = time_metric.compute(self._timed_data(t), SAFE)
+        fd = result.chart_data
+        assert fd is not None
+        edge_f_a = fd.stats_by_edge.get(("Funnel", "Analysis"))
+        edge_f_d = fd.stats_by_edge.get(("Funnel", "Done"))
+        assert edge_f_a is not None and edge_f_d is not None
+        assert abs(edge_f_a.avg_minutes - 60.0) < 0.1
+        assert abs(edge_f_d.avg_minutes - 240.0) < 0.1
+        # Must differ — not both the overall Funnel avg (150 min)
+        assert edge_f_a.avg_minutes != edge_f_d.avg_minutes
