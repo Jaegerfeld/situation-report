@@ -1,6 +1,5 @@
 # get_data
 
-!!! note "Planned"
-    This module is not yet implemented.
+Retrieve data from Jira via REST API.
 
-Retrieves data from Jira via REST API and produces the JSON export consumed by `transform_data`.
+**Status:** planned

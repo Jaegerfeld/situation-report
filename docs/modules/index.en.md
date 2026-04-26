@@ -1,18 +1,9 @@
 # Modules
 
-SituationReport is structured as a monorepo. Each module is a standalone Python package in the root directory.
-
-```
-situation-report/
-├── get_data/
-├── transform_data/
-├── build_reports/
-├── testdata_generator/
-└── simulate/
-```
-
-The modules are independently usable. The typical data flow is:
-
-```
-get_data  →  transform_data  →  build_reports
-```
+| Module | Description | Status |
+|--------|-------------|--------|
+| [transform_data](transform_data.md) | Transform raw Jira data into stage-time metrics | available |
+| [get_data](get_data.md) | Retrieve data from Jira via REST API | planned |
+| [build_reports](build_reports.md) | Generate metrics and reports | available |
+| [testdata_generator](testdata_generator.md) | Generate synthetic test data | planned |
+| [simulate](simulate.md) | Simulations and prediction models | planned |
