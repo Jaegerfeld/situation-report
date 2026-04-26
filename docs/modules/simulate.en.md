@@ -1,6 +1,5 @@
 # simulate
 
-!!! note "Planned"
-    This module is not yet implemented.
+Simulations and prediction models based on flow metrics.
 
-Simulations and prediction models based on historical Jira data.
+**Status:** planned

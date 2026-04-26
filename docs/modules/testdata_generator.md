@@ -1,6 +1,5 @@
 # testdata_generator
 
-!!! note "Geplant"
-    Dieses Modul ist noch nicht implementiert.
+Generierung synthetischer Testdaten für build_reports und transform_data.
 
-Generierung synthetischer Jira-Testdaten für Entwicklung und Tests.
+**Status:** geplant

@@ -3,7 +3,7 @@
 # Repository:     https://github.com/Jaegerfeld/situation-report
 # KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
 # Erstellt:       15.04.2026
-# Geändert:       25.04.2026  (workflow parameter added for CFD boundaries)
+# Geändert:       26.04.2026  (transitions parameter added for Process Flow metric)
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
@@ -58,6 +58,7 @@ def run_reports(
     issue_times: Path,
     cfd: Path | None = None,
     workflow: Path | None = None,
+    transitions: Path | None = None,
     metrics: list[str] | None = None,
     from_date: date | None = None,
     to_date: date | None = None,
@@ -86,6 +87,7 @@ def run_reports(
         cfd:                  Path to CFD.xlsx (optional, needed for CFD metric).
         workflow:             Path to the workflow .txt file (optional). When provided,
                               <First> and <Closed> markers define the CFD boundaries.
+        transitions:          Path to Transitions.xlsx (optional, needed for Process Flow metric).
         metrics:              List of metric IDs to run. None or empty = all metrics.
         from_date:            Filter: include only issues closed on or after this date.
         to_date:              Filter: include only issues closed on or before this date.
@@ -108,7 +110,7 @@ def run_reports(
         log:                  Callable for progress/warning output.
     """
     log(f"Loading data from {issue_times.name} ...")
-    data = load_report_data(issue_times, cfd, workflow)
+    data = load_report_data(issue_times, cfd, workflow, transitions)
     log(f"  {len(data.issues)} issues, {len(data.cfd)} CFD days, "
         f"{len(data.stages)} stages loaded.")
 
@@ -211,6 +213,9 @@ def main() -> None:
                         metavar="FILE",
                         help="Path to workflow .txt file — defines <First> and <Closed> "
                              "boundaries for the CFD In/Out trend lines")
+    parser.add_argument("--transitions", type=Path, default=None,
+                        metavar="FILE",
+                        help="Path to Transitions.xlsx — required for the Process Flow metric")
     parser.add_argument("--metrics", nargs="+", metavar="ID",
                         choices=available_ids, default=None,
                         help=f"Metrics to compute (default: all). "
@@ -266,6 +271,7 @@ def main() -> None:
         issue_times=args.issue_times,
         cfd=args.cfd,
         workflow=args.workflow,
+        transitions=args.transitions,
         metrics=args.metrics,
         from_date=args.from_date,
         to_date=args.to_date,

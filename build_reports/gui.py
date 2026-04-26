@@ -3,18 +3,19 @@
 # Repository:     https://github.com/Jaegerfeld/situation-report
 # KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
 # Erstellt:       16.04.2026
-# Geändert:       25.04.2026
+# Geändert:       26.04.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
 #   Grafische Benutzeroberfläche (tkinter) für build_reports. Ermöglicht die
-#   Auswahl von IssueTimes- und CFD-XLSX, optionale Filter (Datum, Projekte,
-#   Issuetypen, Ausschlüsse nach Status/Resolution), Metrik-Auswahl (Checkboxen)
-#   sowie CT-Methode (A/B). Sprache (DE/EN) und Terminologie (SAFe/Global) werden
-#   über ein Optionsmenü gewählt. Templates ermöglichen das Speichern und Laden
-#   der gesamten Konfiguration als JSON-Datei. Ausschluss-Defaults können separat
-#   unter ~/.situation_report/excl_defaults.json gespeichert werden. Die Berechnung
-#   läuft in einem separaten Thread, sodass die Oberfläche reaktionsfähig bleibt.
+#   Auswahl von IssueTimes-, CFD- und Transitions-XLSX, optionale Filter (Datum,
+#   Projekte, Issuetypen, Ausschlüsse nach Status/Resolution), Metrik-Auswahl
+#   (Checkboxen) sowie CT-Methode (A/B). Sprache (DE/EN) und Terminologie
+#   (SAFe/Global) werden über ein Optionsmenü gewählt. Templates ermöglichen das
+#   Speichern und Laden der gesamten Konfiguration als JSON-Datei. Ausschluss-
+#   Defaults können separat unter ~/.situation_report/excl_defaults.json
+#   gespeichert werden. Die Berechnung läuft in einem separaten Thread, sodass
+#   die Oberfläche reaktionsfähig bleibt.
 # =============================================================================
 
 from __future__ import annotations
@@ -104,6 +105,7 @@ _T: dict[str, dict[str, str]] = {
         "lbl_cfd":           "CFD (optional)",
         "lbl_workflow":      "Workflow (optional)",
         "lbl_pi_config":     "PI-Konfig (optional)",
+        "lbl_transitions":   "Transitions (optional)",
         "lbl_from":          "Von (YYYY-MM-DD)",
         "lbl_to":            "Bis (YYYY-MM-DD)",
         "lbl_projects":      "Projekte",
@@ -122,6 +124,7 @@ _T: dict[str, dict[str, str]] = {
         "dlg_cfd":           "CFD-Datei w\u00e4hlen",
         "dlg_workflow":      "Workflow-Datei w\u00e4hlen",
         "dlg_pi_config":     "PI-Konfigurationsdatei w\u00e4hlen",
+        "dlg_transitions":   "Transitions-Datei w\u00e4hlen",
         "dlg_pdf":           "PDF speichern unter",
         "dlg_pick_date":     "Datum w\u00e4hlen",
         "dlg_projects":      "Projekte w\u00e4hlen",
@@ -158,6 +161,7 @@ _T: dict[str, dict[str, str]] = {
         "tip_cfd":           "CFD.xlsx aus transform_data \u2014 optional, wird nur f\u00fcr die CFD-Metrik ben\u00f6tigt.",
         "tip_workflow":      "Workflow-Textdatei \u2014 definiert <First>- und <Closed>-Grenzen f\u00fcr die CFD In/Out-Trendlinien.",
         "tip_pi_config":     "JSON-Konfigdatei mit PI-Intervallen f\u00fcr Flow Velocity. Ohne Datei werden Quartale verwendet.",
+        "tip_transitions":   "Transitions.xlsx aus transform_data \u2014 enth\u00e4lt alle Statuswechsel je Issue. Wird nur f\u00fcr die Process-Flow-Metrik ben\u00f6tigt.",
         "tip_browse":        "Datei ausw\u00e4hlen \u2026",
         "tip_from":          "Nur Issues einbeziehen, die ab diesem Datum abgeschlossen wurden (inkl.).",
         "tip_to":            "Nur Issues einbeziehen, die bis zu diesem Datum abgeschlossen wurden (inkl.).",
@@ -177,6 +181,7 @@ _T: dict[str, dict[str, str]] = {
         "tip_metric_flow_load":         "Wie viele Issues befinden sich gleichzeitig in Bearbeitung?",
         "tip_metric_cfd":               "Kumulative Anzahl von Issues pro Stage \u00fcber die Zeit.",
         "tip_metric_flow_distribution": "Verteilung der Issues nach Typ oder Kategorie.",
+        "tip_metric_process_flow":      "Gerichteter Graph der Statusübergänge — zeigt häufige Pfade, Rückwärtsschritte und Self-Loops.",
         # Exclusions
         "sec_exclusions":    "Ausschlüsse",
         "lbl_excl_status":   "Status",
@@ -212,6 +217,7 @@ _T: dict[str, dict[str, str]] = {
         "lbl_cfd":           "CFD (optional)",
         "lbl_workflow":      "Workflow (optional)",
         "lbl_pi_config":     "PI Config (optional)",
+        "lbl_transitions":   "Transitions (optional)",
         "lbl_from":          "From (YYYY-MM-DD)",
         "lbl_to":            "To (YYYY-MM-DD)",
         "lbl_projects":      "Projects",
@@ -230,6 +236,7 @@ _T: dict[str, dict[str, str]] = {
         "dlg_cfd":           "Select CFD file",
         "dlg_workflow":      "Select workflow file",
         "dlg_pi_config":     "Select PI configuration file",
+        "dlg_transitions":   "Select Transitions file",
         "dlg_pdf":           "Save PDF as",
         "dlg_pick_date":     "Pick Date",
         "dlg_projects":      "Select Projects",
@@ -266,6 +273,7 @@ _T: dict[str, dict[str, str]] = {
         "tip_cfd":           "CFD.xlsx from transform_data \u2014 optional, only required for the CFD metric.",
         "tip_workflow":      "Workflow text file \u2014 defines <First> and <Closed> boundaries for the CFD In/Out trend lines.",
         "tip_pi_config":     "JSON config file defining PI intervals for Flow Velocity. Without a file, quarterly intervals are used.",
+        "tip_transitions":   "Transitions.xlsx from transform_data — contains all status transitions per issue. Only required for the Process Flow metric.",
         "tip_browse":        "Select file \u2026",
         "tip_from":          "Include only issues closed on or after this date (inclusive).",
         "tip_to":            "Include only issues closed on or before this date (inclusive).",
@@ -285,6 +293,7 @@ _T: dict[str, dict[str, str]] = {
         "tip_metric_flow_load":         "How many issues are simultaneously in progress?",
         "tip_metric_cfd":               "Cumulative count of issues per stage over time.",
         "tip_metric_flow_distribution": "Distribution of issues by type or category.",
+        "tip_metric_process_flow":      "Directed graph of status transitions — highlights frequent paths, backward steps, and self-loops.",
         # Exclusions
         "sec_exclusions":    "Exclusions",
         "lbl_excl_status":   "Status",
@@ -547,7 +556,7 @@ class _ToolTip:
 
 
 # Template version bump when the schema changes in a backward-incompatible way.
-_TEMPLATE_VERSION = 3
+_TEMPLATE_VERSION = 4
 
 
 def _build_template_dict(
@@ -563,6 +572,7 @@ def _build_template_dict(
     language: str,
     pi_config: str = "",
     workflow: str = "",
+    transitions: str = "",
     excluded_statuses: str = "",
     excluded_resolutions: str = "",
     exclude_zero_day: bool = False,
@@ -588,6 +598,7 @@ def _build_template_dict(
         language:             Language code (LANG_DE or LANG_EN).
         pi_config:            Absolute path string for PI config JSON (may be empty).
         workflow:             Absolute path string for workflow .txt file (may be empty).
+        transitions:          Absolute path string for Transitions.xlsx (may be empty).
         excluded_statuses:          Comma-separated Jira statuses to exclude (may be empty).
         excluded_resolutions:       Comma-separated resolutions to exclude (may be empty).
         exclude_zero_day:           True if zero-day issues should be excluded.
@@ -603,6 +614,7 @@ def _build_template_dict(
         "cfd": cfd,
         "workflow": workflow,
         "pi_config": pi_config,
+        "transitions": transitions,
         "from_date": from_date,
         "to_date": to_date,
         "projects": projects,
@@ -649,6 +661,7 @@ def _parse_template_dict(data: dict) -> dict:
         "cfd": str(data.get("cfd", "")),
         "workflow": str(data.get("workflow", "")),
         "pi_config": str(data.get("pi_config", "")),
+        "transitions": str(data.get("transitions", "")),
         "from_date": str(data.get("from_date", "")),
         "to_date": str(data.get("to_date", "")),
         "projects": str(data.get("projects", "")),
@@ -692,6 +705,7 @@ class BuildReportsApp(tk.Tk):
         self._cfd_var = tk.StringVar()
         self._workflow_var = tk.StringVar()
         self._pi_config_var = tk.StringVar()
+        self._transitions_var = tk.StringVar()
         _from_default, _to_default = _default_date_range()
         self._from_date_var = tk.StringVar(value=str(_from_default))
         self._to_date_var = tk.StringVar(value=str(_to_default))
@@ -859,6 +873,20 @@ class BuildReportsApp(tk.Tk):
         self._tips.append((_ToolTip(pi_entry, self._tr("tip_pi_config")), "tip_pi_config"))
 
         btn = ttk.Button(self, text=self._tr("btn_browse"), command=self._pick_pi_config)
+        btn.grid(row=row, column=2, **pad)
+        self._i18n.append((btn, "btn_browse"))
+        self._tips.append((_ToolTip(btn, self._tr("tip_browse")), "tip_browse"))
+        row += 1
+
+        lbl = tk.Label(self, text=self._tr("lbl_transitions"), anchor="w")
+        lbl.grid(row=row, column=0, sticky="w", **pad)
+        self._i18n.append((lbl, "lbl_transitions"))
+
+        tr_entry = tk.Entry(self, textvariable=self._transitions_var, state="readonly", width=50)
+        tr_entry.grid(row=row, column=1, sticky="ew", **pad)
+        self._tips.append((_ToolTip(tr_entry, self._tr("tip_transitions")), "tip_transitions"))
+
+        btn = ttk.Button(self, text=self._tr("btn_browse"), command=self._pick_transitions)
         btn.grid(row=row, column=2, **pad)
         self._i18n.append((btn, "btn_browse"))
         self._tips.append((_ToolTip(btn, self._tr("tip_browse")), "tip_browse"))
@@ -1143,6 +1171,7 @@ class BuildReportsApp(tk.Tk):
                 cfd=self._cfd_var.get(),
                 workflow=self._workflow_var.get(),
                 pi_config=self._pi_config_var.get(),
+                transitions=self._transitions_var.get(),
                 from_date=self._from_date_var.get(),
                 to_date=self._to_date_var.get(),
                 projects=self._projects_var.get(),
@@ -1191,6 +1220,7 @@ class BuildReportsApp(tk.Tk):
         self._cfd_var.set(state["cfd"])
         self._workflow_var.set(state["workflow"])
         self._pi_config_var.set(state["pi_config"])
+        self._transitions_var.set(state.get("transitions", ""))
         self._from_date_var.set(state["from_date"])
         self._to_date_var.set(state["to_date"])
         self._projects_var.set(state["projects"])
@@ -1208,7 +1238,7 @@ class BuildReportsApp(tk.Tk):
                 var.set(bool(state["metrics"][mid]))
 
         # Warn if stored file paths have gone missing
-        for key in ("issue_times", "cfd", "workflow", "pi_config"):
+        for key in ("issue_times", "cfd", "workflow", "pi_config", "transitions"):
             p = state[key]
             if p and not Path(p).is_file():
                 self._log(self._tr("err_not_found").format(p))
@@ -1307,6 +1337,15 @@ class BuildReportsApp(tk.Tk):
         )
         if path:
             self._pi_config_var.set(path)
+
+    def _pick_transitions(self) -> None:
+        """Open a file dialog to select a Transitions.xlsx file for the Process Flow metric."""
+        path = filedialog.askopenfilename(
+            title=self._tr("dlg_transitions"),
+            filetypes=[("Excel-Dateien", "*.xlsx"), ("Alle Dateien", "*.*")],
+        )
+        if path:
+            self._transitions_var.set(path)
 
     def _load_filter_options_async(self, path: Path) -> None:
         """
@@ -1515,6 +1554,9 @@ class BuildReportsApp(tk.Tk):
         pi_config_str = self._pi_config_var.get().strip()
         pi_config = Path(pi_config_str) if pi_config_str else None
 
+        transitions_str = self._transitions_var.get().strip()
+        transitions = Path(transitions_str) if transitions_str else None
+
         try:
             from_date = _parse_date_safe(self._from_date_var.get())
         except ValueError:
@@ -1551,6 +1593,7 @@ class BuildReportsApp(tk.Tk):
             cfd=cfd,
             workflow=workflow,
             pi_config=pi_config,
+            transitions=transitions,
             from_date=from_date,
             to_date=to_date,
             projects=projects,
@@ -1593,7 +1636,10 @@ class BuildReportsApp(tk.Tk):
             from .metrics import get_metric
 
             try:
-                data = load_report_data(inputs["issue_times"], inputs["cfd"], inputs.get("workflow"))
+                data = load_report_data(
+                    inputs["issue_times"], inputs["cfd"],
+                    inputs.get("workflow"), inputs.get("transitions"),
+                )
                 cfg = FilterConfig(
                     from_date=inputs["from_date"],
                     to_date=inputs["to_date"],
@@ -1699,6 +1745,7 @@ class BuildReportsApp(tk.Tk):
                     issue_times=inputs["issue_times"],
                     cfd=inputs["cfd"],
                     workflow=inputs.get("workflow"),
+                    transitions=inputs.get("transitions"),
                     metrics=inputs["metrics"],
                     from_date=inputs["from_date"],
                     to_date=inputs["to_date"],
