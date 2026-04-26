@@ -11,12 +11,20 @@ docs = ["mkdocs-material>=9.5", "mkdocs-static-i18n>=1.3", "babel>=2.14"]
 # pywebview requires .NET SDK on Windows for pythonnet; install manually if needed
 gui = ["pywebview>=4.4"]
 build = ["pyinstaller>=6.0"]
+dev = ["pytest-cov>=5.0", "genbadge[coverage]>=1.1"]
 
 [tool.setuptools.packages.find]
 include = ["get_data*", "transform_data*", "build_reports*", "testdata_generator*", "simulate*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+
+[tool.coverage.run]
+source = ["build_reports", "transform_data", "get_data", "simulate", "testdata_generator"]
+omit = ["*/tests/*", "*/docs/*", "*_gui.pyw", "*_gui.py"]
+
+[tool.coverage.report]
+exclude_lines = ["pragma: no cover", "if __name__ == .__main__.:"]
 
 [tool.ruff]
 line-length = 100
