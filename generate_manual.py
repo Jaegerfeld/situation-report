@@ -37,10 +37,11 @@ from reportlab.platypus.tableofcontents import TableOfContents
 # ---------------------------------------------------------------------------
 # Test data paths (for chart generation)
 # ---------------------------------------------------------------------------
-_TESTDATA      = Path(__file__).parent.parent / "tests" / "testdata" / "ART_A"
-_ISSUE_TIMES   = _TESTDATA / "ART_A_IssueTimes.xlsx"
-_CFD_FILE      = _TESTDATA / "ART_A_CFD.xlsx"
-_WORKFLOW_FILE = _TESTDATA / "workflow_ART_A.txt"
+_TESTDATA         = Path(__file__).parent.parent / "tests" / "testdata" / "ART_A"
+_ISSUE_TIMES      = _TESTDATA / "ART_A_IssueTimes.xlsx"
+_CFD_FILE         = _TESTDATA / "ART_A_CFD.xlsx"
+_WORKFLOW_FILE    = _TESTDATA / "workflow_ART_A.txt"
+_TRANSITIONS_FILE = _TESTDATA / "ART_A_Transitions.xlsx"
 
 # ---------------------------------------------------------------------------
 # Colors
@@ -86,10 +87,11 @@ def _generate_chart_images(out_dir: Path) -> dict[str, Path]:
     from build_reports.metrics.flow_load import FlowLoadMetric
     from build_reports.metrics.flow_time import FlowTimeMetric
     from build_reports.metrics.flow_velocity import FlowVelocityMetric
+    from build_reports.metrics.process_flow import ProcessFlowMetric
     from build_reports.terminology import SAFE
 
     out_dir.mkdir(parents=True, exist_ok=True)
-    data = load_report_data(_ISSUE_TIMES, _CFD_FILE, _WORKFLOW_FILE)
+    data = load_report_data(_ISSUE_TIMES, _CFD_FILE, _WORKFLOW_FILE, _TRANSITIONS_FILE)
 
     closed = [i.closed_date for i in data.issues if i.closed_date]
     to_dt  = max(closed).date() if closed else date.today()
@@ -135,6 +137,13 @@ def _generate_chart_images(out_dir: Path) -> dict[str, Path]:
     r = m.compute(data, SAFE)
     figs = m.render(r, SAFE)
     imgs["flow_dist"] = save(figs[0], "flow_dist", w=1600, h=560)
+
+    # Process Flow (uses full dataset with transitions)
+    m = ProcessFlowMetric()
+    r = m.compute(data, SAFE)
+    figs = m.render(r, SAFE)
+    if figs:
+        imgs["process_flow"] = save(figs[0], "process_flow", w=1400, h=700)
 
     return imgs
 
@@ -405,7 +414,8 @@ def content_de(st, images: dict[str, Path] | None = None):
         "- <b>Flow Velocity / Throughput</b>: Wie viele Issues schliesst das Team pro Woche ab?<br/>"
         "- <b>Flow Load / WIP</b>: Wie viele Issues sind gleichzeitig in Bearbeitung?<br/>"
         "- <b>Cumulative Flow Diagram</b>: Wie entwickelt sich der Bestand ueber die Zeit?<br/>"
-        "- <b>Flow Distribution</b>: Wie verteilen sich die Issues auf Typen, Stages und Durchlaufzeiten?", st))
+        "- <b>Flow Distribution</b>: Wie verteilen sich die Issues auf Typen, Stages und Durchlaufzeiten?<br/>"
+        "- <b>Process Flow</b>: Welche Statuspfade nehmen Issues? Wo treten Rueckschritte und Schleifen auf?", st))
 
     # =========================================================================
     # 2. Voraussetzungen
@@ -507,6 +517,27 @@ def content_de(st, images: dict[str, Path] | None = None):
         "<b>Hinweis:</b> Datumsangaben immer im Format <b>YYYY-MM-DD</b> (Jahr-Monat-Tag). "
         "Beispiel: 6. Januar 2025 = 2025-01-06.", st, "#fff8e1"))
 
+    story.append(SP(8))
+    story.append(H2("3.4  Transitions.xlsx  (optional, fuer Process Flow)", st))
+    story.append(P(
+        "Diese Datei enthaelt alle Statusuebergaenge je Issue in chronologischer "
+        "Reihenfolge. Sie wird vom Modul <b>transform_data</b> erzeugt und ist "
+        "ausschliesslich fuer die <b>Process-Flow-Metrik</b> erforderlich. "
+        "Alle anderen Metriken koennen ohne diese Datei berechnet werden.", st))
+    story.append(SP(4))
+    story.append(tbl(
+        ["Spalte", "Bedeutung"],
+        [
+            ["Key",        "Issue-Schluessel (z.B. ARTA-123)"],
+            ["Transition", "Ziel-Status nach dem Uebergang (z.B. 'In Analysis')"],
+            ["Timestamp",  "Zeitstempel des Uebergangs (DD.MM.YYYY HH:MM:SS)"],
+        ],
+        col_widths=[4*cm, 12*cm]))
+    story.append(SP(4))
+    story.append(box(
+        "<b>Hinweis:</b> Transitions.xlsx und IssueTimes.xlsx muessen aus demselben "
+        "transform_data-Lauf stammen, damit die Issue-Schluessel uebereinstimmen.", st, "#fff8e1"))
+
     # =========================================================================
     # 4. GUI
     # =========================================================================
@@ -535,6 +566,10 @@ def content_de(st, images: dict[str, Path] | None = None):
         "<b>PI-Konfig (optional)</b> - Waehlen Sie Ihre JSON-Konfigurationsdatei fuer "
         "eigene PI-Intervalle. Lassen Sie das Feld leer, um Kalenderquartale zu "
         "verwenden.", st))
+    story.append(BL(
+        "<b>Transitions (optional)</b> - Waehlen Sie die <b>Transitions.xlsx</b>-Datei "
+        "aus transform_data. Sie wird nur benoetigt, wenn die Process-Flow-Metrik "
+        "berechnet werden soll.", st))
     story.append(SP(4))
     story.append(box(
         "<b>Tipp:</b> Beim Hover ueber ein Eingabefeld erscheint ein Tooltip, der "
@@ -835,6 +870,40 @@ def content_de(st, images: dict[str, Path] | None = None):
         "Abgeschlossene Issues werden einbezogen, ihre terminale Done-Stage jedoch "
         "ausgeblendet, damit tatsaechliche Bearbeitungsschwerpunkte sichtbar bleiben.", st))
 
+    # --- 5.6 Process Flow ----------------------------------------------------
+    story.append(H2("5.6  Process Flow", st))
+    story.append(P(
+        "<b>Was wird gemessen?</b> Alle Statusuebergaenge der Issues werden als "
+        "gerichteter Graph visualisiert: Knoten = Status, Pfeile = Uebergaenge. "
+        "Die Pfeilstaerke ist proportional zur Haeufigkeit des Uebergangs. "
+        "So sieht man auf einen Blick, welche Wege Issues durch den Workflow nehmen, "
+        "wie haeufig Rueckschritte vorkommen und wo sich Issues 'im Kreis drehen'.", st))
+    story.append(SP(4))
+    story.append(P(
+        "Fuer diese Metrik wird die optionale <b>Transitions.xlsx</b>-Datei benoetigt "
+        "(aus transform_data). Ohne diese Datei erscheint eine Warnung im Log.", st))
+    story.append(SP(4))
+    story.append(tbl(
+        ["Element", "Bedeutung"],
+        [
+            ["Blauer Pfeil",   "Vorwaertsuebergang -- Issue bewegt sich im Workflow vorwaerts."],
+            ["Roter Pfeil",    "Rueckwaertsuebergang (Rework) -- Issue geht in eine fruehere Stage zurueck."],
+            ["Oranger Bogen",  "Self-Loop -- Issue verbleibt im selben Status (z.B. Stage erneut durchlaufen)."],
+            ["Pfeilstaerke",   "Je dicker der Pfeil, desto haeufiger dieser Uebergang."],
+            ["Zahl am Pfeil",  "Absolute Anzahl dieses Uebergangs ueber alle Issues."],
+            ["Knoten",         "Dunkelblauer Kreis mit Status-Namen. Anordnung: Workflow-Stages zuerst (im Uhrzeigersinn), dann weitere Status alphabetisch."],
+        ],
+        col_widths=[4*cm, 12*cm]))
+    add_img("process_flow",
+            "Abb. 9: Process Flow -- gerichteter Graph aller Statusuebergaenge mit Kantenstaerke und Farbkodierung.")
+    story.append(SP(4))
+    story.append(box(
+        "<b>Interpretation:</b> Viele rote Pfeile bedeuten haeufige Rueckschritte -- "
+        "ein Hinweis auf Qualitaetsprobleme oder unklare Anforderungen. "
+        "Dicke blaue Pfeile zeigen den Haupt-Workflow-Pfad. "
+        "Selbstschleifen (orange) entstehen z.B. wenn ein Issue mehrfach in denselben "
+        "Status gesetzt wird.", st))
+
     # =========================================================================
     # 6. PDF-Export
     # =========================================================================
@@ -928,6 +997,13 @@ def content_de(st, images: dict[str, Path] | None = None):
             "'CFD (optional)'."
         ),
         (
+            "Der Process Flow zeigt 'No transition data available'.",
+            "Die Process-Flow-Metrik benoetigt eine Transitions.xlsx-Datei aus "
+            "transform_data. Laden Sie diese im Feld 'Transitions (optional)'. "
+            "Stellen Sie sicher, dass die Datei aus demselben Exportlauf wie "
+            "die IssueTimes.xlsx stammt."
+        ),
+        (
             "Was ist der Unterschied zwischen PI-Intervallen und Quartalen?",
             "Standardmaessig werden Kalenderquartale (Q1-Q4) als Zeitabschnitte "
             "verwendet. Mit einer PI-Konfigurationsdatei koennen Sie eigene Zeitintervalle "
@@ -983,11 +1059,13 @@ def content_de(st, images: dict[str, Path] | None = None):
             ["LOESS",          "Statistisches Glaettungsverfahren fuer Trendlinien."],
             ["P85 / P95",      "85. bzw. 95. Perzentil der Durchlaufzeiten."],
             ["PI",             "Program Increment -- ein fester Planungs- und Lieferzeitraum."],
+            ["Process Flow",   "Gerichteter Graph aller Statusuebergaenge. Zeigt Hauptpfade, Rueckschritte und Schleifen im Workflow."],
             ["Resolution",     "Abschlussart eines Issues, z.B. 'Done', 'Won't Do', 'Duplicate'."],
             ["SAFe",           "Scaled Agile Framework -- ein Framework fuer agile Skalierung."],
             ["Stage",          "Ein Schritt im Workflow, z.B. Analyse, Implementierung, Done."],
             ["Template",       "Gespeicherte Konfigurationsdatei mit allen Einstellungen."],
             ["Throughput",     "Andere Bezeichnung fuer Flow Velocity (Global-Terminologie)."],
+            ["Transitions",    "Aufzeichnung jedes Statuswechsels je Issue. Wird von transform_data als Transitions.xlsx exportiert."],
             ["WIP",            "Work in Progress -- Issues, die aktuell in Bearbeitung sind."],
             ["Zero-Day Issue", "Issue, dessen Durchlaufzeit (First bis Closed Date) so kurz "
                                "ist, dass es keine echte Bearbeitungszeit repraesentiert. "
@@ -1058,7 +1136,8 @@ def content_en(st, images: dict[str, Path] | None = None):
         "- <b>Flow Velocity / Throughput</b>: How many issues does the team close per week?<br/>"
         "- <b>Flow Load / WIP</b>: How many issues are in progress simultaneously?<br/>"
         "- <b>Cumulative Flow Diagram</b>: How does the inventory develop over time?<br/>"
-        "- <b>Flow Distribution</b>: How are issues distributed across types, stages and cycle times?", st))
+        "- <b>Flow Distribution</b>: How are issues distributed across types, stages and cycle times?<br/>"
+        "- <b>Process Flow</b>: Which status paths do issues take? Where do rework and loops occur?", st))
 
     # =========================================================================
     # 2. Prerequisites
@@ -1158,6 +1237,27 @@ def content_en(st, images: dict[str, Path] | None = None):
         "<b>Note:</b> Always use date format <b>YYYY-MM-DD</b> (year-month-day). "
         "Example: January 6, 2025 = 2025-01-06.", st, "#fff8e1"))
 
+    story.append(SP(8))
+    story.append(H2("3.4  Transitions.xlsx  (optional, for Process Flow)", st))
+    story.append(P(
+        "This file contains all status transitions per issue in chronological order. "
+        "It is produced by the <b>transform_data</b> module and is required exclusively "
+        "for the <b>Process Flow metric</b>. All other metrics can be calculated without "
+        "this file.", st))
+    story.append(SP(4))
+    story.append(tbl(
+        ["Column", "Meaning"],
+        [
+            ["Key",        "Issue key (e.g. ARTA-123)"],
+            ["Transition", "Target status after the transition (e.g. 'In Analysis')"],
+            ["Timestamp",  "Timestamp of the transition (DD.MM.YYYY HH:MM:SS)"],
+        ],
+        col_widths=[4*cm, 12*cm]))
+    story.append(SP(4))
+    story.append(box(
+        "<b>Note:</b> Transitions.xlsx and IssueTimes.xlsx must come from the same "
+        "transform_data export run so that issue keys match.", st, "#fff8e1"))
+
     # =========================================================================
     # 4. GUI
     # =========================================================================
@@ -1184,6 +1284,10 @@ def content_en(st, images: dict[str, Path] | None = None):
     story.append(BL(
         "<b>PI config (optional)</b> — Select your JSON configuration file for custom "
         "PI intervals. Leave the field empty to use calendar quarters.", st))
+    story.append(BL(
+        "<b>Transitions (optional)</b> — Select the <b>Transitions.xlsx</b> file from "
+        "transform_data. Only required if the Process Flow metric is to be calculated.",
+        st))
     story.append(SP(4))
     story.append(box(
         "<b>Tip:</b> Hovering over an input field shows a tooltip explaining what the "
@@ -1477,6 +1581,40 @@ def content_en(st, images: dict[str, Path] | None = None):
         "the workflow. Closed issues are included, but their terminal Done stage is "
         "hidden, so actual processing bottlenecks remain visible.", st))
 
+    # --- 5.6 Process Flow ----------------------------------------------------
+    story.append(H2("5.6  Process Flow", st))
+    story.append(P(
+        "<b>What is measured?</b> All status transitions of issues are visualised as a "
+        "directed graph: nodes = statuses, arrows = transitions. Arrow thickness is "
+        "proportional to the frequency of the transition. This makes it immediately "
+        "clear which paths issues take through the workflow, how often rework occurs, "
+        "and where issues get stuck in loops.", st))
+    story.append(SP(4))
+    story.append(P(
+        "This metric requires the optional <b>Transitions.xlsx</b> file (from "
+        "transform_data). Without this file a warning appears in the log.", st))
+    story.append(SP(4))
+    story.append(tbl(
+        ["Element", "Meaning"],
+        [
+            ["Blue arrow",    "Forward transition — issue moves forward in the workflow."],
+            ["Red arrow",     "Backward transition (rework) — issue returns to an earlier stage."],
+            ["Orange arc",    "Self-loop — issue stays in the same status (e.g. stage traversed again)."],
+            ["Arrow width",   "The thicker the arrow, the more frequent this transition."],
+            ["Number on arrow", "Absolute count of this transition across all issues."],
+            ["Node",          "Dark blue circle with status name. Order: workflow stages first "
+                              "(clockwise), then additional statuses alphabetically."],
+        ],
+        col_widths=[4*cm, 12*cm]))
+    add_img("process_flow",
+            "Fig. 9: Process Flow — directed graph of all status transitions with edge width and colour coding.")
+    story.append(SP(4))
+    story.append(box(
+        "<b>Interpretation:</b> Many red arrows mean frequent rework — a sign of quality "
+        "issues or unclear requirements. Thick blue arrows show the main workflow path. "
+        "Self-loops (orange) occur when an issue is set to the same status multiple "
+        "times.", st))
+
     # =========================================================================
     # 6. PDF Export
     # =========================================================================
@@ -1568,6 +1706,12 @@ def content_en(st, images: dict[str, Path] | None = None):
             "field."
         ),
         (
+            "Process Flow shows 'No transition data available'.",
+            "The Process Flow metric requires a Transitions.xlsx file from transform_data. "
+            "Load it in the 'Transitions (optional)' field. Make sure the file comes from "
+            "the same export run as the IssueTimes.xlsx."
+        ),
+        (
             "What is the difference between PI intervals and quarters?",
             "By default, calendar quarters (Q1-Q4) are used as time intervals. With a "
             "PI configuration file you can define your own intervals that match your "
@@ -1622,11 +1766,13 @@ def content_en(st, images: dict[str, Path] | None = None):
             ["LOESS",          "Statistical smoothing method for trend lines."],
             ["P85 / P95",      "85th / 95th percentile of cycle times."],
             ["PI",             "Program Increment — a fixed planning and delivery period."],
+            ["Process Flow",   "Directed graph of all status transitions. Shows main paths, rework, and loops in the workflow."],
             ["Resolution",     "Resolution type of an issue, e.g. 'Done', 'Won't Do', 'Duplicate'."],
             ["SAFe",           "Scaled Agile Framework — a framework for agile scaling."],
             ["Stage",          "A step in the workflow, e.g. Analysis, Implementation, Done."],
             ["Template",       "Saved configuration file with all settings."],
             ["Throughput",     "Alternative term for Flow Velocity (Global terminology)."],
+            ["Transitions",    "Record of every status change per issue. Exported by transform_data as Transitions.xlsx."],
             ["WIP",            "Work in Progress — issues that are currently being worked on."],
             ["Zero-day issue", "An issue whose cycle time (First to Closed Date) is so short "
                                "that it does not represent real processing time. Usually caused "

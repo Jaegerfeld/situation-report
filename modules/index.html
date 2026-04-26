@@ -738,17 +738,42 @@
 
 
 <h1 id="module">Module<a class="headerlink" href="#module" title="Permanent link">&para;</a></h1>
-<p>SituationReport ist als Monorepo aufgebaut. Jedes Modul ist ein eigenständiges Python-Paket im Stammverzeichnis.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>situation-report/
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>├── get_data/
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>├── transform_data/
-<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>├── build_reports/
-<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>├── testdata_generator/
-<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>└── simulate/
-</code></pre></div>
-<p>Die Module sind unabhängig voneinander nutzbar. Der typische Datenfluss ist:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>get_data  →  transform_data  →  build_reports
-</code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Modul</th>
+<th>Beschreibung</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="transform_data/">transform_data</a></td>
+<td>Transformation von Jira-Rohdaten in Stage-Time-Metriken</td>
+<td>verfügbar</td>
+</tr>
+<tr>
+<td><a href="get_data/">get_data</a></td>
+<td>Datenabruf aus Jira via REST API</td>
+<td>geplant</td>
+</tr>
+<tr>
+<td><a href="build_reports/">build_reports</a></td>
+<td>Erzeugung von Metriken und Reports</td>
+<td>verfügbar</td>
+</tr>
+<tr>
+<td><a href="testdata_generator/">testdata_generator</a></td>
+<td>Generierung synthetischer Testdaten</td>
+<td>geplant</td>
+</tr>
+<tr>
+<td><a href="simulate/">simulate</a></td>
+<td>Simulationen und Vorhersagemodelle</td>
+<td>geplant</td>
+</tr>
+</tbody>
+</table>
 
 
 
