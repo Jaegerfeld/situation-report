@@ -372,18 +372,23 @@ def _add_self_loop(
     edge: _Edge,
     width: float,
     color: str,
+    *,
+    label_text: str | None = None,
+    hover_text: str | None = None,
 ) -> None:
     """
     Draw a small circular arc as a self-loop on a node, positioned outward
     from the graph center.
 
     Args:
-        fig:   Plotly Figure to add traces/annotations to.
-        node:  Node label (self-loop source = target).
-        pos:   Dict of node positions.
-        edge:  The self-loop _Edge.
-        width: Line width.
-        color: Line color.
+        fig:        Plotly Figure to add traces/annotations to.
+        node:       Node label (self-loop source = target).
+        pos:        Dict of node positions.
+        edge:       The self-loop _Edge.
+        width:      Line width.
+        color:      Line color.
+        label_text: Override the default count label (optional).
+        hover_text: Override the default hover template (optional).
     """
     nx, ny = pos[node]
     length = math.hypot(nx, ny)
@@ -399,14 +404,15 @@ def _add_self_loop(
     lx = [cx + _LOOP_RADIUS * math.cos(a) for a in angles]
     ly = [cy + _LOOP_RADIUS * math.sin(a) for a in angles]
 
+    default_hover = (
+        f"<b>{node} → {node}</b><br>"
+        f"Count: {edge.count} ({edge.relative:.1%})<extra></extra>"
+    )
     fig.add_trace(go.Scatter(
         x=lx, y=ly,
         mode="lines",
         line=dict(width=width, color=color),
-        hovertemplate=(
-            f"<b>{node} → {node}</b><br>"
-            f"Count: {edge.count} ({edge.relative:.1%})<extra></extra>"
-        ),
+        hovertemplate=hover_text if hover_text is not None else default_hover,
         showlegend=False,
     ))
 
@@ -415,7 +421,7 @@ def _add_self_loop(
     ly_mid = cy + _LOOP_RADIUS * math.sin(math.pi / 4) + dy * 0.06
     fig.add_annotation(
         x=lx_mid, y=ly_mid,
-        text=str(edge.count),
+        text=label_text if label_text is not None else str(edge.count),
         showarrow=False,
         font=dict(size=9, color="#333"),
         bgcolor="rgba(255,255,255,0.8)",
@@ -430,6 +436,9 @@ def _add_edge(
     bidirectional: set[tuple[str, str]],
     width: float,
     color: str,
+    *,
+    label_text: str | None = None,
+    hover_text: str | None = None,
 ) -> None:
     """
     Draw a directed edge between two nodes.
@@ -445,6 +454,8 @@ def _add_edge(
         bidirectional: Set of (u, v) pairs that also have a (v, u) counterpart.
         width:         Line width.
         color:         Line color.
+        label_text:    Override the default count label (optional).
+        hover_text:    Override the default hover template (optional).
     """
     x1, y1 = pos[edge.source]
     x2, y2 = pos[edge.target]
@@ -484,14 +495,15 @@ def _add_edge(
 
     bx, by = _bezier_points((sx1, sy1), cp, (sx2, sy2))
 
+    default_hover = (
+        f"<b>{edge.source} → {edge.target}</b><br>"
+        f"Count: {edge.count} ({edge.relative:.1%})<extra></extra>"
+    )
     fig.add_trace(go.Scatter(
         x=bx, y=by,
         mode="lines",
         line=dict(width=width, color=color),
-        hovertemplate=(
-            f"<b>{edge.source} → {edge.target}</b><br>"
-            f"Count: {edge.count} ({edge.relative:.1%})<extra></extra>"
-        ),
+        hovertemplate=hover_text if hover_text is not None else default_hover,
         showlegend=False,
     ))
 
@@ -508,12 +520,12 @@ def _add_edge(
         arrowcolor=color,
     )
 
-    # Count label at curve midpoint, offset slightly outward
+    # Label at curve midpoint, offset slightly outward
     label_x = bx[n // 2] + offset_sign * px * 0.06
     label_y = by[n // 2] + offset_sign * py * 0.06
     fig.add_annotation(
         x=label_x, y=label_y,
-        text=str(edge.count),
+        text=label_text if label_text is not None else str(edge.count),
         showarrow=False,
         font=dict(size=9, color="#333"),
         bgcolor="rgba(255,255,255,0.8)",
@@ -970,7 +982,14 @@ class ProcessFlowTimeMetric(MetricPlugin):
         label = term(PROCESS_FLOW_TIME, terminology)
 
         pos = _circular_positions(fd.nodes)
-        max_count = max(e.count for e in fd.edges) if fd.edges else 1
+
+        # Edge width and label are based on avg dwell time in the source status
+        avgs_with_data = [
+            fd.stats_by_node[n].avg_minutes
+            for n in fd.nodes
+            if n in fd.stats_by_node
+        ]
+        max_minutes = max(avgs_with_data) if avgs_with_data else 1.0
 
         bidirectional: set[tuple[str, str]] = {
             (e.source, e.target)
@@ -986,12 +1005,31 @@ class ProcessFlowTimeMetric(MetricPlugin):
         fig = go.Figure()
 
         for edge in fd.edges:
-            width = _edge_width(edge, max_count)
+            src_stats = fd.stats_by_node.get(edge.source)
+            if src_stats is not None and max_minutes > 0:
+                width = _MIN_EDGE_WIDTH + (
+                    src_stats.avg_minutes / max_minutes
+                ) * (_MAX_EDGE_WIDTH - _MIN_EDGE_WIDTH)
+                lbl = f"Ø {_format_duration(src_stats.avg_minutes)}"
+            else:
+                width = _MIN_EDGE_WIDTH
+                lbl = "—"
+
+            hover = (
+                f"<b>{edge.source} → {edge.target}</b><br>"
+                f"Ø {lbl} in {edge.source}<extra></extra>"
+            )
             color = _edge_color(edge, fd.workflow_stages)
             if edge.is_self_loop:
-                _add_self_loop(fig, edge.source, pos, edge, width, color)
+                _add_self_loop(
+                    fig, edge.source, pos, edge, width, color,
+                    label_text=lbl, hover_text=hover,
+                )
             else:
-                _add_edge(fig, edge, pos, bidirectional, width, color)
+                _add_edge(
+                    fig, edge, pos, bidirectional, width, color,
+                    label_text=lbl, hover_text=hover,
+                )
 
         _add_nodes_time(fig, fd.nodes, pos, fd.stats_by_node)
 
