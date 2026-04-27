@@ -66,3 +66,4 @@ nav:
     - simulate: modules/simulate.md
   - Architektur: architecture.md
   - Entwicklung: development.md
+  - Releases: releases.md

@@ -1,9 +1,9 @@
-name: Build & Release
+name: Dev Build
 
 on:
   push:
-    tags:
-      - 'v*'
+    branches:
+      - main
 
 permissions:
   contents: write
@@ -67,28 +67,43 @@ jobs:
           path: ${{ matrix.zip_file }}
 
   release:
-    name: Create GitHub Release
+    name: Update Dev Release
     needs: build
     runs-on: ubuntu-latest
 
     steps:
+      - uses: actions/checkout@v4
+
+      - name: Set build metadata
+        run: |
+          echo "SHORT_SHA=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
+          echo "BUILD_DATE=$(date -u +'%Y-%m-%d')" >> $GITHUB_ENV
+
       - uses: actions/download-artifact@v4
         with:
           merge-multiple: true
 
-      - name: Publish GitHub Release
+      - name: Delete existing dev-latest release and tag
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release delete dev-latest --yes --cleanup-tag 2>/dev/null || true
+
+      - name: Publish Dev Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ github.ref_name }}
-          name: ${{ github.ref_name }}
-          prerelease: false
+          tag_name: dev-latest
+          name: Dev Build – ${{ env.BUILD_DATE }} (${{ env.SHORT_SHA }})
+          prerelease: true
           draft: false
           files: |
             SituationReport-Windows.zip
             SituationReport-macOS-ARM.zip
             SituationReport-Linux.zip
           body: |
-            ## SituationReport ${{ github.ref_name }}
+            ## Dev Build – ${{ env.BUILD_DATE }} (`${{ env.SHORT_SHA }}`)
+
+            > **Vorschau-Version** – aktueller Entwicklungsstand von `main`.
+            > Für produktiven Einsatz stabile Releases verwenden.
 
             Eigenständige GUI-App. **Kein Python oder sonstige Installation notwendig.**
 
@@ -102,26 +117,10 @@ jobs:
             ### macOS (Apple Silicon)
 
             1. `SituationReport-macOS-ARM.zip` herunterladen und entpacken
-            2. `SituationReport.app` in den Ordner *Programme* ziehen (optional)
-            3. Beim **ersten Start**: Rechtsklick → *Öffnen* → *Öffnen* bestätigen
-               *(macOS Gatekeeper-Hinweis, da die App nicht signiert ist)*
+            2. Beim **ersten Start**: Rechtsklick → *Öffnen* → *Öffnen* bestätigen
 
             ### Linux (x64)
 
             1. `SituationReport-Linux.zip` herunterladen und entpacken
             2. Im entpackten Ordner `./SituationReport` ausführen
             3. Bei Bedarf einmalig: `chmod +x SituationReport`
-
-            ---
-
-            ### Voraussetzungen
-
-            Keine – alle Abhängigkeiten (inkl. Chrome für PDF-Export) sind enthalten.
-
-            ### Datenformat
-
-            | Datei | Bedeutung |
-            |-------|-----------|
-            | `*_IssueTimes.xlsx` | Pflicht – Durchlaufzeiten pro Issue und Stage |
-            | `*_CFD.xlsx` | Optional – tägliche Stage-Zählungen für CFD |
-            | `*_Transitions.xlsx` | Optional – Transitionen für Process-Flow-Ansicht |
