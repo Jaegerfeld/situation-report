@@ -21,7 +21,8 @@ Berechnet Flow-Metriken aus den von `transform_data` erzeugten XLSX-Dateien und 
 | Flow Load | WIP | Aktuell in Bearbeitung befindliche Issues nach Stage | IssueTimes.xlsx |
 | Cumulative Flow Diagram | Cumulative Flow Diagram | Kumulierte Stage-Eintritte über die Zeit | CFD.xlsx |
 | Flow Distribution | Flow Distribution | Verteilung nach Typ, Stage-Dominanz und Ø Durchlaufzeit | IssueTimes.xlsx |
-| Process Flow | Process Flow | Gerichteter Graph aller Statusübergänge | Transitions.xlsx |
+| Process Flow: Transitions | Process Flow: Transitions | Gerichteter Graph aller Statusübergänge (Anzahl) | Transitions.xlsx |
+| Process Flow: Time | Process Flow: Time | Gerichteter Graph mit Knotenbreite und Kantenbreite nach medianer Verweildauer | Transitions.xlsx |
 
 ## Eingabedateien
 
@@ -67,7 +68,7 @@ figs = plugin.render(result, "SAFe")
 ```bash
 python -m build_reports IssueTimes.xlsx --pdf report.pdf
 python -m build_reports IssueTimes.xlsx --cfd CFD.xlsx --transitions Transitions.xlsx --browser
-python -m build_reports IssueTimes.xlsx --metrics flow_time process_flow --from-date 2025-01-01
+python -m build_reports IssueTimes.xlsx --metrics flow_time process_flow process_flow_time --from-date 2025-01-01
 ```
 
 ## Templates
