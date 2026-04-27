@@ -673,15 +673,18 @@ def content_de(st, images: dict[str, Path] | None = None):
 
     story.append(H2("4.6  Sprache und Terminologie", st))
     story.append(P(
-        "Im Menue <b>Optionen</b> koennen Sie Sprache und Terminologie umschalten:", st))
+        "Die Sprache laesst sich auf zwei Wegen umschalten:", st))
     story.append(BL(
-        "<b>Sprache</b> - Wechselt zwischen Deutsch und Englisch. Alle Beschriftungen, "
-        "Tooltips und Menupunkte werden sofort aktualisiert.", st))
+        "<b>Flaggen-Schaltflaeche</b> oben rechts im Fenster - zeigt die aktuelle "
+        "Sprache als Landesflagge. Ein Klick wechselt sofort zwischen Deutsch und "
+        "Englisch.", st))
     story.append(BL(
-        "<b>Terminologie</b> - Wechselt zwischen <b>SAFe</b> und <b>Global</b>. "
-        "Im SAFe-Modus heissen die Metriken z.B. 'Flow Time', im Global-Modus "
-        "'Cycle Time'. Diese Umstellung betrifft nur die Bezeichnungen, nicht die "
-        "Berechnungen.", st))
+        "<b>Menue Optionen → Sprache</b> - alternativ ueber das Menue.", st))
+    story.append(P(
+        "Ueber <b>Optionen → Terminologie</b> laesst sich ausserdem zwischen "
+        "<b>SAFe</b> und <b>Global</b> umschalten. Im SAFe-Modus heissen die Metriken "
+        "z.B. 'Flow Time', im Global-Modus 'Cycle Time'. Diese Umstellung betrifft "
+        "nur die Bezeichnungen, nicht die Berechnungen.", st))
 
     # =========================================================================
     # 5. Metriken
@@ -1423,14 +1426,18 @@ def content_en(st, images: dict[str, Path] | None = None):
 
     story.append(H2("4.6  Language and terminology", st))
     story.append(P(
-        "In the <b>Options</b> menu you can switch language and terminology:", st))
+        "The language can be switched in two ways:", st))
     story.append(BL(
-        "<b>Language</b> — Switch between German and English. All labels, tooltips "
-        "and menu items are updated immediately.", st))
+        "<b>Flag button</b> in the top-right corner of the window — shows the current "
+        "language as a national flag. One click toggles instantly between German and "
+        "English.", st))
     story.append(BL(
-        "<b>Terminology</b> — Switch between <b>SAFe</b> and <b>Global</b>. "
-        "In SAFe mode the metrics are called e.g. 'Flow Time', in Global mode "
-        "'Cycle Time'. This switch affects only the labels, not the calculations.", st))
+        "<b>Options → Language</b> menu — alternatively via the menu.", st))
+    story.append(P(
+        "Via <b>Options → Terminology</b> you can also switch between <b>SAFe</b> and "
+        "<b>Global</b>. In SAFe mode the metrics are called e.g. 'Flow Time', in "
+        "Global mode 'Cycle Time'. This switch affects only the labels, not the "
+        "calculations.", st))
 
     # =========================================================================
     # 5. Metrics

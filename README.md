@@ -1,6 +1,6 @@
 # situation-report
 
-**Version 0.5.1** ![Coverage](docs/coverage.svg)
+**Version 0.6.0** ![Coverage](docs/coverage.svg)
 
 Toolsuite for querying Jira issue data and processing it into flow metrics and reports.
 
