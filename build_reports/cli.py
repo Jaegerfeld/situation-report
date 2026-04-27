@@ -3,7 +3,7 @@
 # Repository:     https://github.com/Jaegerfeld/situation-report
 # KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
 # Erstellt:       15.04.2026
-# Geändert:       26.04.2026  (transitions parameter added for Process Flow metric)
+# Geändert:       27.04.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
@@ -152,11 +152,11 @@ def run_reports(
     all_results = []
     for plugin in plugins:
         log(f"Computing {plugin.metric_id} ...")
-        result = plugin.compute(data, terminology)
+        result = plugin.run(data, terminology)
         all_results.append(result)
         for w in result.warnings:
             log(f"  WARNING: {w}")
-        figures = plugin.render(result, terminology)
+        figures = plugin.run_render(result, terminology)
         log(f"  → {len(figures)} figure(s)")
         all_figures.extend(figures)
 

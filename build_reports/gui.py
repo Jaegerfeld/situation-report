@@ -3,7 +3,7 @@
 # Repository:     https://github.com/Jaegerfeld/situation-report
 # KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
 # Erstellt:       16.04.2026
-# Geändert:       26.04.2026
+# Geändert:       27.04.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
@@ -1676,11 +1676,11 @@ class BuildReportsApp(tk.Tk):
                 all_results = []
                 section_breaks: dict[int, str] = {}
                 for plugin in plugins:
-                    result = plugin.compute(data, inputs["terminology"])
+                    result = plugin.run(data, inputs["terminology"])
                     all_results.append(result)
                     for w in result.warnings:
                         self._log(f"  WARNING: {w}")
-                    figs = plugin.render(result, inputs["terminology"])
+                    figs = plugin.run_render(result, inputs["terminology"])
                     if figs:
                         section_breaks[len(all_figures)] = term(
                             plugin.metric_id, inputs["terminology"]

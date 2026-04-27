@@ -20,17 +20,20 @@ import pytest
 from build_reports.loader import ReportData, TransitionEntry
 from build_reports.metrics.process_flow import (
     ProcessFlowMetric,
+    ProcessFlowTimeMetric,
     _circular_positions,
     _edge_width,
     _format_label,
+    _format_duration,
     _node_size,
+    _parse_ts,
     _Edge,
 )
-from build_reports.terminology import PROCESS_FLOW, SAFE
+from build_reports.terminology import PROCESS_FLOW, PROCESS_FLOW_TIME, SAFE
 
 
-def _entry(key: str, label: str) -> TransitionEntry:
-    return TransitionEntry(key=key, label=label, timestamp="01.01.2025 09:00:00")
+def _entry(key: str, label: str, timestamp: str = "01.01.2025 09:00:00") -> TransitionEntry:
+    return TransitionEntry(key=key, label=label, timestamp=timestamp)
 
 
 def _make_data(transitions: list[TransitionEntry], stages: list[str] | None = None) -> ReportData:
@@ -301,3 +304,146 @@ class TestNodeSize:
     def test_wrapped_label_uses_longest_line_for_sizing(self):
         # "In<br>Progress" → max line "Progress" = 8 chars → same tier as "Analysis" (8)
         assert _node_size("In<br>Progress") == _node_size("Analysis")
+
+
+# ---------------------------------------------------------------------------
+# _parse_ts and _format_duration
+# ---------------------------------------------------------------------------
+
+class TestParseTs:
+
+    def test_valid_timestamp_parsed(self):
+        dt = _parse_ts("15.03.2025 10:30:00")
+        assert dt is not None
+        assert dt.year == 2025
+        assert dt.month == 3
+        assert dt.day == 15
+        assert dt.hour == 10
+
+    def test_invalid_returns_none(self):
+        assert _parse_ts("not-a-date") is None
+        assert _parse_ts("") is None
+
+
+class TestFormatDuration:
+
+    def test_minutes_below_60(self):
+        assert _format_duration(45) == "45m"
+
+    def test_hours_below_24(self):
+        result = _format_duration(90)
+        assert result.endswith("h")
+        assert "1.5" in result
+
+    def test_days(self):
+        result = _format_duration(48 * 60)
+        assert result.endswith("d")
+        assert "2.0" in result
+
+
+# ---------------------------------------------------------------------------
+# ProcessFlowTimeMetric
+# ---------------------------------------------------------------------------
+
+@pytest.fixture
+def time_metric() -> ProcessFlowTimeMetric:
+    return ProcessFlowTimeMetric()
+
+
+class TestProcessFlowTimeCompute:
+
+    def _timed_data(self, transitions, stages=None):
+        return ReportData(transitions=transitions, stages=stages or [])
+
+    def test_no_transitions_returns_warning(self, time_metric):
+        result = time_metric.compute(ReportData(), SAFE)
+        assert result.chart_data is None
+        assert result.warnings
+
+    def test_metric_id_is_process_flow_time(self, time_metric):
+        assert time_metric.metric_id == PROCESS_FLOW_TIME
+
+    def test_dwell_time_computed_for_source_status(self, time_metric):
+        """Issue spends exactly 60 min in Funnel → avg_minutes == 60."""
+        t = [
+            _entry("A-1", "Funnel", "01.01.2025 09:00:00"),
+            _entry("A-1", "Analysis", "01.01.2025 10:00:00"),
+        ]
+        result = time_metric.compute(self._timed_data(t), SAFE)
+        fd = result.chart_data
+        assert fd is not None
+        assert "Funnel" in fd.stats_by_node
+        assert abs(fd.stats_by_node["Funnel"].avg_minutes - 60.0) < 0.1
+
+    def test_last_status_has_no_dwell_data(self, time_metric):
+        """Analysis is the last status — no exit timestamp → not in stats."""
+        t = [
+            _entry("A-1", "Funnel",   "01.01.2025 09:00:00"),
+            _entry("A-1", "Analysis", "01.01.2025 10:00:00"),
+        ]
+        result = time_metric.compute(self._timed_data(t), SAFE)
+        assert "Analysis" not in result.chart_data.stats_by_node
+
+    def test_quartiles_populated(self, time_metric):
+        """Two issues with different dwell times → Q1 < median < Q3 is possible."""
+        t = [
+            _entry("A-1", "Funnel",   "01.01.2025 09:00:00"),
+            _entry("A-1", "Analysis", "01.01.2025 10:00:00"),  # 60 min in Funnel
+            _entry("A-2", "Funnel",   "01.01.2025 09:00:00"),
+            _entry("A-2", "Analysis", "01.01.2025 13:00:00"),  # 240 min in Funnel
+        ]
+        result = time_metric.compute(self._timed_data(t), SAFE)
+        s = result.chart_data.stats_by_node["Funnel"]
+        assert s.q1_minutes <= s.median_minutes <= s.q3_minutes
+        assert s.n == 2
+
+    def test_created_maps_to_first_stage_in_time_metric(self, time_metric):
+        """'Created' is mapped to first_stage; no separate Created node."""
+        t = [
+            _entry("A-1", "Created",  "01.01.2025 09:00:00"),
+            _entry("A-1", "Analysis", "01.01.2025 11:00:00"),
+        ]
+        result = time_metric.compute(
+            self._timed_data(t, stages=["Funnel", "Analysis"]), SAFE
+        )
+        assert "Created" not in result.chart_data.nodes
+        assert "Funnel" in result.chart_data.stats_by_node
+        assert abs(result.chart_data.stats_by_node["Funnel"].avg_minutes - 120.0) < 0.1
+
+    def test_render_returns_one_figure(self, time_metric):
+        t = [
+            _entry("A-1", "Funnel",   "01.01.2025 09:00:00"),
+            _entry("A-1", "Analysis", "01.01.2025 10:00:00"),
+        ]
+        result = time_metric.compute(self._timed_data(t), SAFE)
+        figs = time_metric.render(result, SAFE)
+        assert len(figs) == 1
+
+    def test_render_empty_returns_no_figures(self, time_metric):
+        result = time_metric.compute(ReportData(), SAFE)
+        assert time_metric.render(result, SAFE) == []
+
+    def test_edge_stats_differ_per_edge_not_per_source(self, time_metric):
+        """
+        Two edges leaving the same source (Funnel→Analysis, Funnel→Done) must
+        show the avg time of the issues that actually took each edge, not the
+        overall avg in Funnel.
+        """
+        t = [
+            # A-1: 60 min in Funnel, then Analysis
+            _entry("A-1", "Funnel",   "01.01.2025 09:00:00"),
+            _entry("A-1", "Analysis", "01.01.2025 10:00:00"),
+            # A-2: 240 min in Funnel, then Done (different destination)
+            _entry("A-2", "Funnel",   "01.01.2025 09:00:00"),
+            _entry("A-2", "Done",     "01.01.2025 13:00:00"),
+        ]
+        result = time_metric.compute(self._timed_data(t), SAFE)
+        fd = result.chart_data
+        assert fd is not None
+        edge_f_a = fd.stats_by_edge.get(("Funnel", "Analysis"))
+        edge_f_d = fd.stats_by_edge.get(("Funnel", "Done"))
+        assert edge_f_a is not None and edge_f_d is not None
+        assert abs(edge_f_a.avg_minutes - 60.0) < 0.1
+        assert abs(edge_f_d.avg_minutes - 240.0) < 0.1
+        # Must differ — not both the overall Funnel avg (150 min)
+        assert edge_f_a.avg_minutes != edge_f_d.avg_minutes

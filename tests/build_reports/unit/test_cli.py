@@ -3,7 +3,7 @@
 # Repository:     https://github.com/Jaegerfeld/situation-report
 # KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
 # Erstellt:       16.04.2026
-# Geändert:       16.04.2026
+# Geändert:       27.04.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
@@ -54,16 +54,18 @@ def _make_plugin(metric_id: str = "test_metric", figures: int = 1) -> MagicMock:
 
     Args:
         metric_id: Metric ID string to assign to the mock plugin.
-        figures:   Number of go.Figure objects the mock render() should return.
+        figures:   Number of go.Figure objects the mock run_render() should return.
 
     Returns:
-        MagicMock configured as a MetricPlugin with compute() and render() set up.
+        MagicMock configured as a MetricPlugin with run() and run_render() set up.
     """
     plugin = MagicMock()
     plugin.metric_id = metric_id
     result = _make_result()
     plugin.compute.return_value = result
+    plugin.run.return_value = result
     plugin.render.return_value = [go.Figure() for _ in range(figures)]
+    plugin.run_render.return_value = [go.Figure() for _ in range(figures)]
     return plugin
 
 
@@ -257,31 +259,31 @@ class TestRunReports:
     def test_compute_called_with_filtered_data_and_terminology(
         self, issue_times, mock_data, mock_filtered
     ):
-        """plugin.compute() receives the filtered data and the active terminology."""
+        """plugin.run() receives the filtered data and the active terminology."""
         plugin = _make_plugin()
         with patch("build_reports.cli.load_report_data", return_value=mock_data), \
              patch("build_reports.cli.apply_filters", return_value=mock_filtered), \
              patch("build_reports.cli.all_metrics", return_value=[plugin]):
             run_reports(issue_times, terminology=GLOBAL, log=lambda *_: None)
-        plugin.compute.assert_called_once_with(mock_filtered, GLOBAL)
+        plugin.run.assert_called_once_with(mock_filtered, GLOBAL)
 
     def test_render_called_with_result_and_terminology(
         self, issue_times, mock_data, mock_filtered
     ):
-        """plugin.render() receives the MetricResult from compute() and the terminology."""
+        """plugin.run_render() receives the MetricResult from run() and the terminology."""
         plugin = _make_plugin()
         with patch("build_reports.cli.load_report_data", return_value=mock_data), \
              patch("build_reports.cli.apply_filters", return_value=mock_filtered), \
              patch("build_reports.cli.all_metrics", return_value=[plugin]):
             run_reports(issue_times, terminology=GLOBAL, log=lambda *_: None)
-        plugin.render.assert_called_once_with(plugin.compute.return_value, GLOBAL)
+        plugin.run_render.assert_called_once_with(plugin.run.return_value, GLOBAL)
 
     def test_warnings_from_result_are_logged(
         self, issue_times, mock_data, mock_filtered
     ):
         """Warnings contained in the MetricResult are forwarded to the log callable."""
         plugin = _make_plugin()
-        plugin.compute.return_value = _make_result(warnings=["something odd"])
+        plugin.run.return_value = _make_result(warnings=["something odd"])
         logged = []
         with patch("build_reports.cli.load_report_data", return_value=mock_data), \
              patch("build_reports.cli.apply_filters", return_value=mock_filtered), \

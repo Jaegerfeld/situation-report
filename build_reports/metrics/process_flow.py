@@ -17,13 +17,15 @@
 from __future__ import annotations
 
 import math
+import statistics
 from collections import Counter, defaultdict
 from dataclasses import dataclass, field
+from datetime import datetime
 
 import plotly.graph_objects as go
 
-from ..loader import ReportData
-from ..terminology import PROCESS_FLOW, term
+from ..loader import ReportData, TransitionEntry
+from ..terminology import PROCESS_FLOW, PROCESS_FLOW_TIME, term
 from . import register
 from .base import MetricPlugin, MetricResult
 
@@ -43,6 +45,12 @@ _COLOR_SELF_LOOP = "#e67e22"
 _COLOR_NODE_FILL = "#2c3e50"
 _COLOR_NODE_TEXT = "#ffffff"
 
+# Process Flow: Time — node fill color scale (fast → slow)
+_COLOR_TIME_FAST = "#27ae60"   # green
+_COLOR_TIME_MID  = "#f39c12"   # orange
+_COLOR_TIME_SLOW = "#c0392b"   # red
+_COLOR_TIME_NONE = "#7f8c8d"   # gray for statuses without dwell data
+
 
 @dataclass
 class _Edge:
@@ -60,6 +68,33 @@ class _FlowData:
     total_transitions: int
     issue_count: int
     workflow_stages: list[str]        # from ReportData.stages (may be empty)
+
+
+@dataclass
+class _NodeTimeStats:
+    """Dwell time statistics for one status node."""
+    avg_minutes: float
+    q1_minutes: float
+    median_minutes: float
+    q3_minutes: float
+    n: int                            # number of dwell-time samples
+
+
+@dataclass
+class _EdgeTimeStats:
+    """Dwell time statistics for one specific directed transition (source → target)."""
+    avg_minutes: float
+    n: int                            # number of issues that took this exact edge
+
+
+@dataclass
+class _FlowTimeData:
+    nodes: list[str]
+    edges: list[_Edge]
+    stats_by_node: dict[str, _NodeTimeStats]         # for node colour/label
+    stats_by_edge: dict[tuple[str, str], _EdgeTimeStats]  # for edge width/label
+    issue_count: int
+    workflow_stages: list[str]
 
 
 # ---------------------------------------------------------------------------
@@ -107,6 +142,143 @@ def _node_size(formatted_label: str) -> int:
     if max_line <= 9:
         return 58
     return 72
+
+
+# ---------------------------------------------------------------------------
+# Time helpers
+# ---------------------------------------------------------------------------
+
+_TS_FMT = "%d.%m.%Y %H:%M:%S"
+
+
+def _parse_ts(ts_str: str) -> datetime | None:
+    """
+    Parse a timestamp string from Transitions.xlsx.
+
+    Args:
+        ts_str: Timestamp string in "DD.MM.YYYY HH:MM:SS" format.
+
+    Returns:
+        datetime object, or None if parsing fails.
+    """
+    try:
+        return datetime.strptime(ts_str.strip(), _TS_FMT)
+    except (ValueError, AttributeError):
+        return None
+
+
+def _format_duration(minutes: float) -> str:
+    """
+    Format a duration in minutes as a compact human-readable string.
+
+    Args:
+        minutes: Duration in minutes.
+
+    Returns:
+        String like "45m", "3.2h", or "2.1d".
+    """
+    if minutes < 60:
+        return f"{minutes:.0f}m"
+    hours = minutes / 60
+    if hours < 24:
+        return f"{hours:.1f}h"
+    return f"{hours / 24:.1f}d"
+
+
+def _lerp_color(c1: str, c2: str, t: float) -> str:
+    """
+    Linearly interpolate between two hex colors.
+
+    Args:
+        c1: Start color as "#rrggbb".
+        c2: End color as "#rrggbb".
+        t:  Interpolation factor in [0, 1].
+
+    Returns:
+        Interpolated color as "#rrggbb".
+    """
+    r1, g1, b1 = int(c1[1:3], 16), int(c1[3:5], 16), int(c1[5:7], 16)
+    r2, g2, b2 = int(c2[1:3], 16), int(c2[3:5], 16), int(c2[5:7], 16)
+    r = int(r1 + (r2 - r1) * t)
+    g = int(g1 + (g2 - g1) * t)
+    b = int(b1 + (b2 - b1) * t)
+    return f"#{r:02x}{g:02x}{b:02x}"
+
+
+def _time_color(normalized: float) -> str:
+    """
+    Map a normalized dwell time [0=fast, 1=slow] to a traffic-light color.
+
+    Args:
+        normalized: Value in [0, 1].
+
+    Returns:
+        CSS color string (green → orange → red).
+    """
+    if normalized <= 0.5:
+        return _lerp_color(_COLOR_TIME_FAST, _COLOR_TIME_MID, normalized * 2)
+    return _lerp_color(_COLOR_TIME_MID, _COLOR_TIME_SLOW, (normalized - 0.5) * 2)
+
+
+def _node_size_time(status: str) -> int:
+    """
+    Marker size for Process Flow: Time nodes (status name + time line).
+
+    Args:
+        status: Raw status/stage label.
+
+    Returns:
+        Marker size in pixels — large enough for two label lines.
+    """
+    fmt = _format_label(status)
+    max_line = max(len(ln) for ln in fmt.split("<br>"))
+    n_lines = fmt.count("<br>") + 2  # status lines + 1 time line
+    if max_line <= 6:
+        h_size = 48
+    elif max_line <= 9:
+        h_size = 62
+    else:
+        h_size = 76
+    v_size = n_lines * 14 + 16
+    return max(h_size, v_size)
+
+
+# ---------------------------------------------------------------------------
+# Shared transition grouping
+# ---------------------------------------------------------------------------
+
+def _group_transitions(
+    transitions: list[TransitionEntry],
+    first_stage: str | None,
+) -> dict[str, list[tuple[str, str]]]:
+    """
+    Group transitions by issue key with Created→first_stage mapping applied.
+
+    'Created' entries (synthetic transform_data entries) are mapped to
+    first_stage when available. A consecutive first_stage entry that
+    immediately follows a Created-mapped entry is suppressed to avoid
+    spurious self-loops. Genuine self-loops are preserved.
+
+    Args:
+        transitions: Flat list of TransitionEntry records (file order = chronological).
+        first_stage: Stage to substitute for 'Created', or None to keep as-is.
+
+    Returns:
+        Dict mapping issue key to list of (label, timestamp_str) tuples.
+    """
+    skip_next: set[str] = set()
+    result: dict[str, list[tuple[str, str]]] = defaultdict(list)
+    for t in transitions:
+        if t.label == "Created" and first_stage is not None:
+            result[t.key].append((first_stage, t.timestamp))
+            skip_next.add(t.key)
+        elif t.key in skip_next:
+            skip_next.discard(t.key)
+            if t.label != first_stage:
+                result[t.key].append((t.label, t.timestamp))
+        else:
+            result[t.key].append((t.label, t.timestamp))
+    return result
 
 
 # ---------------------------------------------------------------------------
@@ -208,18 +380,23 @@ def _add_self_loop(
     edge: _Edge,
     width: float,
     color: str,
+    *,
+    label_text: str | None = None,
+    hover_text: str | None = None,
 ) -> None:
     """
     Draw a small circular arc as a self-loop on a node, positioned outward
     from the graph center.
 
     Args:
-        fig:   Plotly Figure to add traces/annotations to.
-        node:  Node label (self-loop source = target).
-        pos:   Dict of node positions.
-        edge:  The self-loop _Edge.
-        width: Line width.
-        color: Line color.
+        fig:        Plotly Figure to add traces/annotations to.
+        node:       Node label (self-loop source = target).
+        pos:        Dict of node positions.
+        edge:       The self-loop _Edge.
+        width:      Line width.
+        color:      Line color.
+        label_text: Override the default count label (optional).
+        hover_text: Override the default hover template (optional).
     """
     nx, ny = pos[node]
     length = math.hypot(nx, ny)
@@ -235,14 +412,15 @@ def _add_self_loop(
     lx = [cx + _LOOP_RADIUS * math.cos(a) for a in angles]
     ly = [cy + _LOOP_RADIUS * math.sin(a) for a in angles]
 
+    default_hover = (
+        f"<b>{node} → {node}</b><br>"
+        f"Count: {edge.count} ({edge.relative:.1%})<extra></extra>"
+    )
     fig.add_trace(go.Scatter(
         x=lx, y=ly,
         mode="lines",
         line=dict(width=width, color=color),
-        hovertemplate=(
-            f"<b>{node} → {node}</b><br>"
-            f"Count: {edge.count} ({edge.relative:.1%})<extra></extra>"
-        ),
+        hovertemplate=hover_text if hover_text is not None else default_hover,
         showlegend=False,
     ))
 
@@ -251,7 +429,7 @@ def _add_self_loop(
     ly_mid = cy + _LOOP_RADIUS * math.sin(math.pi / 4) + dy * 0.06
     fig.add_annotation(
         x=lx_mid, y=ly_mid,
-        text=str(edge.count),
+        text=label_text if label_text is not None else str(edge.count),
         showarrow=False,
         font=dict(size=9, color="#333"),
         bgcolor="rgba(255,255,255,0.8)",
@@ -266,6 +444,9 @@ def _add_edge(
     bidirectional: set[tuple[str, str]],
     width: float,
     color: str,
+    *,
+    label_text: str | None = None,
+    hover_text: str | None = None,
 ) -> None:
     """
     Draw a directed edge between two nodes.
@@ -281,6 +462,8 @@ def _add_edge(
         bidirectional: Set of (u, v) pairs that also have a (v, u) counterpart.
         width:         Line width.
         color:         Line color.
+        label_text:    Override the default count label (optional).
+        hover_text:    Override the default hover template (optional).
     """
     x1, y1 = pos[edge.source]
     x2, y2 = pos[edge.target]
@@ -320,14 +503,15 @@ def _add_edge(
 
     bx, by = _bezier_points((sx1, sy1), cp, (sx2, sy2))
 
+    default_hover = (
+        f"<b>{edge.source} → {edge.target}</b><br>"
+        f"Count: {edge.count} ({edge.relative:.1%})<extra></extra>"
+    )
     fig.add_trace(go.Scatter(
         x=bx, y=by,
         mode="lines",
         line=dict(width=width, color=color),
-        hovertemplate=(
-            f"<b>{edge.source} → {edge.target}</b><br>"
-            f"Count: {edge.count} ({edge.relative:.1%})<extra></extra>"
-        ),
+        hovertemplate=hover_text if hover_text is not None else default_hover,
         showlegend=False,
     ))
 
@@ -344,12 +528,12 @@ def _add_edge(
         arrowcolor=color,
     )
 
-    # Count label at curve midpoint, offset slightly outward
+    # Label at curve midpoint, offset slightly outward
     label_x = bx[n // 2] + offset_sign * px * 0.06
     label_y = by[n // 2] + offset_sign * py * 0.06
     fig.add_annotation(
         x=label_x, y=label_y,
-        text=str(edge.count),
+        text=label_text if label_text is not None else str(edge.count),
         showarrow=False,
         font=dict(size=9, color="#333"),
         bgcolor="rgba(255,255,255,0.8)",
@@ -396,6 +580,94 @@ def _add_nodes(
     ))
 
 
+def _add_nodes_time(
+    fig: go.Figure,
+    nodes: list[str],
+    pos: dict[str, tuple[float, float]],
+    stats_by_node: dict[str, _NodeTimeStats],
+) -> None:
+    """
+    Draw Process Flow: Time nodes — colored by avg dwell time, two-line labels.
+
+    Node fill uses a green→orange→red scale (fast→slow). Nodes without dwell
+    data are shown in gray. Hover displays quartile statistics.
+
+    Args:
+        fig:           Plotly Figure.
+        nodes:         Ordered list of status labels.
+        pos:           Node positions.
+        stats_by_node: Dwell time stats per status; missing key = no data.
+    """
+    xs = [pos[n][0] for n in nodes]
+    ys = [pos[n][1] for n in nodes]
+
+    # Color scale: normalize avg_minutes to [0, 1] across nodes with data
+    avgs = [stats_by_node[n].avg_minutes for n in nodes if n in stats_by_node]
+    min_avg = min(avgs) if avgs else 0.0
+    max_avg = max(avgs) if avgs else 1.0
+    span = max_avg - min_avg if max_avg > min_avg else 1.0
+
+    colors: list[str] = []
+    for n in nodes:
+        if n in stats_by_node:
+            norm = (stats_by_node[n].avg_minutes - min_avg) / span
+            colors.append(_time_color(norm))
+        else:
+            colors.append(_COLOR_TIME_NONE)
+
+    # Two-line node text: status name (possibly wrapped) + avg time
+    display_labels: list[str] = []
+    for n in nodes:
+        name_fmt = _format_label(n)
+        if n in stats_by_node:
+            time_str = _format_duration(stats_by_node[n].avg_minutes)
+            display_labels.append(f"{name_fmt}<br>Ø {time_str}")
+        else:
+            display_labels.append(f"{name_fmt}<br>—")
+
+    sizes = [_node_size_time(n) for n in nodes]
+
+    # customdata columns: [0] name, [1] avg, [2] Q1, [3] median, [4] Q3, [5] n
+    customdata: list[list[str]] = []
+    for n in nodes:
+        s = stats_by_node.get(n)
+        if s:
+            customdata.append([
+                n,
+                f"Ø {_format_duration(s.avg_minutes)}",
+                f"Q1: {_format_duration(s.q1_minutes)}",
+                f"Median: {_format_duration(s.median_minutes)}",
+                f"Q3: {_format_duration(s.q3_minutes)}",
+                f"n = {s.n}",
+            ])
+        else:
+            customdata.append([n, "keine Daten", "", "", "", ""])
+
+    fig.add_trace(go.Scatter(
+        x=xs, y=ys,
+        mode="markers+text",
+        marker=dict(
+            size=sizes,
+            color=colors,
+            line=dict(color="#ffffff", width=2),
+        ),
+        text=display_labels,
+        customdata=customdata,
+        textposition="middle center",
+        textfont=dict(color=_COLOR_NODE_TEXT, size=9),
+        hovertemplate=(
+            "<b>%{customdata[0]}</b><br>"
+            "%{customdata[1]}<br>"
+            "%{customdata[2]}<br>"
+            "%{customdata[3]}<br>"
+            "%{customdata[4]}<br>"
+            "%{customdata[5]}"
+            "<extra></extra>"
+        ),
+        showlegend=False,
+    ))
+
+
 # ---------------------------------------------------------------------------
 # Metric plugin
 # ---------------------------------------------------------------------------
@@ -431,34 +703,13 @@ class ProcessFlowMetric(MetricPlugin):
             warnings.append("No transition data available. Load a Transitions.xlsx file.")
             return MetricResult(metric_id=self.metric_id, warnings=warnings)
 
-        # "Created" is a synthetic entry from transform_data; it coincides with
-        # the issue entering the first workflow stage (Jira never logs the
-        # initial status as a changelog transition).  Map it to stages[0] so
-        # both concepts share one node.
-        #
-        # Edge case: if the very next real transition is also first_stage (e.g.
-        # [Created, Funnel, Analysis]), mapping Created→Funnel would produce
-        # [Funnel, Funnel, Analysis] — a spurious self-loop.  skip_next tracks
-        # these issues so the redundant follow-up first_stage entry is dropped.
-        # Genuine self-loops ([Funnel, Funnel] without Created) are unaffected.
         first_stage = data.stages[0] if data.stages else None
-        skip_next: set[str] = set()
-
-        by_issue: dict[str, list[str]] = defaultdict(list)
-        for t in data.transitions:
-            if t.label == "Created" and first_stage is not None:
-                by_issue[t.key].append(first_stage)
-                skip_next.add(t.key)
-            elif t.key in skip_next:
-                skip_next.discard(t.key)
-                if t.label != first_stage:
-                    by_issue[t.key].append(t.label)
-            else:
-                by_issue[t.key].append(t.label)
+        by_issue = _group_transitions(data.transitions, first_stage)
 
         # Count consecutive transition pairs
         edge_counter: Counter[tuple[str, str]] = Counter()
-        for labels in by_issue.values():
+        for entries in by_issue.values():
+            labels = [lbl for lbl, _ in entries]
             for i in range(len(labels) - 1):
                 edge_counter[(labels[i], labels[i + 1])] += 1
 
@@ -597,3 +848,253 @@ class ProcessFlowMetric(MetricPlugin):
 
 
 register(ProcessFlowMetric())
+
+
+class ProcessFlowTimeMetric(MetricPlugin):
+    """
+    Process Flow: Time metric.
+
+    Same directed-graph layout as Process Flow: Transitions, but nodes are
+    coloured and labelled by average dwell time in each status.  The colour
+    scale runs green (fast) → orange → red (slow) to highlight bottlenecks.
+    Mouse-hover shows Q1, median, Q3, and sample count for each status.
+    Dwell time is computed as the elapsed time between consecutive status
+    entries per issue.  The last status of each issue is excluded (no exit
+    timestamp available).
+    """
+
+    metric_id = PROCESS_FLOW_TIME
+
+    def compute(self, data: ReportData, terminology: str) -> MetricResult:
+        """
+        Compute average and quartile dwell times per status from transition data.
+
+        Args:
+            data:        ReportData — uses data.transitions and data.stages.
+            terminology: Active terminology mode (unused here).
+
+        Returns:
+            MetricResult with _FlowTimeData as chart_data, or warnings if no data.
+        """
+        warnings: list[str] = []
+        if not data.transitions:
+            warnings.append("No transition data available. Load a Transitions.xlsx file.")
+            return MetricResult(metric_id=self.metric_id, warnings=warnings)
+
+        first_stage = data.stages[0] if data.stages else None
+        by_issue = _group_transitions(data.transitions, first_stage)
+
+        # Compute dwell times per status (for node colouring) and per edge
+        # (for edge width/label — only issues that took this exact transition).
+        dwell_by_node: dict[str, list[float]] = defaultdict(list)
+        dwell_by_edge: dict[tuple[str, str], list[float]] = defaultdict(list)
+        edge_counter: Counter[tuple[str, str]] = Counter()
+
+        for entries in by_issue.values():
+            for i in range(len(entries) - 1):
+                lbl_a, ts_a = entries[i]
+                lbl_b, ts_b = entries[i + 1]
+                edge_counter[(lbl_a, lbl_b)] += 1
+                dt_a = _parse_ts(ts_a)
+                dt_b = _parse_ts(ts_b)
+                if dt_a and dt_b:
+                    minutes = (dt_b - dt_a).total_seconds() / 60
+                    if minutes >= 0:
+                        dwell_by_node[lbl_a].append(minutes)
+                        dwell_by_edge[(lbl_a, lbl_b)].append(minutes)
+
+        if not edge_counter:
+            warnings.append("No transitions found (each issue has at most one status entry).")
+            return MetricResult(metric_id=self.metric_id, warnings=warnings)
+
+        total = sum(edge_counter.values())
+
+        # Node ordering: workflow stages first, then alphabetically
+        stage_set = set(data.stages)
+        all_statuses = sorted(set(s for pair in edge_counter for s in pair))
+        ordered_nodes = (
+            [s for s in data.stages if s in all_statuses]
+            + [s for s in all_statuses if s not in stage_set]
+        )
+
+        edges = [
+            _Edge(
+                source=fr,
+                target=to,
+                count=cnt,
+                relative=cnt / total,
+                is_self_loop=(fr == to),
+            )
+            for (fr, to), cnt in sorted(edge_counter.items(), key=lambda x: -x[1])
+        ]
+
+        # Per-node stats (overall dwell time in that status, for node colour/label)
+        stats_by_node: dict[str, _NodeTimeStats] = {}
+        for status, times in dwell_by_node.items():
+            if len(times) >= 2:
+                qs = statistics.quantiles(times, n=4)
+                q1, med, q3 = qs[0], qs[1], qs[2]
+            else:
+                q1 = med = q3 = times[0]
+            stats_by_node[status] = _NodeTimeStats(
+                avg_minutes=statistics.mean(times),
+                q1_minutes=q1,
+                median_minutes=med,
+                q3_minutes=q3,
+                n=len(times),
+            )
+
+        # Per-edge stats (only issues that took this exact transition)
+        stats_by_edge: dict[tuple[str, str], _EdgeTimeStats] = {
+            (src, tgt): _EdgeTimeStats(
+                avg_minutes=statistics.mean(times),
+                n=len(times),
+            )
+            for (src, tgt), times in dwell_by_edge.items()
+        }
+
+        flow_data = _FlowTimeData(
+            nodes=ordered_nodes,
+            edges=edges,
+            stats_by_node=stats_by_node,
+            stats_by_edge=stats_by_edge,
+            issue_count=len(by_issue),
+            workflow_stages=list(data.stages),
+        )
+
+        # Summary stats for the result header
+        nodes_with_data = [n for n in ordered_nodes if n in stats_by_node]
+        if nodes_with_data:
+            slowest = max(nodes_with_data, key=lambda n: stats_by_node[n].avg_minutes)
+            top_stat = (
+                f"{slowest} "
+                f"(Ø {_format_duration(stats_by_node[slowest].avg_minutes)})"
+            )
+        else:
+            top_stat = "—"
+
+        return MetricResult(
+            metric_id=self.metric_id,
+            stats=dict(
+                nodes=len(ordered_nodes),
+                issue_count=len(by_issue),
+                nodes_with_data=len(nodes_with_data),
+                slowest_stage=top_stat,
+            ),
+            chart_data=flow_data,
+            warnings=warnings,
+        )
+
+    def render(self, result: MetricResult, terminology: str) -> list[go.Figure]:
+        """
+        Render the process flow time chart as a directed graph with coloured nodes.
+
+        Args:
+            result:      MetricResult from compute().
+            terminology: Active terminology mode for the chart title.
+
+        Returns:
+            List with one plotly Figure, or empty list if no data.
+        """
+        if not result.chart_data:
+            return []
+
+        fd: _FlowTimeData = result.chart_data
+        label = term(PROCESS_FLOW_TIME, terminology)
+
+        pos = _circular_positions(fd.nodes)
+
+        # Edge width and label: avg dwell time of issues that took this exact edge
+        max_minutes = max(
+            (s.avg_minutes for s in fd.stats_by_edge.values()),
+            default=1.0,
+        )
+
+        bidirectional: set[tuple[str, str]] = {
+            (e.source, e.target)
+            for e in fd.edges
+            if not e.is_self_loop
+            and any(
+                other.source == e.target and other.target == e.source
+                for other in fd.edges
+                if not other.is_self_loop
+            )
+        }
+
+        fig = go.Figure()
+
+        for edge in fd.edges:
+            edge_stats = fd.stats_by_edge.get((edge.source, edge.target))
+            if edge_stats is not None and max_minutes > 0:
+                width = _MIN_EDGE_WIDTH + (
+                    edge_stats.avg_minutes / max_minutes
+                ) * (_MAX_EDGE_WIDTH - _MIN_EDGE_WIDTH)
+                lbl = f"Ø {_format_duration(edge_stats.avg_minutes)}"
+                hover = (
+                    f"<b>{edge.source} → {edge.target}</b><br>"
+                    f"Ø {_format_duration(edge_stats.avg_minutes)} in {edge.source}"
+                    f" (n={edge_stats.n})<extra></extra>"
+                )
+            else:
+                width = _MIN_EDGE_WIDTH
+                lbl = "—"
+                hover = (
+                    f"<b>{edge.source} → {edge.target}</b><br>"
+                    "keine Zeitdaten<extra></extra>"
+                )
+            color = _edge_color(edge, fd.workflow_stages)
+            if edge.is_self_loop:
+                _add_self_loop(
+                    fig, edge.source, pos, edge, width, color,
+                    label_text=lbl, hover_text=hover,
+                )
+            else:
+                _add_edge(
+                    fig, edge, pos, bidirectional, width, color,
+                    label_text=lbl, hover_text=hover,
+                )
+
+        _add_nodes_time(fig, fd.nodes, pos, fd.stats_by_node)
+
+        # Color legend
+        legend_items = [
+            (_COLOR_TIME_FAST, "Fast (short dwell)"),
+            (_COLOR_TIME_MID,  "Medium"),
+            (_COLOR_TIME_SLOW, "Slow (bottleneck)"),
+            (_COLOR_TIME_NONE, "No data"),
+        ]
+        for i, (col, txt) in enumerate(legend_items):
+            fig.add_annotation(
+                x=1.01, y=0.95 - i * 0.08,
+                xref="paper", yref="paper",
+                text=f'<span style="color:{col}; font-size:16px">●</span> {txt}',
+                showarrow=False,
+                xanchor="left",
+                font=dict(size=11),
+            )
+
+        fig.update_layout(
+            title=(
+                f"{label}  —  {fd.issue_count} issues, "
+                f"{len(fd.edges)} unique transitions"
+            ),
+            title_font_size=12,
+            paper_bgcolor="#e8e8e8",
+            plot_bgcolor="#f5f5f5",
+            height=700,
+            margin=dict(l=20, r=160, t=50, b=20),
+            xaxis=dict(
+                showgrid=False, zeroline=False, showticklabels=False,
+                range=[-1.4, 1.4],
+            ),
+            yaxis=dict(
+                showgrid=False, zeroline=False, showticklabels=False,
+                range=[-1.4, 1.4],
+                scaleanchor="x", scaleratio=1,
+            ),
+        )
+
+        return [fig]
+
+
+register(ProcessFlowTimeMetric())
