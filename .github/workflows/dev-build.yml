@@ -39,7 +39,27 @@ jobs:
         run: sudo apt-get install -y python3-tk
 
       - name: Install Python dependencies
-        run: pip install -e "." "pyinstaller>=6.0,<6.20"
+        run: pip install -e "." pyinstaller
+
+      - name: Patch PyInstaller macOS framework-bundle IndexError
+        if: runner.os == 'macOS'
+        run: |
+          python3 - <<'PYEOF'
+          import pathlib, sys
+          osx_py = (pathlib.Path(sys.prefix) / "lib"
+                    / f"python{sys.version_info.major}.{sys.version_info.minor}"
+                    / "site-packages" / "PyInstaller" / "utils" / "osx.py")
+          lines = osx_py.read_text().splitlines(keepends=True)
+          for i, line in enumerate(lines):
+              if "dir_name = remaining_path_parts[2]" in line:
+                  indent = " " * (len(line) - len(line.lstrip()))
+                  lines.insert(i, f"{indent}if len(remaining_path_parts) < 3:\n{indent}    continue\n")
+                  osx_py.write_text("".join(lines))
+                  print(f"Patched line {i+1} of {osx_py}")
+                  break
+          else:
+              print("Pattern not found – may already be fixed upstream")
+          PYEOF
 
       - name: Download bundled Chrome (kaleido PDF export)
         run: choreo_get_chrome
