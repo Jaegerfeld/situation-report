@@ -30,6 +30,13 @@ kaleido_datas, kaleido_binaries, kaleido_hiddenimports = collect_all("kaleido")
 # collect_all captures both the Python sources and the native binaries
 choreo_datas, choreo_binaries, choreo_hiddenimports = collect_all("choreographer")
 
+# On macOS, exclude the pre-downloaded Chrome app bundle from the PyInstaller bundle.
+# Google Chrome for Testing is already signed by Google; PyInstaller's ad-hoc codesign
+# step fails on it. Choreographer downloads Chrome at runtime on first use instead.
+if sys.platform == "darwin":
+    choreo_binaries = [(s, d) for s, d in choreo_binaries if "browser_exe" not in s]
+    choreo_datas    = [(s, d) for s, d in choreo_datas    if "browser_exe" not in s]
+
 all_datas = plotly_datas + openpyxl_datas + kaleido_datas + choreo_datas
 all_binaries = kaleido_binaries + choreo_binaries
 all_hiddenimports = (
