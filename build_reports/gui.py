@@ -201,6 +201,8 @@ _T: dict[str, dict[str, str]] = {
         "log_excl_error":    "Fehler beim Laden/Speichern der Ausschluss-Defaults: {}",
         "menu_help":         "Hilfe",
         "menu_manual":       "Manual",
+        "menu_lang_title":   "Sprache",
+        "tip_language":      "Sprache wechseln (DE / EN)",
     },
     LANG_EN: {
         "window_title":      "build_reports",
@@ -313,6 +315,8 @@ _T: dict[str, dict[str, str]] = {
         "log_excl_error":    "Error loading/saving exclusion defaults: {}",
         "menu_help":         "Help",
         "menu_manual":       "Manual",
+        "menu_lang_title":   "Language",
+        "tip_language":      "Switch language (DE / EN)",
     },
 }
 
@@ -727,6 +731,8 @@ class BuildReportsApp(tk.Tk):
         }
 
         self._progress_after_id: str | None = None
+        self._flag_imgs: dict[str, tk.PhotoImage] = {}
+        self._flag_btn: tk.Button | None = None
 
         # Translatable widget references: list of (widget, tr_key)
         self._i18n: list[tuple[Any, str]] = []
@@ -739,6 +745,7 @@ class BuildReportsApp(tk.Tk):
         self._lang_var.trace_add("write", lambda *_: self._apply_language())
         self._terminology_var.trace_add("write", lambda *_: self._apply_terminology())
 
+        self._create_flag_imgs()
         self._build_menubar()
         self._build_ui()
         self._apply_language()  # set initial titles / labels
@@ -776,6 +783,12 @@ class BuildReportsApp(tk.Tk):
             menu=self._build_terminology_menu(options_menu),
         )
 
+        # Language submenu (under Options)
+        lang_menu = tk.Menu(options_menu, tearoff=0)
+        options_menu.add_cascade(label=self._tr("menu_lang_title"), menu=lang_menu)
+        lang_menu.add_radiobutton(label="🇩🇪  Deutsch", variable=self._lang_var, value=LANG_DE)
+        lang_menu.add_radiobutton(label="🇬🇧  English", variable=self._lang_var, value=LANG_EN)
+
         # Templates menu
         tpl_menu = tk.Menu(menubar, tearoff=0)
         menubar.add_cascade(label=self._tr("menu_template"), menu=tpl_menu)
@@ -790,12 +803,6 @@ class BuildReportsApp(tk.Tk):
         menubar.add_cascade(label=self._tr("menu_help"), menu=help_menu)
         help_menu.add_command(label=self._tr("menu_manual"), command=self._open_manual)
 
-        # Language flag (rightmost)
-        lang_menu = tk.Menu(menubar, tearoff=0)
-        lang_menu.add_radiobutton(label="🇩🇪  Deutsch", variable=self._lang_var, value=LANG_DE)
-        lang_menu.add_radiobutton(label="🇬🇧  English", variable=self._lang_var, value=LANG_EN)
-        menubar.add_cascade(label=_LANG_FLAGS[self._lang_var.get()], menu=lang_menu)
-
         self.config(menu=menubar)
 
     def _build_terminology_menu(self, parent: tk.Menu) -> tk.Menu:
@@ -809,6 +816,47 @@ class BuildReportsApp(tk.Tk):
         """Open the language-appropriate user manual PDF on GitHub Pages."""
         webbrowser.open(_MANUAL_URLS.get(self._lang_var.get(), _MANUAL_URLS[LANG_DE]))
 
+    def _create_flag_imgs(self) -> None:
+        """
+        Build PhotoImage objects for the DE and GB flags using inline pixel drawing.
+
+        Images are generated programmatically (no external files) so they work
+        inside a PyInstaller bundle without any resource-path handling.
+        The images are stored in self._flag_imgs and must not be garbage-collected.
+        """
+        W, H = 32, 20
+
+        # German flag: three equal horizontal stripes (black / red / gold)
+        de = tk.PhotoImage(width=W, height=H)
+        stripe_colors = ["#000000", "#DD0000", "#FFCC00"]
+        for y in range(H):
+            color = stripe_colors[y * 3 // H]
+            de.put("{" + " ".join([color] * W) + "}", to=(0, y))
+
+        # UK flag: simplified Union Jack (blue + white cross + red cross + white X)
+        gb = tk.PhotoImage(width=W, height=H)
+        for y in range(H):
+            row: list[str] = []
+            for x in range(W):
+                cx = abs(x - (W - 1) / 2)
+                cy = abs(y - (H - 1) / 2)
+                nx, ny = x / (W - 1), y / (H - 1)
+                if cx < W * 0.13 or cy < H * 0.13:        # red cross (St George)
+                    row.append("#C8102E")
+                elif cx < W * 0.24 or cy < H * 0.24:      # white cross border
+                    row.append("#FFFFFF")
+                elif abs(nx - ny) < 0.16 or abs(nx - (1 - ny)) < 0.16:  # white X
+                    row.append("#FFFFFF")
+                else:
+                    row.append("#012169")                  # blue background
+            gb.put("{" + " ".join(row) + "}", to=(0, y))
+
+        self._flag_imgs = {LANG_DE: de, LANG_EN: gb}
+
+    def _toggle_language(self) -> None:
+        """Toggle the UI language between DE and EN."""
+        self._lang_var.set(LANG_EN if self._lang_var.get() == LANG_DE else LANG_DE)
+
     # -------------------------------------------------------------------------
     # UI construction
     # -------------------------------------------------------------------------
@@ -818,6 +866,23 @@ class BuildReportsApp(tk.Tk):
         pad = {"padx": 8, "pady": 3}
         self.columnconfigure(1, weight=1)
         row = 0
+
+        # --- Language flag button (top-right) ---
+        flag_frame = tk.Frame(self)
+        flag_frame.grid(row=row, column=0, columnspan=3, sticky="e", padx=6, pady=(4, 0))
+        self._flag_btn = tk.Button(
+            flag_frame,
+            image=self._flag_imgs[self._lang_var.get()],
+            command=self._toggle_language,
+            relief="flat",
+            cursor="hand2",
+            bd=0,
+            padx=4,
+            pady=2,
+        )
+        self._flag_btn.pack()
+        self._tips.append((_ToolTip(self._flag_btn, self._tr("tip_language")), "tip_language"))
+        row += 1
 
         # --- Files ---
         row = self._section_header("sec_files", row)
@@ -1139,6 +1204,8 @@ class BuildReportsApp(tk.Tk):
         for tip, key in self._tips:
             tip.update_text(self._tr(key))
         self._build_menubar()
+        if self._flag_btn is not None:
+            self._flag_btn.configure(image=self._flag_imgs[self._lang_var.get()])
 
     def _apply_terminology(self) -> None:
         """Update metric checkbutton labels to reflect the current terminology."""
