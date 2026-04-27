@@ -3,7 +3,7 @@
 # Repository:     https://github.com/Jaegerfeld/situation-report
 # KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
 # Erstellt:       15.04.2026
-# Geändert:       15.04.2026
+# Geändert:       27.04.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
@@ -27,15 +27,19 @@ class MetricResult:
     Container for the output of a metric computation.
 
     Attributes:
-        metric_id:  Identifier of the metric that produced this result (e.g. 'flow_time').
-        stats:      Key/value pairs of computed statistics (e.g. median, mean, count).
-        chart_data: Arbitrary data passed from compute() to render() for figure construction.
-        warnings:   Optional list of human-readable warnings produced during computation.
+        metric_id:     Identifier of the metric that produced this result (e.g. 'flow_time').
+        stats:         Key/value pairs of computed statistics (e.g. median, mean, count).
+        chart_data:    Arbitrary data passed from compute() to render() for figure construction.
+        warnings:      Optional list of human-readable warnings produced during computation.
+        source_prefix: Jira project key(s) from the loaded data set (e.g. 'ART_A').
+                       Injected automatically by MetricPlugin.run(); empty when compute()
+                       is called directly (e.g. in unit tests).
     """
     metric_id: str
     stats: dict[str, Any] = field(default_factory=dict)
     chart_data: Any = None
     warnings: list[str] = field(default_factory=list)
+    source_prefix: str = ""
 
 
 class MetricPlugin(ABC):
@@ -81,3 +85,49 @@ class MetricPlugin(ABC):
         Returns:
             List of plotly Figure objects ready for display or export.
         """
+
+    # ------------------------------------------------------------------
+    # Template methods — use these in production code instead of the
+    # abstract methods directly.  Unit tests may continue to call
+    # compute() / render() without source_prefix injection.
+    # ------------------------------------------------------------------
+
+    def run(self, data: "ReportData", terminology: str) -> MetricResult:  # noqa: F821
+        """
+        Compute the metric and inject the source_prefix from data.
+
+        Args:
+            data:        ReportData from loader.py.
+            terminology: Active terminology mode.
+
+        Returns:
+            MetricResult with source_prefix populated from data.source_prefix.
+        """
+        result = self.compute(data, terminology)
+        result.source_prefix = data.source_prefix
+        return result
+
+    def run_render(self, result: MetricResult, terminology: str) -> list[Any]:
+        """
+        Render figures and prepend the Jira project key to every figure title.
+
+        If result.source_prefix is empty the title is left unchanged.
+
+        Args:
+            result:      MetricResult from run().
+            terminology: Active terminology mode.
+
+        Returns:
+            List of plotly Figure objects with project key in the title.
+        """
+        figures = self.render(result, terminology)
+        if result.source_prefix:
+            for fig in figures:
+                existing = getattr(getattr(fig, "layout", None), "title", None)
+                current_text = getattr(existing, "text", "") or ""
+                fig.update_layout(
+                    title=f"{result.source_prefix}  ·  {current_text}"
+                    if current_text
+                    else result.source_prefix
+                )
+        return figures
