@@ -134,7 +134,7 @@ jobs:
               echo Fehler beim Starten. Bitte den roten Text oben notieren.
               pause
           )
-          '@ | Set-Content "$BUNDLE\SituationReport.bat" -Encoding ASCII
+          '@ | Set-Content "$BUNDLE\BuildReports.bat" -Encoding ASCII
 
           @'
           @echo off
@@ -197,11 +197,11 @@ jobs:
               )
 
           scripts = {
-              "SituationReport.sh": launcher("build_reports"),
+              "BuildReports.sh": launcher("build_reports"),
               "TransformData.sh": launcher("transform_data"),
           }
           if IS_MACOS:
-              scripts["SituationReport.command"] = launcher("build_reports")
+              scripts["BuildReports.command"] = launcher("build_reports")
               scripts["TransformData.command"] = launcher("transform_data")
 
           for name, content in scripts.items():
@@ -278,7 +278,7 @@ jobs:
             ### Windows
 
             1. `SituationReport-Windows.zip` herunterladen und entpacken
-            2. `SituationReport.bat` doppelklicken → Build Reports GUI
+            2. `BuildReports.bat` doppelklicken → Build Reports GUI
                `TransformData.bat` doppelklicken → Transform Data GUI
             3. Beim ersten Start: Windows SmartScreen → **Weitere Informationen** → **Trotzdem ausführen**
 
@@ -287,7 +287,7 @@ jobs:
             ### macOS (Apple Silicon)
 
             1. `SituationReport-macOS-ARM.zip` herunterladen und entpacken
-            2. Rechtsklick auf `SituationReport.command` → *Öffnen* → *Öffnen* bestätigen (Gatekeeper, einmalig)
+            2. Rechtsklick auf `BuildReports.command` → *Öffnen* → *Öffnen* bestätigen (Gatekeeper, einmalig)
             3. Beim **ersten Start**: einmalige Einrichtung (~1 Min, Internet erforderlich)
 
             ### Linux (x64)
@@ -295,7 +295,7 @@ jobs:
             1. `SituationReport-Linux.zip` herunterladen und entpacken
             2. Voraussetzung: `python3` und `python3-tk` installiert
                (`sudo apt install python3-tk` auf Ubuntu/Debian)
-            3. Im entpackten Ordner: `./SituationReport.sh`
+            3. Im entpackten Ordner: `./BuildReports.sh`
                Beim **ersten Start**: einmalige Einrichtung (~1 Min, Internet erforderlich)
 
             ---
@@ -304,5 +304,5 @@ jobs:
 
             | Datei | Funktion |
             |-------|----------|
-            | `SituationReport.bat` / `.command` / `.sh` | Build Reports – Metriken und Berichte erstellen |
+            | `BuildReports.bat` / `.command` / `.sh` | Build Reports – Metriken und Berichte erstellen |
             | `TransformData.bat` / `.command` / `.sh` | Transform Data – Rohdaten aufbereiten |

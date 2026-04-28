@@ -446,14 +446,14 @@ def content_de(st, images: dict[str, Path] | None = None):
     story.append(P(
         "Die passende Startdatei im entpackten Ordner doppelklicken:", st))
     story.append(BL(
-        "<b>Windows:</b> <b>SituationReport.bat</b> doppelklicken -- startet die GUI "
+        "<b>Windows:</b> <b>BuildReports.bat</b> doppelklicken -- startet die GUI "
         "ohne Konsolenfenster.", st))
     story.append(BL(
-        "<b>macOS:</b> Rechtsklick auf <b>SituationReport.command</b> → <i>Oeffnen</i> "
+        "<b>macOS:</b> Rechtsklick auf <b>BuildReports.command</b> → <i>Oeffnen</i> "
         "(einmalig wegen Gatekeeper).", st))
     story.append(BL(
         "<b>Linux:</b> Im Terminal: "
-        "<font name='Courier'>./SituationReport.sh</font>", st))
+        "<font name='Courier'>./BuildReports.sh</font>", st))
     story.append(SP(4))
     story.append(box(
         "<b>Tipp (Windows):</b> Beim ersten Start erscheint moeglicherweise ein "
@@ -1216,14 +1216,14 @@ def content_en(st, images: dict[str, Path] | None = None):
     story.append(P(
         "Double-click the appropriate launcher in the extracted folder:", st))
     story.append(BL(
-        "<b>Windows:</b> Double-click <b>SituationReport.bat</b> — starts the GUI "
+        "<b>Windows:</b> Double-click <b>BuildReports.bat</b> — starts the GUI "
         "without a console window.", st))
     story.append(BL(
-        "<b>macOS:</b> Right-click <b>SituationReport.command</b> → <i>Open</i> "
+        "<b>macOS:</b> Right-click <b>BuildReports.command</b> → <i>Open</i> "
         "(once, to bypass Gatekeeper).", st))
     story.append(BL(
         "<b>Linux:</b> In a terminal: "
-        "<font name='Courier'>./SituationReport.sh</font>", st))
+        "<font name='Courier'>./BuildReports.sh</font>", st))
     story.append(SP(4))
     story.append(box(
         "<b>Tip (Windows):</b> On the first launch, SmartScreen may show a warning. "
