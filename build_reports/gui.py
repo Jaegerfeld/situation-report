@@ -3,7 +3,7 @@
 # Repository:     https://github.com/Jaegerfeld/situation-report
 # KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
 # Erstellt:       16.04.2026
-# Geändert:       27.04.2026
+# Geändert:       28.04.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
@@ -52,13 +52,23 @@ from .terminology import GLOBAL, SAFE, term
 
 LANG_DE = "de"
 LANG_EN = "en"
+LANG_RO = "ro"
+LANG_PT = "pt"
+LANG_FR = "fr"
+
+_LANG_ORDER = [LANG_DE, LANG_EN, LANG_RO, LANG_PT, LANG_FR]
 
 _MANUAL_URLS: dict[str, str] = {
     LANG_DE: "https://jaegerfeld.github.io/situation-report/build_reports_Benutzerhandbuch.pdf",
     LANG_EN: "https://jaegerfeld.github.io/situation-report/build_reports_UserManual.pdf",
+    LANG_RO: "https://jaegerfeld.github.io/situation-report/build_reports_UserManual.pdf",
+    LANG_PT: "https://jaegerfeld.github.io/situation-report/build_reports_UserManual.pdf",
+    LANG_FR: "https://jaegerfeld.github.io/situation-report/build_reports_UserManual.pdf",
 }
 
-_LANG_FLAGS: dict[str, str] = {LANG_DE: "🇩🇪", LANG_EN: "🇬🇧"}
+_LANG_FLAGS: dict[str, str] = {
+    LANG_DE: "🇩🇪", LANG_EN: "🇬🇧", LANG_RO: "🇷🇴", LANG_PT: "🇵🇹", LANG_FR: "🇫🇷",
+}
 
 _PREFS_PATH = Path.home() / ".situation_report" / "prefs.json"
 
@@ -202,7 +212,10 @@ _T: dict[str, dict[str, str]] = {
         "menu_help":         "Hilfe",
         "menu_manual":       "Manual",
         "menu_lang_title":   "Sprache",
-        "tip_language":      "Sprache wechseln (DE / EN)",
+        "menu_lang_ro":      "Română",
+        "menu_lang_pt":      "Português",
+        "menu_lang_fr":      "Français",
+        "tip_language":      "Sprache wechseln",
     },
     LANG_EN: {
         "window_title":      "build_reports",
@@ -316,7 +329,355 @@ _T: dict[str, dict[str, str]] = {
         "menu_help":         "Help",
         "menu_manual":       "Manual",
         "menu_lang_title":   "Language",
-        "tip_language":      "Switch language (DE / EN)",
+        "menu_lang_ro":      "Română",
+        "menu_lang_pt":      "Português",
+        "menu_lang_fr":      "Français",
+        "tip_language":      "Switch language",
+    },
+    LANG_RO: {
+        "window_title":      "build_reports",
+        "menu_options":      "Opțiuni",
+        "menu_language":     "Limbă",
+        "menu_lang_de":      "Deutsch",
+        "menu_lang_en":      "English",
+        "menu_lang_ro":      "Română",
+        "menu_lang_pt":      "Português",
+        "menu_lang_fr":      "Français",
+        "menu_terminology":  "Terminologie",
+        "sec_files":         "Fişiere",
+        "sec_filter":        "Filtru",
+        "sec_metrics":       "Metrici",
+        "sec_ct":            "Metodă CT (Flow Time)",
+        "lbl_issue_times":   "IssueTimes",
+        "lbl_cfd":           "CFD (opțional)",
+        "lbl_workflow":      "Workflow (opțional)",
+        "lbl_pi_config":     "Config PI (opțional)",
+        "lbl_transitions":   "Transitions (opțional)",
+        "lbl_from":          "De la (YYYY-MM-DD)",
+        "lbl_to":            "Până la (YYYY-MM-DD)",
+        "lbl_projects":      "Proiecte",
+        "lbl_issuetypes":    "Tipuri de issue",
+        "btn_browse":        "Răsfoire…",
+        "btn_pick":          "▾",
+        "btn_all":           "Toate",
+        "btn_none":          "Niciunul",
+        "btn_show":          "Afişare în browser",
+        "btn_pdf":           "Exportare rapoarte",
+        "hint_csv":          "separate prin virgulă",
+        "lbl_log":           "Jurnal",
+        "ct_a":              "A – Zile calendaristice (Data închiderii − Prima dată)",
+        "ct_b":              "B – Minute pe etapă (de la Prima până la Closed, excl.)",
+        "dlg_issue_times":   "Selectați fişierul IssueTimes",
+        "dlg_cfd":           "Selectați fişierul CFD",
+        "dlg_workflow":      "Selectați fişierul de workflow",
+        "dlg_pi_config":     "Selectați fişierul de configurare PI",
+        "dlg_transitions":   "Selectați fişierul Transitions",
+        "dlg_pdf":           "Salvați PDF ca",
+        "dlg_pick_date":     "Selectați data",
+        "dlg_projects":      "Selectați proiectele",
+        "dlg_issuetypes":    "Selectați tipurile de issue",
+        "btn_cal":           "\U0001f4c5",
+        "btn_ok":            "OK",
+        "btn_last_365":      "Ultimele 365 de zile",
+        "err_no_file":       "EROARE: Niciun fişier IssueTimes selectat.",
+        "err_not_found":     "EROARE: Fişier negăsit: {}",
+        "err_from_date":     "EROARE: Data de început invalidă '{}' (format aşteptat YYYY-MM-DD).",
+        "err_to_date":       "EROARE: Data de sfârşit invalidă '{}' (format aşteptat YYYY-MM-DD).",
+        "log_check_ok":      "Etape: IssueTimes şi CFD sunt consistente.",
+        "log_check_miss_cfd":"  Etapă doar în IssueTimes: {}",
+        "log_check_miss_it": "  Etapă doar în CFD: {}",
+        "log_started":       "--- Calcul pornit ---",
+        "log_done":          "--- Finalizat ---",
+        "log_pdf_started":   "--- Export PDF pornit ---",
+        "log_no_figs":       "Niciun grafic generat.",
+        "log_figs_opened":   "  → {} grafic(e) deschise în browser.",
+        "log_unk_metric":    "  AVERTISMENT: Metrică necunoscută '{}' — ignorată.",
+        "log_error":         "EROARE: {}",
+        "menu_template":     "Şabloane",
+        "menu_tpl_save":     "Salvare…",
+        "menu_tpl_load":     "Încărcare…",
+        "dlg_tpl_save":      "Salvare şablon",
+        "dlg_tpl_load":      "Încărcare şablon",
+        "log_tpl_saved":     "Şablon salvat: {}",
+        "log_tpl_loaded":    "Şablon încărcat: {}",
+        "log_tpl_error":     "Eroare şablon: {}",
+        "log_zero_day_xlsx": "  {} issue(uri) zero-day exportate: {}",
+        "log_zero_day_log":  "  Issue-uri Zero-Day ({}): {}",
+        "tip_issue_times":   "IssueTimes.xlsx din transform_data — conține toate issue-urile cu date şi informații despre etape.",
+        "tip_cfd":           "CFD.xlsx din transform_data — opțional, necesar doar pentru metrica CFD.",
+        "tip_workflow":      "Fişier text Workflow — defineşte limitele <First> şi <Closed> pentru liniile de tendință CFD In/Out.",
+        "tip_pi_config":     "Fişier JSON de configurare cu intervale PI pentru Flow Velocity. Fără fişier se folosesc trimestre.",
+        "tip_transitions":   "Transitions.xlsx din transform_data — conține toate tranzițiile de stare per issue. Necesar doar pentru metrica Process Flow.",
+        "tip_browse":        "Selectați fişier …",
+        "tip_from":          "Includeți doar issue-urile închise la sau după această dată (inclusiv).",
+        "tip_to":            "Includeți doar issue-urile închise la sau înainte de această dată (inclusiv).",
+        "tip_cal":           "Deschideți selectorul de calendar",
+        "tip_last_365":      "Setează De la şi Până la la ultimele 365 de zile până astăzi.",
+        "tip_projects":      "Chei de proiect separate prin virgulă, ex. „ARTA, ARTB“. Gol = toate proiectele.",
+        "tip_issuetypes":    "Tipuri de issue separate prin virgulă, ex. „Feature, Bug“. Gol = toate tipurile.",
+        "tip_pick":          "Selectați din fişierul IssueTimes încărcat.",
+        "tip_ct_a":          "Calculează CT ca diferența de zile calendaristice între Prima dată şi Data închiderii.",
+        "tip_ct_b":          "Calculează CT ca suma minutelor pe etapă de la Prima dată la Data închiderii (ultima etapă exclusă).",
+        "lbl_target_ct":     "Target CT",
+        "tip_target_ct":     "Obiectiv de timp de ciclu în zile. Issue-urile închise în această limită sunt afişate ca 'Target CT X%' în antetul Flow Time.",
+        "tip_show":          "Calculează metrici şi afişează rezultatele în browserul implicit.",
+        "tip_pdf":           "Calculează metrici şi exportă toate diagramele ca fişier PDF.",
+        "tip_metric_flow_time":         "Cât timp durează un issue de la start până la închidere?",
+        "tip_metric_flow_velocity":     "Câte issue-uri sunt finalizate per unitate de timp?",
+        "tip_metric_flow_load":         "Câte issue-uri sunt simultan în lucru?",
+        "tip_metric_cfd":               "Numărul cumulativ de issue-uri per etapă de-a lungul timpului.",
+        "tip_metric_flow_distribution": "Distribuția issue-urilor pe tip sau categorie.",
+        "tip_metric_process_flow":      "Graf direcționat al tranzițiilor de stare — evidențiază căile frecvente, paşii înaoi şi auto-buclele.",
+        "sec_exclusions":    "Excluderi",
+        "lbl_excl_status":   "Status",
+        "lbl_excl_resolution": "Rezoluție",
+        "dlg_excl_status":   "Selectați statusurile de exclus",
+        "dlg_excl_resolution": "Selectați rezoluțiile de exclus",
+        "tip_excl_status":   "Excludeți complet issue-urile cu aceste statusuri Jira din toate metricile (ex. Anulat).",
+        "tip_excl_resolution": "Excludeți complet issue-urile cu aceste rezoluții (ex. Won’t Do).",
+        "chk_zero_day":      "Excludeți issue-urile zero-day  (<",
+        "lbl_zero_day_min":  "min)",
+        "tip_zero_day":      "Issue-urile al căror timp de ciclu (Prima dată → Data închiderii) este sub prag sunt eliminate complet din toate metricile.",
+        "menu_excl_save":    "Salvare excluderi ca implicite…",
+        "menu_excl_load":    "Încărcare excluderi implicite",
+        "log_excl_saved":    "Excluderi implicite salvate.",
+        "log_excl_loaded":   "Excluderi implicite încărcate.",
+        "log_excl_not_found": "Nicio excludere implicită găsită.",
+        "log_excl_error":    "Eroare la încărcarea/salvarea excluderilor implicite: {}",
+        "menu_help":         "Ajutor",
+        "menu_manual":       "Manual",
+        "menu_lang_title":   "Limbă",
+        "tip_language":      "Schimbați limba",
+    },
+    LANG_PT: {
+        "window_title":      "build_reports",
+        "menu_options":      "Opções",
+        "menu_language":     "Idioma",
+        "menu_lang_de":      "Deutsch",
+        "menu_lang_en":      "English",
+        "menu_lang_ro":      "Română",
+        "menu_lang_pt":      "Português",
+        "menu_lang_fr":      "Français",
+        "menu_terminology":  "Terminologia",
+        "sec_files":         "Ficheiros",
+        "sec_filter":        "Filtro",
+        "sec_metrics":       "Métricas",
+        "sec_ct":            "Método CT (Flow Time)",
+        "lbl_issue_times":   "IssueTimes",
+        "lbl_cfd":           "CFD (opcional)",
+        "lbl_workflow":      "Workflow (opcional)",
+        "lbl_pi_config":     "Config PI (opcional)",
+        "lbl_transitions":   "Transitions (opcional)",
+        "lbl_from":          "De (YYYY-MM-DD)",
+        "lbl_to":            "Até (YYYY-MM-DD)",
+        "lbl_projects":      "Projetos",
+        "lbl_issuetypes":    "Tipos de issue",
+        "btn_browse":        "Procurar…",
+        "btn_pick":          "▾",
+        "btn_all":           "Todos",
+        "btn_none":          "Nenhum",
+        "btn_show":          "Mostrar no browser",
+        "btn_pdf":           "Exportar relatórios",
+        "hint_csv":          "separado por vírgulas",
+        "lbl_log":           "Registo",
+        "ct_a":              "A – Dias de calendário (Data de fecho − Primeira data)",
+        "ct_b":              "B – Minutos por etapa (do Primeiro ao Fechado, excl.)",
+        "dlg_issue_times":   "Selecionar ficheiro IssueTimes",
+        "dlg_cfd":           "Selecionar ficheiro CFD",
+        "dlg_workflow":      "Selecionar ficheiro de workflow",
+        "dlg_pi_config":     "Selecionar ficheiro de configuração PI",
+        "dlg_transitions":   "Selecionar ficheiro Transitions",
+        "dlg_pdf":           "Guardar PDF como",
+        "dlg_pick_date":     "Selecionar data",
+        "dlg_projects":      "Selecionar projetos",
+        "dlg_issuetypes":    "Selecionar tipos de issue",
+        "btn_cal":           "\U0001f4c5",
+        "btn_ok":            "OK",
+        "btn_last_365":      "Últimos 365 dias",
+        "err_no_file":       "ERRO: Nenhum ficheiro IssueTimes selecionado.",
+        "err_not_found":     "ERRO: Ficheiro não encontrado: {}",
+        "err_from_date":     "ERRO: Data de início inválida '{}' (formato esperado YYYY-MM-DD).",
+        "err_to_date":       "ERRO: Data de fim inválida '{}' (formato esperado YYYY-MM-DD).",
+        "log_check_ok":      "Etapas: IssueTimes e CFD são consistentes.",
+        "log_check_miss_cfd":"  Etapa apenas em IssueTimes: {}",
+        "log_check_miss_it": "  Etapa apenas em CFD: {}",
+        "log_started":       "--- Cálculo iniciado ---",
+        "log_done":          "--- Concluído ---",
+        "log_pdf_started":   "--- Exportação PDF iniciada ---",
+        "log_no_figs":       "Nenhum gráfico gerado.",
+        "log_figs_opened":   "  → {} gráfico(s) aberto(s) no browser.",
+        "log_unk_metric":    "  AVISO: Métrica desconhecida '{}' — ignorada.",
+        "log_error":         "ERRO: {}",
+        "menu_template":     "Modelos",
+        "menu_tpl_save":     "Guardar…",
+        "menu_tpl_load":     "Carregar…",
+        "dlg_tpl_save":      "Guardar modelo",
+        "dlg_tpl_load":      "Carregar modelo",
+        "log_tpl_saved":     "Modelo guardado: {}",
+        "log_tpl_loaded":    "Modelo carregado: {}",
+        "log_tpl_error":     "Erro no modelo: {}",
+        "log_zero_day_xlsx": "  {} issue(s) zero-day exportado(s): {}",
+        "log_zero_day_log":  "  Issues Zero-Day ({}): {}",
+        "tip_issue_times":   "IssueTimes.xlsx do transform_data — contém todos os issues com datas e dados de etapas.",
+        "tip_cfd":           "CFD.xlsx do transform_data — opcional, necessário apenas para a métrica CFD.",
+        "tip_workflow":      "Ficheiro de texto Workflow — define os limites <First> e <Closed> para as linhas de tendência CFD In/Out.",
+        "tip_pi_config":     "Ficheiro JSON de configuração com intervalos PI para Flow Velocity. Sem ficheiro, são usados trimestres.",
+        "tip_transitions":   "Transitions.xlsx do transform_data — contém todas as transições de estado por issue. Necessário apenas para a métrica Process Flow.",
+        "tip_browse":        "Selecionar ficheiro …",
+        "tip_from":          "Incluir apenas issues fechados nesta data ou depois (inclusive).",
+        "tip_to":            "Incluir apenas issues fechados nesta data ou antes (inclusive).",
+        "tip_cal":           "Abrir seletor de calendário",
+        "tip_last_365":      "Define De e Até para os últimos 365 dias até hoje.",
+        "tip_projects":      "Chaves de projeto separadas por vírgula, ex. “ARTA, ARTB”. Vazio = todos os projetos.",
+        "tip_issuetypes":    "Tipos de issue separados por vírgula, ex. “Feature, Bug”. Vazio = todos os tipos.",
+        "tip_pick":          "Selecionar a partir do ficheiro IssueTimes carregado.",
+        "tip_ct_a":          "Calcula CT como a diferença em dias de calendário entre a Primeira data e a Data de fecho.",
+        "tip_ct_b":          "Calcula CT como a soma dos minutos por etapa da Primeira data até à Data de fecho (última etapa excluída).",
+        "lbl_target_ct":     "Target CT",
+        "tip_target_ct":     "Objetivo de tempo de ciclo em dias. Issues fechados dentro deste limite são mostrados como 'Target CT X%' no cabeçalho Flow Time.",
+        "tip_show":          "Calcular métricas e mostrar resultados no browser predefinido.",
+        "tip_pdf":           "Calcular métricas e exportar todos os gráficos como ficheiro PDF.",
+        "tip_metric_flow_time":         "Quanto tempo demora um issue do início ao fecho?",
+        "tip_metric_flow_velocity":     "Quantos issues são concluídos por unidade de tempo?",
+        "tip_metric_flow_load":         "Quantos issues estão simultaneamente em progresso?",
+        "tip_metric_cfd":               "Contagem cumulativa de issues por etapa ao longo do tempo.",
+        "tip_metric_flow_distribution": "Distribuição de issues por tipo ou categoria.",
+        "tip_metric_process_flow":      "Grafo dirigido das transições de estado — destaca caminhos frequentes, passos retroativos e auto-ciclos.",
+        "sec_exclusions":    "Exclusões",
+        "lbl_excl_status":   "Status",
+        "lbl_excl_resolution": "Resolução",
+        "dlg_excl_status":   "Selecionar status a excluir",
+        "dlg_excl_resolution": "Selecionar resoluções a excluir",
+        "tip_excl_status":   "Excluir completamente issues com estes status Jira de todas as métricas (ex. Cancelado).",
+        "tip_excl_resolution": "Excluir completamente issues com estas resoluções (ex. Won’t Do).",
+        "chk_zero_day":      "Excluir issues zero-day  (<",
+        "lbl_zero_day_min":  "min)",
+        "tip_zero_day":      "Issues cujo tempo de ciclo (Primeira data → Data de fecho) está abaixo do limite são completamente removidos de todas as métricas.",
+        "menu_excl_save":    "Guardar exclusões como predefinição…",
+        "menu_excl_load":    "Carregar exclusões predefinidas",
+        "log_excl_saved":    "Exclusões predefinidas guardadas.",
+        "log_excl_loaded":   "Exclusões predefinidas carregadas.",
+        "log_excl_not_found": "Nenhuma exclusão predefinida encontrada.",
+        "log_excl_error":    "Erro ao carregar/guardar exclusões predefinidas: {}",
+        "menu_help":         "Ajuda",
+        "menu_manual":       "Manual",
+        "menu_lang_title":   "Idioma",
+        "tip_language":      "Mudar idioma",
+    },
+    LANG_FR: {
+        "window_title":      "build_reports",
+        "menu_options":      "Options",
+        "menu_language":     "Langue",
+        "menu_lang_de":      "Deutsch",
+        "menu_lang_en":      "English",
+        "menu_lang_ro":      "Română",
+        "menu_lang_pt":      "Português",
+        "menu_lang_fr":      "Français",
+        "menu_terminology":  "Terminologie",
+        "sec_files":         "Fichiers",
+        "sec_filter":        "Filtre",
+        "sec_metrics":       "Métriques",
+        "sec_ct":            "Méthode CT (Flow Time)",
+        "lbl_issue_times":   "IssueTimes",
+        "lbl_cfd":           "CFD (optionnel)",
+        "lbl_workflow":      "Workflow (optionnel)",
+        "lbl_pi_config":     "Config PI (optionnel)",
+        "lbl_transitions":   "Transitions (optionnel)",
+        "lbl_from":          "Du (YYYY-MM-DD)",
+        "lbl_to":            "Au (YYYY-MM-DD)",
+        "lbl_projects":      "Projets",
+        "lbl_issuetypes":    "Types d’issue",
+        "btn_browse":        "Parcourir…",
+        "btn_pick":          "▾",
+        "btn_all":           "Tous",
+        "btn_none":          "Aucun",
+        "btn_show":          "Afficher dans le navigateur",
+        "btn_pdf":           "Exporter les rapports",
+        "hint_csv":          "séparé par des virgules",
+        "lbl_log":           "Journal",
+        "ct_a":              "A – Jours calendaires (Date de clôture − Première date)",
+        "ct_b":              "B – Minutes par étape (du Premier au Clôturé, excl.)",
+        "dlg_issue_times":   "Sélectionner le fichier IssueTimes",
+        "dlg_cfd":           "Sélectionner le fichier CFD",
+        "dlg_workflow":      "Sélectionner le fichier de workflow",
+        "dlg_pi_config":     "Sélectionner le fichier de configuration PI",
+        "dlg_transitions":   "Sélectionner le fichier Transitions",
+        "dlg_pdf":           "Enregistrer le PDF sous",
+        "dlg_pick_date":     "Choisir une date",
+        "dlg_projects":      "Sélectionner les projets",
+        "dlg_issuetypes":    "Sélectionner les types d’issue",
+        "btn_cal":           "\U0001f4c5",
+        "btn_ok":            "OK",
+        "btn_last_365":      "365 derniers jours",
+        "err_no_file":       "ERREUR : Aucun fichier IssueTimes sélectionné.",
+        "err_not_found":     "ERREUR : Fichier introuvable : {}",
+        "err_from_date":     "ERREUR : Date de début invalide '{}' (format attendu YYYY-MM-DD).",
+        "err_to_date":       "ERREUR : Date de fin invalide '{}' (format attendu YYYY-MM-DD).",
+        "log_check_ok":      "Étapes : IssueTimes et CFD sont cohérents.",
+        "log_check_miss_cfd":"  Étape uniquement dans IssueTimes : {}",
+        "log_check_miss_it": "  Étape uniquement dans CFD : {}",
+        "log_started":       "--- Calcul démarré ---",
+        "log_done":          "--- Terminé ---",
+        "log_pdf_started":   "--- Export PDF démarré ---",
+        "log_no_figs":       "Aucun graphique généré.",
+        "log_figs_opened":   "  → {} graphique(s) ouvert(s) dans le navigateur.",
+        "log_unk_metric":    "  AVERTISSEMENT : Métrique inconnue '{}' — ignorée.",
+        "log_error":         "ERREUR : {}",
+        "menu_template":     "Modèles",
+        "menu_tpl_save":     "Enregistrer…",
+        "menu_tpl_load":     "Charger…",
+        "dlg_tpl_save":      "Enregistrer le modèle",
+        "dlg_tpl_load":      "Charger le modèle",
+        "log_tpl_saved":     "Modèle enregistré : {}",
+        "log_tpl_loaded":    "Modèle chargé : {}",
+        "log_tpl_error":     "Erreur de modèle : {}",
+        "log_zero_day_xlsx": "  {} issue(s) zero-day exporté(s) : {}",
+        "log_zero_day_log":  "  Issues Zero-Day ({}) : {}",
+        "tip_issue_times":   "IssueTimes.xlsx de transform_data — contient tous les issues avec les dates et les données d’étapes.",
+        "tip_cfd":           "CFD.xlsx de transform_data — optionnel, requis uniquement pour la métrique CFD.",
+        "tip_workflow":      "Fichier texte Workflow — définit les limites <First> et <Closed> pour les courbes de tendance CFD In/Out.",
+        "tip_pi_config":     "Fichier JSON de configuration avec les intervalles PI pour Flow Velocity. Sans fichier, les trimestres sont utilisés.",
+        "tip_transitions":   "Transitions.xlsx de transform_data — contient toutes les transitions d’état par issue. Requis uniquement pour la métrique Process Flow.",
+        "tip_browse":        "Sélectionner un fichier …",
+        "tip_from":          "Inclure uniquement les issues clôturés à cette date ou après (inclus).",
+        "tip_to":            "Inclure uniquement les issues clôturés à cette date ou avant (inclus).",
+        "tip_cal":           "Ouvrir le sélecteur de calendrier",
+        "tip_last_365":      "Définit Du et Au sur les 365 derniers jours jusqu’à aujourd’hui.",
+        "tip_projects":      "Clés de projet séparées par des virgules, ex. « ARTA, ARTB ». Vide = tous les projets.",
+        "tip_issuetypes":    "Types d’issue séparés par des virgules, ex. « Feature, Bug ». Vide = tous les types.",
+        "tip_pick":          "Sélectionner depuis le fichier IssueTimes chargé.",
+        "tip_ct_a":          "Calcule le CT comme la différence en jours calendaires entre la Première date et la Date de clôture.",
+        "tip_ct_b":          "Calcule le CT comme la somme des minutes par étape de la Première date à la Date de clôture (dernière étape exclue).",
+        "lbl_target_ct":     "Target CT",
+        "tip_target_ct":     "Objectif de temps de cycle en jours. Les issues clôturés dans cette limite sont affichés comme 'Target CT X%' dans l’en-tête Flow Time.",
+        "tip_show":          "Calculer les métriques et afficher les résultats dans le navigateur par défaut.",
+        "tip_pdf":           "Calculer les métriques et exporter tous les graphiques en fichier PDF.",
+        "tip_metric_flow_time":         "Combien de temps prend un issue du début à la clôture ?",
+        "tip_metric_flow_velocity":     "Combien d’issues sont terminés par unité de temps ?",
+        "tip_metric_flow_load":         "Combien d’issues sont simultanément en cours ?",
+        "tip_metric_cfd":               "Nombre cumulatif d’issues par étape au fil du temps.",
+        "tip_metric_flow_distribution": "Répartition des issues par type ou catégorie.",
+        "tip_metric_process_flow":      "Graphe orienté des transitions d’état — met en évidence les chemins fréquents, les étapes rétrogrades et les auto-boucles.",
+        "sec_exclusions":    "Exclusions",
+        "lbl_excl_status":   "Statut",
+        "lbl_excl_resolution": "Résolution",
+        "dlg_excl_status":   "Sélectionner les statuts à exclure",
+        "dlg_excl_resolution": "Sélectionner les résolutions à exclure",
+        "tip_excl_status":   "Exclure complètement les issues avec ces statuts Jira de toutes les métriques (ex. Annulé).",
+        "tip_excl_resolution": "Exclure complètement les issues avec ces résolutions (ex. Won’t Do).",
+        "chk_zero_day":      "Exclure les issues zero-day  (<",
+        "lbl_zero_day_min":  "min)",
+        "tip_zero_day":      "Les issues dont le temps de cycle (Première date → Date de clôture) est inférieur au seuil sont complètement retirés de toutes les métriques.",
+        "menu_excl_save":    "Enregistrer les exclusions comme défaut…",
+        "menu_excl_load":    "Charger les exclusions par défaut",
+        "log_excl_saved":    "Exclusions par défaut enregistrées.",
+        "log_excl_loaded":   "Exclusions par défaut chargées.",
+        "log_excl_not_found": "Aucune exclusion par défaut trouvée.",
+        "log_excl_error":    "Erreur lors du chargement/enregistrement des exclusions par défaut : {}",
+        "menu_help":         "Aide",
+        "menu_manual":       "Manuel",
+        "menu_lang_title":   "Langue",
+        "tip_language":      "Changer de langue",
     },
 }
 
@@ -764,7 +1125,7 @@ class BuildReportsApp(tk.Tk):
         Returns:
             Translated string, or key itself as fallback.
         """
-        return _T.get(self._lang_var.get(), _T[LANG_DE]).get(key, key)
+        return _T.get(self._lang_var.get(), _T[LANG_EN]).get(key, key)
 
     # -------------------------------------------------------------------------
     # Menu bar
@@ -786,8 +1147,11 @@ class BuildReportsApp(tk.Tk):
         # Language submenu (under Options)
         lang_menu = tk.Menu(options_menu, tearoff=0)
         options_menu.add_cascade(label=self._tr("menu_lang_title"), menu=lang_menu)
-        lang_menu.add_radiobutton(label="🇩🇪  Deutsch", variable=self._lang_var, value=LANG_DE)
-        lang_menu.add_radiobutton(label="🇬🇧  English", variable=self._lang_var, value=LANG_EN)
+        lang_menu.add_radiobutton(label="🇩🇪  Deutsch",   variable=self._lang_var, value=LANG_DE)
+        lang_menu.add_radiobutton(label="🇬🇧  English",   variable=self._lang_var, value=LANG_EN)
+        lang_menu.add_radiobutton(label="🇷🇴  Română",    variable=self._lang_var, value=LANG_RO)
+        lang_menu.add_radiobutton(label="🇵🇹  Português", variable=self._lang_var, value=LANG_PT)
+        lang_menu.add_radiobutton(label="🇫🇷  Français",  variable=self._lang_var, value=LANG_FR)
 
         # Templates menu
         tpl_menu = tk.Menu(menubar, tearoff=0)
@@ -814,11 +1178,11 @@ class BuildReportsApp(tk.Tk):
 
     def _open_manual(self) -> None:
         """Open the language-appropriate user manual PDF on GitHub Pages."""
-        webbrowser.open(_MANUAL_URLS.get(self._lang_var.get(), _MANUAL_URLS[LANG_DE]))
+        webbrowser.open(_MANUAL_URLS.get(self._lang_var.get(), _MANUAL_URLS[LANG_EN]))
 
     def _create_flag_imgs(self) -> None:
         """
-        Build PhotoImage objects for the DE and GB flags using inline pixel drawing.
+        Build PhotoImage objects for all supported language flags using inline pixel drawing.
 
         Images are generated programmatically (no external files) so they work
         inside a PyInstaller bundle without any resource-path handling.
@@ -828,9 +1192,8 @@ class BuildReportsApp(tk.Tk):
 
         # German flag: three equal horizontal stripes (black / red / gold)
         de = tk.PhotoImage(width=W, height=H)
-        stripe_colors = ["#000000", "#DD0000", "#FFCC00"]
         for y in range(H):
-            color = stripe_colors[y * 3 // H]
+            color = ["#000000", "#DD0000", "#FFCC00"][y * 3 // H]
             de.put("{" + " ".join([color] * W) + "}", to=(0, y))
 
         # UK flag: simplified Union Jack (blue + white cross + red cross + white X)
@@ -841,21 +1204,43 @@ class BuildReportsApp(tk.Tk):
                 cx = abs(x - (W - 1) / 2)
                 cy = abs(y - (H - 1) / 2)
                 nx, ny = x / (W - 1), y / (H - 1)
-                if cx < W * 0.13 or cy < H * 0.13:        # red cross (St George)
+                if cx < W * 0.13 or cy < H * 0.13:
                     row.append("#C8102E")
-                elif cx < W * 0.24 or cy < H * 0.24:      # white cross border
+                elif cx < W * 0.24 or cy < H * 0.24:
                     row.append("#FFFFFF")
-                elif abs(nx - ny) < 0.16 or abs(nx - (1 - ny)) < 0.16:  # white X
+                elif abs(nx - ny) < 0.16 or abs(nx - (1 - ny)) < 0.16:
                     row.append("#FFFFFF")
                 else:
-                    row.append("#012169")                  # blue background
+                    row.append("#012169")
             gb.put("{" + " ".join(row) + "}", to=(0, y))
 
-        self._flag_imgs = {LANG_DE: de, LANG_EN: gb}
+        # Romanian flag: vertical tricolor (blue / yellow / red)
+        ro = tk.PhotoImage(width=W, height=H)
+        for y in range(H):
+            row = ["#002B7F" if x < W // 3 else "#FCD116" if x < 2 * W // 3 else "#CE1126"
+                   for x in range(W)]
+            ro.put("{" + " ".join(row) + "}", to=(0, y))
+
+        # Portuguese flag: vertical split green (2/5) + red (3/5)
+        pt = tk.PhotoImage(width=W, height=H)
+        for y in range(H):
+            row = ["#006600" if x < W * 2 // 5 else "#FF0000" for x in range(W)]
+            pt.put("{" + " ".join(row) + "}", to=(0, y))
+
+        # French flag: vertical tricolor (blue / white / red)
+        fr = tk.PhotoImage(width=W, height=H)
+        for y in range(H):
+            row = ["#002395" if x < W // 3 else "#FFFFFF" if x < 2 * W // 3 else "#ED2939"
+                   for x in range(W)]
+            fr.put("{" + " ".join(row) + "}", to=(0, y))
+
+        self._flag_imgs = {LANG_DE: de, LANG_EN: gb, LANG_RO: ro, LANG_PT: pt, LANG_FR: fr}
 
     def _toggle_language(self) -> None:
-        """Toggle the UI language between DE and EN."""
-        self._lang_var.set(LANG_EN if self._lang_var.get() == LANG_DE else LANG_DE)
+        """Cycle the UI language through all available languages."""
+        current = self._lang_var.get()
+        idx = _LANG_ORDER.index(current) if current in _LANG_ORDER else -1
+        self._lang_var.set(_LANG_ORDER[(idx + 1) % len(_LANG_ORDER)])
 
     # -------------------------------------------------------------------------
     # UI construction

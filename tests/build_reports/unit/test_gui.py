@@ -3,7 +3,7 @@
 # Repository:     https://github.com/Jaegerfeld/situation-report
 # KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
 # Erstellt:       16.04.2026
-# Geändert:       22.04.2026
+# Geändert:       28.04.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
@@ -23,7 +23,7 @@ import plotly.graph_objects as go
 import pytest
 
 from build_reports.gui import (
-    LANG_DE, LANG_EN, _T,
+    LANG_DE, LANG_EN, LANG_RO, LANG_PT, LANG_FR, _T,
     _build_combined_html, _build_template_dict, _check_stage_consistency,
     _default_date_range, _parse_date_safe, _parse_template_dict,
     _read_available_filters, _split_csv, _TEMPLATE_VERSION,
@@ -340,17 +340,26 @@ class TestDefaultDateRange:
         assert from_d < to_d
 
 
+_ALL_LANGS = (LANG_DE, LANG_EN, LANG_RO, LANG_PT, LANG_FR)
+
+
 class TestTranslations:
     """Tests for the _T translation table — key completeness and consistency."""
 
-    def test_both_languages_present(self):
-        """Both DE and EN language codes are registered in _T."""
-        assert LANG_DE in _T
-        assert LANG_EN in _T
+    def test_all_languages_present(self):
+        """All five language codes are registered in _T."""
+        for lang in _ALL_LANGS:
+            assert lang in _T, f"Language {lang!r} missing from _T"
 
-    def test_same_keys_in_both_languages(self):
-        """Both languages have the exact same set of translation keys."""
-        assert set(_T[LANG_DE].keys()) == set(_T[LANG_EN].keys())
+    def test_same_keys_in_all_languages(self):
+        """Every language has the exact same set of translation keys as DE."""
+        ref_keys = set(_T[LANG_DE].keys())
+        for lang in _ALL_LANGS:
+            assert set(_T[lang].keys()) == ref_keys, (
+                f"Key mismatch in [{lang}]: "
+                f"extra={set(_T[lang].keys()) - ref_keys}, "
+                f"missing={ref_keys - set(_T[lang].keys())}"
+            )
 
     def test_german_window_title(self):
         """The German window title is 'build_reports'."""
@@ -371,23 +380,23 @@ class TestTranslations:
                 assert value, f"Empty translation: [{lang}][{key}]"
 
     def test_date_picker_keys_present(self):
-        """Translation keys required for the calendar picker dialog exist."""
-        for lang in (LANG_DE, LANG_EN):
+        """Translation keys required for the calendar picker dialog exist in all languages."""
+        for lang in _ALL_LANGS:
             assert "dlg_pick_date" in _T[lang]
             assert "btn_cal" in _T[lang]
             assert "btn_ok" in _T[lang]
             assert "btn_last_365" in _T[lang]
 
     def test_filter_picker_keys_present(self):
-        """Translation keys required for the filter picker dialogs exist."""
-        for lang in (LANG_DE, LANG_EN):
+        """Translation keys required for the filter picker dialogs exist in all languages."""
+        for lang in _ALL_LANGS:
             assert "dlg_projects" in _T[lang]
             assert "dlg_issuetypes" in _T[lang]
             assert "btn_pick" in _T[lang]
 
     def test_template_keys_present(self):
-        """Translation keys required for template save/load menus exist."""
-        for lang in (LANG_DE, LANG_EN):
+        """Translation keys required for template save/load menus exist in all languages."""
+        for lang in _ALL_LANGS:
             assert "menu_template" in _T[lang]
             assert "menu_tpl_save" in _T[lang]
             assert "menu_tpl_load" in _T[lang]
@@ -396,7 +405,7 @@ class TestTranslations:
             assert "log_tpl_error" in _T[lang]
 
     def test_exclusion_translation_keys_present(self):
-        """Translation keys for the Exclusions section exist in both languages."""
+        """Translation keys for the Exclusions section exist in all languages."""
         required = [
             "sec_exclusions", "lbl_excl_status", "lbl_excl_resolution",
             "dlg_excl_status", "dlg_excl_resolution",
@@ -404,32 +413,32 @@ class TestTranslations:
             "menu_excl_save", "menu_excl_load",
             "log_excl_saved", "log_excl_loaded", "log_excl_not_found", "log_excl_error",
         ]
-        for lang in (LANG_DE, LANG_EN):
+        for lang in _ALL_LANGS:
             for key in required:
                 assert key in _T[lang], f"Missing exclusion key [{lang}][{key}]"
 
     def test_tooltip_keys_present(self):
-        """All required tooltip translation keys exist in both languages."""
+        """All required tooltip translation keys exist in all languages."""
         required = [
             "tip_issue_times", "tip_cfd", "tip_pi_config", "tip_browse",
             "tip_from", "tip_to", "tip_cal", "tip_last_365",
             "tip_projects", "tip_issuetypes", "tip_pick",
             "tip_ct_a", "tip_ct_b", "tip_show", "tip_pdf",
         ]
-        for lang in (LANG_DE, LANG_EN):
+        for lang in _ALL_LANGS:
             for key in required:
                 assert key in _T[lang], f"Missing tooltip key [{lang}][{key}]"
 
     def test_metric_tooltip_keys_present(self):
-        """If a metric tooltip key exists in DE, the same key must exist in EN."""
+        """If a metric tooltip key exists in DE, the same key must exist in all languages."""
         from build_reports.metrics import all_metrics
         for plugin in all_metrics():
             tip_key = f"tip_metric_{plugin.metric_id}"
-            # Only check keys that are defined (not all metrics need one)
             if tip_key in _T[LANG_DE]:
-                assert tip_key in _T[LANG_EN], (
-                    f"Tooltip key {tip_key} present in DE but missing in EN"
-                )
+                for lang in _ALL_LANGS:
+                    assert tip_key in _T[lang], (
+                        f"Tooltip key {tip_key} present in DE but missing in [{lang}]"
+                    )
 
 
 # ---------------------------------------------------------------------------
