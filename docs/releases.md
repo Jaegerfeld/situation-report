@@ -27,7 +27,7 @@ Alle verfügbaren Releases sind auf der [GitHub-Releases-Seite](https://github.c
 1. `SituationReport-Windows.zip` herunterladen
 2. Zip-Datei entpacken (Rechtsklick → *Alle extrahieren*)
 3. Im entpackten Ordner:
-   - `SituationReport.bat` doppelklicken → Build Reports GUI
+   - `BuildReports.bat` doppelklicken → Build Reports GUI
    - `TransformData.bat` doppelklicken → Transform Data GUI
 
 !!! note "Windows SmartScreen"
@@ -43,7 +43,7 @@ Alle verfügbaren Releases sind auf der [GitHub-Releases-Seite](https://github.c
 
 1. `SituationReport-macOS-ARM.zip` herunterladen
 2. Zip-Datei entpacken
-3. Rechtsklick auf `SituationReport.command` → *Öffnen* → im Dialog erneut *Öffnen* bestätigen
+3. Rechtsklick auf `BuildReports.command` → *Öffnen* → im Dialog erneut *Öffnen* bestätigen
 
 !!! note "macOS Gatekeeper"
     Da die Skripte nicht notarisiert sind, blockiert macOS den ersten Start per Doppelklick.
@@ -67,7 +67,7 @@ Alle verfügbaren Releases sind auf der [GitHub-Releases-Seite](https://github.c
    Falls tkinter fehlt: `sudo apt install python3-tk` (Ubuntu/Debian) oder `sudo dnf install python3-tkinter` (Fedora)
 4. Im entpackten Ordner starten:
    ```bash
-   ./SituationReport.sh    # Build Reports GUI
+   ./BuildReports.sh    # Build Reports GUI
    ./TransformData.sh      # Transform Data GUI
    ```
 
@@ -89,7 +89,7 @@ Das Paket enthält das gesamte Repository – Quelldateien, Konfigurationen und 
 | `simulate/` | Simulation und Testdaten-Generierung |
 | `testdata_generator/` | Beispiel-Workflows und Testdaten |
 | `build_reports/pi_config_example.json` | Vorlage für PI-Konfiguration |
-| `SituationReport.bat/.command/.sh` | Starter für Build Reports |
+| `BuildReports.bat/.command/.sh` | Starter für Build Reports |
 | `TransformData.bat/.command/.sh` | Starter für Transform Data |
 
 ---
