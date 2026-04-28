@@ -3,7 +3,7 @@
 # Repository:     https://github.com/Jaegerfeld/situation-report
 # KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
 # Erstellt:       10.04.2026
-# Geändert:       25.04.2026
+# Geändert:       28.04.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
@@ -35,16 +35,24 @@ from .transform import run_transform
 # Language constants
 # ---------------------------------------------------------------------------
 
-LANG_DE = 0
-LANG_EN = 1
+LANG_DE = "de"
+LANG_EN = "en"
+LANG_RO = "ro"
+LANG_PT = "pt"
+LANG_FR = "fr"
 
-_T: dict[int, dict[str, str]] = {
+_LANG_ORDER = [LANG_DE, LANG_EN, LANG_RO, LANG_PT, LANG_FR]
+
+_T: dict[str, dict[str, str]] = {
     LANG_DE: {
         "window_title":     "transform_data",
         "menu_options":     "Optionen",
         "menu_language":    "Sprache",
         "menu_lang_de":     "Deutsch",
         "menu_lang_en":     "English",
+        "menu_lang_ro":     "Română",
+        "menu_lang_pt":     "Português",
+        "menu_lang_fr":     "Français",
         "menu_help":        "Hilfe",
         "menu_manual":      "Manual",
         "lbl_json":         "JSON-Datei",
@@ -71,6 +79,9 @@ _T: dict[int, dict[str, str]] = {
         "menu_language":    "Language",
         "menu_lang_de":     "Deutsch",
         "menu_lang_en":     "English",
+        "menu_lang_ro":     "Română",
+        "menu_lang_pt":     "Português",
+        "menu_lang_fr":     "Français",
         "menu_help":        "Help",
         "menu_manual":      "Manual",
         "lbl_json":         "JSON File",
@@ -91,29 +102,121 @@ _T: dict[int, dict[str, str]] = {
         "log_done":         "--- Done ---",
         "log_error":        "ERROR: {}",
     },
+    LANG_RO: {
+        "window_title":     "transform_data",
+        "menu_options":     "Opțiuni",
+        "menu_language":    "Limbă",
+        "menu_lang_de":     "Deutsch",
+        "menu_lang_en":     "English",
+        "menu_lang_ro":     "Română",
+        "menu_lang_pt":     "Português",
+        "menu_lang_fr":     "Français",
+        "menu_help":        "Ajutor",
+        "menu_manual":      "Manual",
+        "lbl_json":         "Fişier JSON",
+        "lbl_workflow":     "Fişier Workflow",
+        "lbl_output_dir":   "Folder de ieşire",
+        "lbl_prefix":       "Prefix",
+        "lbl_log":          "Jurnal",
+        "btn_browse":       "Răsfoire…",
+        "btn_run":          "Executare",
+        "dlg_json":         "Selectați fişierul JSON",
+        "dlg_workflow":     "Selectați fişierul Workflow",
+        "dlg_output_dir":   "Selectați folderul de ieşire",
+        "err_no_json":      "EROARE: Niciun fişier JSON selectat.",
+        "err_no_workflow":  "EROARE: Niciun fişier Workflow selectat.",
+        "err_json_missing": "EROARE: Fişier JSON negăsit: {}",
+        "err_wf_missing":   "EROARE: Fişier Workflow negăsit: {}",
+        "log_started":      "--- Transformare pornită ---",
+        "log_done":         "--- Finalizat ---",
+        "log_error":        "EROARE: {}",
+    },
+    LANG_PT: {
+        "window_title":     "transform_data",
+        "menu_options":     "Opções",
+        "menu_language":    "Idioma",
+        "menu_lang_de":     "Deutsch",
+        "menu_lang_en":     "English",
+        "menu_lang_ro":     "Română",
+        "menu_lang_pt":     "Português",
+        "menu_lang_fr":     "Français",
+        "menu_help":        "Ajuda",
+        "menu_manual":      "Manual",
+        "lbl_json":         "Ficheiro JSON",
+        "lbl_workflow":     "Ficheiro Workflow",
+        "lbl_output_dir":   "Pasta de saída",
+        "lbl_prefix":       "Prefixo",
+        "lbl_log":          "Registo",
+        "btn_browse":       "Procurar…",
+        "btn_run":          "Executar",
+        "dlg_json":         "Selecionar ficheiro JSON",
+        "dlg_workflow":     "Selecionar ficheiro Workflow",
+        "dlg_output_dir":   "Selecionar pasta de saída",
+        "err_no_json":      "ERRO: Nenhum ficheiro JSON selecionado.",
+        "err_no_workflow":  "ERRO: Nenhum ficheiro Workflow selecionado.",
+        "err_json_missing": "ERRO: Ficheiro JSON não encontrado: {}",
+        "err_wf_missing":   "ERRO: Ficheiro Workflow não encontrado: {}",
+        "log_started":      "--- Transformação iniciada ---",
+        "log_done":         "--- Concluído ---",
+        "log_error":        "ERRO: {}",
+    },
+    LANG_FR: {
+        "window_title":     "transform_data",
+        "menu_options":     "Options",
+        "menu_language":    "Langue",
+        "menu_lang_de":     "Deutsch",
+        "menu_lang_en":     "English",
+        "menu_lang_ro":     "Română",
+        "menu_lang_pt":     "Português",
+        "menu_lang_fr":     "Français",
+        "menu_help":        "Aide",
+        "menu_manual":      "Manuel",
+        "lbl_json":         "Fichier JSON",
+        "lbl_workflow":     "Fichier Workflow",
+        "lbl_output_dir":   "Dossier de sortie",
+        "lbl_prefix":       "Préfixe",
+        "lbl_log":          "Journal",
+        "btn_browse":       "Parcourir…",
+        "btn_run":          "Exécuter",
+        "dlg_json":         "Sélectionner le fichier JSON",
+        "dlg_workflow":     "Sélectionner le fichier Workflow",
+        "dlg_output_dir":   "Sélectionner le dossier de sortie",
+        "err_no_json":      "ERREUR : Aucun fichier JSON sélectionné.",
+        "err_no_workflow":  "ERREUR : Aucun fichier Workflow sélectionné.",
+        "err_json_missing": "ERREUR : Fichier JSON introuvable : {}",
+        "err_wf_missing":   "ERREUR : Fichier Workflow introuvable : {}",
+        "log_started":      "--- Transformation démarrée ---",
+        "log_done":         "--- Terminé ---",
+        "log_error":        "ERREUR : {}",
+    },
 }
 
-_MANUAL_URLS: dict[int, str] = {
+_MANUAL_URLS: dict[str, str] = {
     LANG_DE: "https://jaegerfeld.github.io/situation-report/transform_data_Benutzerhandbuch.pdf",
     LANG_EN: "https://jaegerfeld.github.io/situation-report/transform_data_UserManual.pdf",
+    LANG_RO: "https://jaegerfeld.github.io/situation-report/transform_data_UserManual.pdf",
+    LANG_PT: "https://jaegerfeld.github.io/situation-report/transform_data_UserManual.pdf",
+    LANG_FR: "https://jaegerfeld.github.io/situation-report/transform_data_UserManual.pdf",
 }
 
-_LANG_FLAGS: dict[int, str] = {LANG_DE: "🇩🇪", LANG_EN: "🇬🇧"}
+_LANG_FLAGS: dict[str, str] = {
+    LANG_DE: "🇩🇪", LANG_EN: "🇬🇧", LANG_RO: "🇷🇴", LANG_PT: "🇵🇹", LANG_FR: "🇫🇷",
+}
 
 _PREFS_PATH = Path.home() / ".situation_report" / "prefs.json"
 
 
-def _load_lang_pref() -> int:
+def _load_lang_pref() -> str:
     """Load the last-used language preference from disk, defaulting to English."""
     try:
         with open(_PREFS_PATH) as f:
-            val = json.load(f).get("lang", "en")
-            return LANG_DE if val == "de" else LANG_EN
+            val = json.load(f).get("lang", LANG_EN)
+            return val if val in _T else LANG_EN
     except Exception:
         return LANG_EN
 
 
-def _save_lang_pref(lang: int) -> None:
+def _save_lang_pref(lang: str) -> None:
     """Persist the language preference to disk."""
     _PREFS_PATH.parent.mkdir(parents=True, exist_ok=True)
     prefs: dict = {}
@@ -122,7 +225,7 @@ def _save_lang_pref(lang: int) -> None:
             prefs = json.load(f)
     except Exception:
         pass
-    prefs["lang"] = "de" if lang == LANG_DE else "en"
+    prefs["lang"] = lang
     with open(_PREFS_PATH, "w") as f:
         json.dump(prefs, f, indent=2)
 
@@ -132,7 +235,7 @@ class TransformApp(tk.Tk):
         super().__init__()
         self.resizable(True, True)
 
-        self._lang_var = tk.IntVar(value=_load_lang_pref())
+        self._lang_var = tk.StringVar(value=_load_lang_pref())
         self._lang_var.trace_add("write", lambda *_: self._apply_language())
 
         self._json_var = tk.StringVar()
@@ -162,7 +265,7 @@ class TransformApp(tk.Tk):
 
     def _tr(self, key: str) -> str:
         """Return translated string for the current language."""
-        return _T[self._lang_var.get()].get(key, key)
+        return _T.get(self._lang_var.get(), _T[LANG_EN]).get(key, key)
 
     # -------------------------------------------------------------------------
     # Menu bar
@@ -178,15 +281,18 @@ class TransformApp(tk.Tk):
 
         # Language flag (rightmost)
         lang_menu = tk.Menu(menubar, tearoff=0)
-        lang_menu.add_radiobutton(label="🇩🇪  Deutsch", variable=self._lang_var, value=LANG_DE)
-        lang_menu.add_radiobutton(label="🇬🇧  English", variable=self._lang_var, value=LANG_EN)
-        menubar.add_cascade(label=_LANG_FLAGS[self._lang_var.get()], menu=lang_menu)
+        lang_menu.add_radiobutton(label="🇩🇪  Deutsch",   variable=self._lang_var, value=LANG_DE)
+        lang_menu.add_radiobutton(label="🇬🇧  English",   variable=self._lang_var, value=LANG_EN)
+        lang_menu.add_radiobutton(label="🇷🇴  Română",    variable=self._lang_var, value=LANG_RO)
+        lang_menu.add_radiobutton(label="🇵🇹  Português", variable=self._lang_var, value=LANG_PT)
+        lang_menu.add_radiobutton(label="🇫🇷  Français",  variable=self._lang_var, value=LANG_FR)
+        menubar.add_cascade(label=_LANG_FLAGS.get(self._lang_var.get(), "🌐"), menu=lang_menu)
 
         self.config(menu=menubar)
 
     def _open_manual(self) -> None:
         """Open the language-appropriate user manual PDF on GitHub Pages."""
-        webbrowser.open(_MANUAL_URLS[self._lang_var.get()])
+        webbrowser.open(_MANUAL_URLS.get(self._lang_var.get(), _MANUAL_URLS[LANG_EN]))
 
     # -------------------------------------------------------------------------
     # UI build
