@@ -35,27 +35,64 @@ jobs:
           python-version: '3.11'
 
       # -----------------------------------------------------------------------
-      # Windows: embeddable Python 3.11 + tkinter + deps + Chrome + source
+      # Windows: copy full CI Python (tkinter included) + deps + Chrome + source
       # -----------------------------------------------------------------------
       - name: Build portable package – Windows
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
-          $PY_VER = "3.11.9"
-          $PY_URL = "https://www.python.org/ftp/python/$PY_VER/python-$PY_VER-embed-amd64.zip"
           $BUNDLE = "dist\SituationReport"
-          New-Item -ItemType Directory -Force "$BUNDLE\python" | Out-Null
+          $pyPrefix = (python -c "import sys; print(sys.prefix)").Trim()
+          Write-Host "CI Python: $pyPrefix"
+          New-Item -ItemType Directory -Force "$BUNDLE\python\Lib\site-packages" | Out-Null
+          New-Item -ItemType Directory -Force "$BUNDLE\python\DLLs" | Out-Null
 
-          # --- Embeddable Python ---
-          Invoke-WebRequest -Uri $PY_URL -OutFile python_embed.zip
-          Expand-Archive python_embed.zip -DestinationPath "$BUNDLE\python"
-          Remove-Item python_embed.zip
+          # --- Copy Python runtime files ---
+          foreach ($f in 'python.exe','pythonw.exe','python311.dll','vcruntime140.dll','vcruntime140_1.dll') {
+              if (Test-Path "$pyPrefix\$f") {
+                  Copy-Item "$pyPrefix\$f" "$BUNDLE\python\"
+                  Write-Host "Copied: $f"
+              }
+          }
+          # tcl/tk runtime DLLs (in Python root)
+          Get-ChildItem "$pyPrefix" -Filter "tcl*.dll" | ForEach-Object {
+              Copy-Item $_.FullName "$BUNDLE\python\"; Write-Host "Copied: $($_.Name)"
+          }
+          Get-ChildItem "$pyPrefix" -Filter "tk*.dll" | ForEach-Object {
+              Copy-Item $_.FullName "$BUNDLE\python\"; Write-Host "Copied: $($_.Name)"
+          }
+          # Extension modules (DLLs/ – includes _tkinter.pyd)
+          Copy-Item "$pyPrefix\DLLs\*" "$BUNDLE\python\DLLs\" -Recurse
+          Write-Host "Copied: DLLs/"
 
-          # Patch ._pth: enable site-packages and add bundle root to sys.path
-          $pthFile = (Get-ChildItem "$BUNDLE\python\python*._pth").FullName
-          (Get-Content $pthFile) -replace '#import site', 'import site' |
-              Set-Content $pthFile -Encoding UTF8NoBOM
-          Add-Content $pthFile -Value '..' -Encoding UTF8NoBOM
+          # --- Standard library (skip site-packages; we install fresh) ---
+          Get-ChildItem "$pyPrefix\Lib" |
+              Where-Object { $_.Name -notin @('site-packages','__pycache__','test','idlelib','turtledemo') } |
+              ForEach-Object { Copy-Item $_.FullName "$BUNDLE\python\Lib\" -Recurse }
+          Write-Host "Copied: Lib/"
+
+          # --- tcl/tk library files ---
+          # Ask the CI Python itself where its tcl library lives
+          $tclInfo = & python -c "import tkinter; t=tkinter.Tcl(); import os; print(os.path.dirname(t.eval('info library')))"
+          Write-Host "TCL library root: $tclInfo"
+          if ($tclInfo -and (Test-Path $tclInfo)) {
+              Copy-Item -Recurse $tclInfo "$BUNDLE\python\tcl"
+              Write-Host "Copied tcl from: $tclInfo"
+          } elseif (Test-Path "$pyPrefix\tcl") {
+              Copy-Item -Recurse "$pyPrefix\tcl" "$BUNDLE\python\tcl"
+              Write-Host "Copied tcl from: $pyPrefix\tcl"
+          } else {
+              Write-Error "tcl library not found – cannot build portable package with tkinter"
+              exit 1
+          }
+
+          # --- Portable ._pth (overrides default path; makes bundle self-contained) ---
+          @"
+          DLLs
+          Lib
+          ..
+          import site
+          "@ -replace '^\s+', '' | Set-Content "$BUNDLE\python\python311._pth" -Encoding UTF8NoBOM
 
           # --- pip ---
           Invoke-WebRequest -Uri "https://bootstrap.pypa.io/get-pip.py" -OutFile get-pip.py
@@ -66,23 +103,12 @@ jobs:
           & "$BUNDLE\python\python.exe" -m pip install `
               openpyxl plotly kaleido pypdf tkcalendar --no-warn-script-location
 
-          # --- tkinter support (not included in embeddable, copy from CI Python) ---
-          $pyPrefix = (python -c "import sys; print(sys.prefix)").Trim()
-
-          # _tkinter.pyd extension module
-          foreach ($src in "$pyPrefix\DLLs\_tkinter.pyd", "$pyPrefix\_tkinter.pyd") {
-              if (Test-Path $src) { Copy-Item $src "$BUNDLE\python\"; break }
-          }
-          # tcl/tk runtime DLLs (try Python root, then DLLs/)
-          foreach ($dir in $pyPrefix, "$pyPrefix\DLLs") {
-              Get-ChildItem $dir -Filter "tcl*.dll" -ErrorAction SilentlyContinue |
-                  Copy-Item -Destination "$BUNDLE\python\"
-              Get-ChildItem $dir -Filter "tk*.dll" -ErrorAction SilentlyContinue |
-                  Copy-Item -Destination "$BUNDLE\python\"
-          }
-          # tcl/tk library files (needed at runtime by TCL interpreter)
-          foreach ($src in "$pyPrefix\tcl", "$pyPrefix\Lib\tcl") {
-              if (Test-Path $src) { Copy-Item -Recurse $src "$BUNDLE\python\tcl"; break }
+          # --- Mandatory smoke test: tkinter must work in the bundle ---
+          Write-Host "Smoke-testing tkinter in bundle..."
+          & "$BUNDLE\python\python.exe" -c "import tkinter; print('tkinter OK')"
+          if ($LASTEXITCODE -ne 0) {
+              Write-Error "tkinter does not work in the bundled Python – aborting"
+              exit 1
           }
 
           # --- Pre-download Chrome for offline PDF export ---
@@ -96,14 +122,18 @@ jobs:
               if (Test-Path $f) { Copy-Item $f "$BUNDLE\" }
           }
 
-          # --- Launcher batch files ---
-          # TCL_LIBRARY/TK_LIBRARY are resolved dynamically from the bundle's tcl/ directory
+          # --- Launcher batch files (python.exe so startup errors are visible) ---
           @'
           @echo off
           set "D=%~dp0"
           for /d %%i in ("%D%python\tcl\tcl*") do set "TCL_LIBRARY=%%i"
           for /d %%i in ("%D%python\tcl\tk*") do set "TK_LIBRARY=%%i"
-          start "" "%D%python\pythonw.exe" -m build_reports
+          "%D%python\python.exe" -m build_reports
+          if %ERRORLEVEL% neq 0 (
+              echo.
+              echo Fehler beim Starten. Bitte den roten Text oben notieren.
+              pause
+          )
           '@ | Set-Content "$BUNDLE\SituationReport.bat" -Encoding ASCII
 
           @'
@@ -111,7 +141,12 @@ jobs:
           set "D=%~dp0"
           for /d %%i in ("%D%python\tcl\tcl*") do set "TCL_LIBRARY=%%i"
           for /d %%i in ("%D%python\tcl\tk*") do set "TK_LIBRARY=%%i"
-          start "" "%D%python\pythonw.exe" -m transform_data
+          "%D%python\python.exe" -m transform_data
+          if %ERRORLEVEL% neq 0 (
+              echo.
+              echo Fehler beim Starten. Bitte den roten Text oben notieren.
+              pause
+          )
           '@ | Set-Content "$BUNDLE\TransformData.bat" -Encoding ASCII
 
       # -----------------------------------------------------------------------
