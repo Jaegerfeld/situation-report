@@ -1,7 +1,7 @@
 # Releases & Installation
 
-SituationReport wird als eigenständige Desktop-App ausgeliefert – **kein Python, keine Installation notwendig**.
-Einfach herunterladen, entpacken und starten.
+SituationReport wird als portables Paket ausgeliefert – alle Quelldateien, Skripte und Konfigurationsmöglichkeiten sind enthalten.
+Herunterladen, entpacken und starten.
 
 ---
 
@@ -26,11 +26,16 @@ Alle verfügbaren Releases sind auf der [GitHub-Releases-Seite](https://github.c
 
 1. `SituationReport-Windows.zip` herunterladen
 2. Zip-Datei entpacken (Rechtsklick → *Alle extrahieren*)
-3. Im entpackten Ordner `SituationReport.exe` doppelklicken
+3. Im entpackten Ordner:
+   - `SituationReport.bat` doppelklicken → Build Reports GUI
+   - `TransformData.bat` doppelklicken → Transform Data GUI
 
 !!! note "Windows SmartScreen"
-    Beim ersten Start erscheint möglicherweise ein SmartScreen-Hinweis, da die App nicht signiert ist.
+    Beim ersten Start erscheint möglicherweise ein SmartScreen-Hinweis, da die enthaltenen Dateien nicht signiert sind.
     Auf **Weitere Informationen** → **Trotzdem ausführen** klicken.
+
+!!! info "Enthält Python und Chrome"
+    Das Windows-Paket enthält Python 3.11 und Chrome (für PDF-Export) – kein Internet oder separate Installation notwendig.
 
 ---
 
@@ -38,12 +43,15 @@ Alle verfügbaren Releases sind auf der [GitHub-Releases-Seite](https://github.c
 
 1. `SituationReport-macOS-ARM.zip` herunterladen
 2. Zip-Datei entpacken
-3. `SituationReport.app` in den Ordner *Programme* ziehen (optional)
-4. **Ersten Start**: Rechtsklick auf die App → *Öffnen* → im Dialog erneut *Öffnen* bestätigen
+3. Rechtsklick auf `SituationReport.command` → *Öffnen* → im Dialog erneut *Öffnen* bestätigen
 
 !!! note "macOS Gatekeeper"
-    Da die App nicht notarisiert ist, blockiert macOS den ersten Start per Doppelklick.
+    Da die Skripte nicht notarisiert sind, blockiert macOS den ersten Start per Doppelklick.
     Der Rechtsklick-Weg umgeht diesen Schutz einmalig.
+
+!!! warning "Einmalige Einrichtung (erster Start)"
+    Beim ersten Start wird automatisch eine Python-Umgebung eingerichtet (~1 Minute).
+    **Internet erforderlich.** Danach funktioniert die App offline.
 
 ---
 
@@ -51,12 +59,38 @@ Alle verfügbaren Releases sind auf der [GitHub-Releases-Seite](https://github.c
 
 1. `SituationReport-Linux.zip` herunterladen
 2. Zip-Datei entpacken
-3. Terminal öffnen, in den entpackten Ordner wechseln und starten:
+3. Voraussetzung prüfen:
+   ```bash
+   python3 --version           # 3.11 oder neuer
+   python3 -c "import tkinter" # muss ohne Fehler laufen
+   ```
+   Falls tkinter fehlt: `sudo apt install python3-tk` (Ubuntu/Debian) oder `sudo dnf install python3-tkinter` (Fedora)
+4. Im entpackten Ordner starten:
+   ```bash
+   ./SituationReport.sh    # Build Reports GUI
+   ./TransformData.sh      # Transform Data GUI
+   ```
 
-```bash
-chmod +x SituationReport   # einmalig
-./SituationReport
-```
+!!! warning "Einmalige Einrichtung (erster Start)"
+    Beim ersten Start wird automatisch eine Python-Umgebung eingerichtet (~1 Minute).
+    **Internet erforderlich.** Danach funktioniert die App offline.
+
+---
+
+## Paketinhalt
+
+Das Paket enthält das gesamte Repository – Quelldateien, Konfigurationen und Beispiele:
+
+| Datei / Ordner | Inhalt |
+|----------------|--------|
+| `build_reports/` | Metriken, GUI, CLI und Plugin-Mechanismus |
+| `transform_data/` | Datenaufbereitung (Jira-Export → XLSX) |
+| `get_data/` | Datenzugriff |
+| `simulate/` | Simulation und Testdaten-Generierung |
+| `testdata_generator/` | Beispiel-Workflows und Testdaten |
+| `build_reports/pi_config_example.json` | Vorlage für PI-Konfiguration |
+| `SituationReport.bat/.command/.sh` | Starter für Build Reports |
+| `TransformData.bat/.command/.sh` | Starter für Transform Data |
 
 ---
 
@@ -99,8 +133,8 @@ Das bestehende `dev-latest`-Release auf GitHub wird dabei überschrieben.
 
 ### Unterstützte Plattformen
 
-| Plattform | Runner | Ausgabe |
-|-----------|--------|---------|
-| Windows | `windows-latest` | `SituationReport-Windows.zip` |
-| macOS (Apple Silicon) | `macos-latest` | `SituationReport-macOS-ARM.zip` |
-| Linux x64 | `ubuntu-latest` | `SituationReport-Linux.zip` |
+| Plattform | Runner | Ausgabe | Python |
+|-----------|--------|---------|--------|
+| Windows | `windows-latest` | `SituationReport-Windows.zip` | Embeddable 3.11 (im Paket) |
+| macOS (Apple Silicon) | `macos-latest` | `SituationReport-macOS-ARM.zip` | System-Python + venv (beim 1. Start) |
+| Linux x64 | `ubuntu-latest` | `SituationReport-Linux.zip` | System-Python + venv (beim 1. Start) |

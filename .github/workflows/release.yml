@@ -34,40 +34,151 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Install tkinter (Linux)
-        if: runner.os == 'Linux'
-        run: sudo apt-get install -y python3-tk
-
-      - name: Install Python dependencies
-        run: pip install -e "." pyinstaller
-
-      - name: Patch PyInstaller macOS framework-bundle IndexError
-        if: runner.os == 'macOS'
+      # -----------------------------------------------------------------------
+      # Windows: embeddable Python 3.11 + tkinter + deps + Chrome + source
+      # -----------------------------------------------------------------------
+      - name: Build portable package – Windows
+        if: runner.os == 'Windows'
+        shell: pwsh
         run: |
+          $PY_VER = "3.11.9"
+          $PY_URL = "https://www.python.org/ftp/python/$PY_VER/python-$PY_VER-embed-amd64.zip"
+          $BUNDLE = "dist\SituationReport"
+          New-Item -ItemType Directory -Force "$BUNDLE\python" | Out-Null
+
+          # --- Embeddable Python ---
+          Invoke-WebRequest -Uri $PY_URL -OutFile python_embed.zip
+          Expand-Archive python_embed.zip -DestinationPath "$BUNDLE\python"
+          Remove-Item python_embed.zip
+
+          # Patch ._pth: enable site-packages and add bundle root to sys.path
+          $pthFile = (Get-ChildItem "$BUNDLE\python\python*._pth").FullName
+          (Get-Content $pthFile) -replace '#import site', 'import site' |
+              Set-Content $pthFile -Encoding UTF8NoBOM
+          Add-Content $pthFile -Value '..' -Encoding UTF8NoBOM
+
+          # --- pip ---
+          Invoke-WebRequest -Uri "https://bootstrap.pypa.io/get-pip.py" -OutFile get-pip.py
+          & "$BUNDLE\python\python.exe" get-pip.py --no-warn-script-location
+          Remove-Item get-pip.py
+
+          # --- Python dependencies ---
+          & "$BUNDLE\python\python.exe" -m pip install `
+              openpyxl plotly kaleido pypdf tkcalendar --no-warn-script-location
+
+          # --- tkinter support (not included in embeddable, copy from CI Python) ---
+          $pyPrefix = (python -c "import sys; print(sys.prefix)").Trim()
+
+          # _tkinter.pyd extension module
+          foreach ($src in "$pyPrefix\DLLs\_tkinter.pyd", "$pyPrefix\_tkinter.pyd") {
+              if (Test-Path $src) { Copy-Item $src "$BUNDLE\python\"; break }
+          }
+          # tcl/tk runtime DLLs (try Python root, then DLLs/)
+          foreach ($dir in $pyPrefix, "$pyPrefix\DLLs") {
+              Get-ChildItem $dir -MaxDepth 1 -Filter "tcl*.dll" -ErrorAction SilentlyContinue |
+                  Copy-Item -Destination "$BUNDLE\python\"
+              Get-ChildItem $dir -MaxDepth 1 -Filter "tk*.dll" -ErrorAction SilentlyContinue |
+                  Copy-Item -Destination "$BUNDLE\python\"
+          }
+          # tcl/tk library files (needed at runtime by TCL interpreter)
+          foreach ($src in "$pyPrefix\tcl", "$pyPrefix\Lib\tcl") {
+              if (Test-Path $src) { Copy-Item -Recurse $src "$BUNDLE\python\tcl"; break }
+          }
+
+          # --- Pre-download Chrome for offline PDF export ---
+          & "$BUNDLE\python\Scripts\choreo_get_chrome.exe"
+
+          # --- Source modules ---
+          foreach ($mod in 'build_reports','transform_data','get_data','simulate','testdata_generator') {
+              if (Test-Path $mod) { Copy-Item -Recurse $mod "$BUNDLE\$mod" }
+          }
+          foreach ($f in 'version.py','pyproject.toml','README.md','LICENSE') {
+              if (Test-Path $f) { Copy-Item $f "$BUNDLE\" }
+          }
+
+          # --- Launcher batch files ---
+          # TCL_LIBRARY/TK_LIBRARY are resolved dynamically from the bundle's tcl/ directory
+          @'
+          @echo off
+          set "D=%~dp0"
+          for /d %%i in ("%D%python\tcl\tcl*") do set "TCL_LIBRARY=%%i"
+          for /d %%i in ("%D%python\tcl\tk*") do set "TK_LIBRARY=%%i"
+          start "" "%D%python\pythonw.exe" -m build_reports
+          '@ | Set-Content "$BUNDLE\SituationReport.bat" -Encoding ASCII
+
+          @'
+          @echo off
+          set "D=%~dp0"
+          for /d %%i in ("%D%python\tcl\tcl*") do set "TCL_LIBRARY=%%i"
+          for /d %%i in ("%D%python\tcl\tk*") do set "TK_LIBRARY=%%i"
+          start "" "%D%python\pythonw.exe" -m transform_data
+          '@ | Set-Content "$BUNDLE\TransformData.bat" -Encoding ASCII
+
+      # -----------------------------------------------------------------------
+      # macOS / Linux: source + first-run venv launcher scripts
+      # -----------------------------------------------------------------------
+      - name: Build portable package – macOS / Linux
+        if: runner.os != 'Windows'
+        run: |
+          BUNDLE="dist/SituationReport"
+          mkdir -p "$BUNDLE"
+
+          # Copy source modules
+          for mod in build_reports transform_data get_data simulate testdata_generator; do
+            [ -d "$mod" ] && cp -r "$mod" "$BUNDLE/"
+          done
+          for f in version.py pyproject.toml README.md LICENSE; do
+            [ -f "$f" ] && cp "$f" "$BUNDLE/"
+          done
+
+          # Write launcher scripts via Python to avoid heredoc quoting issues
           python3 - <<'PYEOF'
-          import pathlib, sys
-          osx_py = (pathlib.Path(sys.prefix) / "lib"
-                    / f"python{sys.version_info.major}.{sys.version_info.minor}"
-                    / "site-packages" / "PyInstaller" / "utils" / "osx.py")
-          lines = osx_py.read_text().splitlines(keepends=True)
-          for i, line in enumerate(lines):
-              if "dir_name = remaining_path_parts[2]" in line:
-                  indent = " " * (len(line) - len(line.lstrip()))
-                  lines.insert(i, f"{indent}if len(remaining_path_parts) < 3:\n{indent}    continue\n")
-                  osx_py.write_text("".join(lines))
-                  print(f"Patched line {i+1} of {osx_py}")
-                  break
-          else:
-              print("Pattern not found – may already be fixed upstream")
+          import os, stat, sys
+
+          BUNDLE = "dist/SituationReport"
+          IS_MACOS = sys.platform == "darwin"
+          RX = stat.S_IRWXU | stat.S_IRGRP | stat.S_IXGRP | stat.S_IROTH | stat.S_IXOTH
+
+          def launcher(module):
+              tkcheck = 'if ! python3 -c "import tkinter" 2>/dev/null; then\n'
+              tkcheck += '    echo "FEHLER: tkinter nicht installiert."\n'
+              if not IS_MACOS:
+                  tkcheck += '    echo "  Ubuntu/Debian: sudo apt install python3-tk"\n'
+                  tkcheck += '    echo "  Fedora: sudo dnf install python3-tkinter"\n'
+              tkcheck += '    exit 1\nfi\n'
+              return (
+                  "#!/bin/bash\n"
+                  "set -e\n"
+                  'cd "$(dirname "$0")"\n'
+                  + tkcheck
+                  + 'if [ ! -d ".venv" ]; then\n'
+                  '    echo "Einmalige Einrichtung (ca. 1 Minute, Internet erforderlich)..."\n'
+                  "    python3 -m venv .venv\n"
+                  "    .venv/bin/pip install --quiet openpyxl plotly kaleido pypdf tkcalendar\n"
+                  "    .venv/bin/choreo_get_chrome\n"
+                  '    echo "Einrichtung abgeschlossen."\n'
+                  "fi\n"
+                  f'.venv/bin/python -m {module} "$@"\n'
+              )
+
+          scripts = {
+              "SituationReport.sh": launcher("build_reports"),
+              "TransformData.sh": launcher("transform_data"),
+          }
+          if IS_MACOS:
+              scripts["SituationReport.command"] = launcher("build_reports")
+              scripts["TransformData.command"] = launcher("transform_data")
+
+          for name, content in scripts.items():
+              path = os.path.join(BUNDLE, name)
+              with open(path, "w", newline="\n") as f:
+                  f.write(content)
+              os.chmod(path, RX)
           PYEOF
 
-      - name: Download bundled Chrome (kaleido PDF export)
-        run: choreo_get_chrome
-        shell: bash
-
-      - name: Build with PyInstaller
-        run: pyinstaller build_gui.spec
-
+      # -----------------------------------------------------------------------
+      # Package
+      # -----------------------------------------------------------------------
       - name: Package – Windows
         if: runner.os == 'Windows'
         shell: pwsh
@@ -75,7 +186,7 @@ jobs:
 
       - name: Package – macOS
         if: runner.os == 'macOS'
-        run: zip -r SituationReport-macOS-ARM.zip dist/SituationReport.app
+        run: zip -r SituationReport-macOS-ARM.zip dist/SituationReport
 
       - name: Package – Linux
         if: runner.os == 'Linux'
@@ -110,33 +221,35 @@ jobs:
           body: |
             ## SituationReport ${{ github.ref_name }}
 
-            Eigenständige GUI-App. **Kein Python oder sonstige Installation notwendig.**
+            Portables Paket – enthält alle Quelldateien, Skripte und Konfigurationsmöglichkeiten.
+            Kein Python oder sonstige Installation notwendig (Windows).
 
             ---
 
             ### Windows
 
             1. `SituationReport-Windows.zip` herunterladen und entpacken
-            2. Im entpackten Ordner `SituationReport.exe` doppelklicken
+            2. `SituationReport.bat` doppelklicken → Build Reports GUI
+               `TransformData.bat` doppelklicken → Transform Data GUI
+            3. Beim ersten Start: Windows SmartScreen → **Weitere Informationen** → **Trotzdem ausführen**
+
+            > Python (3.11) und Chrome (PDF-Export) sind im Paket enthalten.
 
             ### macOS (Apple Silicon)
 
             1. `SituationReport-macOS-ARM.zip` herunterladen und entpacken
-            2. `SituationReport.app` in den Ordner *Programme* ziehen (optional)
-            3. Beim **ersten Start**: Rechtsklick → *Öffnen* → *Öffnen* bestätigen
-               *(macOS Gatekeeper-Hinweis, da die App nicht signiert ist)*
+            2. Rechtsklick auf `SituationReport.command` → *Öffnen* → *Öffnen* bestätigen (Gatekeeper, einmalig)
+            3. Beim **ersten Start**: einmalige Einrichtung (~1 Min, Internet erforderlich)
 
             ### Linux (x64)
 
             1. `SituationReport-Linux.zip` herunterladen und entpacken
-            2. Im entpackten Ordner `./SituationReport` ausführen
-            3. Bei Bedarf einmalig: `chmod +x SituationReport`
+            2. Voraussetzung: `python3` und `python3-tk` installiert
+               (`sudo apt install python3-tk` auf Ubuntu/Debian)
+            3. Im entpackten Ordner: `./SituationReport.sh`
+               Beim **ersten Start**: einmalige Einrichtung (~1 Min, Internet erforderlich)
 
             ---
-
-            ### Voraussetzungen
-
-            Keine – alle Abhängigkeiten (inkl. Chrome für PDF-Export) sind enthalten.
 
             ### Datenformat
 

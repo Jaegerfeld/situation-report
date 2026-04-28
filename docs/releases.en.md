@@ -1,7 +1,7 @@
 # Releases & Installation
 
-SituationReport is distributed as a standalone desktop app – **no Python, no installation required**.
-Just download, unzip, and run.
+SituationReport is distributed as a portable package – all source files, scripts, and configuration options are included.
+Download, unzip, and run.
 
 ---
 
@@ -26,11 +26,16 @@ All available releases are on the [GitHub Releases page](https://github.com/Jaeg
 
 1. Download `SituationReport-Windows.zip`
 2. Extract the zip (right-click → *Extract All*)
-3. Open the extracted folder and double-click `SituationReport.exe`
+3. In the extracted folder:
+   - Double-click `SituationReport.bat` → Build Reports GUI
+   - Double-click `TransformData.bat` → Transform Data GUI
 
 !!! note "Windows SmartScreen"
-    On the first launch, SmartScreen may show a warning because the app is not signed.
+    On the first launch, SmartScreen may show a warning because the included files are not signed.
     Click **More info** → **Run anyway**.
+
+!!! info "Includes Python and Chrome"
+    The Windows package includes Python 3.11 and Chrome (for PDF export) – no internet or separate installation required.
 
 ---
 
@@ -38,12 +43,15 @@ All available releases are on the [GitHub Releases page](https://github.com/Jaeg
 
 1. Download `SituationReport-macOS-ARM.zip`
 2. Extract the zip
-3. Optionally move `SituationReport.app` to your *Applications* folder
-4. **First launch**: right-click the app → *Open* → confirm *Open* in the dialog
+3. Right-click `SituationReport.command` → *Open* → confirm *Open* in the dialog
 
 !!! note "macOS Gatekeeper"
-    Because the app is not notarized, macOS blocks a direct double-click on the first launch.
+    Because the scripts are not notarized, macOS blocks a direct double-click on the first launch.
     The right-click approach bypasses this protection once.
+
+!!! warning "One-time setup (first launch)"
+    On the first launch, a Python environment is set up automatically (~1 minute).
+    **Internet required.** After that, the app works offline.
 
 ---
 
@@ -51,12 +59,38 @@ All available releases are on the [GitHub Releases page](https://github.com/Jaeg
 
 1. Download `SituationReport-Linux.zip`
 2. Extract the zip
-3. Open a terminal, navigate to the extracted folder, and run:
+3. Check prerequisites:
+   ```bash
+   python3 --version           # 3.11 or newer
+   python3 -c "import tkinter" # must run without error
+   ```
+   If tkinter is missing: `sudo apt install python3-tk` (Ubuntu/Debian) or `sudo dnf install python3-tkinter` (Fedora)
+4. Run from the extracted folder:
+   ```bash
+   ./SituationReport.sh    # Build Reports GUI
+   ./TransformData.sh      # Transform Data GUI
+   ```
 
-```bash
-chmod +x SituationReport   # once only
-./SituationReport
-```
+!!! warning "One-time setup (first launch)"
+    On the first launch, a Python environment is set up automatically (~1 minute).
+    **Internet required.** After that, the app works offline.
+
+---
+
+## Package contents
+
+The package contains the full repository – source files, configurations, and examples:
+
+| File / Folder | Contents |
+|---------------|----------|
+| `build_reports/` | Metrics, GUI, CLI, and plugin mechanism |
+| `transform_data/` | Data transformation (Jira export → XLSX) |
+| `get_data/` | Data access |
+| `simulate/` | Simulation and test-data generation |
+| `testdata_generator/` | Example workflows and test data |
+| `build_reports/pi_config_example.json` | Template for PI configuration |
+| `SituationReport.bat/.command/.sh` | Launcher for Build Reports |
+| `TransformData.bat/.command/.sh` | Launcher for Transform Data |
 
 ---
 
@@ -99,8 +133,8 @@ The existing `dev-latest` release on GitHub is replaced each time.
 
 ### Supported platforms
 
-| Platform | Runner | Output |
-|----------|--------|--------|
-| Windows | `windows-latest` | `SituationReport-Windows.zip` |
-| macOS (Apple Silicon) | `macos-latest` | `SituationReport-macOS-ARM.zip` |
-| Linux x64 | `ubuntu-latest` | `SituationReport-Linux.zip` |
+| Platform | Runner | Output | Python |
+|----------|--------|--------|--------|
+| Windows | `windows-latest` | `SituationReport-Windows.zip` | Embeddable 3.11 (bundled) |
+| macOS (Apple Silicon) | `macos-latest` | `SituationReport-macOS-ARM.zip` | System Python + venv (on 1st launch) |
+| Linux x64 | `ubuntu-latest` | `SituationReport-Linux.zip` | System Python + venv (on 1st launch) |
