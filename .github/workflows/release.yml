@@ -75,9 +75,9 @@ jobs:
           }
           # tcl/tk runtime DLLs (try Python root, then DLLs/)
           foreach ($dir in $pyPrefix, "$pyPrefix\DLLs") {
-              Get-ChildItem $dir -MaxDepth 1 -Filter "tcl*.dll" -ErrorAction SilentlyContinue |
+              Get-ChildItem $dir -Filter "tcl*.dll" -ErrorAction SilentlyContinue |
                   Copy-Item -Destination "$BUNDLE\python\"
-              Get-ChildItem $dir -MaxDepth 1 -Filter "tk*.dll" -ErrorAction SilentlyContinue |
+              Get-ChildItem $dir -Filter "tk*.dll" -ErrorAction SilentlyContinue |
                   Copy-Item -Destination "$BUNDLE\python\"
           }
           # tcl/tk library files (needed at runtime by TCL interpreter)
