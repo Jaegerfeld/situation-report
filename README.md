@@ -8,6 +8,21 @@ Toolsuite for querying Jira issue data and processing it into flow metrics and r
 **Architecture:** https://jaegerfeld.github.io/situation-report/architecture/  
 **Roadmap:** https://github.com/users/Jaegerfeld/projects/1
 
+---
+
+> This project was created as an exploration of the possibilities of AI-driven development.
+> More than 98% of the code is written by AI — currently using [Claude Code](https://claude.ai/code) (Anthropic).
+>
+> The primary goal is to study the challenges, solutions, and risks that arise when AI authors production software. At some point this may transition to a regular project with more human authorship — but not yet.
+>
+> The software is intended to be genuinely useful and will continue to evolve. Feel free to use it and share feedback.
+>
+> Don't be surprised if something feels a little off — even the quirks were produced by Claude.
+>
+> — Robert "Jaegerfeld" Seebauer
+
+---
+
 ## Modules
 
 | Module | Description | Status |
