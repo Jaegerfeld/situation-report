@@ -3,7 +3,7 @@
 # Repository:     https://github.com/Jaegerfeld/situation-report
 # KI-Unterstuetzung: Erstellt mit Unterstuetzung von Claude (Anthropic)
 # Erstellt:       17.04.2026
-# Geaendert:      25.04.2026
+# Geaendert:      28.04.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
@@ -87,7 +87,7 @@ def _generate_chart_images(out_dir: Path) -> dict[str, Path]:
     from build_reports.metrics.flow_load import FlowLoadMetric
     from build_reports.metrics.flow_time import FlowTimeMetric
     from build_reports.metrics.flow_velocity import FlowVelocityMetric
-    from build_reports.metrics.process_flow import ProcessFlowMetric
+    from build_reports.metrics.process_flow import ProcessFlowMetric, ProcessFlowTimeMetric
     from build_reports.terminology import SAFE
 
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -138,12 +138,19 @@ def _generate_chart_images(out_dir: Path) -> dict[str, Path]:
     figs = m.render(r, SAFE)
     imgs["flow_dist"] = save(figs[0], "flow_dist", w=1600, h=560)
 
-    # Process Flow (uses full dataset with transitions)
+    # Process Flow: Transitions (uses full dataset with transitions)
     m = ProcessFlowMetric()
     r = m.compute(data, SAFE)
     figs = m.render(r, SAFE)
     if figs:
         imgs["process_flow"] = save(figs[0], "process_flow", w=1400, h=700)
+
+    # Process Flow: Time (uses full dataset with transitions)
+    m = ProcessFlowTimeMetric()
+    r = m.compute(data, SAFE)
+    figs = m.render(r, SAFE)
+    if figs:
+        imgs["process_flow_time"] = save(figs[0], "process_flow_time", w=1400, h=700)
 
     return imgs
 
@@ -415,7 +422,8 @@ def content_de(st, images: dict[str, Path] | None = None):
         "- <b>Flow Load / WIP</b>: Wie viele Issues sind gleichzeitig in Bearbeitung?<br/>"
         "- <b>Cumulative Flow Diagram</b>: Wie entwickelt sich der Bestand ueber die Zeit?<br/>"
         "- <b>Flow Distribution</b>: Wie verteilen sich die Issues auf Typen, Stages und Durchlaufzeiten?<br/>"
-        "- <b>Process Flow</b>: Welche Statuspfade nehmen Issues? Wo treten Rueckschritte und Schleifen auf?", st))
+        "- <b>Process Flow: Transitions</b>: Welche Statuspfade nehmen Issues? Wo treten Rueckschritte und Schleifen auf?<br/>"
+        "- <b>Process Flow: Time</b>: Wie lange verweilen Issues in jeder Stage? Welche Uebergaenge kosten die meiste Zeit?", st))
 
     # =========================================================================
     # 2. Voraussetzungen
@@ -425,23 +433,32 @@ def content_de(st, images: dict[str, Path] | None = None):
 
     story.append(H2("2.1  Was muss installiert sein?", st))
     story.append(P(
-        "Damit build_reports funktioniert, muss auf dem Rechner <b>Python 3.11 oder "
-        "neuer</b> installiert sein. Ausserdem muessen einige Python-Pakete vorhanden "
-        "sein. Wer das Programm fuer Sie eingerichtet hat, sollte dies bereits erledigt "
-        "haben.", st))
+        "build_reports wird als <b>portables Paket</b> geliefert. Eine separate "
+        "Python-Installation ist nicht notwendig.", st))
+    story.append(BL(
+        "<b>Windows:</b> Python 3.11 ist bereits im Paket enthalten -- einfach "
+        "entpacken und starten.", st))
+    story.append(BL(
+        "<b>macOS / Linux:</b> Beim ersten Start wird einmalig eine Python-Umgebung "
+        "eingerichtet (ca. 1 Minute, Internet erforderlich). Danach laeuft die App offline.", st))
 
     story.append(H2("2.2  Programm starten", st))
-    story.append(P("Es gibt zwei Moeglichkeiten, build_reports zu starten:", st))
+    story.append(P(
+        "Die passende Startdatei im entpackten Ordner doppelklicken:", st))
     story.append(BL(
-        "<b>Doppelklick</b> auf die Datei <b>build_reports_gui.pyw</b> im Projektordner "
-        "-- oeffnet die grafische Oberflaeche ohne ein Konsolenfenster.", st))
+        "<b>Windows:</b> <b>BuildReports.bat</b> doppelklicken -- startet die GUI "
+        "ohne Konsolenfenster.", st))
     story.append(BL(
-        "<b>Terminal / Eingabeaufforderung</b>: Ins Projektverzeichnis wechseln und "
-        "<font name='Courier'>python -m build_reports</font> eingeben.", st))
+        "<b>macOS:</b> Rechtsklick auf <b>BuildReports.command</b> → <i>Oeffnen</i> "
+        "(einmalig wegen Gatekeeper).", st))
+    story.append(BL(
+        "<b>Linux:</b> Im Terminal: "
+        "<font name='Courier'>./BuildReports.sh</font>", st))
     story.append(SP(4))
     story.append(box(
-        "<b>Tipp:</b> Wer die GUI regelmaessig nutzt, kann eine Verknuepfung zur Datei "
-        "<b>build_reports_gui.pyw</b> auf dem Desktop erstellen.", st, "#e8f8f0"))
+        "<b>Tipp (Windows):</b> Beim ersten Start erscheint moeglicherweise ein "
+        "SmartScreen-Hinweis. Auf <b>Weitere Informationen</b> → "
+        "<b>Trotzdem ausfuehren</b> klicken.", st, "#e8f8f0"))
 
     # =========================================================================
     # 3. Eingabedateien
@@ -665,15 +682,18 @@ def content_de(st, images: dict[str, Path] | None = None):
 
     story.append(H2("4.6  Sprache und Terminologie", st))
     story.append(P(
-        "Im Menue <b>Optionen</b> koennen Sie Sprache und Terminologie umschalten:", st))
+        "Die Sprache laesst sich auf zwei Wegen umschalten:", st))
     story.append(BL(
-        "<b>Sprache</b> - Wechselt zwischen Deutsch und Englisch. Alle Beschriftungen, "
-        "Tooltips und Menupunkte werden sofort aktualisiert.", st))
+        "<b>Flaggen-Schaltflaeche</b> oben rechts im Fenster - zeigt die aktuelle "
+        "Sprache als Landesflagge. Ein Klick wechselt sofort zwischen Deutsch und "
+        "Englisch.", st))
     story.append(BL(
-        "<b>Terminologie</b> - Wechselt zwischen <b>SAFe</b> und <b>Global</b>. "
-        "Im SAFe-Modus heissen die Metriken z.B. 'Flow Time', im Global-Modus "
-        "'Cycle Time'. Diese Umstellung betrifft nur die Bezeichnungen, nicht die "
-        "Berechnungen.", st))
+        "<b>Menue Optionen → Sprache</b> - alternativ ueber das Menue.", st))
+    story.append(P(
+        "Ueber <b>Optionen → Terminologie</b> laesst sich ausserdem zwischen "
+        "<b>SAFe</b> und <b>Global</b> umschalten. Im SAFe-Modus heissen die Metriken "
+        "z.B. 'Flow Time', im Global-Modus 'Cycle Time'. Diese Umstellung betrifft "
+        "nur die Bezeichnungen, nicht die Berechnungen.", st))
 
     # =========================================================================
     # 5. Metriken
@@ -870,8 +890,8 @@ def content_de(st, images: dict[str, Path] | None = None):
         "Abgeschlossene Issues werden einbezogen, ihre terminale Done-Stage jedoch "
         "ausgeblendet, damit tatsaechliche Bearbeitungsschwerpunkte sichtbar bleiben.", st))
 
-    # --- 5.6 Process Flow ----------------------------------------------------
-    story.append(H2("5.6  Process Flow", st))
+    # --- 5.6 Process Flow: Transitions ---------------------------------------
+    story.append(H2("5.6  Process Flow: Transitions", st))
     story.append(P(
         "<b>Was wird gemessen?</b> Alle Statusuebergaenge der Issues werden als "
         "gerichteter Graph visualisiert: Knoten = Status, Pfeile = Uebergaenge. "
@@ -895,7 +915,7 @@ def content_de(st, images: dict[str, Path] | None = None):
         ],
         col_widths=[4*cm, 12*cm]))
     add_img("process_flow",
-            "Abb. 9: Process Flow -- gerichteter Graph aller Statusuebergaenge mit Kantenstaerke und Farbkodierung.")
+            "Abb. 9: Process Flow: Transitions -- gerichteter Graph aller Statusuebergaenge mit Kantenstaerke und Farbkodierung.")
     story.append(SP(4))
     story.append(box(
         "<b>Interpretation:</b> Viele rote Pfeile bedeuten haeufige Rueckschritte -- "
@@ -903,6 +923,39 @@ def content_de(st, images: dict[str, Path] | None = None):
         "Dicke blaue Pfeile zeigen den Haupt-Workflow-Pfad. "
         "Selbstschleifen (orange) entstehen z.B. wenn ein Issue mehrfach in denselben "
         "Status gesetzt wird.", st))
+
+    # --- 5.7 Process Flow: Time ----------------------------------------------
+    story.append(H2("5.7  Process Flow: Time", st))
+    story.append(P(
+        "<b>Was wird gemessen?</b> Der gleiche gerichtete Graph wie Process Flow: Transitions, "
+        "jedoch steht hier die <b>Zeit</b> im Vordergrund: Knotenbreite und Kantenbeschriftung "
+        "basieren auf der medianen Verweildauer (Dwell Time) der Quell-Stage. "
+        "So wird auf einen Blick sichtbar, in welchen Stages Issues am laengsten warten "
+        "und welche Uebergaenge die meiste Zeit kosten.", st))
+    story.append(SP(4))
+    story.append(P(
+        "Auch diese Metrik benoetigt die optionale <b>Transitions.xlsx</b>-Datei "
+        "(aus transform_data).", st))
+    story.append(SP(4))
+    story.append(tbl(
+        ["Element", "Bedeutung"],
+        [
+            ["Knotenbreite",      "Proportional zur medianen Verweildauer in dieser Stage."],
+            ["Kantenbreite",      "Proportional zur medianen Verweildauer der Quell-Stage."],
+            ["Zahl am Pfeil",     "Mediane Verweildauer der Quell-Stage in Tagen (d) fuer Issues, die genau diesen Uebergang genommen haben."],
+            ["Blauer Pfeil",      "Vorwaertsuebergang."],
+            ["Roter Pfeil",       "Rueckwaertsuebergang (Rework)."],
+            ["Oranger Bogen",     "Self-Loop."],
+        ],
+        col_widths=[4*cm, 12*cm]))
+    add_img("process_flow_time",
+            "Abb. 10: Process Flow: Time -- Knotenbreite und Kantenbeschriftung basieren auf der medianen Verweildauer je Stage.")
+    story.append(SP(4))
+    story.append(box(
+        "<b>Interpretation:</b> Breite Knoten und dicke Kanten zeigen Stages, in denen "
+        "Issues besonders lange verweilen -- potenzielle Engpaesse. "
+        "Verglichen mit Process Flow: Transitions laesst sich erkennen, ob haeufige "
+        "Uebergaenge auch zeitlich ins Gewicht fallen oder nur kurze Statuswechsel sind.", st))
 
     # =========================================================================
     # 6. PDF-Export
@@ -1059,7 +1112,8 @@ def content_de(st, images: dict[str, Path] | None = None):
             ["LOESS",          "Statistisches Glaettungsverfahren fuer Trendlinien."],
             ["P85 / P95",      "85. bzw. 95. Perzentil der Durchlaufzeiten."],
             ["PI",             "Program Increment -- ein fester Planungs- und Lieferzeitraum."],
-            ["Process Flow",   "Gerichteter Graph aller Statusuebergaenge. Zeigt Hauptpfade, Rueckschritte und Schleifen im Workflow."],
+            ["Process Flow: Transitions", "Gerichteter Graph aller Statusuebergaenge (haeufigkeitsbasiert). Zeigt Hauptpfade, Rueckschritte und Schleifen im Workflow."],
+            ["Process Flow: Time",        "Gerichteter Graph aller Statusuebergaenge (zeitbasiert). Knotenbreite und Kantenbeschriftung zeigen die mediane Verweildauer je Stage."],
             ["Resolution",     "Abschlussart eines Issues, z.B. 'Done', 'Won't Do', 'Duplicate'."],
             ["SAFe",           "Scaled Agile Framework -- ein Framework fuer agile Skalierung."],
             ["Stage",          "Ein Schritt im Workflow, z.B. Analyse, Implementierung, Done."],
@@ -1137,7 +1191,8 @@ def content_en(st, images: dict[str, Path] | None = None):
         "- <b>Flow Load / WIP</b>: How many issues are in progress simultaneously?<br/>"
         "- <b>Cumulative Flow Diagram</b>: How does the inventory develop over time?<br/>"
         "- <b>Flow Distribution</b>: How are issues distributed across types, stages and cycle times?<br/>"
-        "- <b>Process Flow</b>: Which status paths do issues take? Where do rework and loops occur?", st))
+        "- <b>Process Flow: Transitions</b>: Which status paths do issues take? Where do rework and loops occur?<br/>"
+        "- <b>Process Flow: Time</b>: How long do issues dwell in each stage? Which transitions cost the most time?", st))
 
     # =========================================================================
     # 2. Prerequisites
@@ -1147,22 +1202,32 @@ def content_en(st, images: dict[str, Path] | None = None):
 
     story.append(H2("2.1  What needs to be installed?", st))
     story.append(P(
-        "For build_reports to work, <b>Python 3.11 or newer</b> must be installed on "
-        "the computer. Additionally, several Python packages must be present. Whoever "
-        "set up the program for you should have already handled this.", st))
+        "build_reports is delivered as a <b>portable package</b>. No separate Python "
+        "installation is required.", st))
+    story.append(BL(
+        "<b>Windows:</b> Python 3.11 is already included in the package — just unzip "
+        "and run.", st))
+    story.append(BL(
+        "<b>macOS / Linux:</b> On the first launch, a Python environment is set up "
+        "automatically (approx. 1 minute, internet required). After that the app runs "
+        "offline.", st))
 
     story.append(H2("2.2  Starting the program", st))
-    story.append(P("There are two ways to start build_reports:", st))
+    story.append(P(
+        "Double-click the appropriate launcher in the extracted folder:", st))
     story.append(BL(
-        "<b>Double-click</b> on the file <b>build_reports_gui.pyw</b> in the project "
-        "folder — opens the graphical interface without a console window.", st))
+        "<b>Windows:</b> Double-click <b>BuildReports.bat</b> — starts the GUI "
+        "without a console window.", st))
     story.append(BL(
-        "<b>Terminal / command prompt</b>: Navigate to the project directory and "
-        "type <font name='Courier'>python -m build_reports</font>.", st))
+        "<b>macOS:</b> Right-click <b>BuildReports.command</b> → <i>Open</i> "
+        "(once, to bypass Gatekeeper).", st))
+    story.append(BL(
+        "<b>Linux:</b> In a terminal: "
+        "<font name='Courier'>./BuildReports.sh</font>", st))
     story.append(SP(4))
     story.append(box(
-        "<b>Tip:</b> If you use the GUI regularly, you can create a shortcut to "
-        "<b>build_reports_gui.pyw</b> on your desktop.", st, "#e8f8f0"))
+        "<b>Tip (Windows):</b> On the first launch, SmartScreen may show a warning. "
+        "Click <b>More info</b> → <b>Run anyway</b>.", st, "#e8f8f0"))
 
     # =========================================================================
     # 3. Input files
@@ -1380,14 +1445,18 @@ def content_en(st, images: dict[str, Path] | None = None):
 
     story.append(H2("4.6  Language and terminology", st))
     story.append(P(
-        "In the <b>Options</b> menu you can switch language and terminology:", st))
+        "The language can be switched in two ways:", st))
     story.append(BL(
-        "<b>Language</b> — Switch between German and English. All labels, tooltips "
-        "and menu items are updated immediately.", st))
+        "<b>Flag button</b> in the top-right corner of the window — shows the current "
+        "language as a national flag. One click toggles instantly between German and "
+        "English.", st))
     story.append(BL(
-        "<b>Terminology</b> — Switch between <b>SAFe</b> and <b>Global</b>. "
-        "In SAFe mode the metrics are called e.g. 'Flow Time', in Global mode "
-        "'Cycle Time'. This switch affects only the labels, not the calculations.", st))
+        "<b>Options → Language</b> menu — alternatively via the menu.", st))
+    story.append(P(
+        "Via <b>Options → Terminology</b> you can also switch between <b>SAFe</b> and "
+        "<b>Global</b>. In SAFe mode the metrics are called e.g. 'Flow Time', in "
+        "Global mode 'Cycle Time'. This switch affects only the labels, not the "
+        "calculations.", st))
 
     # =========================================================================
     # 5. Metrics
@@ -1581,8 +1650,8 @@ def content_en(st, images: dict[str, Path] | None = None):
         "the workflow. Closed issues are included, but their terminal Done stage is "
         "hidden, so actual processing bottlenecks remain visible.", st))
 
-    # --- 5.6 Process Flow ----------------------------------------------------
-    story.append(H2("5.6  Process Flow", st))
+    # --- 5.6 Process Flow: Transitions ----------------------------------------
+    story.append(H2("5.6  Process Flow: Transitions", st))
     story.append(P(
         "<b>What is measured?</b> All status transitions of issues are visualised as a "
         "directed graph: nodes = statuses, arrows = transitions. Arrow thickness is "
@@ -1607,13 +1676,45 @@ def content_en(st, images: dict[str, Path] | None = None):
         ],
         col_widths=[4*cm, 12*cm]))
     add_img("process_flow",
-            "Fig. 9: Process Flow — directed graph of all status transitions with edge width and colour coding.")
+            "Fig. 9: Process Flow: Transitions — directed graph of all status transitions with edge width and colour coding.")
     story.append(SP(4))
     story.append(box(
         "<b>Interpretation:</b> Many red arrows mean frequent rework — a sign of quality "
         "issues or unclear requirements. Thick blue arrows show the main workflow path. "
         "Self-loops (orange) occur when an issue is set to the same status multiple "
         "times.", st))
+
+    # --- 5.7 Process Flow: Time -----------------------------------------------
+    story.append(H2("5.7  Process Flow: Time", st))
+    story.append(P(
+        "<b>What is measured?</b> The same directed graph as Process Flow: Transitions, "
+        "but with a focus on <b>time</b>: node width and edge labels are based on the "
+        "median dwell time of the source stage. This makes it immediately visible in "
+        "which stages issues wait the longest and which transitions cost the most time.", st))
+    story.append(SP(4))
+    story.append(P(
+        "This metric also requires the optional <b>Transitions.xlsx</b> file "
+        "(from transform_data).", st))
+    story.append(SP(4))
+    story.append(tbl(
+        ["Element", "Meaning"],
+        [
+            ["Node width",       "Proportional to the median dwell time in this stage."],
+            ["Edge width",       "Proportional to the median dwell time of the source stage."],
+            ["Number on arrow",  "Median dwell time of the source stage in days (d) for issues that took exactly this transition."],
+            ["Blue arrow",       "Forward transition."],
+            ["Red arrow",        "Backward transition (rework)."],
+            ["Orange arc",       "Self-loop."],
+        ],
+        col_widths=[4*cm, 12*cm]))
+    add_img("process_flow_time",
+            "Fig. 10: Process Flow: Time — node width and edge labels based on the median dwell time per stage.")
+    story.append(SP(4))
+    story.append(box(
+        "<b>Interpretation:</b> Wide nodes and thick edges indicate stages where issues "
+        "linger particularly long — potential bottlenecks. Compared with Process Flow: "
+        "Transitions, you can see whether frequent transitions also carry significant "
+        "time weight or are just brief status changes.", st))
 
     # =========================================================================
     # 6. PDF Export
@@ -1766,7 +1867,8 @@ def content_en(st, images: dict[str, Path] | None = None):
             ["LOESS",          "Statistical smoothing method for trend lines."],
             ["P85 / P95",      "85th / 95th percentile of cycle times."],
             ["PI",             "Program Increment — a fixed planning and delivery period."],
-            ["Process Flow",   "Directed graph of all status transitions. Shows main paths, rework, and loops in the workflow."],
+            ["Process Flow: Transitions", "Directed graph of all status transitions (frequency-based). Shows main paths, rework, and loops in the workflow."],
+            ["Process Flow: Time",        "Directed graph of all status transitions (time-based). Node width and edge labels show the median dwell time per stage."],
             ["Resolution",     "Resolution type of an issue, e.g. 'Done', 'Won't Do', 'Duplicate'."],
             ["SAFe",           "Scaled Agile Framework — a framework for agile scaling."],
             ["Stage",          "A step in the workflow, e.g. Analysis, Implementation, Done."],

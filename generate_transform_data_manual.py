@@ -3,7 +3,7 @@
 # Repository:     https://github.com/Jaegerfeld/situation-report
 # KI-Unterstuetzung: Erstellt mit Unterstuetzung von Claude (Anthropic)
 # Erstellt:       21.04.2026
-# Geaendert:      25.04.2026
+# Geaendert:      28.04.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
@@ -262,22 +262,31 @@ def content_de(st):
     story.append(H1("2  Voraussetzungen und Installation", st))
     story.append(H2("2.1  Was muss installiert sein?", st))
     story.append(P(
-        "Damit transform_data funktioniert, muss auf dem Rechner <b>Python 3.11 oder "
-        "neuer</b> installiert sein. Ausserdem muessen einige Python-Pakete vorhanden "
-        "sein. Wer das Programm fuer Sie eingerichtet hat, sollte dies bereits erledigt "
-        "haben.", st))
+        "transform_data wird als <b>portables Paket</b> geliefert. Eine separate "
+        "Python-Installation ist nicht notwendig.", st))
+    story.append(BL(
+        "<b>Windows:</b> Python 3.11 ist bereits im Paket enthalten -- einfach "
+        "entpacken und starten.", st))
+    story.append(BL(
+        "<b>macOS / Linux:</b> Beim ersten Start wird einmalig eine Python-Umgebung "
+        "eingerichtet (ca. 1 Minute, Internet erforderlich). Danach laeuft die App offline.", st))
     story.append(H2("2.2  Programm starten", st))
-    story.append(P("Es gibt zwei Moeglichkeiten, transform_data zu starten:", st))
+    story.append(P(
+        "Die passende Startdatei im entpackten Ordner doppelklicken:", st))
     story.append(BL(
-        "<b>Doppelklick</b> auf die Datei <b>transform_data_gui.pyw</b> im Projektordner "
-        "-- oeffnet die grafische Oberflaeche ohne ein Konsolenfenster.", st))
+        "<b>Windows:</b> <b>TransformData.bat</b> doppelklicken -- startet die GUI "
+        "ohne Konsolenfenster.", st))
     story.append(BL(
-        "<b>Terminal / Eingabeaufforderung</b>: Ins Projektverzeichnis wechseln und "
-        "<font name='Courier'>python -m transform_data</font> eingeben.", st))
+        "<b>macOS:</b> Rechtsklick auf <b>TransformData.command</b> → <i>Oeffnen</i> "
+        "(einmalig wegen Gatekeeper).", st))
+    story.append(BL(
+        "<b>Linux:</b> Im Terminal: "
+        "<font name='Courier'>./TransformData.sh</font>", st))
     story.append(SP(4))
     story.append(box(
-        "<b>Tipp:</b> Wer die GUI regelmaessig nutzt, kann eine Verknuepfung zur Datei "
-        "<b>transform_data_gui.pyw</b> auf dem Desktop erstellen.", st, "#e8f8f0"))
+        "<b>Tipp (Windows):</b> Beim ersten Start erscheint moeglicherweise ein "
+        "SmartScreen-Hinweis. Auf <b>Weitere Informationen</b> → "
+        "<b>Trotzdem ausfuehren</b> klicken.", st, "#e8f8f0"))
 
     # 3
     story.append(PageBreak())
@@ -616,21 +625,31 @@ def content_en(st):
     story.append(H1("2  Prerequisites and Installation", st))
     story.append(H2("2.1  What needs to be installed?", st))
     story.append(P(
-        "transform_data requires <b>Python 3.11 or later</b> to be installed on the "
-        "machine, along with several Python packages. Whoever set up the program for "
-        "you should have already taken care of this.", st))
+        "transform_data is delivered as a <b>portable package</b>. No separate Python "
+        "installation is required.", st))
+    story.append(BL(
+        "<b>Windows:</b> Python 3.11 is already included in the package — just unzip "
+        "and run.", st))
+    story.append(BL(
+        "<b>macOS / Linux:</b> On the first launch, a Python environment is set up "
+        "automatically (approx. 1 minute, internet required). After that the app runs "
+        "offline.", st))
     story.append(H2("2.2  Starting the program", st))
-    story.append(P("There are two ways to start transform_data:", st))
+    story.append(P(
+        "Double-click the appropriate launcher in the extracted folder:", st))
     story.append(BL(
-        "<b>Double-click</b> on <b>transform_data_gui.pyw</b> in the project folder "
-        "-- opens the GUI without a console window.", st))
+        "<b>Windows:</b> Double-click <b>TransformData.bat</b> — starts the GUI "
+        "without a console window.", st))
     story.append(BL(
-        "<b>Terminal / Command Prompt</b>: Navigate to the project directory and "
-        "enter <font name='Courier'>python -m transform_data</font>.", st))
+        "<b>macOS:</b> Right-click <b>TransformData.command</b> → <i>Open</i> "
+        "(once, to bypass Gatekeeper).", st))
+    story.append(BL(
+        "<b>Linux:</b> In a terminal: "
+        "<font name='Courier'>./TransformData.sh</font>", st))
     story.append(SP(4))
     story.append(box(
-        "<b>Tip:</b> If you use the GUI regularly, create a shortcut to "
-        "<b>transform_data_gui.pyw</b> on your desktop.", st, "#e8f8f0"))
+        "<b>Tip (Windows):</b> On the first launch, SmartScreen may show a warning. "
+        "Click <b>More info</b> → <b>Run anyway</b>.", st, "#e8f8f0"))
 
     # 3
     story.append(PageBreak())

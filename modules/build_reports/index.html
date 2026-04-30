@@ -326,6 +326,25 @@
   
 
       
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../releases/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Releases
+
+      </a>
+    </li>
+  
+
+      
     </ul>
   </div>
 </nav>
@@ -797,6 +816,33 @@
   
 
     
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../releases/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Releases
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
   </ul>
 </nav>
                   </div>
@@ -989,9 +1035,15 @@
 <td>IssueTimes.xlsx</td>
 </tr>
 <tr>
-<td>Process Flow</td>
-<td>Process Flow</td>
-<td>Gerichteter Graph aller Statusübergänge</td>
+<td>Process Flow: Transitions</td>
+<td>Process Flow: Transitions</td>
+<td>Gerichteter Graph aller Statusübergänge (Anzahl)</td>
+<td>Transitions.xlsx</td>
+</tr>
+<tr>
+<td>Process Flow: Time</td>
+<td>Process Flow: Time</td>
+<td>Gerichteter Graph mit Knotenbreite und Kantenbreite nach medianer Verweildauer</td>
 <td>Transitions.xlsx</td>
 </tr>
 </tbody>
@@ -1059,7 +1111,7 @@
 <h2 id="schnellstart-cli">Schnellstart CLI<a class="headerlink" href="#schnellstart-cli" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>python<span class="w"> </span>-m<span class="w"> </span>build_reports<span class="w"> </span>IssueTimes.xlsx<span class="w"> </span>--pdf<span class="w"> </span>report.pdf
 <a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>python<span class="w"> </span>-m<span class="w"> </span>build_reports<span class="w"> </span>IssueTimes.xlsx<span class="w"> </span>--cfd<span class="w"> </span>CFD.xlsx<span class="w"> </span>--transitions<span class="w"> </span>Transitions.xlsx<span class="w"> </span>--browser
-<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>python<span class="w"> </span>-m<span class="w"> </span>build_reports<span class="w"> </span>IssueTimes.xlsx<span class="w"> </span>--metrics<span class="w"> </span>flow_time<span class="w"> </span>process_flow<span class="w"> </span>--from-date<span class="w"> </span><span class="m">2025</span>-01-01
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>python<span class="w"> </span>-m<span class="w"> </span>build_reports<span class="w"> </span>IssueTimes.xlsx<span class="w"> </span>--metrics<span class="w"> </span>flow_time<span class="w"> </span>process_flow<span class="w"> </span>process_flow_time<span class="w"> </span>--from-date<span class="w"> </span><span class="m">2025</span>-01-01
 </code></pre></div>
 <h2 id="templates">Templates<a class="headerlink" href="#templates" title="Permanent link">&para;</a></h2>
 <p>Die GUI unterstützt das Speichern und Laden aller Einstellungen als JSON-Template (Menü → Templates). Templates sind versioniert (<code>"version": 4</code>) und abwärtskompatibel.</p>
