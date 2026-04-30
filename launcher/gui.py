@@ -14,6 +14,7 @@
 #   Sprache (DE/EN/RO/PT/FR) wird über den Flag-Button umgeschaltet und
 #   aus der gemeinsamen Präferenzdatei ~/.situation_report/prefs.json geladen.
 #   Über den ?-Button kann das Benutzerhandbuch geöffnet werden.
+#   Beim Start wird im Hintergrund auf neue Versionen geprüft (GitHub Releases).
 # =============================================================================
 
 from __future__ import annotations
@@ -21,7 +22,10 @@ from __future__ import annotations
 import json
 import subprocess
 import sys
+import threading
 import tkinter as tk
+import urllib.error
+import urllib.request
 import webbrowser
 from dataclasses import dataclass
 from pathlib import Path
@@ -33,6 +37,15 @@ except ImportError:
     _VERSION = "?"
 
 C_ACCENT = "#2980b9"
+
+_UPDATE_API = "https://api.github.com/repos/Jaegerfeld/situation-report/releases/latest"
+_RELEASES_URL = "https://github.com/Jaegerfeld/situation-report/releases/latest"
+
+
+def _parse_version(tag: str) -> tuple[int, ...]:
+    """Parse a version tag like 'v0.9.0' or '0.9.0' into a comparable int tuple."""
+    return tuple(int(x) for x in tag.lstrip("v").split("."))
+
 
 # ---------------------------------------------------------------------------
 # Language constants
@@ -92,6 +105,8 @@ _T: dict[str, dict[str, str]] = {
         "lbl_planned":                    "(bald verfügbar)",
         "tip_language":                   "Sprache wechseln",
         "tip_manual":                     "Benutzerhandbuch öffnen",
+        "lbl_update":                     "Update verfügbar: {version}",
+        "btn_download":                   "Herunterladen",
         "mod_build_reports_name":         "Build Reports",
         "mod_build_reports_desc":         "Flow-Metriken und Reports",
         "mod_transform_data_name":        "Transform Data",
@@ -109,6 +124,8 @@ _T: dict[str, dict[str, str]] = {
         "lbl_planned":                    "(coming soon)",
         "tip_language":                   "Switch language",
         "tip_manual":                     "Open user manual",
+        "lbl_update":                     "Update available: {version}",
+        "btn_download":                   "Download",
         "mod_build_reports_name":         "Build Reports",
         "mod_build_reports_desc":         "Flow metrics and reports",
         "mod_transform_data_name":        "Transform Data",
@@ -126,6 +143,8 @@ _T: dict[str, dict[str, str]] = {
         "lbl_planned":                    "(în curând)",
         "tip_language":                   "Schimbați limba",
         "tip_manual":                     "Deschideți manualul",
+        "lbl_update":                     "Actualizare disponibilă: {version}",
+        "btn_download":                   "Descărcare",
         "mod_build_reports_name":         "Build Reports",
         "mod_build_reports_desc":         "Metrici de flux și rapoarte",
         "mod_transform_data_name":        "Transform Data",
@@ -143,6 +162,8 @@ _T: dict[str, dict[str, str]] = {
         "lbl_planned":                    "(em breve)",
         "tip_language":                   "Mudar idioma",
         "tip_manual":                     "Abrir manual do utilizador",
+        "lbl_update":                     "Atualização disponível: {version}",
+        "btn_download":                   "Transferir",
         "mod_build_reports_name":         "Build Reports",
         "mod_build_reports_desc":         "Métricas de fluxo e relatórios",
         "mod_transform_data_name":        "Transform Data",
@@ -160,6 +181,8 @@ _T: dict[str, dict[str, str]] = {
         "lbl_planned":                    "(bientôt disponible)",
         "tip_language":                   "Changer de langue",
         "tip_manual":                     "Ouvrir le manuel",
+        "lbl_update":                     "Mise à jour disponible : {version}",
+        "btn_download":                   "Télécharger",
         "mod_build_reports_name":         "Build Reports",
         "mod_build_reports_desc":         "Métriques de flux et rapports",
         "mod_transform_data_name":        "Transform Data",
@@ -213,11 +236,17 @@ class LauncherApp(tk.Tk):
         self._manual_btn: tk.Button | None = None
         self._title_lbl: tk.Label | None = None
         self._card_widgets: list[dict] = []
+        self._update_bar: tk.Frame | None = None
+        self._update_lbl: tk.Label | None = None
+        self._update_btn: tk.Button | None = None
+        self._separator: ttk.Separator | None = None
+        self._latest_version: str | None = None
 
         self._lang_var.trace_add("write", lambda *_: self._apply_language())
         self._create_flag_imgs()
         self._build_ui()
         self._apply_language()
+        threading.Thread(target=self._check_for_update, daemon=True).start()
 
     def _tr(self, key: str) -> str:
         """Look up a translation key for the current language, falling back to English."""
@@ -323,7 +352,11 @@ class LauncherApp(tk.Tk):
         )
         self._manual_btn.pack(side="right")
 
-        ttk.Separator(self, orient="horizontal").pack(fill="x", pady=(0, 12))
+        # Update notification bar — hidden until a newer version is detected
+        self._update_bar = tk.Frame(self, bg="#fff3cd")
+
+        self._separator = ttk.Separator(self, orient="horizontal")
+        self._separator.pack(fill="x", pady=(0, 12))
 
         # Card grid (2 columns)
         grid_frame = tk.Frame(self)
@@ -399,6 +432,65 @@ class LauncherApp(tk.Tk):
                 card["action_widget"].configure(text=self._tr("btn_launch"))
             else:
                 card["action_widget"].configure(text=self._tr("lbl_planned"))
+
+        if self._latest_version:
+            if self._update_lbl:
+                self._update_lbl.configure(
+                    text=self._tr("lbl_update").format(version=self._latest_version)
+                )
+            if self._update_btn:
+                self._update_btn.configure(text=self._tr("btn_download"))
+
+    def _check_for_update(self) -> None:
+        """Background thread: query the GitHub Releases API and compare versions."""
+        if _VERSION == "?":
+            return
+        try:
+            req = urllib.request.Request(
+                _UPDATE_API,
+                headers={
+                    "Accept": "application/vnd.github.v3+json",
+                    "User-Agent": f"SituationReport/{_VERSION}",
+                },
+            )
+            with urllib.request.urlopen(req, timeout=5) as resp:
+                data = json.loads(resp.read())
+            latest_tag = data.get("tag_name", "")
+            if not latest_tag:
+                return
+            if _parse_version(latest_tag) > _parse_version(_VERSION):
+                self.after(0, lambda: self._show_update_banner(latest_tag))
+        except Exception:
+            pass
+
+    def _show_update_banner(self, latest_tag: str) -> None:
+        """Display the yellow update notification bar above the module grid."""
+        self._latest_version = latest_tag
+
+        inner = tk.Frame(self._update_bar, bg="#fff3cd")
+        inner.pack(padx=12, pady=6)
+
+        self._update_lbl = tk.Label(
+            inner,
+            text=self._tr("lbl_update").format(version=latest_tag),
+            bg="#fff3cd",
+            fg="#856404",
+        )
+        self._update_lbl.pack(side="left")
+
+        self._update_btn = tk.Button(
+            inner,
+            text=self._tr("btn_download"),
+            relief="flat",
+            cursor="hand2",
+            bg="#ffc107",
+            fg="#333333",
+            font=("TkDefaultFont", 9, "bold"),
+            command=lambda: webbrowser.open(_RELEASES_URL),
+        )
+        self._update_btn.pack(side="left", padx=(10, 0))
+
+        self._update_bar.pack(fill="x", pady=(0, 8), before=self._separator)
 
     def _open_manual(self) -> None:
         """Open the language-appropriate user manual PDF on GitHub Pages."""

@@ -19,7 +19,10 @@ from launcher.gui import (
     LANG_RO,
     _LANG_ORDER,
     _MODULES,
+    _RELEASES_URL,
     _T,
+    _UPDATE_API,
+    _parse_version,
 )
 
 _ALL_LANGS = (LANG_DE, LANG_EN, LANG_RO, LANG_PT, LANG_FR)
@@ -30,6 +33,8 @@ _REQUIRED_KEYS = {
     "lbl_planned",
     "tip_language",
     "tip_manual",
+    "lbl_update",
+    "btn_download",
     "mod_build_reports_name",
     "mod_build_reports_desc",
     "mod_transform_data_name",
@@ -146,3 +151,38 @@ class TestLanguageOrder:
     def test_de_is_first_in_lang_order(self):
         """German is the first entry in _LANG_ORDER."""
         assert _LANG_ORDER[0] == LANG_DE
+
+
+class TestUpdateCheck:
+    """Tests for the update check constants and version parsing helper."""
+
+    def test_update_api_points_to_correct_repo(self):
+        """_UPDATE_API URL targets the correct GitHub repository."""
+        assert "Jaegerfeld/situation-report" in _UPDATE_API
+
+    def test_releases_url_points_to_correct_repo(self):
+        """_RELEASES_URL targets the correct GitHub repository."""
+        assert "Jaegerfeld/situation-report" in _RELEASES_URL
+
+    def test_parse_version_plain(self):
+        """_parse_version parses a plain version string into an int tuple."""
+        assert _parse_version("0.8.0") == (0, 8, 0)
+
+    def test_parse_version_with_v_prefix(self):
+        """_parse_version strips a leading 'v' before parsing."""
+        assert _parse_version("v0.8.0") == (0, 8, 0)
+
+    def test_parse_version_newer_minor(self):
+        """A higher minor version compares as greater."""
+        assert _parse_version("v0.9.0") > _parse_version("v0.8.0")
+
+    def test_parse_version_two_digit_minor(self):
+        """Two-digit minor version (0.10.0) compares correctly against single-digit."""
+        assert _parse_version("v0.10.0") > _parse_version("v0.9.0")
+
+    def test_lbl_update_contains_version_placeholder(self):
+        """lbl_update translation strings contain a {version} placeholder."""
+        for lang in _ALL_LANGS:
+            assert "{version}" in _T[lang]["lbl_update"], (
+                f"Missing {{version}} placeholder in lbl_update for {lang}"
+            )
