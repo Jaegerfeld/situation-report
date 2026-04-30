@@ -3,12 +3,13 @@
 # Repository:     https://github.com/Jaegerfeld/situation-report
 # KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
 # Erstellt:       15.04.2026
-# Geändert:       25.04.2026
+# Geändert:       30.04.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
-#   Unit-Tests für FlowLoadMetric. Prüft Trennung open/closed, Altersberechnung,
-#   Stage-Zuordnung und Render-Ausgabe.
+#   Unit-Tests für FlowLoadMetric. Prüft Trennung open/closed, Statusgruppen-
+#   Filterung (nur In Progress als Not Done), Stage-Filterung (Done-Stages
+#   ausgeblendet), Altersberechnung, Stage-Zuordnung und Render-Ausgabe.
 # =============================================================================
 
 from datetime import datetime
@@ -18,6 +19,24 @@ import pytest
 from build_reports.loader import IssueRecord, ReportData
 from build_reports.metrics.flow_load import FlowLoadMetric, _age_days, _current_stage
 from build_reports.terminology import SAFE
+
+
+def _todo_issue(key: str, stage_minutes: dict | None = None) -> IssueRecord:
+    """Create a minimal IssueRecord in To Do state (no first_date, no closed_date).
+
+    Args:
+        key:           Unique issue key.
+        stage_minutes: Dict of stage name to minutes spent; defaults to empty.
+
+    Returns:
+        IssueRecord with first_date=None and closed_date=None.
+    """
+    return IssueRecord(
+        project="P", key=key, issuetype="Feature", status="To Do",
+        created=datetime(2025, 1, 1), component="",
+        first_date=None, implementation_date=None, closed_date=None,
+        stage_minutes=stage_minutes or {}, resolution="",
+    )
 
 
 def _issue(key: str, closed: datetime | None = None,
@@ -91,8 +110,8 @@ class TestCurrentStage:
 class TestCompute:
     """Tests for FlowLoadMetric.compute() — open issue age grouping."""
 
-    def test_only_open_issues_counted(self, metric, mixed_data):
-        """open_count stat reflects only issues without a Closed Date."""
+    def test_only_in_progress_issues_counted(self, metric, mixed_data):
+        """open_count reflects only In Progress issues (First Date set, no Closed Date)."""
         result = metric.compute(mixed_data, SAFE)
         assert result.stats["open_count"] == 2
 
@@ -190,3 +209,67 @@ class TestRender:
         metric.target_ct = 30
         result = metric.compute(mixed_data, SAFE)
         assert result.chart_data.target_ct_days == 30
+
+
+class TestStatusGroupFiltering:
+    """Tests for status-group-aware issue and stage filtering in FlowLoadMetric."""
+
+    def test_todo_issues_excluded_from_open_count(self, metric):
+        """To Do issues (no First Date) are not counted as Not Done items."""
+        data = ReportData(
+            issues=[
+                _issue("IP-1", closed=None,
+                       stage_minutes={"Funnel": 100, "Analysis": 0}),
+                _todo_issue("TD-1", stage_minutes={"Funnel": 50, "Analysis": 0}),
+            ],
+            cfd=[], stages=["Funnel", "Analysis"], source_prefix="",
+        )
+        result = metric.compute(data, SAFE)
+        assert result.stats["open_count"] == 1
+
+    def test_todo_only_dataset_produces_warning(self, metric):
+        """A dataset with only To Do issues triggers the no-open-issues warning."""
+        data = ReportData(
+            issues=[_todo_issue("TD-1", stage_minutes={"Funnel": 100})],
+            cfd=[], stages=["Funnel", "Analysis"], source_prefix="",
+        )
+        result = metric.compute(data, SAFE)
+        assert result.warnings
+
+    def test_done_stages_excluded_from_boxplot(self, metric):
+        """Stages in the Done group are not rendered as boxplot columns."""
+        data = ReportData(
+            issues=[
+                _issue("IP-1", closed=None,
+                       stage_minutes={"Analysis": 100, "Closed": 10}),
+            ],
+            cfd=[], stages=["Funnel", "Analysis", "Closed"],
+            source_prefix="", first_stage="Analysis", closed_stage="Closed",
+        )
+        result = metric.compute(data, SAFE)
+        assert "Closed" not in result.chart_data.stages_ordered
+
+    def test_in_progress_stages_included_in_boxplot(self, metric):
+        """Stages in the In Progress group appear in the boxplot when they have issues."""
+        data = ReportData(
+            issues=[
+                _issue("IP-1", closed=None,
+                       stage_minutes={"Analysis": 100}),
+            ],
+            cfd=[], stages=["Funnel", "Analysis", "Closed"],
+            source_prefix="", first_stage="Analysis", closed_stage="Closed",
+        )
+        result = metric.compute(data, SAFE)
+        assert "Analysis" in result.chart_data.stages_ordered
+
+    def test_without_boundary_stages_all_stages_shown(self, metric):
+        """When first_stage and closed_stage are unknown, stages are not filtered by group."""
+        data = ReportData(
+            issues=[
+                _issue("IP-1", closed=None, stage_minutes={"Funnel": 50, "Analysis": 0}),
+                _issue("IP-2", closed=None, stage_minutes={"Funnel": 0, "Analysis": 100}),
+            ],
+            cfd=[], stages=["Funnel", "Analysis"], source_prefix="",
+        )
+        result = metric.compute(data, SAFE)
+        assert set(result.chart_data.stages_ordered) == {"Funnel", "Analysis"}

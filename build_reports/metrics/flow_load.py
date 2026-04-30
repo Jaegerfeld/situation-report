@@ -3,14 +3,17 @@
 # Repository:     https://github.com/Jaegerfeld/situation-report
 # KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
 # Erstellt:       15.04.2026
-# Geändert:       26.04.2026
+# Geändert:       30.04.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
 #   Implementiert die Flow Load / WIP / Aging WIP Metrik. Zeigt für alle
-#   offenen Issues (kein Closed Date) die Verweildauer in Tagen je aktueller
-#   Stage als gruppierten Boxplot. Referenzlinien zeigen Median, 85. Perzentil
-#   der Cycle Time sowie das konfigurierte Target CT der abgeschlossenen Issues.
+#   Issues in der Statusgruppe "In Progress" (First Date gesetzt, kein Closed
+#   Date) die Verweildauer in Tagen je aktueller Stage als gruppierten Boxplot.
+#   "To Do"-Issues (kein First Date) gelten nicht als Not Done und werden nicht
+#   dargestellt. Stages der Statusgruppe "Done" werden im Boxplot ausgeblendet.
+#   Referenzlinien zeigen Median, 85. Perzentil der Cycle Time sowie das
+#   konfigurierte Target CT der abgeschlossenen Issues.
 #   Die aktuelle Stage eines Issues wird als letzte Stage in Workflow-Reihenfolge
 #   mit stage_minutes > 0 bestimmt.
 # =============================================================================
@@ -25,6 +28,7 @@ import plotly.graph_objects as go
 
 from ..loader import IssueRecord, ReportData
 from ..repel import add_repelled_hlines
+from ..stage_groups import GROUP_DONE, GROUP_IN_PROGRESS, classify_stages, issue_stage_group
 from ..terminology import FLOW_LOAD, term
 from . import register
 from .base import MetricPlugin, MetricResult
@@ -71,8 +75,8 @@ def _age_days(issue: IssueRecord, reference: date) -> float:
 class _LoadData:
     """Aggregated data for the Aging WIP chart."""
     by_stage: dict[str, list[float]]   # stage -> list of ages in days
-    stages_ordered: list[str]          # workflow-ordered stage names (only stages with items)
-    open_count: int
+    stages_ordered: list[str]          # workflow-ordered stage names (only non-Done stages with items)
+    open_count: int                    # number of In Progress issues (not To Do, not Done)
     mean_age: float
     median_age: float
     # Reference lines from closed issues (cycle time)
@@ -95,10 +99,14 @@ class FlowLoadMetric(MetricPlugin):
 
     def compute(self, data: ReportData, terminology: str) -> MetricResult:
         """
-        Compute age of all open issues grouped by current stage.
+        Compute age of all In Progress issues grouped by current stage.
 
-        Open issues are those without a Closed Date. Age is measured from
-        First Date (or Created if First Date is absent) to today.
+        Only issues in the In Progress status group (First Date set, no Closed
+        Date) count as "Not Done" and are included in the chart. To Do issues
+        (no First Date) have not yet entered the active workflow and are excluded.
+
+        Stages classified as Done are not shown as boxplot columns — they are
+        irrelevant for an Aging WIP view.
 
         Cycle time stats (median, 85th percentile) are computed from closed
         issues and used as reference lines in the chart alongside target_ct.
@@ -113,7 +121,7 @@ class FlowLoadMetric(MetricPlugin):
         today = date.today()
         warnings: list[str] = []
 
-        open_issues = [i for i in data.issues if i.closed_date is None]
+        open_issues = [i for i in data.issues if issue_stage_group(i) == GROUP_IN_PROGRESS]
         closed_issues = [i for i in data.issues if i.closed_date is not None
                          and i.first_date is not None]
 
@@ -128,8 +136,12 @@ class FlowLoadMetric(MetricPlugin):
             age = _age_days(issue, today)
             by_stage.setdefault(stage, []).append(age)
 
-        # Remove stages with no open issues
-        active_stages = [s for s in data.stages if by_stage.get(s)]
+        # Keep only stages that have issues AND are not classified as Done
+        stage_groups = classify_stages(data.stages, data.first_stage, data.closed_stage)
+        active_stages = [
+            s for s in data.stages
+            if by_stage.get(s) and stage_groups.get(s) != GROUP_DONE
+        ]
         all_ages = [a for ages in by_stage.values() for a in ages]
 
         mean_age = statistics.mean(all_ages) if all_ages else 0.0
