@@ -64,9 +64,9 @@ _PREFS_PATH = Path.home() / ".situation_report" / "prefs.json"
 _MANUAL_URLS: dict[str, str] = {
     LANG_DE: "https://jaegerfeld.github.io/situation-report/launcher_Benutzerhandbuch.pdf",
     LANG_EN: "https://jaegerfeld.github.io/situation-report/launcher_UserManual.pdf",
-    LANG_RO: "https://jaegerfeld.github.io/situation-report/launcher_UserManual.pdf",
-    LANG_PT: "https://jaegerfeld.github.io/situation-report/launcher_UserManual.pdf",
-    LANG_FR: "https://jaegerfeld.github.io/situation-report/launcher_UserManual.pdf",
+    LANG_RO: "https://jaegerfeld.github.io/situation-report/launcher_ManualUtilizator.pdf",
+    LANG_PT: "https://jaegerfeld.github.io/situation-report/launcher_ManualUtilizador.pdf",
+    LANG_FR: "https://jaegerfeld.github.io/situation-report/launcher_ManuelUtilisateur.pdf",
 }
 
 
