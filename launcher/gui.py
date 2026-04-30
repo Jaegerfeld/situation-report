@@ -228,7 +228,7 @@ class LauncherApp(tk.Tk):
 
     def __init__(self) -> None:
         super().__init__()
-        self.resizable(False, False)
+        self.resizable(False, True)
 
         self._lang_var = tk.StringVar(value=_load_lang_pref())
         self._flag_imgs: dict[str, tk.PhotoImage] = {}
@@ -246,6 +246,7 @@ class LauncherApp(tk.Tk):
         self._create_flag_imgs()
         self._build_ui()
         self._apply_language()
+        self._fit_to_screen()
         threading.Thread(target=self._check_for_update, daemon=True).start()
 
     def _tr(self, key: str) -> str:
@@ -491,6 +492,15 @@ class LauncherApp(tk.Tk):
         self._update_btn.pack(side="left", padx=(10, 0))
 
         self._update_bar.pack(fill="x", pady=(0, 8), before=self._separator)
+
+    def _fit_to_screen(self) -> None:
+        """Cap the initial window size so it fits within the screen (FullHD and above)."""
+        self.update_idletasks()
+        sh = self.winfo_screenheight()
+        sw = self.winfo_screenwidth()
+        w = min(self.winfo_reqwidth(), sw - 40)
+        h = min(self.winfo_reqheight(), sh - 80)
+        self.geometry(f"{w}x{h}")
 
     def _open_manual(self) -> None:
         """Open the language-appropriate user manual PDF on GitHub Pages."""
