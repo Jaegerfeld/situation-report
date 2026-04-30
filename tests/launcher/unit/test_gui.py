@@ -29,6 +29,7 @@ _REQUIRED_KEYS = {
     "btn_launch",
     "lbl_planned",
     "tip_language",
+    "tip_manual",
     "mod_build_reports_name",
     "mod_build_reports_desc",
     "mod_transform_data_name",

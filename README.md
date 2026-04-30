@@ -44,6 +44,17 @@ python -m venv .venv
 pip install -e .
 ```
 
+## Usage
+
+Start the launcher GUI:
+
+- **Windows:** double-click `SituationReport.bat`
+- **macOS:** double-click `SituationReport.command`
+- **Linux:** run `./SituationReport.sh`
+- **Terminal (all platforms):** `python -m launcher`
+
+The launcher opens a central window from which all available modules can be started.
+
 ## License
 
 BSD-3-Clause — see [LICENSE](LICENSE)

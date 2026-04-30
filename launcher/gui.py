@@ -13,6 +13,7 @@
 #   Geplante Module sind sichtbar, aber deaktiviert.
 #   Sprache (DE/EN/RO/PT/FR) wird über den Flag-Button umgeschaltet und
 #   aus der gemeinsamen Präferenzdatei ~/.situation_report/prefs.json geladen.
+#   Über den ?-Button kann das Benutzerhandbuch geöffnet werden.
 # =============================================================================
 
 from __future__ import annotations
@@ -21,6 +22,7 @@ import json
 import subprocess
 import sys
 import tkinter as tk
+import webbrowser
 from dataclasses import dataclass
 from pathlib import Path
 from tkinter import ttk
@@ -29,6 +31,8 @@ try:
     from version import __version__ as _VERSION
 except ImportError:
     _VERSION = "?"
+
+C_ACCENT = "#2980b9"
 
 # ---------------------------------------------------------------------------
 # Language constants
@@ -43,6 +47,14 @@ LANG_FR = "fr"
 _LANG_ORDER = [LANG_DE, LANG_EN, LANG_RO, LANG_PT, LANG_FR]
 
 _PREFS_PATH = Path.home() / ".situation_report" / "prefs.json"
+
+_MANUAL_URLS: dict[str, str] = {
+    LANG_DE: "https://jaegerfeld.github.io/situation-report/launcher_Benutzerhandbuch.pdf",
+    LANG_EN: "https://jaegerfeld.github.io/situation-report/launcher_UserManual.pdf",
+    LANG_RO: "https://jaegerfeld.github.io/situation-report/launcher_UserManual.pdf",
+    LANG_PT: "https://jaegerfeld.github.io/situation-report/launcher_UserManual.pdf",
+    LANG_FR: "https://jaegerfeld.github.io/situation-report/launcher_UserManual.pdf",
+}
 
 
 def _load_lang_pref() -> str:
@@ -79,6 +91,7 @@ _T: dict[str, dict[str, str]] = {
         "btn_launch":                     "Starten",
         "lbl_planned":                    "(bald verfügbar)",
         "tip_language":                   "Sprache wechseln",
+        "tip_manual":                     "Benutzerhandbuch öffnen",
         "mod_build_reports_name":         "Build Reports",
         "mod_build_reports_desc":         "Flow-Metriken und Reports",
         "mod_transform_data_name":        "Transform Data",
@@ -95,6 +108,7 @@ _T: dict[str, dict[str, str]] = {
         "btn_launch":                     "Launch",
         "lbl_planned":                    "(coming soon)",
         "tip_language":                   "Switch language",
+        "tip_manual":                     "Open user manual",
         "mod_build_reports_name":         "Build Reports",
         "mod_build_reports_desc":         "Flow metrics and reports",
         "mod_transform_data_name":        "Transform Data",
@@ -111,6 +125,7 @@ _T: dict[str, dict[str, str]] = {
         "btn_launch":                     "Lansare",
         "lbl_planned":                    "(în curând)",
         "tip_language":                   "Schimbați limba",
+        "tip_manual":                     "Deschideți manualul",
         "mod_build_reports_name":         "Build Reports",
         "mod_build_reports_desc":         "Metrici de flux și rapoarte",
         "mod_transform_data_name":        "Transform Data",
@@ -127,6 +142,7 @@ _T: dict[str, dict[str, str]] = {
         "btn_launch":                     "Iniciar",
         "lbl_planned":                    "(em breve)",
         "tip_language":                   "Mudar idioma",
+        "tip_manual":                     "Abrir manual do utilizador",
         "mod_build_reports_name":         "Build Reports",
         "mod_build_reports_desc":         "Métricas de fluxo e relatórios",
         "mod_transform_data_name":        "Transform Data",
@@ -143,6 +159,7 @@ _T: dict[str, dict[str, str]] = {
         "btn_launch":                     "Lancer",
         "lbl_planned":                    "(bientôt disponible)",
         "tip_language":                   "Changer de langue",
+        "tip_manual":                     "Ouvrir le manuel",
         "mod_build_reports_name":         "Build Reports",
         "mod_build_reports_desc":         "Métriques de flux et rapports",
         "mod_transform_data_name":        "Transform Data",
@@ -193,6 +210,7 @@ class LauncherApp(tk.Tk):
         self._lang_var = tk.StringVar(value=_load_lang_pref())
         self._flag_imgs: dict[str, tk.PhotoImage] = {}
         self._flag_btn: tk.Button | None = None
+        self._manual_btn: tk.Button | None = None
         self._title_lbl: tk.Label | None = None
         self._card_widgets: list[dict] = []
 
@@ -276,6 +294,12 @@ class LauncherApp(tk.Tk):
         tk.Label(title_frame, text=f"v{_VERSION}", fg="#888888").pack(
             side="left", padx=(8, 0)
         )
+        tk.Label(
+            title_frame, text="ALPHA",
+            fg="white", bg="#e74c3c",
+            font=("TkDefaultFont", 8, "bold"),
+            padx=5, pady=1,
+        ).pack(side="left", padx=(6, 0))
 
         self._flag_btn = tk.Button(
             title_frame,
@@ -285,7 +309,19 @@ class LauncherApp(tk.Tk):
             cursor="hand2",
             command=self._toggle_language,
         )
-        self._flag_btn.pack(side="right")
+        self._flag_btn.pack(side="right", padx=(4, 0))
+
+        self._manual_btn = tk.Button(
+            title_frame,
+            text="?",
+            relief="flat",
+            bd=0,
+            cursor="hand2",
+            font=("TkDefaultFont", 11, "bold"),
+            fg=C_ACCENT,
+            command=self._open_manual,
+        )
+        self._manual_btn.pack(side="right")
 
         ttk.Separator(self, orient="horizontal").pack(fill="x", pady=(0, 12))
 
@@ -349,7 +385,7 @@ class LauncherApp(tk.Tk):
     def _apply_language(self) -> None:
         """Update all translatable widgets and the window title for the current language."""
         _save_lang_pref(self._lang_var.get())
-        self.title(self._tr("window_title"))
+        self.title(f"{self._tr('window_title')} – ALPHA")
         if self._title_lbl:
             self._title_lbl.configure(text=self._tr("window_title"))
         if self._flag_btn and self._lang_var.get() in self._flag_imgs:
@@ -363,6 +399,10 @@ class LauncherApp(tk.Tk):
                 card["action_widget"].configure(text=self._tr("btn_launch"))
             else:
                 card["action_widget"].configure(text=self._tr("lbl_planned"))
+
+    def _open_manual(self) -> None:
+        """Open the language-appropriate user manual PDF on GitHub Pages."""
+        webbrowser.open(_MANUAL_URLS.get(self._lang_var.get(), _MANUAL_URLS[LANG_EN]))
 
     def _launch(self, module_id: str) -> None:
         """
