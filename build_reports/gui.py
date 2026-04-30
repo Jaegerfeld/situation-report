@@ -1275,8 +1275,11 @@ class BuildReportsApp(tk.Tk):
                lambda e: canvas.configure(scrollregion=canvas.bbox("all")))
         canvas.bind("<Configure>",
                     lambda e: canvas.itemconfig(canvas_win, width=e.width))
-        canvas.bind_all("<MouseWheel>",
-                        lambda e: canvas.yview_scroll(int(-1 * (e.delta / 120)), "units"))
+        def _on_mousewheel(e):
+            canvas.yview_scroll(int(-1 * (e.delta / 120)), "units")
+
+        canvas.bind("<Enter>", lambda e: canvas.bind_all("<MouseWheel>", _on_mousewheel))
+        canvas.bind("<Leave>", lambda e: canvas.unbind_all("<MouseWheel>"))
 
         f.columnconfigure(1, weight=1)
         row = 0
@@ -1650,6 +1653,7 @@ class BuildReportsApp(tk.Tk):
         CT method, terminology, and language setting.
         """
         path = filedialog.asksaveasfilename(
+            parent=self,
             title=self._tr("dlg_tpl_save"),
             defaultextension=".json",
             filetypes=[("JSON-Dateien", "*.json"), ("Alle Dateien", "*.*")],
@@ -1694,6 +1698,7 @@ class BuildReportsApp(tk.Tk):
         is applied last so all label updates reflect the loaded language.
         """
         path = filedialog.askopenfilename(
+            parent=self,
             title=self._tr("dlg_tpl_load"),
             filetypes=[("JSON-Dateien", "*.json"), ("Alle Dateien", "*.*")],
         )
@@ -1789,6 +1794,7 @@ class BuildReportsApp(tk.Tk):
     def _pick_issue_times(self) -> None:
         """Open a file dialog to select IssueTimes.xlsx; loads filter options and runs stage check."""
         path = filedialog.askopenfilename(
+            parent=self,
             title=self._tr("dlg_issue_times"),
             filetypes=[("Excel-Dateien", "*.xlsx"), ("Alle Dateien", "*.*")],
         )
@@ -1802,6 +1808,7 @@ class BuildReportsApp(tk.Tk):
     def _pick_cfd(self) -> None:
         """Open a file dialog to select CFD.xlsx; runs stage consistency check if IssueTimes is set."""
         path = filedialog.askopenfilename(
+            parent=self,
             title=self._tr("dlg_cfd"),
             filetypes=[("Excel-Dateien", "*.xlsx"), ("Alle Dateien", "*.*")],
         )
@@ -1814,6 +1821,7 @@ class BuildReportsApp(tk.Tk):
     def _pick_workflow(self) -> None:
         """Open a file dialog to select a workflow .txt file."""
         path = filedialog.askopenfilename(
+            parent=self,
             title=self._tr("dlg_workflow"),
             filetypes=[("Textdateien", "*.txt"), ("Alle Dateien", "*.*")],
         )
@@ -1823,6 +1831,7 @@ class BuildReportsApp(tk.Tk):
     def _pick_pi_config(self) -> None:
         """Open a file dialog to select a PI configuration JSON file."""
         path = filedialog.askopenfilename(
+            parent=self,
             title=self._tr("dlg_pi_config"),
             filetypes=[("JSON-Dateien", "*.json"), ("Alle Dateien", "*.*")],
         )
@@ -1832,6 +1841,7 @@ class BuildReportsApp(tk.Tk):
     def _pick_transitions(self) -> None:
         """Open a file dialog to select a Transitions.xlsx file for the Process Flow metric."""
         path = filedialog.askopenfilename(
+            parent=self,
             title=self._tr("dlg_transitions"),
             filetypes=[("Excel-Dateien", "*.xlsx"), ("Alle Dateien", "*.*")],
         )
@@ -2220,6 +2230,7 @@ class BuildReportsApp(tk.Tk):
             return
 
         out_path = filedialog.asksaveasfilename(
+            parent=self,
             title=self._tr("dlg_pdf"),
             defaultextension=".pdf",
             filetypes=[("PDF-Dateien", "*.pdf"), ("Alle Dateien", "*.*")],
