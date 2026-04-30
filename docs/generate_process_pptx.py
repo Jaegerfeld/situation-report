@@ -179,15 +179,17 @@ STEPS = [
             ("Ausschlusse als Standard hinterlegen",
              "Haufig genutzte Ausschluss-Regeln dauerhaft speichern -- "
              "kein erneutes Eintippen bei jedem Start."),
-            ("Sprache wahlen (DE / EN)",
-             "Beide Oberflachen auf Deutsch oder Englisch nutzbar. "
-             "Die gewunschte Sprache wird beim nachsten Start beibehalten."),
+            ("Sprache wahlen (DE / EN / RO / PT / FR)",
+             "Launcher in 5 Sprachen nutzbar; build_reports und transform_data "
+             "auf Deutsch oder Englisch. Die gewunschte Sprache wird beim "
+             "nachsten Start beibehalten."),
             ("Terminologie anpassen",
              "SAFe-Begriffe (Flow Time, Flow Velocity ...) oder globale Begriffe "
              "(Cycle Time, Throughput ...) -- je nach Teamkonvention."),
             ("Benutzerhandbuch",
-             "PDF-Handbuch in Deutsch und Englisch direkt aus dem Hilfemenu "
-             "abrufbar -- auch fur nicht-technische Anwender geschrieben."),
+             "PDF-Handbuch: Launcher in 5 Sprachen (DE, EN, RO, PT, FR), "
+             "build_reports und transform_data je DE + EN -- direkt aus dem "
+             "Hilfemenu abrufbar."),
         ],
     },
 ]
