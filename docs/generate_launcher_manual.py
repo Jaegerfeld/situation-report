@@ -261,8 +261,23 @@ def _build_story_de(st: dict) -> list:
         ),
         Spacer(1, 0.5*cm),
 
-        # ---- 5. Sprache ----
-        Paragraph("5. Sprache", st["h1"]),
+        # ---- 5. Update-Prüfung ----
+        Paragraph("5. Update-Prüfung", st["h1"]),
+        HRFlowable(width=w, thickness=1, color=C_ACCENT, spaceAfter=8),
+        Paragraph(
+            "Beim Start prüft der Launcher im Hintergrund, ob auf GitHub eine neuere "
+            "Version verfügbar ist. Ist das der Fall, erscheint ein gelbes Banner "
+            "oberhalb des Modul-Grids:", st["body"]),
+        Paragraph(
+            "Update verfügbar: v0.9.0  →  [Herunterladen]", st["code"]),
+        Paragraph(
+            "Ein Klick auf <b>Herunterladen</b> öffnet die GitHub-Release-Seite im Browser. "
+            "Die Prüfung läuft ohne Netz-Anforderung — bei fehlendem Internet "
+            "erscheint kein Fehler.", st["body"]),
+        Spacer(1, 0.5*cm),
+
+        # ---- 6. Sprache ----
+        Paragraph("6. Sprache", st["h1"]),
         HRFlowable(width=w, thickness=1, color=C_ACCENT, spaceAfter=8),
         Paragraph(
             "Die Sprache der Oberfläche wird über den Flag-Button oben rechts "
@@ -346,7 +361,20 @@ def _build_story_en(st: dict) -> list:
         ),
         Spacer(1, 0.5*cm),
 
-        Paragraph("5. Language", st["h1"]),
+        Paragraph("5. Update Check", st["h1"]),
+        HRFlowable(width=w, thickness=1, color=C_ACCENT, spaceAfter=8),
+        Paragraph(
+            "On startup, the launcher checks in the background whether a newer version "
+            "is available on GitHub. If so, a yellow banner appears above the module grid:", st["body"]),
+        Paragraph(
+            "Update available: v0.9.0  →  [Download]", st["code"]),
+        Paragraph(
+            "Clicking <b>Download</b> opens the GitHub releases page in the browser. "
+            "The check runs silently — no error is shown when there is no internet "
+            "connection.", st["body"]),
+        Spacer(1, 0.5*cm),
+
+        Paragraph("6. Language", st["h1"]),
         HRFlowable(width=w, thickness=1, color=C_ACCENT, spaceAfter=8),
         Paragraph(
             "The interface language is switched via the flag button in the top right. "
