@@ -1250,11 +1250,39 @@ class BuildReportsApp(tk.Tk):
     def _build_ui(self) -> None:
         """Build and arrange all main window widgets."""
         pad = {"padx": 8, "pady": 3}
-        self.columnconfigure(1, weight=1)
+
+        # Root: row 0 = scrollable form, row 1 = log section (always visible)
+        self.rowconfigure(0, weight=1)
+        self.columnconfigure(0, weight=1)
+
+        # ── Scrollable form area ────────────────────────────────────────────
+        form_outer = tk.Frame(self)
+        form_outer.grid(row=0, column=0, sticky="nsew")
+        form_outer.rowconfigure(0, weight=1)
+        form_outer.columnconfigure(0, weight=1)
+
+        vscroll = ttk.Scrollbar(form_outer, orient="vertical")
+        vscroll.grid(row=0, column=1, sticky="ns")
+
+        canvas = tk.Canvas(form_outer, yscrollcommand=vscroll.set, highlightthickness=0)
+        canvas.grid(row=0, column=0, sticky="nsew")
+        vscroll.config(command=canvas.yview)
+
+        f = tk.Frame(canvas)
+        canvas_win = canvas.create_window((0, 0), window=f, anchor="nw")
+
+        f.bind("<Configure>",
+               lambda e: canvas.configure(scrollregion=canvas.bbox("all")))
+        canvas.bind("<Configure>",
+                    lambda e: canvas.itemconfig(canvas_win, width=e.width))
+        canvas.bind_all("<MouseWheel>",
+                        lambda e: canvas.yview_scroll(int(-1 * (e.delta / 120)), "units"))
+
+        f.columnconfigure(1, weight=1)
         row = 0
 
         # --- Language flag button (top-right) ---
-        flag_frame = tk.Frame(self)
+        flag_frame = tk.Frame(f)
         flag_frame.grid(row=row, column=0, columnspan=3, sticky="e", padx=6, pady=(4, 0))
         self._flag_btn = tk.Button(
             flag_frame,
@@ -1271,121 +1299,121 @@ class BuildReportsApp(tk.Tk):
         row += 1
 
         # --- Files ---
-        row = self._section_header("sec_files", row)
+        row = self._section_header("sec_files", row, f)
 
-        lbl = tk.Label(self, text=self._tr("lbl_issue_times"), anchor="w")
+        lbl = tk.Label(f, text=self._tr("lbl_issue_times"), anchor="w")
         lbl.grid(row=row, column=0, sticky="w", **pad)
         self._i18n.append((lbl, "lbl_issue_times"))
 
-        it_entry = tk.Entry(self, textvariable=self._issue_times_var, state="readonly", width=50)
+        it_entry = tk.Entry(f, textvariable=self._issue_times_var, state="readonly", width=50)
         it_entry.grid(row=row, column=1, sticky="ew", **pad)
         self._tips.append((_ToolTip(it_entry, self._tr("tip_issue_times")), "tip_issue_times"))
 
-        btn = ttk.Button(self, text=self._tr("btn_browse"), command=self._pick_issue_times)
+        btn = ttk.Button(f, text=self._tr("btn_browse"), command=self._pick_issue_times)
         btn.grid(row=row, column=2, **pad)
         self._i18n.append((btn, "btn_browse"))
         self._tips.append((_ToolTip(btn, self._tr("tip_browse")), "tip_browse"))
         row += 1
 
-        lbl = tk.Label(self, text=self._tr("lbl_cfd"), anchor="w")
+        lbl = tk.Label(f, text=self._tr("lbl_cfd"), anchor="w")
         lbl.grid(row=row, column=0, sticky="w", **pad)
         self._i18n.append((lbl, "lbl_cfd"))
 
-        cfd_entry = tk.Entry(self, textvariable=self._cfd_var, state="readonly", width=50)
+        cfd_entry = tk.Entry(f, textvariable=self._cfd_var, state="readonly", width=50)
         cfd_entry.grid(row=row, column=1, sticky="ew", **pad)
         self._tips.append((_ToolTip(cfd_entry, self._tr("tip_cfd")), "tip_cfd"))
 
-        btn = ttk.Button(self, text=self._tr("btn_browse"), command=self._pick_cfd)
+        btn = ttk.Button(f, text=self._tr("btn_browse"), command=self._pick_cfd)
         btn.grid(row=row, column=2, **pad)
         self._i18n.append((btn, "btn_browse"))
         self._tips.append((_ToolTip(btn, self._tr("tip_browse")), "tip_browse"))
         row += 1
 
-        lbl = tk.Label(self, text=self._tr("lbl_workflow"), anchor="w")
+        lbl = tk.Label(f, text=self._tr("lbl_workflow"), anchor="w")
         lbl.grid(row=row, column=0, sticky="w", **pad)
         self._i18n.append((lbl, "lbl_workflow"))
 
-        wf_entry = tk.Entry(self, textvariable=self._workflow_var, state="readonly", width=50)
+        wf_entry = tk.Entry(f, textvariable=self._workflow_var, state="readonly", width=50)
         wf_entry.grid(row=row, column=1, sticky="ew", **pad)
         self._tips.append((_ToolTip(wf_entry, self._tr("tip_workflow")), "tip_workflow"))
 
-        btn = ttk.Button(self, text=self._tr("btn_browse"), command=self._pick_workflow)
+        btn = ttk.Button(f, text=self._tr("btn_browse"), command=self._pick_workflow)
         btn.grid(row=row, column=2, **pad)
         self._i18n.append((btn, "btn_browse"))
         self._tips.append((_ToolTip(btn, self._tr("tip_browse")), "tip_browse"))
         row += 1
 
-        lbl = tk.Label(self, text=self._tr("lbl_pi_config"), anchor="w")
+        lbl = tk.Label(f, text=self._tr("lbl_pi_config"), anchor="w")
         lbl.grid(row=row, column=0, sticky="w", **pad)
         self._i18n.append((lbl, "lbl_pi_config"))
 
-        pi_entry = tk.Entry(self, textvariable=self._pi_config_var, state="readonly", width=50)
+        pi_entry = tk.Entry(f, textvariable=self._pi_config_var, state="readonly", width=50)
         pi_entry.grid(row=row, column=1, sticky="ew", **pad)
         self._tips.append((_ToolTip(pi_entry, self._tr("tip_pi_config")), "tip_pi_config"))
 
-        btn = ttk.Button(self, text=self._tr("btn_browse"), command=self._pick_pi_config)
+        btn = ttk.Button(f, text=self._tr("btn_browse"), command=self._pick_pi_config)
         btn.grid(row=row, column=2, **pad)
         self._i18n.append((btn, "btn_browse"))
         self._tips.append((_ToolTip(btn, self._tr("tip_browse")), "tip_browse"))
         row += 1
 
-        lbl = tk.Label(self, text=self._tr("lbl_transitions"), anchor="w")
+        lbl = tk.Label(f, text=self._tr("lbl_transitions"), anchor="w")
         lbl.grid(row=row, column=0, sticky="w", **pad)
         self._i18n.append((lbl, "lbl_transitions"))
 
-        tr_entry = tk.Entry(self, textvariable=self._transitions_var, state="readonly", width=50)
+        tr_entry = tk.Entry(f, textvariable=self._transitions_var, state="readonly", width=50)
         tr_entry.grid(row=row, column=1, sticky="ew", **pad)
         self._tips.append((_ToolTip(tr_entry, self._tr("tip_transitions")), "tip_transitions"))
 
-        btn = ttk.Button(self, text=self._tr("btn_browse"), command=self._pick_transitions)
+        btn = ttk.Button(f, text=self._tr("btn_browse"), command=self._pick_transitions)
         btn.grid(row=row, column=2, **pad)
         self._i18n.append((btn, "btn_browse"))
         self._tips.append((_ToolTip(btn, self._tr("tip_browse")), "tip_browse"))
         row += 1
 
         # --- Filter ---
-        row = self._section_header("sec_filter", row)
+        row = self._section_header("sec_filter", row, f)
 
-        lbl = tk.Label(self, text=self._tr("lbl_from"), anchor="w")
+        lbl = tk.Label(f, text=self._tr("lbl_from"), anchor="w")
         lbl.grid(row=row, column=0, sticky="w", **pad)
         self._i18n.append((lbl, "lbl_from"))
-        from_entry = tk.Entry(self, textvariable=self._from_date_var, width=20)
+        from_entry = tk.Entry(f, textvariable=self._from_date_var, width=20)
         from_entry.grid(row=row, column=1, sticky="w", **pad)
         self._tips.append((_ToolTip(from_entry, self._tr("tip_from")), "tip_from"))
-        btn = ttk.Button(self, text=self._tr("btn_cal"), width=3,
+        btn = ttk.Button(f, text=self._tr("btn_cal"), width=3,
                          command=lambda: self._pick_date(self._from_date_var))
         btn.grid(row=row, column=2, sticky="w", **pad)
         self._i18n.append((btn, "btn_cal"))
         self._tips.append((_ToolTip(btn, self._tr("tip_cal")), "tip_cal"))
         row += 1
 
-        lbl = tk.Label(self, text=self._tr("lbl_to"), anchor="w")
+        lbl = tk.Label(f, text=self._tr("lbl_to"), anchor="w")
         lbl.grid(row=row, column=0, sticky="w", **pad)
         self._i18n.append((lbl, "lbl_to"))
-        to_entry = tk.Entry(self, textvariable=self._to_date_var, width=20)
+        to_entry = tk.Entry(f, textvariable=self._to_date_var, width=20)
         to_entry.grid(row=row, column=1, sticky="w", **pad)
         self._tips.append((_ToolTip(to_entry, self._tr("tip_to")), "tip_to"))
-        btn = ttk.Button(self, text=self._tr("btn_cal"), width=3,
+        btn = ttk.Button(f, text=self._tr("btn_cal"), width=3,
                          command=lambda: self._pick_date(self._to_date_var))
         btn.grid(row=row, column=2, sticky="w", **pad)
         self._i18n.append((btn, "btn_cal"))
         self._tips.append((_ToolTip(btn, self._tr("tip_cal")), "tip_cal"))
         row += 1
 
-        btn = ttk.Button(self, text=self._tr("btn_last_365"),
+        btn = ttk.Button(f, text=self._tr("btn_last_365"),
                          command=self._set_last_365_days)
         btn.grid(row=row, column=0, columnspan=2, sticky="w", padx=16, pady=2)
         self._i18n.append((btn, "btn_last_365"))
         self._tips.append((_ToolTip(btn, self._tr("tip_last_365")), "tip_last_365"))
         row += 1
 
-        lbl = tk.Label(self, text=self._tr("lbl_projects"), anchor="w")
+        lbl = tk.Label(f, text=self._tr("lbl_projects"), anchor="w")
         lbl.grid(row=row, column=0, sticky="w", **pad)
         self._i18n.append((lbl, "lbl_projects"))
-        proj_entry = tk.Entry(self, textvariable=self._projects_var, width=44)
+        proj_entry = tk.Entry(f, textvariable=self._projects_var, width=44)
         proj_entry.grid(row=row, column=1, sticky="ew", **pad)
         self._tips.append((_ToolTip(proj_entry, self._tr("tip_projects")), "tip_projects"))
-        btn = ttk.Button(self, text=self._tr("btn_pick"), width=3,
+        btn = ttk.Button(f, text=self._tr("btn_pick"), width=3,
                          command=lambda: self._open_multiselect(
                              self._projects_var, self._available_projects, "dlg_projects"))
         btn.grid(row=row, column=2, sticky="w", **pad)
@@ -1393,13 +1421,13 @@ class BuildReportsApp(tk.Tk):
         self._tips.append((_ToolTip(btn, self._tr("tip_pick")), "tip_pick"))
         row += 1
 
-        lbl = tk.Label(self, text=self._tr("lbl_issuetypes"), anchor="w")
+        lbl = tk.Label(f, text=self._tr("lbl_issuetypes"), anchor="w")
         lbl.grid(row=row, column=0, sticky="w", **pad)
         self._i18n.append((lbl, "lbl_issuetypes"))
-        it_type_entry = tk.Entry(self, textvariable=self._issuetypes_var, width=44)
+        it_type_entry = tk.Entry(f, textvariable=self._issuetypes_var, width=44)
         it_type_entry.grid(row=row, column=1, sticky="ew", **pad)
         self._tips.append((_ToolTip(it_type_entry, self._tr("tip_issuetypes")), "tip_issuetypes"))
-        btn = ttk.Button(self, text=self._tr("btn_pick"), width=3,
+        btn = ttk.Button(f, text=self._tr("btn_pick"), width=3,
                          command=lambda: self._open_multiselect(
                              self._issuetypes_var, self._available_issuetypes, "dlg_issuetypes"))
         btn.grid(row=row, column=2, sticky="w", **pad)
@@ -1408,15 +1436,15 @@ class BuildReportsApp(tk.Tk):
         row += 1
 
         # --- Exclusions ---
-        row = self._section_header("sec_exclusions", row)
+        row = self._section_header("sec_exclusions", row, f)
 
-        lbl = tk.Label(self, text=self._tr("lbl_excl_status"), anchor="w")
+        lbl = tk.Label(f, text=self._tr("lbl_excl_status"), anchor="w")
         lbl.grid(row=row, column=0, sticky="w", **pad)
         self._i18n.append((lbl, "lbl_excl_status"))
-        excl_st_entry = tk.Entry(self, textvariable=self._excl_statuses_var, width=44)
+        excl_st_entry = tk.Entry(f, textvariable=self._excl_statuses_var, width=44)
         excl_st_entry.grid(row=row, column=1, sticky="ew", **pad)
         self._tips.append((_ToolTip(excl_st_entry, self._tr("tip_excl_status")), "tip_excl_status"))
-        btn = ttk.Button(self, text=self._tr("btn_pick"), width=3,
+        btn = ttk.Button(f, text=self._tr("btn_pick"), width=3,
                          command=lambda: self._open_multiselect(
                              self._excl_statuses_var, self._available_statuses, "dlg_excl_status"))
         btn.grid(row=row, column=2, sticky="w", **pad)
@@ -1424,13 +1452,13 @@ class BuildReportsApp(tk.Tk):
         self._tips.append((_ToolTip(btn, self._tr("tip_pick")), "tip_pick"))
         row += 1
 
-        lbl = tk.Label(self, text=self._tr("lbl_excl_resolution"), anchor="w")
+        lbl = tk.Label(f, text=self._tr("lbl_excl_resolution"), anchor="w")
         lbl.grid(row=row, column=0, sticky="w", **pad)
         self._i18n.append((lbl, "lbl_excl_resolution"))
-        excl_res_entry = tk.Entry(self, textvariable=self._excl_resolutions_var, width=44)
+        excl_res_entry = tk.Entry(f, textvariable=self._excl_resolutions_var, width=44)
         excl_res_entry.grid(row=row, column=1, sticky="ew", **pad)
         self._tips.append((_ToolTip(excl_res_entry, self._tr("tip_excl_resolution")), "tip_excl_resolution"))
-        btn = ttk.Button(self, text=self._tr("btn_pick"), width=3,
+        btn = ttk.Button(f, text=self._tr("btn_pick"), width=3,
                          command=lambda: self._open_multiselect(
                              self._excl_resolutions_var, self._available_resolutions, "dlg_excl_resolution"))
         btn.grid(row=row, column=2, sticky="w", **pad)
@@ -1439,7 +1467,7 @@ class BuildReportsApp(tk.Tk):
         row += 1
 
         chk = tk.Checkbutton(
-            self,
+            f,
             text=self._tr("chk_zero_day"),
             variable=self._excl_zero_day_var,
             anchor="w",
@@ -1447,22 +1475,22 @@ class BuildReportsApp(tk.Tk):
         chk.grid(row=row, column=0, sticky="w", **pad)
         self._i18n.append((chk, "chk_zero_day"))
         self._tips.append((_ToolTip(chk, self._tr("tip_zero_day")), "tip_zero_day"))
-        zd_spin = ttk.Spinbox(self, from_=1, to=60, width=4,
+        zd_spin = ttk.Spinbox(f, from_=1, to=60, width=4,
                               textvariable=self._zero_day_minutes_var)
         zd_spin.grid(row=row, column=1, sticky="w", **pad)
         self._tips.append((_ToolTip(zd_spin, self._tr("tip_zero_day")), "tip_zero_day"))
-        lbl_min = tk.Label(self, text=self._tr("lbl_zero_day_min"), anchor="w")
+        lbl_min = tk.Label(f, text=self._tr("lbl_zero_day_min"), anchor="w")
         lbl_min.grid(row=row, column=2, sticky="w", **pad)
         self._i18n.append((lbl_min, "lbl_zero_day_min"))
         row += 1
 
         # --- Metrics ---
-        row = self._section_header("sec_metrics", row)
+        row = self._section_header("sec_metrics", row, f)
 
         self._metric_checkbuttons.clear()
         for plugin in self._plugins:
             cb = tk.Checkbutton(
-                self,
+                f,
                 text=term(plugin.metric_id, self._terminology_var.get()),
                 variable=self._metric_vars[plugin.metric_id],
                 anchor="w",
@@ -1474,7 +1502,7 @@ class BuildReportsApp(tk.Tk):
                 self._tips.append((_ToolTip(cb, self._tr(tip_key)), tip_key))
             row += 1
 
-        btn_frame = tk.Frame(self)
+        btn_frame = tk.Frame(f)
         btn_frame.grid(row=row, column=0, columnspan=3, sticky="w", padx=16, pady=2)
         btn_all = ttk.Button(btn_frame, text=self._tr("btn_all"), width=6,
                              command=self._select_all_metrics)
@@ -1487,9 +1515,9 @@ class BuildReportsApp(tk.Tk):
         row += 1
 
         # --- CT Method ---
-        row = self._section_header("sec_ct", row)
+        row = self._section_header("sec_ct", row, f)
 
-        ct_frame = tk.Frame(self)
+        ct_frame = tk.Frame(f)
         ct_frame.grid(row=row, column=0, columnspan=3, sticky="w", padx=16, pady=4)
         for value, key, tip_key in [
             (CT_METHOD_A, "ct_a", "tip_ct_a"),
@@ -1506,23 +1534,23 @@ class BuildReportsApp(tk.Tk):
             self._tips.append((_ToolTip(rb, self._tr(tip_key)), tip_key))
         row += 1
 
-        lbl = tk.Label(self, text=self._tr("lbl_target_ct"), anchor="w")
+        lbl = tk.Label(f, text=self._tr("lbl_target_ct"), anchor="w")
         lbl.grid(row=row, column=0, sticky="w", **pad)
         self._i18n.append((lbl, "lbl_target_ct"))
-        tct_spin = ttk.Spinbox(self, from_=1, to=9999, width=6,
+        tct_spin = ttk.Spinbox(f, from_=1, to=9999, width=6,
                                textvariable=self._target_ct_var)
         tct_spin.grid(row=row, column=1, sticky="w", **pad)
         self._tips.append((_ToolTip(tct_spin, self._tr("tip_target_ct")), "tip_target_ct"))
-        tk.Label(self, text="d", anchor="w").grid(row=row, column=2, sticky="w", **pad)
+        tk.Label(f, text="d", anchor="w").grid(row=row, column=2, sticky="w", **pad)
         row += 1
 
         # --- Action buttons ---
-        ttk.Separator(self, orient="horizontal").grid(
+        ttk.Separator(f, orient="horizontal").grid(
             row=row, column=0, columnspan=3, sticky="ew", pady=6
         )
         row += 1
 
-        action_frame = tk.Frame(self)
+        action_frame = tk.Frame(f)
         action_frame.grid(row=row, column=0, columnspan=3, pady=4)
         self._show_btn = ttk.Button(
             action_frame, text=self._tr("btn_show"), command=self._run_show
@@ -1539,31 +1567,30 @@ class BuildReportsApp(tk.Tk):
         row += 1
 
         # --- Progress bar (hidden until operation runs > 3 s) ---
-        self._progress_bar = ttk.Progressbar(
-            self, mode="indeterminate", length=300
-        )
+        self._progress_bar = ttk.Progressbar(f, mode="indeterminate", length=300)
         self._progress_bar.grid(row=row, column=0, columnspan=3, pady=(0, 4))
         self._progress_bar.grid_remove()
-        row += 1
 
-        # --- Log area ---
-        ttk.Separator(self, orient="horizontal").grid(
-            row=row, column=0, columnspan=3, sticky="ew", pady=4
+        # ── Log section (always visible at bottom) ────────────────────────
+        log_frame = tk.Frame(self)
+        log_frame.grid(row=1, column=0, sticky="ew")
+        log_frame.columnconfigure(0, weight=1)
+
+        lrow = 0
+        ttk.Separator(log_frame, orient="horizontal").grid(
+            row=lrow, column=0, columnspan=3, sticky="ew", pady=4
         )
-        row += 1
+        lrow += 1
 
-        lbl = tk.Label(self, text=self._tr("lbl_log"), anchor="w")
-        lbl.grid(row=row, column=0, sticky="w", **pad)
+        lbl = tk.Label(log_frame, text=self._tr("lbl_log"), anchor="w")
+        lbl.grid(row=lrow, column=0, sticky="w", **pad)
         self._i18n.append((lbl, "lbl_log"))
-        row += 1
+        lrow += 1
 
         self._log_area = scrolledtext.ScrolledText(
-            self, height=10, state="disabled", wrap="word"
+            log_frame, height=6, state="disabled", wrap="word"
         )
-        self._log_area.grid(
-            row=row, column=0, columnspan=3, sticky="nsew", **pad
-        )
-        self.rowconfigure(row, weight=1)
+        self._log_area.grid(row=lrow, column=0, columnspan=3, sticky="ew", **pad)
 
     def _fit_to_screen(self) -> None:
         """Cap the initial window size so it fits within the screen (FullHD and above)."""
@@ -1574,13 +1601,15 @@ class BuildReportsApp(tk.Tk):
         h = min(self.winfo_reqheight(), sh - 80)
         self.geometry(f"{w}x{h}")
 
-    def _section_header(self, tr_key: str, row: int) -> int:
-        """Insert a labelled separator, store the Label for i18n, and return next row."""
-        ttk.Separator(self, orient="horizontal").grid(
+    def _section_header(self, tr_key: str, row: int,
+                        parent: tk.Widget | None = None) -> int:
+        """Insert a labelled separator into parent, store the Label for i18n, return next row."""
+        p = parent if parent is not None else self
+        ttk.Separator(p, orient="horizontal").grid(
             row=row, column=0, columnspan=3, sticky="ew", pady=(8, 2)
         )
         row += 1
-        lbl = tk.Label(self, text=self._tr(tr_key), font=("", 9, "bold"), anchor="w")
+        lbl = tk.Label(p, text=self._tr(tr_key), font=("", 9, "bold"), anchor="w")
         lbl.grid(row=row, column=0, columnspan=3, sticky="w", padx=8)
         self._i18n.append((lbl, tr_key))
         row += 1
