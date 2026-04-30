@@ -258,6 +258,7 @@ class TransformApp(tk.Tk):
 
         self._build_ui()
         self._apply_language()
+        self._fit_to_screen()
 
     # -------------------------------------------------------------------------
     # Helpers
@@ -266,6 +267,15 @@ class TransformApp(tk.Tk):
     def _tr(self, key: str) -> str:
         """Return translated string for the current language."""
         return _T.get(self._lang_var.get(), _T[LANG_EN]).get(key, key)
+
+    def _fit_to_screen(self) -> None:
+        """Cap the initial window size so it fits within the screen (FullHD and above)."""
+        self.update_idletasks()
+        sh = self.winfo_screenheight()
+        sw = self.winfo_screenwidth()
+        w = min(self.winfo_reqwidth(), sw - 40)
+        h = min(self.winfo_reqheight(), sh - 80)
+        self.geometry(f"{w}x{h}")
 
     # -------------------------------------------------------------------------
     # Menu bar

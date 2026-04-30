@@ -1110,6 +1110,7 @@ class BuildReportsApp(tk.Tk):
         self._build_menubar()
         self._build_ui()
         self._apply_language()  # set initial titles / labels
+        self._fit_to_screen()
 
     # -------------------------------------------------------------------------
     # Translation helper
@@ -1563,6 +1564,15 @@ class BuildReportsApp(tk.Tk):
             row=row, column=0, columnspan=3, sticky="nsew", **pad
         )
         self.rowconfigure(row, weight=1)
+
+    def _fit_to_screen(self) -> None:
+        """Cap the initial window size so it fits within the screen (FullHD and above)."""
+        self.update_idletasks()
+        sh = self.winfo_screenheight()
+        sw = self.winfo_screenwidth()
+        w = min(self.winfo_reqwidth(), sw - 40)
+        h = min(self.winfo_reqheight(), sh - 80)
+        self.geometry(f"{w}x{h}")
 
     def _section_header(self, tr_key: str, row: int) -> int:
         """Insert a labelled separator, store the Label for i18n, and return next row."""
