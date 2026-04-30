@@ -170,8 +170,8 @@ class _ModuleEntry:
 
 
 _MODULES: list[_ModuleEntry] = [
-    _ModuleEntry("build_reports",      "📊", True),
     _ModuleEntry("transform_data",     "🔄", True),
+    _ModuleEntry("build_reports",      "📊", True),
     _ModuleEntry("get_data",           "📥", False),
     _ModuleEntry("simulate",           "🎲", False),
     _ModuleEntry("testdata_generator", "🧪", False),
