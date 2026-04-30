@@ -7,13 +7,12 @@
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
-#   Erzeugt das Benutzerhandbuch und das User Manual für den SituationReport
-#   Launcher als PDF-Dateien (Deutsch und Englisch). Beschreibt Start,
-#   Oberfläche, Module und Sprachumschaltung.
+#   Erzeugt das Benutzerhandbuch für den SituationReport Launcher als PDF in
+#   allen fünf unterstützten Sprachen (DE, EN, RO, PT, FR). Beschreibt Start,
+#   Oberfläche, Module, Update-Prüfung und Sprachumschaltung.
 # =============================================================================
 
 import sys
-from datetime import date
 from functools import partial
 from pathlib import Path
 
@@ -32,10 +31,16 @@ from reportlab.platypus import (
 
 OUTPUT_DE = Path(__file__).parent / "launcher_Benutzerhandbuch.pdf"
 OUTPUT_EN = Path(__file__).parent / "launcher_UserManual.pdf"
+OUTPUT_RO = Path(__file__).parent / "launcher_ManualUtilizator.pdf"
+OUTPUT_PT = Path(__file__).parent / "launcher_ManualUtilizador.pdf"
+OUTPUT_FR = Path(__file__).parent / "launcher_ManuelUtilisateur.pdf"
 
 CONTENT_WIDTH_CM = 15.5
 LANG_DE = "de"
 LANG_EN = "en"
+LANG_RO = "ro"
+LANG_PT = "pt"
+LANG_FR = "fr"
 
 C_BLUE   = colors.HexColor("#2c3e50")
 C_ACCENT = colors.HexColor("#2980b9")
@@ -80,8 +85,17 @@ def _make_styles() -> dict:
 _HEADER_TEXT = {
     LANG_DE: "SituationReport Launcher  --  Benutzerhandbuch",
     LANG_EN: "SituationReport Launcher  --  User Manual",
+    LANG_RO: "SituationReport Launcher  --  Manual Utilizator",
+    LANG_PT: "SituationReport Launcher  --  Manual do Utilizador",
+    LANG_FR: "SituationReport Launcher  --  Manuel Utilisateur",
 }
-_PAGE_LABEL = {LANG_DE: "Seite %d", LANG_EN: "Page %d"}
+_PAGE_LABEL = {
+    LANG_DE: "Seite %d",
+    LANG_EN: "Page %d",
+    LANG_RO: "Pagina %d",
+    LANG_PT: "Pagina %d",
+    LANG_FR: "Page %d",
+}
 
 
 class _LauncherDoc(BaseDocTemplate):
@@ -124,14 +138,26 @@ class _LauncherDoc(BaseDocTemplate):
 def _build_cover(canvas, doc, lang: str = LANG_DE):
     """Draw the cover page."""
     w, h = A4
-    subtitle = {"de": "Benutzerhandbuch", "en": "User Manual"}[lang]
+    subtitle = {
+        LANG_DE: "Benutzerhandbuch",
+        LANG_EN: "User Manual",
+        LANG_RO: "Manual Utilizator",
+        LANG_PT: "Manual do Utilizador",
+        LANG_FR: "Manuel Utilisateur",
+    }[lang]
     tagline = {
-        "de": "Zentraler Einstiegspunkt für alle SituationReport-Module",
-        "en": "Central entry point for all SituationReport modules",
+        LANG_DE: "Zentraler Einstiegspunkt fur alle SituationReport-Module",
+        LANG_EN: "Central entry point for all SituationReport modules",
+        LANG_RO: "Punct central de intrare pentru toate modulele SituationReport",
+        LANG_PT: "Ponto de entrada central para todos os modulos do SituationReport",
+        LANG_FR: "Point d'entree central pour tous les modules SituationReport",
     }[lang]
     audience = {
-        "de": "Für alle Anwender — Version",
-        "en": "For all users — Version",
+        LANG_DE: "Fur alle Anwender — Version",
+        LANG_EN: "For all users — Version",
+        LANG_RO: "Pentru toti utilizatorii — Versiunea",
+        LANG_PT: "Para todos os utilizadores — Versao",
+        LANG_FR: "Pour tous les utilisateurs — Version",
     }[lang]
 
     canvas.saveState()
@@ -388,6 +414,306 @@ def _build_story_en(st: dict) -> list:
     return story
 
 
+def _build_story_ro(st: dict) -> list:
+    """
+    Build the Romanian manual story (list of ReportLab flowables).
+
+    Args:
+        st: Style dictionary from _make_styles().
+
+    Returns:
+        List of Platypus flowables.
+    """
+    w = CONTENT_WIDTH_CM * cm
+    story = [NextPageTemplate("normal"), PageBreak()]
+
+    story += [
+        Paragraph("1. Ce este Launcher-ul?", st["h1"]),
+        HRFlowable(width=w, thickness=1, color=C_ACCENT, spaceAfter=8),
+        Paragraph(
+            "SituationReport Launcher este punctul central de intrare pentru toate "
+            "modulele din suita SituationReport. Afiseaza toate modulele disponibile "
+            "si planificate intr-o vizualizare clara cu dale. Modulele disponibile "
+            "pot fi pornite cu un singur clic — se deschid intr-o fereastra proprie, "
+            "iar launcher-ul ramane deschis.", st["body"]),
+        Spacer(1, 0.3*cm),
+
+        Paragraph("2. Pornire", st["h1"]),
+        HRFlowable(width=w, thickness=1, color=C_ACCENT, spaceAfter=8),
+        Paragraph("Din pachetul portabil (fara Python necesar):", st["h2"]),
+        Table(
+            [
+                ["Sistem de operare", "Fisier de pornire"],
+                ["Windows",  "SituationReport.bat  (dublu-clic)"],
+                ["macOS",    "SituationReport.command  (clic-dreapta → Deschide)"],
+                ["Linux",    "./SituationReport.sh"],
+            ],
+            colWidths=[4*cm, w - 4*cm],
+            style=_TABLE_STYLE,
+        ),
+        Spacer(1, 0.3*cm),
+        Paragraph("Din codul sursa:", st["h2"]),
+        Paragraph("python -m launcher", st["code"]),
+        Spacer(1, 0.5*cm),
+
+        Paragraph("3. Interfata", st["h1"]),
+        HRFlowable(width=w, thickness=1, color=C_ACCENT, spaceAfter=8),
+        Paragraph(
+            "Fereastra principala afiseaza toate modulele ca dale intr-o grila cu "
+            "2 coloane. Fiecare dala contine o pictograma, numele modulului, o scurta "
+            "descriere si — pentru modulele disponibile — un buton <b>Pornire</b>. "
+            "Modulele planificate sunt marcate ca <i>(in curand disponibil)</i> si "
+            "nu pot fi pornite inca.", st["body"]),
+        Paragraph(
+            "Butonul de limba (🌐) si butonul de manual (?) se afla in coltul din "
+            "dreapta sus. Launcher-ul ramane deschis dupa pornirea unui modul — "
+            "mai multe module pot rula simultan.", st["body"]),
+        Spacer(1, 0.5*cm),
+
+        Paragraph("4. Module", st["h1"]),
+        HRFlowable(width=w, thickness=1, color=C_ACCENT, spaceAfter=8),
+        Table(
+            [
+                ["Pictograma", "Modul", "Descriere", "Stare"],
+                ["📊", "Build Reports",      "Creare metrici de flux si rapoarte",  "disponibil"],
+                ["🔄", "Transform Data",     "Pregatire date brute Jira ca XLSX",   "disponibil"],
+                ["📥", "Get Data",           "Preluare date direct din Jira",       "planificat"],
+                ["🎲", "Simulate",           "Prognoze si simulari",                "planificat"],
+                ["🧪", "Testdata Generator", "Generare date de test sintetice",     "planificat"],
+            ],
+            colWidths=[1.2*cm, 3.8*cm, 7.5*cm, 3*cm],
+            style=_TABLE_STYLE,
+        ),
+        Spacer(1, 0.5*cm),
+
+        Paragraph("5. Verificarea Actualizarilor", st["h1"]),
+        HRFlowable(width=w, thickness=1, color=C_ACCENT, spaceAfter=8),
+        Paragraph(
+            "La pornire, launcher-ul verifica in fundal daca pe GitHub exista o "
+            "versiune mai noua. Daca da, apare un banner galben deasupra grilei de "
+            "module:", st["body"]),
+        Paragraph(
+            "Actualizare disponibila: v0.9.0  ->  [Descarcati]", st["code"]),
+        Paragraph(
+            "Un clic pe <b>Descarcati</b> deschide pagina de versiuni GitHub in "
+            "browser. Verificarea ruleaza silentios — nu apare nicio eroare cand "
+            "nu exista conexiune la internet.", st["body"]),
+        Spacer(1, 0.5*cm),
+
+        Paragraph("6. Limba", st["h1"]),
+        HRFlowable(width=w, thickness=1, color=C_ACCENT, spaceAfter=8),
+        Paragraph(
+            "Limba interfetei se schimba prin butonul de steag din dreapta sus. "
+            "Fiecare clic avanseaza la urmatoarea limba in secventa "
+            "<b>DE → EN → RO → PT → FR → DE …</b>", st["body"]),
+        Paragraph(
+            "Limba selectata este salvata in "
+            "<font name='Courier'>~/.situation_report/prefs.json</font> "
+            "si se aplica tuturor modulelor.", st["body"]),
+    ]
+    return story
+
+
+def _build_story_pt(st: dict) -> list:
+    """
+    Build the Portuguese manual story (list of ReportLab flowables).
+
+    Args:
+        st: Style dictionary from _make_styles().
+
+    Returns:
+        List of Platypus flowables.
+    """
+    w = CONTENT_WIDTH_CM * cm
+    story = [NextPageTemplate("normal"), PageBreak()]
+
+    story += [
+        Paragraph("1. O que e o Launcher?", st["h1"]),
+        HRFlowable(width=w, thickness=1, color=C_ACCENT, spaceAfter=8),
+        Paragraph(
+            "O SituationReport Launcher e o ponto de entrada central para todos os "
+            "modulos da suite SituationReport. Apresenta todos os modulos disponiveis "
+            "e planeados numa vista de mosaicos. Os modulos disponiveis podem ser "
+            "iniciados com um unico clique — abrem numa janela propria enquanto o "
+            "launcher permanece aberto.", st["body"]),
+        Spacer(1, 0.3*cm),
+
+        Paragraph("2. Iniciar", st["h1"]),
+        HRFlowable(width=w, thickness=1, color=C_ACCENT, spaceAfter=8),
+        Paragraph("Do pacote portavel (sem Python necessario):", st["h2"]),
+        Table(
+            [
+                ["Sistema operativo", "Ficheiro de inicio"],
+                ["Windows",  "SituationReport.bat  (duplo clique)"],
+                ["macOS",    "SituationReport.command  (clique direito → Abrir)"],
+                ["Linux",    "./SituationReport.sh"],
+            ],
+            colWidths=[4*cm, w - 4*cm],
+            style=_TABLE_STYLE,
+        ),
+        Spacer(1, 0.3*cm),
+        Paragraph("Do codigo fonte:", st["h2"]),
+        Paragraph("python -m launcher", st["code"]),
+        Spacer(1, 0.5*cm),
+
+        Paragraph("3. A Interface", st["h1"]),
+        HRFlowable(width=w, thickness=1, color=C_ACCENT, spaceAfter=8),
+        Paragraph(
+            "A janela principal mostra todos os modulos como mosaicos numa grelha de "
+            "2 colunas. Cada mosaico contem um icone, o nome do modulo, uma breve "
+            "descricao e — para os modulos disponiveis — um botao <b>Iniciar</b>. "
+            "Os modulos planeados estao marcados como <i>(brevemente disponivel)</i> "
+            "e ainda nao podem ser iniciados.", st["body"]),
+        Paragraph(
+            "O botao de idioma (🌐) e o botao de manual (?) encontram-se no canto "
+            "superior direito. O launcher permanece aberto apos iniciar um modulo — "
+            "varios modulos podem correr simultaneamente.", st["body"]),
+        Spacer(1, 0.5*cm),
+
+        Paragraph("4. Modulos", st["h1"]),
+        HRFlowable(width=w, thickness=1, color=C_ACCENT, spaceAfter=8),
+        Table(
+            [
+                ["Icone", "Modulo", "Descricao", "Estado"],
+                ["📊", "Build Reports",      "Criar metricas de fluxo e relatorios", "disponivel"],
+                ["🔄", "Transform Data",     "Preparar dados brutos Jira como XLSX",  "disponivel"],
+                ["📥", "Get Data",           "Obter dados diretamente do Jira",       "planeado"],
+                ["🎲", "Simulate",           "Previsoes e simulacoes",                "planeado"],
+                ["🧪", "Testdata Generator", "Gerar dados de teste sinteticos",       "planeado"],
+            ],
+            colWidths=[1.2*cm, 3.8*cm, 7.5*cm, 3*cm],
+            style=_TABLE_STYLE,
+        ),
+        Spacer(1, 0.5*cm),
+
+        Paragraph("5. Verificacao de Atualizacoes", st["h1"]),
+        HRFlowable(width=w, thickness=1, color=C_ACCENT, spaceAfter=8),
+        Paragraph(
+            "No arranque, o launcher verifica em segundo plano se existe uma versao "
+            "mais recente no GitHub. Se sim, aparece um banner amarelo acima da "
+            "grelha de modulos:", st["body"]),
+        Paragraph(
+            "Atualizacao disponivel: v0.9.0  ->  [Transferir]", st["code"]),
+        Paragraph(
+            "Clicar em <b>Transferir</b> abre a pagina de versoes do GitHub no "
+            "browser. A verificacao corre silenciosamente — nao e mostrado nenhum "
+            "erro quando nao ha ligacao a internet.", st["body"]),
+        Spacer(1, 0.5*cm),
+
+        Paragraph("6. Idioma", st["h1"]),
+        HRFlowable(width=w, thickness=1, color=C_ACCENT, spaceAfter=8),
+        Paragraph(
+            "O idioma da interface e alterado atraves do botao de bandeira no canto "
+            "superior direito. Cada clique avanca para o proximo idioma na sequencia "
+            "<b>DE → EN → RO → PT → FR → DE …</b>", st["body"]),
+        Paragraph(
+            "O idioma selecionado e guardado em "
+            "<font name='Courier'>~/.situation_report/prefs.json</font> "
+            "e aplica-se a todos os modulos.", st["body"]),
+    ]
+    return story
+
+
+def _build_story_fr(st: dict) -> list:
+    """
+    Build the French manual story (list of ReportLab flowables).
+
+    Args:
+        st: Style dictionary from _make_styles().
+
+    Returns:
+        List of Platypus flowables.
+    """
+    w = CONTENT_WIDTH_CM * cm
+    story = [NextPageTemplate("normal"), PageBreak()]
+
+    story += [
+        Paragraph("1. Qu'est-ce que le Launcher ?", st["h1"]),
+        HRFlowable(width=w, thickness=1, color=C_ACCENT, spaceAfter=8),
+        Paragraph(
+            "Le SituationReport Launcher est le point d'entree central pour tous les "
+            "modules de la suite SituationReport. Il affiche tous les modules "
+            "disponibles et planifies dans une vue claire en tuiles. Les modules "
+            "disponibles peuvent etre lances d'un seul clic — ils s'ouvrent dans "
+            "leur propre fenetre pendant que le launcher reste ouvert.", st["body"]),
+        Spacer(1, 0.3*cm),
+
+        Paragraph("2. Demarrage", st["h1"]),
+        HRFlowable(width=w, thickness=1, color=C_ACCENT, spaceAfter=8),
+        Paragraph("Depuis le package portable (sans Python requis) :", st["h2"]),
+        Table(
+            [
+                ["Systeme d'exploitation", "Fichier de demarrage"],
+                ["Windows",  "SituationReport.bat  (double-clic)"],
+                ["macOS",    "SituationReport.command  (clic droit → Ouvrir)"],
+                ["Linux",    "./SituationReport.sh"],
+            ],
+            colWidths=[4*cm, w - 4*cm],
+            style=_TABLE_STYLE,
+        ),
+        Spacer(1, 0.3*cm),
+        Paragraph("Depuis le code source :", st["h2"]),
+        Paragraph("python -m launcher", st["code"]),
+        Spacer(1, 0.5*cm),
+
+        Paragraph("3. L'Interface", st["h1"]),
+        HRFlowable(width=w, thickness=1, color=C_ACCENT, spaceAfter=8),
+        Paragraph(
+            "La fenetre principale affiche tous les modules sous forme de tuiles dans "
+            "une grille a 2 colonnes. Chaque tuile contient une icone, le nom du "
+            "module, une courte description et — pour les modules disponibles — un "
+            "bouton <b>Lancer</b>. Les modules planifies sont etiquetes "
+            "<i>(bientot disponible)</i> et ne peuvent pas encore etre demarres.", st["body"]),
+        Paragraph(
+            "Le bouton de langue (🌐) et le bouton de manuel (?) se trouvent en haut "
+            "a droite. Le launcher reste ouvert apres le demarrage d'un module — "
+            "plusieurs modules peuvent fonctionner simultanement.", st["body"]),
+        Spacer(1, 0.5*cm),
+
+        Paragraph("4. Modules", st["h1"]),
+        HRFlowable(width=w, thickness=1, color=C_ACCENT, spaceAfter=8),
+        Table(
+            [
+                ["Icone", "Module", "Description", "Statut"],
+                ["📊", "Build Reports",      "Creer des metriques de flux et rapports", "disponible"],
+                ["🔄", "Transform Data",     "Preparer les donnees Jira brutes en XLSX", "disponible"],
+                ["📥", "Get Data",           "Recuperer des donnees directement de Jira", "planifie"],
+                ["🎲", "Simulate",           "Previsions et simulations",                "planifie"],
+                ["🧪", "Testdata Generator", "Generer des donnees de test synthetiques", "planifie"],
+            ],
+            colWidths=[1.2*cm, 3.8*cm, 7.5*cm, 3*cm],
+            style=_TABLE_STYLE,
+        ),
+        Spacer(1, 0.5*cm),
+
+        Paragraph("5. Verification des Mises a Jour", st["h1"]),
+        HRFlowable(width=w, thickness=1, color=C_ACCENT, spaceAfter=8),
+        Paragraph(
+            "Au demarrage, le launcher verifie en arriere-plan si une version plus "
+            "recente est disponible sur GitHub. Si c'est le cas, une banniere jaune "
+            "apparait au-dessus de la grille de modules :", st["body"]),
+        Paragraph(
+            "Mise a jour disponible : v0.9.0  ->  [Telecharger]", st["code"]),
+        Paragraph(
+            "Cliquer sur <b>Telecharger</b> ouvre la page des versions GitHub dans "
+            "le navigateur. La verification s'execute silencieusement — aucune erreur "
+            "n'est affichee en l'absence de connexion internet.", st["body"]),
+        Spacer(1, 0.5*cm),
+
+        Paragraph("6. Langue", st["h1"]),
+        HRFlowable(width=w, thickness=1, color=C_ACCENT, spaceAfter=8),
+        Paragraph(
+            "La langue de l'interface est changee via le bouton de drapeau en haut "
+            "a droite. Chaque clic avance vers la langue suivante dans la sequence "
+            "<b>DE → EN → RO → PT → FR → DE …</b>", st["body"]),
+        Paragraph(
+            "La langue selectionnee est sauvegardee dans "
+            "<font name='Courier'>~/.situation_report/prefs.json</font> "
+            "et s'applique a tous les modules.", st["body"]),
+    ]
+    return story
+
+
 # ---------------------------------------------------------------------------
 # Workaround: NextPageTemplate as standalone flowable
 # ---------------------------------------------------------------------------
@@ -407,12 +733,15 @@ class NextPageTemplate(ActionFlowable):
 # ---------------------------------------------------------------------------
 
 def main() -> None:
-    """Generate DE and EN launcher manuals as PDF files."""
+    """Generate launcher manuals as PDF files in all supported languages."""
     st = _make_styles()
 
     for lang, output, story_fn in [
         (LANG_DE, OUTPUT_DE, _build_story_de),
         (LANG_EN, OUTPUT_EN, _build_story_en),
+        (LANG_RO, OUTPUT_RO, _build_story_ro),
+        (LANG_PT, OUTPUT_PT, _build_story_pt),
+        (LANG_FR, OUTPUT_FR, _build_story_fr),
     ]:
         doc = _LauncherDoc(str(output), lang=lang)
         story = story_fn(st)
