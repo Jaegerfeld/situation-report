@@ -16,7 +16,7 @@ Or via the start script in the portable package:
 
 ```
 ┌──────────────────────────────────────────┐
-│  SituationReport  v0.8.2  ALPHA    ?  🌐 │
+│  SituationReport  v0.8.3  ALPHA    ?  🌐 │
 ├──────────────────────────────────────────┤
 │  ┌──────────────┐ ┌──────────────┐       │
 │  │  🔄          │ │  📊          │       │
