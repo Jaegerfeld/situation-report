@@ -115,7 +115,7 @@ jobs:
           & "$BUNDLE\python\Scripts\choreo_get_chrome.exe"
 
           # --- Source modules ---
-          foreach ($mod in 'build_reports','transform_data','get_data','simulate','testdata_generator') {
+          foreach ($mod in 'build_reports','transform_data','get_data','simulate','testdata_generator','launcher') {
               if (Test-Path $mod) { Copy-Item -Recurse $mod "$BUNDLE\$mod" }
           }
           foreach ($f in 'version.py','pyproject.toml','README.md','LICENSE') {
@@ -149,6 +149,19 @@ jobs:
           )
           '@ | Set-Content "$BUNDLE\TransformData.bat" -Encoding ASCII
 
+          @'
+          @echo off
+          set "D=%~dp0"
+          for /d %%i in ("%D%python\tcl\tcl*") do set "TCL_LIBRARY=%%i"
+          for /d %%i in ("%D%python\tcl\tk*") do set "TK_LIBRARY=%%i"
+          "%D%python\python.exe" -m launcher
+          if %ERRORLEVEL% neq 0 (
+              echo.
+              echo Fehler beim Starten. Bitte den roten Text oben notieren.
+              pause
+          )
+          '@ | Set-Content "$BUNDLE\SituationReport.bat" -Encoding ASCII
+
       # -----------------------------------------------------------------------
       # macOS / Linux: source + first-run venv launcher scripts
       # -----------------------------------------------------------------------
@@ -159,7 +172,7 @@ jobs:
           mkdir -p "$BUNDLE"
 
           # Copy source modules
-          for mod in build_reports transform_data get_data simulate testdata_generator; do
+          for mod in build_reports transform_data get_data simulate testdata_generator launcher; do
             [ -d "$mod" ] && cp -r "$mod" "$BUNDLE/"
           done
           for f in version.py pyproject.toml README.md LICENSE; do
@@ -197,10 +210,12 @@ jobs:
               )
 
           scripts = {
+              "SituationReport.sh": launcher("launcher"),
               "BuildReports.sh": launcher("build_reports"),
               "TransformData.sh": launcher("transform_data"),
           }
           if IS_MACOS:
+              scripts["SituationReport.command"] = launcher("launcher")
               scripts["BuildReports.command"] = launcher("build_reports")
               scripts["TransformData.command"] = launcher("transform_data")
 
