@@ -262,6 +262,27 @@ class TestStatusGroupFiltering:
         result = metric.compute(data, SAFE)
         assert "Analysis" in result.chart_data.stages_ordered
 
+    def test_done_stage_excluded_via_allowlist(self, metric):
+        """The explicit GROUP_TODO/GROUP_IN_PROGRESS allowlist excludes Done stages.
+
+        This is equivalent to ``!= GROUP_DONE`` when all stages are classified,
+        but the allowlist form makes the intent explicit and is more readable.
+        Two issues: one currently in Analysis (In Progress), one in Closed
+        (Done). Only the Analysis stage should appear in the boxplot.
+        """
+        data = ReportData(
+            issues=[
+                _issue("IP-1", closed=None, stage_minutes={"Analysis": 100}),
+                _issue("IP-2", closed=None, stage_minutes={"Closed": 50}),
+            ],
+            cfd=[], stages=["Funnel", "Analysis", "Closed"],
+            source_prefix="", first_stage="Analysis", closed_stage="Closed",
+        )
+        result = metric.compute(data, SAFE)
+        # "Closed" is GROUP_DONE — must not appear in the boxplot.
+        assert "Closed" not in result.chart_data.stages_ordered
+        assert "Analysis" in result.chart_data.stages_ordered
+
     def test_without_boundary_stages_all_stages_shown(self, metric):
         """When first_stage and closed_stage are unknown, stages are not filtered by group."""
         data = ReportData(

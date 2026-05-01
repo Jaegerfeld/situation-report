@@ -28,7 +28,10 @@ import plotly.graph_objects as go
 
 from ..loader import IssueRecord, ReportData
 from ..repel import add_repelled_hlines
-from ..stage_groups import GROUP_DONE, GROUP_IN_PROGRESS, classify_stages, issue_stage_group
+from ..stage_groups import (
+    GROUP_DONE, GROUP_IN_PROGRESS, GROUP_TODO,
+    classify_stages, issue_stage_group,
+)
 from ..terminology import FLOW_LOAD, term
 from . import register
 from .base import MetricPlugin, MetricResult
@@ -121,6 +124,9 @@ class FlowLoadMetric(MetricPlugin):
         today = date.today()
         warnings: list[str] = []
 
+        # Only In Progress issues count as WIP:
+        # - To Do issues (first_date is None) have not yet entered the workflow.
+        # - Done issues (closed_date is set) have already left the system.
         open_issues = [i for i in data.issues if issue_stage_group(i) == GROUP_IN_PROGRESS]
         closed_issues = [i for i in data.issues if i.closed_date is not None
                          and i.first_date is not None]
@@ -136,11 +142,14 @@ class FlowLoadMetric(MetricPlugin):
             age = _age_days(issue, today)
             by_stage.setdefault(stage, []).append(age)
 
-        # Keep only stages that have issues AND are not classified as Done
+        # Keep only To Do and In Progress stages that actually have issues.
+        # Done stages are excluded — they have no aging WIP.
+        # Using an explicit allowlist (instead of != GROUP_DONE) also guards
+        # against stages with an unknown group classification.
         stage_groups = classify_stages(data.stages, data.first_stage, data.closed_stage)
         active_stages = [
             s for s in data.stages
-            if by_stage.get(s) and stage_groups.get(s) != GROUP_DONE
+            if by_stage.get(s) and stage_groups.get(s) in (GROUP_TODO, GROUP_IN_PROGRESS)
         ]
         all_ages = [a for ages in by_stage.values() for a in ages]
 
