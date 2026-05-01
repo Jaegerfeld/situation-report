@@ -8,7 +8,7 @@
 #
 # Fachliche Funktion:
 #   Acceptance-Tests für die Process Flow Metrik auf Basis des realen
-#   ART_E-Datensatzes (feedback/Ideen/ART_E_Transitions.xlsx). Prüft
+#   ART_E-Datensatzes (tests/testdata/ART_E/ART_E_Transitions.xlsx). Prüft
 #   fachliche Korrektheit: Anzahl Knoten, Übergänge, Top-Transition,
 #   Erkennung bidirektionaler Kanten und korrekte Darstellbarkeit der Figure.
 # =============================================================================
@@ -24,8 +24,8 @@ from build_reports.metrics.process_flow import ProcessFlowMetric, _FlowData
 from build_reports.terminology import SAFE
 
 ART_E_TRANSITIONS = (
-    Path(__file__).parent.parent.parent.parent
-    / "feedback" / "Ideen" / "ART_E_Transitions.xlsx"
+    Path(__file__).parent.parent.parent
+    / "testdata" / "ART_E" / "ART_E_Transitions.xlsx"
 )
 
 
