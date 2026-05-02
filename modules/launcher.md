@@ -16,7 +16,7 @@ Oder über die Startdatei im portablen Paket:
 
 ```
 ┌──────────────────────────────────────────┐
-│  SituationReport  v0.8.5  BETA     ?  🌐 │
+│  SituationReport  v0.9.0  BETA     ?  🌐 │
 ├──────────────────────────────────────────┤
 │  ┌──────────────┐ ┌──────────────┐       │
 │  │  🔄          │ │  📊          │       │
@@ -30,12 +30,12 @@ Oder über die Startdatei im portablen Paket:
 │  │  Get Data    │ │   Simulate   │       │
 │  │ (bald verf.) │ │ (bald verf.) │       │
 │  └──────────────┘ └──────────────┘       │
-│  ┌──────────────┐                        │
-│  │  🧪          │                        │
-│  │Testdata Gen. │                        │
-│  │  [ALPHA]     │                        │
-│  │  [Starten]   │                        │
-│  └──────────────┘                        │
+│  ┌──────────────┐ ┌──────────────┐       │
+│  │  🧪          │ │  🔧          │       │
+│  │Testdata Gen. │ │   Helper     │       │
+│  │  [ALPHA]     │ │   [ALPHA]    │       │
+│  │  [Starten]   │ │  [Starten]   │       │
+│  └──────────────┘ └──────────────┘       │
 └──────────────────────────────────────────┘
 ```
 
@@ -48,6 +48,7 @@ Oder über die Startdatei im portablen Paket:
 | `get_data` | geplant | — | Daten aus Jira laden |
 | `simulate` | geplant | — | Prognosen und Simulationen |
 | `testdata_generator` | verfügbar | ALPHA | Synthetische Testdaten erstellen |
+| `helper` | verfügbar | ALPHA | JSON-Dateien zusammenführen |
 
 ## Verhalten
 
@@ -62,7 +63,7 @@ Der Launcher zeigt zwei Arten von Reifegrad-Badges:
 - **App-Badge in der Titelleiste:** Orangefarbenes **BETA**-Badge signalisiert den aktuellen Reifegrad des Gesamtprojekts.
 - **Modul-Badges auf den Karten:** Jedes verfügbare Modul trägt ein eigenes Badge neben dem Modulnamen:
   - **BETA** (orange) – `transform_data`, `build_reports`: stabile Kernfunktionen, produktionsreif
-  - **ALPHA** (rot) – `testdata_generator`: neu, experimentell, API kann sich noch ändern
+  - **ALPHA** (rot) – `testdata_generator`, `helper`: neu, experimentell, API kann sich noch ändern
 
 ## Update-Prüfung
 

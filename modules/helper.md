@@ -28,7 +28,7 @@ müssen diese Dateien zu einer einzigen zusammengeführt werden.
 
 ```
 ┌──────────────────────────────────────────────────┐
-│  helper – JSON Merger  v0.8.x                    │
+│  helper – JSON Merger  v0.9.0                    │
 ├──────────────────────────────────────────────────┤
 │  Eingabedateien                                  │
 │  ┌────────────────────────────────────────────┐  │

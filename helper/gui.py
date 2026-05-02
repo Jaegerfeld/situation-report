@@ -215,6 +215,16 @@ class _App:
         for idx in reversed(self._listbox.curselection()):
             self._listbox.delete(idx)
 
+    def _browse_output(self) -> None:
+        """Open a save-file dialog and set the output path."""
+        path = filedialog.asksaveasfilename(
+            title=self._t("dlg_output"),
+            defaultextension=".json",
+            filetypes=[("JSON files", "*.json"), ("All files", "*.*")],
+        )
+        if path:
+            self._var_output.set(path)
+
     def _log_msg(self, msg: str) -> None:
         """Append a line to the log area (thread-safe via after())."""
         def _append():

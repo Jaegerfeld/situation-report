@@ -16,7 +16,7 @@ Or via the start script in the portable package:
 
 ```
 ┌──────────────────────────────────────────┐
-│  SituationReport  v0.8.5  BETA     ?  🌐 │
+│  SituationReport  v0.9.0  BETA     ?  🌐 │
 ├──────────────────────────────────────────┤
 │  ┌──────────────┐ ┌──────────────┐       │
 │  │  🔄          │ │  📊          │       │
@@ -30,12 +30,12 @@ Or via the start script in the portable package:
 │  │  Get Data    │ │   Simulate   │       │
 │  │(coming soon) │ │(coming soon) │       │
 │  └──────────────┘ └──────────────┘       │
-│  ┌──────────────┐                        │
-│  │  🧪          │                        │
-│  │Testdata Gen. │                        │
-│  │  [ALPHA]     │                        │
-│  │  [Launch]    │                        │
-│  └──────────────┘                        │
+│  ┌──────────────┐ ┌──────────────┐       │
+│  │  🧪          │ │  🔧          │       │
+│  │Testdata Gen. │ │   Helper     │       │
+│  │  [ALPHA]     │ │   [ALPHA]    │       │
+│  │  [Launch]    │ │  [Launch]    │       │
+│  └──────────────┘ └──────────────┘       │
 └──────────────────────────────────────────┘
 ```
 
@@ -48,6 +48,7 @@ Or via the start script in the portable package:
 | `get_data` | planned | — | Fetch data from Jira |
 | `simulate` | planned | — | Forecasts and simulations |
 | `testdata_generator` | available | ALPHA | Generate synthetic test data |
+| `helper` | available | ALPHA | Merge JSON files |
 
 ## Behaviour
 
@@ -62,7 +63,7 @@ The launcher shows two levels of maturity badges:
 - **App badge in the title bar:** An orange **BETA** badge indicates the current maturity of the overall project.
 - **Module badges on each card:** Every available module carries its own badge next to the module name:
   - **BETA** (orange) – `transform_data`, `build_reports`: stable core functionality, production-ready
-  - **ALPHA** (red) – `testdata_generator`: new, experimental, API may still change
+  - **ALPHA** (red) – `testdata_generator`, `helper`: new, experimental, API may still change
 
 ## Update check
 

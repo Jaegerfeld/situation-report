@@ -27,7 +27,7 @@ Before processing with `transform_data`, these files must be merged into one.
 
 ```
 ┌──────────────────────────────────────────────────┐
-│  helper – JSON Merger  v0.8.x                    │
+│  helper – JSON Merger  v0.9.0                    │
 ├──────────────────────────────────────────────────┤
 │  Input files                                     │
 │  ┌────────────────────────────────────────────┐  │
