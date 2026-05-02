@@ -3,7 +3,7 @@
 # Repository:     https://github.com/Jaegerfeld/situation-report
 # KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
 # Erstellt:       15.04.2026
-# Geändert:       30.04.2026
+# Geändert:       02.05.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
@@ -29,7 +29,7 @@ import plotly.graph_objects as go
 from ..loader import IssueRecord, ReportData
 from ..repel import add_repelled_hlines
 from ..stage_groups import (
-    GROUP_DONE, GROUP_IN_PROGRESS, GROUP_TODO,
+    GROUP_IN_PROGRESS,
     classify_stages, issue_stage_group,
 )
 from ..terminology import FLOW_LOAD, term
@@ -124,34 +124,31 @@ class FlowLoadMetric(MetricPlugin):
         today = date.today()
         warnings: list[str] = []
 
-        # Only In Progress issues count as WIP:
-        # - To Do issues (first_date is None) have not yet entered the workflow.
-        # - Done issues (closed_date is set) have already left the system.
-        open_issues = [i for i in data.issues if issue_stage_group(i) == GROUP_IN_PROGRESS]
         closed_issues = [i for i in data.issues if i.closed_date is not None
                          and i.first_date is not None]
 
-        if not open_issues:
+        stage_groups = classify_stages(data.stages, data.first_stage, data.closed_stage)
+
+        # WIP = issues that (a) have entered active work by lifecycle dates AND
+        # (b) currently reside in an In Progress workflow stage.
+        # (a) excludes To Do issues (no first_date) and already-closed issues.
+        # (b) excludes issues that are technically still open by date but whose
+        #     current stage has already crossed into the Done portion of the workflow.
+        by_stage: dict[str, list[float]] = {}
+        for issue in data.issues:
+            if issue_stage_group(issue) != GROUP_IN_PROGRESS:
+                continue
+            current_stage = _current_stage(issue, data.stages)
+            if stage_groups.get(current_stage) != GROUP_IN_PROGRESS:
+                continue
+            by_stage.setdefault(current_stage, []).append(_age_days(issue, today))
+
+        if not by_stage:
             warnings.append("No open issues found.")
             return MetricResult(metric_id=self.metric_id, warnings=warnings)
 
-        # Group open issues by current stage
-        by_stage: dict[str, list[float]] = {s: [] for s in data.stages}
-        for issue in open_issues:
-            stage = _current_stage(issue, data.stages)
-            age = _age_days(issue, today)
-            by_stage.setdefault(stage, []).append(age)
-
-        # Keep only To Do and In Progress stages that actually have issues.
-        # Done stages are excluded — they have no aging WIP.
-        # Using an explicit allowlist (instead of != GROUP_DONE) also guards
-        # against stages with an unknown group classification.
-        stage_groups = classify_stages(data.stages, data.first_stage, data.closed_stage)
-        active_stages = [
-            s for s in data.stages
-            if by_stage.get(s) and stage_groups.get(s) in (GROUP_TODO, GROUP_IN_PROGRESS)
-        ]
-        all_ages = [a for ages in by_stage.values() for a in ages]
+        active_stages = [s for s in data.stages if by_stage.get(s)]
+        all_ages = [a for s in active_stages for a in by_stage[s]]
 
         mean_age = statistics.mean(all_ages) if all_ages else 0.0
         median_age = statistics.median(all_ages) if all_ages else 0.0
@@ -174,7 +171,7 @@ class FlowLoadMetric(MetricPlugin):
         chart_data = _LoadData(
             by_stage={s: by_stage[s] for s in active_stages},
             stages_ordered=active_stages,
-            open_count=len(open_issues),
+            open_count=len(all_ages),
             mean_age=round(mean_age, 1),
             median_age=round(median_age, 1),
             ct_median=ct_median,
@@ -184,7 +181,7 @@ class FlowLoadMetric(MetricPlugin):
         )
 
         stats = dict(
-            open_count=len(open_issues),
+            open_count=len(all_ages),
             mean_age=round(mean_age, 1),
             median_age=round(median_age, 1),
             done_count=done_count,
