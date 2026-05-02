@@ -3,7 +3,7 @@
 # Repository:     https://github.com/Jaegerfeld/situation-report
 # KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
 # Erstellt:       15.04.2026
-# Geändert:       30.04.2026
+# Geändert:       02.05.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
@@ -237,11 +237,12 @@ class TestStatusGroupFiltering:
         assert result.warnings
 
     def test_done_stages_excluded_from_boxplot(self, metric):
-        """Stages in the Done group are not rendered as boxplot columns."""
+        """An issue currently in an In Progress stage is shown; the Done stage
+        does not appear as a boxplot column."""
         data = ReportData(
             issues=[
                 _issue("IP-1", closed=None,
-                       stage_minutes={"Analysis": 100, "Closed": 10}),
+                       stage_minutes={"Analysis": 100, "Closed": 0}),
             ],
             cfd=[], stages=["Funnel", "Analysis", "Closed"],
             source_prefix="", first_stage="Analysis", closed_stage="Closed",
@@ -282,6 +283,21 @@ class TestStatusGroupFiltering:
         # "Closed" is GROUP_DONE — must not appear in the boxplot.
         assert "Closed" not in result.chart_data.stages_ordered
         assert "Analysis" in result.chart_data.stages_ordered
+
+    def test_in_progress_issue_in_done_stage_excluded_from_wip(self, metric):
+        """An issue that is open by lifecycle dates but currently in a Done stage
+        is not counted as WIP and does not appear in the boxplot."""
+        data = ReportData(
+            issues=[
+                _issue("IP-1", closed=None, stage_minutes={"Analysis": 100}),
+                _issue("IP-2", closed=None, stage_minutes={"Closed": 50}),
+            ],
+            cfd=[], stages=["Funnel", "Analysis", "Closed"],
+            source_prefix="", first_stage="Analysis", closed_stage="Closed",
+        )
+        result = metric.compute(data, SAFE)
+        assert result.stats["open_count"] == 1
+        assert "Closed" not in result.chart_data.stages_ordered
 
     def test_without_boundary_stages_all_stages_shown(self, metric):
         """When first_stage and closed_stage are unknown, stages are not filtered by group."""
