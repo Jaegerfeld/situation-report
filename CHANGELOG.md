@@ -7,6 +7,11 @@ Das Format orientiert sich an [Keep a Changelog](https://keepachangelog.com/de/1
 
 ## [Unreleased]
 
+### Added
+- `helper`: Neues Modul mit JSON-Merger-Tool — fügt mehrere Jira-REST-API-JSON-Dateien
+  zu einer einzigen zusammen. Deduplizierung nach Issue-ID (konfigurierbar).
+  Ausgabe direkt mit `transform_data` verarbeitbar. GUI + CLI + Doppelklick-Starter.
+
 ---
 
 ## [0.8.5] – 2026-05-02

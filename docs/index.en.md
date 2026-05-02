@@ -11,6 +11,7 @@ Toolsuite for retrieving Jira issue data and preparing it for metrics and report
 | [`build_reports`](modules/build_reports.md) | Generate metrics and reports | available |
 | [`testdata_generator`](modules/testdata_generator.md) | Generate synthetic test data | available (Alpha) |
 | [`simulate`](modules/simulate.md) | Simulations and prediction models | planned |
+| [`helper`](modules/helper.md) | Helper tools (JSON Merger etc.) | available (Alpha) |
 
 ## Setup
 
