@@ -18,7 +18,7 @@ Berechnet Flow-Metriken aus den von `transform_data` erzeugten XLSX-Dateien und 
 |---------------|-----------------|--------------|-------------|
 | Flow Time | Cycle Time | Durchlaufzeit von Start bis Abschluss | IssueTimes.xlsx |
 | Flow Velocity | Throughput | Abgeschlossene Issues pro Zeitraum | IssueTimes.xlsx |
-| Flow Load | WIP | Aktuell in Bearbeitung befindliche Issues nach Stage | IssueTimes.xlsx |
+| Flow Load | WIP | Issues aktuell in einer In-Progress-Stage, nach Stage und Alter | IssueTimes.xlsx |
 | Cumulative Flow Diagram | Cumulative Flow Diagram | Kumulierte Stage-Eintritte über die Zeit | CFD.xlsx |
 | Flow Distribution | Flow Distribution | Verteilung nach Typ, Stage-Dominanz und Ø Durchlaufzeit | IssueTimes.xlsx |
 | Process Flow: Transitions | Process Flow: Transitions | Gerichteter Graph aller Statusübergänge (Anzahl) | Transitions.xlsx |

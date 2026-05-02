@@ -204,9 +204,9 @@ Zählt abgeschlossene Issues (mit `Closed Date`) pro Zeitraum.
 
 **Metrik-ID:** `flow_load`
 
-Analysiert **offene** Issues (ohne `Closed Date`) nach ihrer aktuellen Stage und ihrem Alter (Tage seit `First Date` oder Erstellungsdatum).
+Zeigt alle Issues, die sich **aktuell in einer In-Progress-Stage** des Workflows befinden, nach Stage und Alter (Tage seit `First Date`). Nur Issues, die die aktive Arbeitsphase betreten haben (`First Date` gesetzt, kein `Closed Date`) und deren aktuelle Stage im In-Progress-Bereich liegt, werden gezählt. To-Do-Issues (kein `First Date`) und Issues in Done-Stages werden ausgeblendet.
 
-**Diagramm:** Gruppierter Boxplot mit Einzelpunkten, unterteilt nach aktueller Stage. Referenzlinien aus den abgeschlossenen Issues (Mittelwert, Median, 85. und 95. Perzentil der Durchlaufzeit) geben einen Kontext für das Alter der offenen Issues.
+**Diagramm:** Gruppierter Boxplot mit Einzelpunkten, unterteilt nach aktueller Stage. Referenzlinien aus den abgeschlossenen Issues (Median und 85. Perzentil der Durchlaufzeit sowie Target CT) geben einen Kontext für das Alter der offenen Issues.
 
 | SAFe | Global |
 |------|--------|

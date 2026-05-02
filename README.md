@@ -6,7 +6,8 @@ Toolsuite for querying Jira issue data and processing it into flow metrics and r
 
 **Documentation:** https://jaegerfeld.github.io/situation-report/  
 **Architecture:** https://jaegerfeld.github.io/situation-report/architecture/  
-**Roadmap:** https://github.com/users/Jaegerfeld/projects/1
+**Roadmap:** https://github.com/users/Jaegerfeld/projects/1  
+**Changelog:** [CHANGELOG.md](CHANGELOG.md)
 
 ---
 
