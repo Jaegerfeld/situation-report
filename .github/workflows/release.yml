@@ -118,7 +118,7 @@ jobs:
           foreach ($mod in 'build_reports','transform_data','get_data','simulate','testdata_generator','launcher') {
               if (Test-Path $mod) { Copy-Item -Recurse $mod "$BUNDLE\$mod" }
           }
-          foreach ($f in 'version.py','pyproject.toml','README.md','LICENSE') {
+          foreach ($f in 'version.py','pyproject.toml','README.md','LICENSE','CHANGELOG.md') {
               if (Test-Path $f) { Copy-Item $f "$BUNDLE\" }
           }
 
@@ -175,7 +175,7 @@ jobs:
           for mod in build_reports transform_data get_data simulate testdata_generator launcher; do
             [ -d "$mod" ] && cp -r "$mod" "$BUNDLE/"
           done
-          for f in version.py pyproject.toml README.md LICENSE; do
+          for f in version.py pyproject.toml README.md LICENSE CHANGELOG.md; do
             [ -f "$f" ] && cp "$f" "$BUNDLE/"
           done
 
@@ -253,9 +253,32 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - uses: actions/checkout@v4
+
       - uses: actions/download-artifact@v4
         with:
           merge-multiple: true
+
+      - name: Build release notes from CHANGELOG
+        run: |
+          python3 - << 'PYEOF'
+          import re, os
+          tag = os.environ['TAG']
+          version = tag.lstrip('v')
+          changelog = open('CHANGELOG.md').read()
+          pattern = rf'## \[{re.escape(version)}\][^\n]*\n(.*?)(?=\n## \[|\Z)'
+          m = re.search(pattern, changelog, re.DOTALL)
+          notes = re.sub(r'\n+---\s*$', '', m.group(1)).strip() if m else ''
+          install = open('.github/release-install.md').read().strip()
+          parts = [f'## SituationReport {tag}\n']
+          if notes:
+              parts.append(f'### Was ist neu?\n\n{notes}\n\n---\n')
+          parts.append(install)
+          with open('/tmp/release_notes.md', 'w') as f:
+              f.write('\n'.join(parts))
+          PYEOF
+        env:
+          TAG: ${{ github.ref_name }}
 
       - name: Publish GitHub Release
         uses: softprops/action-gh-release@v2
@@ -268,43 +291,4 @@ jobs:
             SituationReport-Windows.zip
             SituationReport-macOS-ARM.zip
             SituationReport-Linux.zip
-          body: |
-            ## SituationReport ${{ github.ref_name }}
-
-            Portables Paket – enthält alle Quelldateien, Skripte und Konfigurationsmöglichkeiten.
-            Kein Python oder sonstige Installation notwendig (Windows).
-
-            ---
-
-            ### Windows
-
-            1. `SituationReport-Windows.zip` herunterladen und entpacken
-            2. `BuildReports.bat` doppelklicken → Build Reports GUI
-               `TransformData.bat` doppelklicken → Transform Data GUI
-            3. Beim ersten Start: Windows SmartScreen → **Weitere Informationen** → **Trotzdem ausführen**
-
-            > Python (3.11) und Chrome (PDF-Export) sind im Paket enthalten.
-
-            ### macOS (Apple Silicon)
-
-            1. `SituationReport-macOS-ARM.zip` herunterladen und entpacken
-            2. Rechtsklick auf `BuildReports.command` → *Öffnen* → *Öffnen* bestätigen (Gatekeeper, einmalig)
-            3. Beim **ersten Start**: einmalige Einrichtung (~1 Min, Internet erforderlich)
-
-            ### Linux (x64)
-
-            1. `SituationReport-Linux.zip` herunterladen und entpacken
-            2. Voraussetzung: `python3` und `python3-tk` installiert
-               (`sudo apt install python3-tk` auf Ubuntu/Debian)
-            3. Im entpackten Ordner: `./BuildReports.sh`
-               Beim **ersten Start**: einmalige Einrichtung (~1 Min, Internet erforderlich)
-
-            ---
-
-            ### Datenformat
-
-            | Datei | Bedeutung |
-            |-------|-----------|
-            | `*_IssueTimes.xlsx` | Pflicht – Durchlaufzeiten pro Issue und Stage |
-            | `*_CFD.xlsx` | Optional – tägliche Stage-Zählungen für CFD |
-            | `*_Transitions.xlsx` | Optional – Transitionen für Process-Flow-Ansicht |
+          body_path: /tmp/release_notes.md
