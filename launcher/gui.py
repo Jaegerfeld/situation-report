@@ -30,6 +30,7 @@ import webbrowser
 from dataclasses import dataclass
 from pathlib import Path
 from tkinter import ttk
+from typing import Literal
 
 try:
     from version import __version__ as _VERSION
@@ -117,6 +118,8 @@ _T: dict[str, dict[str, str]] = {
         "mod_simulate_desc":              "Prognosen und Simulationen",
         "mod_testdata_generator_name":    "Testdata Generator",
         "mod_testdata_generator_desc":    "Synthetische Testdaten erstellen",
+        "mod_helper_name":               "Helper",
+        "mod_helper_desc":               "JSON-Dateien zusammenführen",
     },
     LANG_EN: {
         "window_title":                   "SituationReport",
@@ -136,6 +139,8 @@ _T: dict[str, dict[str, str]] = {
         "mod_simulate_desc":              "Forecasts and simulations",
         "mod_testdata_generator_name":    "Testdata Generator",
         "mod_testdata_generator_desc":    "Generate synthetic test data",
+        "mod_helper_name":               "Helper",
+        "mod_helper_desc":               "Merge JSON files",
     },
     LANG_RO: {
         "window_title":                   "SituationReport",
@@ -155,6 +160,8 @@ _T: dict[str, dict[str, str]] = {
         "mod_simulate_desc":              "Prognoze și simulări",
         "mod_testdata_generator_name":    "Testdata Generator",
         "mod_testdata_generator_desc":    "Generare date de test sintetice",
+        "mod_helper_name":               "Helper",
+        "mod_helper_desc":               "Combinare fișiere JSON",
     },
     LANG_PT: {
         "window_title":                   "SituationReport",
@@ -174,6 +181,8 @@ _T: dict[str, dict[str, str]] = {
         "mod_simulate_desc":              "Previsões e simulações",
         "mod_testdata_generator_name":    "Testdata Generator",
         "mod_testdata_generator_desc":    "Gerar dados de teste sintéticos",
+        "mod_helper_name":               "Helper",
+        "mod_helper_desc":               "Combinar ficheiros JSON",
     },
     LANG_FR: {
         "window_title":                   "SituationReport",
@@ -193,6 +202,8 @@ _T: dict[str, dict[str, str]] = {
         "mod_simulate_desc":              "Prévisions et simulations",
         "mod_testdata_generator_name":    "Testdata Generator",
         "mod_testdata_generator_desc":    "Générer des données de test synthétiques",
+        "mod_helper_name":               "Helper",
+        "mod_helper_desc":               "Fusionner des fichiers JSON",
     },
 }
 
@@ -207,7 +218,7 @@ class _ModuleEntry:
     module_id: str
     icon: str
     available: bool
-    maturity: str | None = None  # "alpha", "beta", or None (planned)
+    maturity: Literal["alpha", "beta"] | None = None
 
 
 _MODULES: list[_ModuleEntry] = [
@@ -216,6 +227,7 @@ _MODULES: list[_ModuleEntry] = [
     _ModuleEntry("get_data",           "📥", False, None),
     _ModuleEntry("simulate",           "🎲", False, None),
     _ModuleEntry("testdata_generator", "🧪", True,  "alpha"),
+    _ModuleEntry("helper",             "🔧", True,  "alpha"),
 ]
 
 

@@ -66,15 +66,20 @@ class TestModuleRegistry:
         for entry in _MODULES:
             assert isinstance(entry.available, bool)
 
-    def test_exactly_three_available_modules(self):
-        """Exactly three modules are marked as available (transform_data, build_reports, testdata_generator)."""
+    def test_exactly_four_available_modules(self):
+        """Exactly four modules are marked as available (transform_data, build_reports, testdata_generator, helper)."""
         available = [e for e in _MODULES if e.available]
-        assert len(available) == 3
+        assert len(available) == 4
 
     def test_testdata_generator_is_available(self):
         """testdata_generator is available."""
         ids = {e.module_id for e in _MODULES if e.available}
         assert "testdata_generator" in ids
+
+    def test_helper_is_available(self):
+        """helper is available."""
+        ids = {e.module_id for e in _MODULES if e.available}
+        assert "helper" in ids
 
     def test_build_reports_is_available(self):
         """build_reports is available."""
@@ -86,9 +91,9 @@ class TestModuleRegistry:
         ids = {e.module_id for e in _MODULES if e.available}
         assert "transform_data" in ids
 
-    def test_five_modules_total(self):
-        """The registry contains exactly five module entries."""
-        assert len(_MODULES) == 5
+    def test_six_modules_total(self):
+        """The registry contains exactly six module entries."""
+        assert len(_MODULES) == 6
 
     def test_all_module_ids_unique(self):
         """All module_ids in the registry are unique."""

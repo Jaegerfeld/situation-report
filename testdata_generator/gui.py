@@ -158,15 +158,12 @@ class _App:
         self._root.columnconfigure(0, weight=1)
         self._root.rowconfigure(1, weight=1)
 
-        def row(r: int, lbl_key: str, var: tk.StringVar, browse_cmd=None, tip: str = "") -> None:
+        def row(r: int, lbl_key: str, var: tk.StringVar, browse_cmd=None) -> None:
             lbl = ttk.Label(frame, text="")
             lbl.grid(row=r, column=0, sticky="w", pady=2)
             self._labels[lbl_key] = lbl
             entry = ttk.Entry(frame, textvariable=var, width=48)
             entry.grid(row=r, column=1, sticky="ew", padx=(4, 0))
-            if tip:
-                entry.insert(0, "")
-                entry.configure()
             if browse_cmd:
                 btn = ttk.Button(frame, text="…", width=4, command=browse_cmd)
                 btn.grid(row=r, column=2, padx=(2, 0))
@@ -239,6 +236,21 @@ class _App:
         self._log.see("end")
         self._log.configure(state="disabled")
 
+    def _parse_float_in_range(self, var: tk.StringVar, err_key: str) -> float | None:
+        """
+        Parse a float from a StringVar and validate it is in [0.0, 1.0].
+
+        Returns the float on success, or None after logging an error message.
+        """
+        try:
+            val = float(var.get())
+            if not (0.0 <= val <= 1.0):
+                raise ValueError
+            return val
+        except ValueError:
+            self._log_msg(self._t(err_key))
+            return None
+
     def _parse_issue_types(self, raw: str) -> dict[str, float] | None:
         if not raw.strip():
             return None
@@ -275,25 +287,16 @@ class _App:
             self._log_msg(self._t("err_issues"))
             return
 
-        try:
-            completion_rate = float(self._var_completion.get())
-            assert 0.0 <= completion_rate <= 1.0
-        except (ValueError, AssertionError):
-            self._log_msg(self._t("err_completion"))
+        completion_rate = self._parse_float_in_range(self._var_completion, "err_completion")
+        if completion_rate is None:
             return
 
-        try:
-            todo_rate = float(self._var_todo.get())
-            assert 0.0 <= todo_rate <= 1.0
-        except (ValueError, AssertionError):
-            self._log_msg(self._t("err_todo"))
+        todo_rate = self._parse_float_in_range(self._var_todo, "err_todo")
+        if todo_rate is None:
             return
 
-        try:
-            backflow_prob = float(self._var_backflow.get())
-            assert 0.0 <= backflow_prob <= 1.0
-        except (ValueError, AssertionError):
-            self._log_msg(self._t("err_backflow"))
+        backflow_prob = self._parse_float_in_range(self._var_backflow, "err_backflow")
+        if backflow_prob is None:
             return
 
         seed: int | None = None

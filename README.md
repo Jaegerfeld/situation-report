@@ -1,6 +1,6 @@
 # situation-report
 
-**Version 0.8.5** ![Coverage](docs/coverage.svg)
+**Version 0.9.0** ![Coverage](docs/coverage.svg)
 
 Toolsuite for querying Jira issue data and processing it into flow metrics and reports.
 
@@ -32,8 +32,9 @@ Toolsuite for querying Jira issue data and processing it into flow metrics and r
 | [`transform_data`](https://jaegerfeld.github.io/situation-report/modules/transform_data/) | Transform raw Jira data into stage-time metrics | available |
 | [`build_reports`](https://jaegerfeld.github.io/situation-report/modules/build_reports/) | Generate flow metrics and reports | available |
 | `get_data` | Fetch issue data from Jira via REST API | planned |
-| `testdata_generator` | Generate synthetic test data | planned |
+| [`testdata_generator`](https://jaegerfeld.github.io/situation-report/modules/testdata_generator/) | Generate synthetic test data | available |
 | `simulate` | Simulations and forecasting models | planned |
+| [`helper`](https://jaegerfeld.github.io/situation-report/modules/helper/) | Helper tools (JSON Merger) | available |
 
 ## Setup
 

@@ -31,6 +31,7 @@ Alle verfügbaren Releases sind auf der [GitHub-Releases-Seite](https://github.c
    - `BuildReports.bat` doppelklicken → Build Reports GUI
    - `TransformData.bat` doppelklicken → Transform Data GUI
    - `TestdataGenerator.bat` doppelklicken → Testdata Generator GUI
+   - `Helper.bat` doppelklicken → Helper (JSON Merger) GUI
 
 !!! note "Windows SmartScreen"
     Beim ersten Start erscheint möglicherweise ein SmartScreen-Hinweis, da die enthaltenen Dateien nicht signiert sind.
@@ -73,6 +74,7 @@ Alle verfügbaren Releases sind auf der [GitHub-Releases-Seite](https://github.c
    ./BuildReports.sh           # Build Reports GUI
    ./TransformData.sh          # Transform Data GUI
    ./TestdataGenerator.sh      # Testdata Generator GUI
+   ./Helper.sh                 # Helper (JSON Merger) GUI
    ```
 
 !!! warning "Einmalige Einrichtung (erster Start)"
@@ -97,6 +99,7 @@ Das Paket enthält das gesamte Repository – Quelldateien, Konfigurationen und 
 | `BuildReports.bat/.command/.sh` | Starter für Build Reports |
 | `TransformData.bat/.command/.sh` | Starter für Transform Data |
 | `TestdataGenerator.bat/.command/.sh` | Starter für Testdata Generator |
+| `Helper.bat/.command/.sh` | Starter für Helper (JSON Merger) |
 
 ---
 

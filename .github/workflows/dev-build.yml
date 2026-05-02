@@ -119,7 +119,7 @@ jobs:
           & "$BUNDLE\python\Scripts\choreo_get_chrome.exe"
 
           # --- Source modules ---
-          foreach ($mod in 'build_reports','transform_data','get_data','simulate','testdata_generator','launcher') {
+          foreach ($mod in 'build_reports','transform_data','get_data','simulate','testdata_generator','launcher','helper') {
               if (Test-Path $mod) { Copy-Item -Recurse $mod "$BUNDLE\$mod" }
           }
           foreach ($f in 'version.py','pyproject.toml','README.md','LICENSE') {
@@ -179,6 +179,19 @@ jobs:
           )
           '@ | Set-Content "$BUNDLE\TestdataGenerator.bat" -Encoding ASCII
 
+          @'
+          @echo off
+          set "D=%~dp0"
+          for /d %%i in ("%D%python\tcl\tcl*") do set "TCL_LIBRARY=%%i"
+          for /d %%i in ("%D%python\tcl\tk*") do set "TK_LIBRARY=%%i"
+          "%D%python\python.exe" -m helper
+          if %ERRORLEVEL% neq 0 (
+              echo.
+              echo Fehler beim Starten. Bitte den roten Text oben notieren.
+              pause
+          )
+          '@ | Set-Content "$BUNDLE\Helper.bat" -Encoding ASCII
+
       # -----------------------------------------------------------------------
       # macOS / Linux: source + first-run venv launcher scripts
       # -----------------------------------------------------------------------
@@ -189,7 +202,7 @@ jobs:
           mkdir -p "$BUNDLE"
 
           # Copy source modules
-          for mod in build_reports transform_data get_data simulate testdata_generator launcher; do
+          for mod in build_reports transform_data get_data simulate testdata_generator launcher helper; do
             [ -d "$mod" ] && cp -r "$mod" "$BUNDLE/"
           done
           for f in version.py pyproject.toml README.md LICENSE; do
@@ -231,12 +244,14 @@ jobs:
               "BuildReports.sh": launcher("build_reports"),
               "TransformData.sh": launcher("transform_data"),
               "TestdataGenerator.sh": launcher("testdata_generator"),
+              "Helper.sh": launcher("helper"),
           }
           if IS_MACOS:
               scripts["SituationReport.command"] = launcher("launcher")
               scripts["BuildReports.command"] = launcher("build_reports")
               scripts["TransformData.command"] = launcher("transform_data")
               scripts["TestdataGenerator.command"] = launcher("testdata_generator")
+              scripts["Helper.command"] = launcher("helper")
 
           for name, content in scripts.items():
               path = os.path.join(BUNDLE, name)
@@ -341,3 +356,4 @@ jobs:
             | `BuildReports.bat` / `.command` / `.sh` | Build Reports – Metriken und Berichte erstellen |
             | `TransformData.bat` / `.command` / `.sh` | Transform Data – Rohdaten aufbereiten |
             | `TestdataGenerator.bat` / `.command` / `.sh` | Testdata Generator – Synthetische Jira-Daten erstellen |
+            | `Helper.bat` / `.command` / `.sh` | Helper – JSON-Dateien zusammenführen |
