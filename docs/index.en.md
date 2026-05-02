@@ -9,7 +9,7 @@ Toolsuite for retrieving Jira issue data and preparing it for metrics and report
 | [`transform_data`](modules/transform_data.md) | Transform raw Jira data into stage-time metrics | available |
 | [`get_data`](modules/get_data.md) | Retrieve data from Jira via REST API | planned |
 | [`build_reports`](modules/build_reports.md) | Generate metrics and reports | available |
-| [`testdata_generator`](modules/testdata_generator.md) | Generate synthetic test data | planned |
+| [`testdata_generator`](modules/testdata_generator.md) | Generate synthetic test data | available (Alpha) |
 | [`simulate`](modules/simulate.md) | Simulations and prediction models | planned |
 
 ## Setup

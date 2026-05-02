@@ -7,11 +7,22 @@ Das Format orientiert sich an [Keep a Changelog](https://keepachangelog.com/de/1
 
 ## [Unreleased]
 
+---
+
+## [0.8.5] – 2026-05-02
+
 ### Added
 - `testdata_generator`: Neues Modul — erzeugt synthetische Jira-Issue-JSON-Dateien
   im Jira-REST-API-Format. Konfigurierbar über GUI oder CLI (Workflow-Datei,
   Projekt-Key, Issue-Anzahl, Datum-Bereich, Completion-Rate, Backflow-Prob., Seed).
   Ausgabe ist direkt mit `transform_data` verarbeitbar.
+
+### Changed
+- `launcher`: Globales App-Badge von **ALPHA** (rot) auf **BETA** (orange) angehoben,
+  da Kernmodule `build_reports` und `transform_data` Beta-Reife erreicht haben.
+- `launcher`: Jede Modulkarte zeigt jetzt ein eigenes Reifegrad-Badge:
+  `transform_data` und `build_reports` → **BETA** (orange),
+  `testdata_generator` → **ALPHA** (rot); geplante Module ohne Badge.
 
 ### Fixed
 - `flow_load`: WIP-Zählung auf aktuelle Stage-Position umgestellt — `open_count`

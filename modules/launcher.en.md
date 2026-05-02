@@ -16,11 +16,12 @@ Or via the start script in the portable package:
 
 ```
 ┌──────────────────────────────────────────┐
-│  SituationReport  v0.8.4  ALPHA    ?  🌐 │
+│  SituationReport  v0.8.5  BETA     ?  🌐 │
 ├──────────────────────────────────────────┤
 │  ┌──────────────┐ ┌──────────────┐       │
 │  │  🔄          │ │  📊          │       │
 │  │Transform Data│ │ Build Reports│       │
+│  │   [BETA]     │ │   [BETA]     │       │
 │  │Prepare data  │ │Flow metrics  │       │
 │  │  [Launch]    │ │  [Launch]    │       │
 │  └──────────────┘ └──────────────┘       │
@@ -32,20 +33,21 @@ Or via the start script in the portable package:
 │  ┌──────────────┐                        │
 │  │  🧪          │                        │
 │  │Testdata Gen. │                        │
-│  │(coming soon) │                        │
+│  │  [ALPHA]     │                        │
+│  │  [Launch]    │                        │
 │  └──────────────┘                        │
 └──────────────────────────────────────────┘
 ```
 
 ## Modules
 
-| Module | Status | Description |
-|--------|--------|-------------|
-| `transform_data` | available | Prepare raw Jira data |
-| `build_reports` | available | Flow metrics and reports |
-| `get_data` | planned | Fetch data from Jira |
-| `simulate` | planned | Forecasts and simulations |
-| `testdata_generator` | planned | Generate synthetic test data |
+| Module | Status | Maturity | Description |
+|--------|--------|----------|-------------|
+| `transform_data` | available | BETA | Prepare raw Jira data |
+| `build_reports` | available | BETA | Flow metrics and reports |
+| `get_data` | planned | — | Fetch data from Jira |
+| `simulate` | planned | — | Forecasts and simulations |
+| `testdata_generator` | available | ALPHA | Generate synthetic test data |
 
 ## Behaviour
 
@@ -53,9 +55,14 @@ Or via the start script in the portable package:
 - The launcher stays open — multiple modules can run simultaneously.
 - Planned modules are visible but not clickable.
 
-## ALPHA indicator
+## Maturity indicators
 
-The launcher displays a red **ALPHA** badge in the title bar while the project is in its alpha phase. This signals that features and stability are not yet at their final state.
+The launcher shows two levels of maturity badges:
+
+- **App badge in the title bar:** An orange **BETA** badge indicates the current maturity of the overall project.
+- **Module badges on each card:** Every available module carries its own badge next to the module name:
+  - **BETA** (orange) – `transform_data`, `build_reports`: stable core functionality, production-ready
+  - **ALPHA** (red) – `testdata_generator`: new, experimental, API may still change
 
 ## Update check
 

@@ -27,8 +27,10 @@ All available releases are on the [GitHub Releases page](https://github.com/Jaeg
 1. Download `SituationReport-Windows.zip`
 2. Extract the zip (right-click → *Extract All*)
 3. In the extracted folder:
+   - Double-click `SituationReport.bat` → Launcher (all modules)
    - Double-click `BuildReports.bat` → Build Reports GUI
    - Double-click `TransformData.bat` → Transform Data GUI
+   - Double-click `TestdataGenerator.bat` → Testdata Generator GUI
 
 !!! note "Windows SmartScreen"
     On the first launch, SmartScreen may show a warning because the included files are not signed.
@@ -43,7 +45,7 @@ All available releases are on the [GitHub Releases page](https://github.com/Jaeg
 
 1. Download `SituationReport-macOS-ARM.zip`
 2. Extract the zip
-3. Right-click `BuildReports.command` → *Open* → confirm *Open* in the dialog
+3. Right-click `SituationReport.command` → *Open* → confirm *Open* in the dialog (once; apply the same for other launchers)
 
 !!! note "macOS Gatekeeper"
     Because the scripts are not notarized, macOS blocks a direct double-click on the first launch.
@@ -67,8 +69,10 @@ All available releases are on the [GitHub Releases page](https://github.com/Jaeg
    If tkinter is missing: `sudo apt install python3-tk` (Ubuntu/Debian) or `sudo dnf install python3-tkinter` (Fedora)
 4. Run from the extracted folder:
    ```bash
-   ./BuildReports.sh    # Build Reports GUI
-   ./TransformData.sh      # Transform Data GUI
+   ./SituationReport.sh        # Launcher (all modules)
+   ./BuildReports.sh           # Build Reports GUI
+   ./TransformData.sh          # Transform Data GUI
+   ./TestdataGenerator.sh      # Testdata Generator GUI
    ```
 
 !!! warning "One-time setup (first launch)"
@@ -89,8 +93,10 @@ The package contains the full repository – source files, configurations, and e
 | `simulate/` | Simulation and test-data generation |
 | `testdata_generator/` | Example workflows and test data |
 | `build_reports/pi_config_example.json` | Template for PI configuration |
+| `SituationReport.bat/.command/.sh` | Launcher (all modules) |
 | `BuildReports.bat/.command/.sh` | Launcher for Build Reports |
 | `TransformData.bat/.command/.sh` | Launcher for Transform Data |
+| `TestdataGenerator.bat/.command/.sh` | Launcher for Testdata Generator |
 
 ---
 

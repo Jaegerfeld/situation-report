@@ -207,14 +207,15 @@ class _ModuleEntry:
     module_id: str
     icon: str
     available: bool
+    maturity: str | None = None  # "alpha", "beta", or None (planned)
 
 
 _MODULES: list[_ModuleEntry] = [
-    _ModuleEntry("transform_data",     "🔄", True),
-    _ModuleEntry("build_reports",      "📊", True),
-    _ModuleEntry("get_data",           "📥", False),
-    _ModuleEntry("simulate",           "🎲", False),
-    _ModuleEntry("testdata_generator", "🧪", True),
+    _ModuleEntry("transform_data",     "🔄", True,  "beta"),
+    _ModuleEntry("build_reports",      "📊", True,  "beta"),
+    _ModuleEntry("get_data",           "📥", False, None),
+    _ModuleEntry("simulate",           "🎲", False, None),
+    _ModuleEntry("testdata_generator", "🧪", True,  "alpha"),
 ]
 
 
@@ -325,8 +326,8 @@ class LauncherApp(tk.Tk):
             side="left", padx=(8, 0)
         )
         tk.Label(
-            title_frame, text="ALPHA",
-            fg="white", bg="#e74c3c",
+            title_frame, text="BETA",
+            fg="white", bg="#e67e22",
             font=("TkDefaultFont", 8, "bold"),
             padx=5, pady=1,
         ).pack(side="left", padx=(6, 0))
@@ -389,8 +390,20 @@ class LauncherApp(tk.Tk):
 
         tk.Label(frame, text=entry.icon, font=("TkDefaultFont", 30)).pack()
 
-        name_lbl = tk.Label(frame, font=("TkDefaultFont", 11, "bold"))
-        name_lbl.pack(pady=(6, 0))
+        name_frame = tk.Frame(frame)
+        name_frame.pack(pady=(6, 0))
+
+        name_lbl = tk.Label(name_frame, font=("TkDefaultFont", 11, "bold"))
+        name_lbl.pack(side="left")
+
+        if entry.maturity:
+            badge_color = "#e74c3c" if entry.maturity == "alpha" else "#e67e22"
+            tk.Label(
+                name_frame, text=entry.maturity.upper(),
+                fg="white", bg=badge_color,
+                font=("TkDefaultFont", 7, "bold"),
+                padx=4, pady=1,
+            ).pack(side="left", padx=(5, 0))
 
         desc_lbl = tk.Label(frame, fg="#555555", wraplength=155, justify="center")
         desc_lbl.pack(pady=(3, 10))
@@ -419,7 +432,7 @@ class LauncherApp(tk.Tk):
     def _apply_language(self) -> None:
         """Update all translatable widgets and the window title for the current language."""
         _save_lang_pref(self._lang_var.get())
-        self.title(f"{self._tr('window_title')} – ALPHA")
+        self.title(f"{self._tr('window_title')} – BETA")
         if self._title_lbl:
             self._title_lbl.configure(text=self._tr("window_title"))
         if self._flag_btn and self._lang_var.get() in self._flag_imgs:

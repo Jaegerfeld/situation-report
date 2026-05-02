@@ -9,7 +9,7 @@ Toolsuite zur Abfrage von Jira-Issuedaten sowie zur Aufbereitung für Metriken u
 | [`transform_data`](modules/transform_data.md) | Transformation von Jira-Rohdaten in Stage-Time-Metriken | verfügbar |
 | [`get_data`](modules/get_data.md) | Datenabruf aus Jira via REST API | geplant |
 | [`build_reports`](modules/build_reports.md) | Erzeugung von Metriken und Reports | verfügbar |
-| [`testdata_generator`](modules/testdata_generator.md) | Generierung synthetischer Testdaten | geplant |
+| [`testdata_generator`](modules/testdata_generator.md) | Generierung synthetischer Testdaten | verfügbar (Alpha) |
 | [`simulate`](modules/simulate.md) | Simulationen und Vorhersagemodelle | geplant |
 
 ## Setup
