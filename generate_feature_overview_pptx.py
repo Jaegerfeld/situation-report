@@ -29,7 +29,35 @@ SLIDES = [
     {
         "type": "title",
         "title": "situation-report",
-        "subtitle": "Feature-Übersicht — Stand April 2026",
+        "subtitle": "Feature-Übersicht — v0.8.4 | Stand April 2026",
+    },
+    # ── launcher ────────────────────────────────────────────────────────────
+    {
+        "type": "table",
+        "heading": "launcher — Zentraler Einstiegspunkt",
+        "rows": [
+            ("Modul-Grid",
+             "Alle verfügbaren und geplanten Module als Kacheln; verfügbare Module "
+             "per Klick direkt starten — öffnen sich als eigenständiger Prozess in "
+             "eigenem Fenster, Launcher bleibt geöffnet"),
+            ("5 Sprachen",
+             "Vollständig lokalisiert in DE, EN, RO, PT, FR — Umschaltung per "
+             "Flag-Button oben rechts; Einstellung wird persistent gespeichert "
+             "und gilt für alle Module gemeinsam"),
+            ("Update-Check",
+             "Beim Start automatische Prüfung auf neue GitHub-Releases im "
+             "Hintergrund; gelbes Banner mit Download-Link erscheint bei "
+             "neuerer Version — kein Fehler bei fehlendem Internet"),
+            ("Handbuch-Button",
+             "(?)-Button öffnet sprachspezifisches PDF-Handbuch direkt auf "
+             "GitHub Pages — in allen 5 Sprachen verfügbar"),
+            ("ALPHA-Badge",
+             "Rotes ALPHA-Badge in der Titelleiste signalisiert Alpha-Status "
+             "des Projekts"),
+            ("Portable Start",
+             "SituationReport.bat (Windows) / .command (macOS) / .sh (Linux) "
+             "— kein Python oder Terminal erforderlich"),
+        ],
     },
     # ── transform_data ──────────────────────────────────────────────────────
     {
@@ -131,7 +159,8 @@ SLIDES = [
              "Umschaltung SAFe ↔ Global (Flow Time ↔ Cycle Time etc.)"),
             ("Templates",
              "Alle Einstellungen als JSON speichern/laden; Ausschlüsse als "
-             "dauerhafter Standard speicherbar"),
+             "dauerhafter Standard speicherbar; Menü-Dialog zuverlässig auf "
+             "allen Windows-Displays dank parent=self und Hover-Scroll-Binding"),
             ("Tooltips",
              "Hover-Tooltips auf allen GUI-Elementen"),
             ("Ladebalken",
@@ -143,6 +172,9 @@ SLIDES = [
              "sich überlappen"),
             ("Doppelklick-Starter",
              "build_reports_gui.pyw startet die GUI ohne Konsolenfenster"),
+            ("Scrollbare Form",
+             "Formbereich in Canvas gewrappt — vollständig scrollbar auf "
+             "FullHD-Displays (1080p); Log-Bereich fest am unteren Rand"),
         ],
     },
     # ── Infrastruktur ────────────────────────────────────────────────────────
@@ -152,24 +184,27 @@ SLIDES = [
         "accent": C_GREEN,
         "rows": [
             ("Versionierung",
-             "SemVer ab v0.2.0; zentrale version.py wird von beiden GUIs "
-             "und den Manuals gelesen"),
+             "SemVer ab v0.2.0; zentrale version.py wird von allen GUIs "
+             "und den Manuals gelesen; aktuell v0.8.4"),
             ("Sprachauswahl",
-             "DE/EN in beiden GUIs; Flagge 🇩🇪/🇬🇧 ganz rechts im Menüband; "
-             "letzte Wahl wird in ~/.situation_report/prefs.json gespeichert"),
+             "Launcher: DE/EN/RO/PT/FR (5 Sprachen); build_reports und "
+             "transform_data: DE/EN; letzte Wahl persistent in "
+             "~/.situation_report/prefs.json"),
             ("PDF-Manuals",
-             "Benutzerhandbuch (DE) + User Manual (EN) für build_reports "
-             "und transform_data; generiert mit ReportLab inkl. echter "
-             "Beispieldiagramme"),
+             "Launcher-Handbuch in 5 Sprachen (DE, EN, RO, PT, FR); "
+             "build_reports und transform_data je DE + EN; "
+             "generiert mit ReportLab"),
             ("Manual-Link in GUI",
-             "Hilfe-Menü öffnet das sprachpassende PDF direkt auf GitHub Pages"),
+             "Hilfe-Menü / (?)-Button öffnet das sprachpassende PDF "
+             "direkt auf GitHub Pages"),
             ("GitHub Pages Doku",
              "MkDocs-Site mit DE/EN-Doku für alle Module; "
              "Architektur nach C4-Modell"),
             ("CI/CD",
-             "GitHub Actions für automatisches Docs-Deployment"),
+             "GitHub Actions für automatisches Docs-Deployment und "
+             "Release-Erstellung bei v*-Tags"),
             ("Tests",
-             "Unit- und Acceptance-Tests für beide Module; aktuell 448 Tests"),
+             "Unit- und Acceptance-Tests für alle Module; aktuell 542 Tests"),
         ],
     },
 ]
