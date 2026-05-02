@@ -166,6 +166,19 @@ jobs:
           )
           '@ | Set-Content "$BUNDLE\SituationReport.bat" -Encoding ASCII
 
+          @'
+          @echo off
+          set "D=%~dp0"
+          for /d %%i in ("%D%python\tcl\tcl*") do set "TCL_LIBRARY=%%i"
+          for /d %%i in ("%D%python\tcl\tk*") do set "TK_LIBRARY=%%i"
+          "%D%python\python.exe" -m testdata_generator
+          if %ERRORLEVEL% neq 0 (
+              echo.
+              echo Fehler beim Starten. Bitte den roten Text oben notieren.
+              pause
+          )
+          '@ | Set-Content "$BUNDLE\TestdataGenerator.bat" -Encoding ASCII
+
       # -----------------------------------------------------------------------
       # macOS / Linux: source + first-run venv launcher scripts
       # -----------------------------------------------------------------------
@@ -217,11 +230,13 @@ jobs:
               "SituationReport.sh": launcher("launcher"),
               "BuildReports.sh": launcher("build_reports"),
               "TransformData.sh": launcher("transform_data"),
+              "TestdataGenerator.sh": launcher("testdata_generator"),
           }
           if IS_MACOS:
               scripts["SituationReport.command"] = launcher("launcher")
               scripts["BuildReports.command"] = launcher("build_reports")
               scripts["TransformData.command"] = launcher("transform_data")
+              scripts["TestdataGenerator.command"] = launcher("testdata_generator")
 
           for name, content in scripts.items():
               path = os.path.join(BUNDLE, name)
@@ -325,3 +340,4 @@ jobs:
             |-------|----------|
             | `BuildReports.bat` / `.command` / `.sh` | Build Reports – Metriken und Berichte erstellen |
             | `TransformData.bat` / `.command` / `.sh` | Transform Data – Rohdaten aufbereiten |
+            | `TestdataGenerator.bat` / `.command` / `.sh` | Testdata Generator – Synthetische Jira-Daten erstellen |

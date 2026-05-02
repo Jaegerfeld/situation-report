@@ -3,7 +3,7 @@
 # Repository:     https://github.com/Jaegerfeld/situation-report
 # KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
 # Erstellt:       30.04.2026
-# Geändert:       30.04.2026
+# Geändert:       02.05.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
@@ -214,7 +214,7 @@ _MODULES: list[_ModuleEntry] = [
     _ModuleEntry("build_reports",      "📊", True),
     _ModuleEntry("get_data",           "📥", False),
     _ModuleEntry("simulate",           "🎲", False),
-    _ModuleEntry("testdata_generator", "🧪", False),
+    _ModuleEntry("testdata_generator", "🧪", True),
 ]
 
 
