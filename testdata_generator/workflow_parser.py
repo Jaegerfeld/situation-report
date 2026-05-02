@@ -2,17 +2,19 @@
 # Autor:          Robert Seebauer
 # Repository:     https://github.com/Jaegerfeld/situation-report
 # KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
-# Erstellt:       25.04.2026
+# Erstellt:       02.05.2026
 # Geändert:       02.05.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
-#   Zentrale Versionsnummer für das gesamte situation-report-Projekt.
-#   Wird von build_reports, transform_data und dem Manual-Generator gelesen.
-#   Versionierung nach SemVer: MAJOR.MINOR.PATCH
-#     MAJOR: brechende Änderungen (neues Dateiformat, inkompatible Konfiguration)
-#     MINOR: neue Features (neue Metrik, neues GUI-Element)
-#     PATCH: Bugfixes
+#   Thin re-export wrapper um transform_data.workflow. Stellt WorkflowSpec
+#   (Alias für Workflow) und parse_workflow für den testdata_generator bereit,
+#   ohne die Parsing-Logik zu duplizieren.
 # =============================================================================
 
-__version__ = "0.8.5"
+from __future__ import annotations
+
+from transform_data.workflow import Workflow as WorkflowSpec
+from transform_data.workflow import parse_workflow
+
+__all__ = ["WorkflowSpec", "parse_workflow"]

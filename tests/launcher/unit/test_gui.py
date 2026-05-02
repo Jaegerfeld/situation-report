@@ -66,10 +66,15 @@ class TestModuleRegistry:
         for entry in _MODULES:
             assert isinstance(entry.available, bool)
 
-    def test_exactly_two_available_modules(self):
-        """Exactly two modules are marked as available (build_reports and transform_data)."""
+    def test_exactly_three_available_modules(self):
+        """Exactly three modules are marked as available (transform_data, build_reports, testdata_generator)."""
         available = [e for e in _MODULES if e.available]
-        assert len(available) == 2
+        assert len(available) == 3
+
+    def test_testdata_generator_is_available(self):
+        """testdata_generator is available."""
+        ids = {e.module_id for e in _MODULES if e.available}
+        assert "testdata_generator" in ids
 
     def test_build_reports_is_available(self):
         """build_reports is available."""

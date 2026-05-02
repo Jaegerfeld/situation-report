@@ -4,6 +4,7 @@
 2. `SituationReport.bat` doppelklicken → Launcher GUI
    `BuildReports.bat` doppelklicken → Build Reports direkt
    `TransformData.bat` doppelklicken → Transform Data direkt
+   `TestdataGenerator.bat` doppelklicken → Testdata Generator direkt
 3. Beim ersten Start: Windows SmartScreen → **Weitere Informationen** → **Trotzdem ausführen**
 
 > Python (3.11) und Chrome (PDF-Export) sind im Paket enthalten.

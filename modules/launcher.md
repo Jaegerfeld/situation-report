@@ -16,11 +16,12 @@ Oder über die Startdatei im portablen Paket:
 
 ```
 ┌──────────────────────────────────────────┐
-│  SituationReport  v0.8.4  ALPHA    ?  🌐 │
+│  SituationReport  v0.8.5  BETA     ?  🌐 │
 ├──────────────────────────────────────────┤
 │  ┌──────────────┐ ┌──────────────┐       │
 │  │  🔄          │ │  📊          │       │
 │  │Transform Data│ │ Build Reports│       │
+│  │   [BETA]     │ │   [BETA]     │       │
 │  │Jira aufberei.│ │Flow-Metriken │       │
 │  │  [Starten]   │ │  [Starten]   │       │
 │  └──────────────┘ └──────────────┘       │
@@ -32,20 +33,21 @@ Oder über die Startdatei im portablen Paket:
 │  ┌──────────────┐                        │
 │  │  🧪          │                        │
 │  │Testdata Gen. │                        │
-│  │ (bald verf.) │                        │
+│  │  [ALPHA]     │                        │
+│  │  [Starten]   │                        │
 │  └──────────────┘                        │
 └──────────────────────────────────────────┘
 ```
 
 ## Module
 
-| Modul | Status | Beschreibung |
-|-------|--------|-------------|
-| `transform_data` | verfügbar | Jira-Rohdaten aufbereiten |
-| `build_reports` | verfügbar | Flow-Metriken und Reports |
-| `get_data` | geplant | Daten aus Jira laden |
-| `simulate` | geplant | Prognosen und Simulationen |
-| `testdata_generator` | geplant | Synthetische Testdaten erstellen |
+| Modul | Status | Reifegrad | Beschreibung |
+|-------|--------|-----------|-------------|
+| `transform_data` | verfügbar | BETA | Jira-Rohdaten aufbereiten |
+| `build_reports` | verfügbar | BETA | Flow-Metriken und Reports |
+| `get_data` | geplant | — | Daten aus Jira laden |
+| `simulate` | geplant | — | Prognosen und Simulationen |
+| `testdata_generator` | verfügbar | ALPHA | Synthetische Testdaten erstellen |
 
 ## Verhalten
 
@@ -53,9 +55,14 @@ Oder über die Startdatei im portablen Paket:
 - Der Launcher bleibt offen — mehrere Module können gleichzeitig geöffnet sein.
 - Geplante Module sind sichtbar, aber nicht klickbar.
 
-## ALPHA-Kennzeichnung
+## Reifegrad-Kennzeichnung
 
-Der Launcher zeigt ein rotes **ALPHA**-Badge in der Titelleiste, solange sich das Projekt in der Alpha-Phase befindet. Dies signalisiert, dass Funktionsumfang und Stabilität noch nicht dem finalen Stand entsprechen.
+Der Launcher zeigt zwei Arten von Reifegrad-Badges:
+
+- **App-Badge in der Titelleiste:** Orangefarbenes **BETA**-Badge signalisiert den aktuellen Reifegrad des Gesamtprojekts.
+- **Modul-Badges auf den Karten:** Jedes verfügbare Modul trägt ein eigenes Badge neben dem Modulnamen:
+  - **BETA** (orange) – `transform_data`, `build_reports`: stabile Kernfunktionen, produktionsreif
+  - **ALPHA** (rot) – `testdata_generator`: neu, experimentell, API kann sich noch ändern
 
 ## Update-Prüfung
 

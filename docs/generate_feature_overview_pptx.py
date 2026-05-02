@@ -29,7 +29,7 @@ SLIDES = [
     {
         "type": "title",
         "title": "situation-report",
-        "subtitle": "Feature-Übersicht — v0.8.4 | Stand April 2026",
+        "subtitle": "Feature-Übersicht — v0.8.5 | Stand Mai 2026",
     },
     # ── launcher ────────────────────────────────────────────────────────────
     {
@@ -51,9 +51,10 @@ SLIDES = [
             ("Handbuch-Button",
              "(?)-Button öffnet sprachspezifisches PDF-Handbuch direkt auf "
              "GitHub Pages — in allen 5 Sprachen verfügbar"),
-            ("ALPHA-Badge",
-             "Rotes ALPHA-Badge in der Titelleiste signalisiert Alpha-Status "
-             "des Projekts"),
+            ("Reifegrad-Badges",
+             "App-Badge in der Titelleiste (orange BETA); jede Modulkarte "
+             "zeigt eigenes Badge: transform_data + build_reports → BETA (orange), "
+             "testdata_generator → ALPHA (rot), geplante Module → kein Badge"),
             ("Portable Start",
              "SituationReport.bat (Windows) / .command (macOS) / .sh (Linux) "
              "— kein Python oder Terminal erforderlich"),
@@ -185,7 +186,7 @@ SLIDES = [
         "rows": [
             ("Versionierung",
              "SemVer ab v0.2.0; zentrale version.py wird von allen GUIs "
-             "und den Manuals gelesen; aktuell v0.8.4"),
+             "und den Manuals gelesen; aktuell v0.8.5"),
             ("Sprachauswahl",
              "Launcher: DE/EN/RO/PT/FR (5 Sprachen); build_reports und "
              "transform_data: DE/EN; letzte Wahl persistent in "
