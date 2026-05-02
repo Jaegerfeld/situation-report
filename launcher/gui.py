@@ -30,6 +30,7 @@ import webbrowser
 from dataclasses import dataclass
 from pathlib import Path
 from tkinter import ttk
+from typing import Literal
 
 try:
     from version import __version__ as _VERSION
@@ -207,7 +208,7 @@ class _ModuleEntry:
     module_id: str
     icon: str
     available: bool
-    maturity: str | None = None  # "alpha", "beta", or None (planned)
+    maturity: Literal["alpha", "beta"] | None = None
 
 
 _MODULES: list[_ModuleEntry] = [

@@ -78,19 +78,6 @@ def _random_datetime(rng: random.Random, from_date: date, to_date: date) -> date
     return datetime(d.year, d.month, d.day, hour, minute, second, tzinfo=timezone(timedelta(hours=1)))
 
 
-def _choose_weighted(rng: random.Random, weights: dict[str, float]) -> str:
-    """Choose a key from a dict with relative weights."""
-    keys = list(weights.keys())
-    values = list(weights.values())
-    total = sum(values)
-    r = rng.random() * total
-    cumulative = 0.0
-    for key, value in zip(keys, values):
-        cumulative += value
-        if r <= cumulative:
-            return key
-    return keys[-1]
-
 
 def _make_history(
     from_stage: str,
@@ -146,7 +133,7 @@ def _simulate_issue(
     ) else len(stages) - 1
 
     created_ts = _random_datetime(rng, config.from_date, config.to_date)
-    issue_type = _choose_weighted(rng, config.issue_types)
+    issue_type = rng.choices(list(config.issue_types.keys()), weights=list(config.issue_types.values()), k=1)[0]
 
     is_complete = rng.random() < config.completion_rate
 
