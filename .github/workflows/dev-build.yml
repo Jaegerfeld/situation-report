@@ -8,6 +8,10 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: dev-release
+  cancel-in-progress: true
+
 jobs:
   build:
     name: Build – ${{ matrix.os }}
