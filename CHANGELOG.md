@@ -7,6 +7,12 @@ Das Format orientiert sich an [Keep a Changelog](https://keepachangelog.com/de/1
 
 ## [Unreleased]
 
+### Added
+- `testdata_generator`: Neues Modul — erzeugt synthetische Jira-Issue-JSON-Dateien
+  im Jira-REST-API-Format. Konfigurierbar über GUI oder CLI (Workflow-Datei,
+  Projekt-Key, Issue-Anzahl, Datum-Bereich, Completion-Rate, Backflow-Prob., Seed).
+  Ausgabe ist direkt mit `transform_data` verarbeitbar.
+
 ### Fixed
 - `flow_load`: WIP-Zählung auf aktuelle Stage-Position umgestellt — `open_count`
   stimmt jetzt mit Boxplot-Annotationen und IssueTimes überein (PR #62)
