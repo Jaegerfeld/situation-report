@@ -204,9 +204,9 @@ Counts completed issues (with `Closed Date`) per time period.
 
 **Metric ID:** `flow_load`
 
-Analyses **open** issues (without `Closed Date`) by their current stage and age (days since `First Date` or creation date).
+Shows all issues **currently in an In Progress workflow stage**, grouped by stage and age (days since `First Date`). Only issues that have entered the active phase (`First Date` set, no `Closed Date`) and whose current stage lies within the In Progress range are counted. To Do issues (no `First Date`) and issues in Done stages are excluded.
 
-**Chart:** Grouped boxplot with individual data points, broken down by current stage. Reference lines derived from closed issues (mean, median, 85th and 95th percentile of lead time) provide context for the age of open work.
+**Chart:** Grouped boxplot with individual data points, broken down by current stage. Reference lines derived from closed issues (median and 85th percentile of cycle time, plus Target CT) provide context for the age of open work.
 
 | SAFe | Global |
 |------|--------|
