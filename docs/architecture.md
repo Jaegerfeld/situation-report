@@ -39,32 +39,46 @@ C4Container
     System_Ext(jira, "Jira", "Issue-Tracking-System")
 
     System_Boundary(sr, "SituationReport") {
-        Container(get_data, "get_data", "Python", "Ruft Jira-Issues via REST API ab und speichert JSON-Export (geplant)")
+        Container(get_data, "get_data", "Python", "Ruft Jira-Issues via REST API ab (geplant)")
+        Container(helper, "helper", "Python · tkinter", "Führt mehrere paginierte Jira-JSON-Dateien zu einer zusammen")
         Container(transform_data, "transform_data", "Python · tkinter", "Liest JSON-Export + Workflow-Definition, berechnet Stage-Zeiten, schreibt XLSX-Dateien")
         Container(build_reports, "build_reports", "Python · tkinter · Plotly", "Liest XLSX, filtert Issues, berechnet Flow-Metriken, exportiert HTML/PDF")
-        Container(testdata_generator, "testdata_generator", "Python", "Erzeugt synthetische Jira-JSON-Exporte für Tests (geplant)")
+        Container(testdata_generator, "testdata_generator", "Python · tkinter", "Erzeugt synthetische Jira-JSON-Exporte für Tests und Demos")
         Container(simulate, "simulate", "Python", "Simulationen und Vorhersagemodelle (geplant)")
     }
 
     Rel(user, get_data, "startet", "CLI")
+    Rel(user, helper, "startet", "GUI / CLI")
     Rel(user, transform_data, "startet", "GUI / CLI")
     Rel(user, build_reports, "startet", "GUI / CLI")
+    Rel(user, testdata_generator, "startet", "GUI / CLI")
     Rel(get_data, jira, "liest", "REST API")
-    Rel(get_data, transform_data, "liefert", "JSON-Export (.json)")
+    Rel(get_data, transform_data, "liefert", "JSON (.json)")
+    Rel(jira, helper, "Seiten-Exporte", "JSON (manuell)")
+    Rel(helper, transform_data, "liefert", "merged.json")
+    Rel(testdata_generator, transform_data, "liefert", "JSON (.json)")
     Rel(transform_data, build_reports, "liefert", "IssueTimes.xlsx · CFD.xlsx")
 ```
 
 ### Datenfluss
 
-```
-Jira
-  │  JSON-Export
-  ▼
-get_data  ──►  transform_data  ──►  build_reports
-                 │                        │
-                 │  Transitions.xlsx       │  HTML-Report
-                 │  IssueTimes.xlsx        │  PDF-Export
-                 └  CFD.xlsx             ◄─┘
+```mermaid
+flowchart LR
+    jira(["☁️ Jira"])
+    tdg["testdata_generator"]
+    gd["get_data\n(geplant)"]
+    hlp["helper\nJSON Merger"]
+    td["transform_data"]
+    br["build_reports"]
+    out(["📄 HTML / PDF\n📊 Excel"])
+
+    jira -- "JSON\nmehrere Seiten" --> hlp
+    gd -. "JSON" .-> td
+    gd -- REST --> jira
+    hlp -- "merged.json" --> td
+    tdg -- "JSON" --> td
+    td -- "IssueTimes.xlsx\nCFD.xlsx\nTransitions.xlsx" --> br
+    br --> out
 ```
 
 ---

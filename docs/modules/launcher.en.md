@@ -29,6 +29,7 @@ Or via the start script in the portable package:
 │  │  📥          │ │  🎲          │       │
 │  │  Get Data    │ │   Simulate   │       │
 │  │(coming soon) │ │(coming soon) │       │
+│  │  [How to]    │ │              │       │
 │  └──────────────┘ └──────────────┘       │
 │  ┌──────────────┐ ┌──────────────┐       │
 │  │  🧪          │ │  🔧          │       │
@@ -55,6 +56,7 @@ Or via the start script in the portable package:
 - Clicking **Launch** opens the module as an **independent process** in a separate window.
 - The launcher stays open — multiple modules can run simultaneously.
 - Planned modules are visible but not clickable.
+- **Get Data** shows a **How to** button: opens a dialog with the manual 3-step workaround (export Jira JSON → Helper → Transform Data) until the module is available.
 
 ## Maturity indicators
 
