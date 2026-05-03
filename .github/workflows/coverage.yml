@@ -21,11 +21,14 @@ jobs:
         with:
           python-version: "3.11"
 
+      - name: Install system dependencies
+        run: sudo apt-get install -y xvfb
+
       - name: Install dependencies
         run: pip install -e ".[dev]" --quiet
 
       - name: Run tests with coverage
-        run: python -m pytest --cov --cov-report=xml -q --tb=short
+        run: xvfb-run python -m pytest --cov --cov-report=xml -q --tb=short
 
       - name: Generate coverage badge
         run: genbadge coverage -i coverage.xml -o docs/coverage.svg
