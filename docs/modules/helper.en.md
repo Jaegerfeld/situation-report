@@ -25,6 +25,8 @@ Before processing with `transform_data`, these files must be merged into one.
 
 ### GUI
 
+![Helper GUI screenshot](../assets/Helper-GUI.png)
+
 ```
 ┌──────────────────────────────────────────────────┐
 │  helper – JSON Merger  v0.9.2                    │

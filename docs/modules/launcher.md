@@ -14,6 +14,8 @@ Oder über die Startdatei im portablen Paket:
 
 ## Oberfläche
 
+![Screenshot der Launcher-GUI](../assets/Launcher-GUI.png)
+
 ```
 ┌──────────────────────────────────────────┐
 │  SituationReport  v0.9.2  BETA     ?  🌐 │

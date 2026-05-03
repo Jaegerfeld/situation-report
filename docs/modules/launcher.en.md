@@ -14,6 +14,8 @@ Or via the start script in the portable package:
 
 ## Interface
 
+![Launcher GUI screenshot](../assets/Launcher-GUI.png)
+
 ```
 ┌──────────────────────────────────────────┐
 │  SituationReport  v0.9.2  BETA     ?  🌐 │
