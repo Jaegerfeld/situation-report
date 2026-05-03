@@ -1,7 +1,9 @@
 ### Windows
 
-1. `SituationReport-Windows.zip` herunterladen und entpacken
-2. `SituationReport.bat` doppelklicken → Launcher GUI
+1. `SituationReport-Windows.zip` herunterladen
+   **Wichtig:** ZIP vor dem Entpacken freigeben: Rechtsklick → Eigenschaften → Sicherheit → **Zulassen** → OK
+   (Sonst blockiert Windows Defender das eingebettete Python.)
+2. ZIP entpacken → `SituationReport.bat` doppelklicken → Launcher GUI
    `BuildReports.bat` doppelklicken → Build Reports direkt
    `TransformData.bat` doppelklicken → Transform Data direkt
    `TestdataGenerator.bat` doppelklicken → Testdata Generator direkt
