@@ -29,6 +29,7 @@ Oder über die Startdatei im portablen Paket:
 │  │  📥          │ │  🎲          │       │
 │  │  Get Data    │ │   Simulate   │       │
 │  │ (bald verf.) │ │ (bald verf.) │       │
+│  │  [Anleitung] │ │              │       │
 │  └──────────────┘ └──────────────┘       │
 │  ┌──────────────┐ ┌──────────────┐       │
 │  │  🧪          │ │  🔧          │       │
@@ -55,6 +56,7 @@ Oder über die Startdatei im portablen Paket:
 - Ein Klick auf **Starten** öffnet das Modul als **eigenständigen Prozess** in einem separaten Fenster.
 - Der Launcher bleibt offen — mehrere Module können gleichzeitig geöffnet sein.
 - Geplante Module sind sichtbar, aber nicht klickbar.
+- **Get Data** zeigt einen **Anleitung**-Button: Öffnet einen Dialog mit dem manuellen 3-Schritt-Workaround (Jira-JSON exportieren → Helper → Transform Data), bis das Modul verfügbar ist.
 
 ## Reifegrad-Kennzeichnung
 

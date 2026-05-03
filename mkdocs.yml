@@ -59,10 +59,12 @@ nav:
   - Start: index.md
   - Module:
     - Übersicht: modules/index.md
+    - launcher: modules/launcher.md
     - transform_data: modules/transform_data.md
-    - get_data: modules/get_data.md
     - build_reports: modules/build_reports.md
+    - helper: modules/helper.md
     - testdata_generator: modules/testdata_generator.md
+    - get_data: modules/get_data.md
     - simulate: modules/simulate.md
   - Architektur: architecture.md
   - Entwicklung: development.md
