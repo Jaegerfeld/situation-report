@@ -3,7 +3,7 @@
 # Repository:     https://github.com/Jaegerfeld/situation-report
 # KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
 # Erstellt:       02.05.2026
-# Geändert:       02.05.2026
+# Geändert:       03.05.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import threading
 import tkinter as tk
+import webbrowser
 from datetime import date
 from pathlib import Path
 from tkinter import filedialog, scrolledtext, ttk
@@ -31,6 +32,11 @@ from .cli import run_generate
 
 _LANG_DE = "de"
 _LANG_EN = "en"
+
+_MANUAL_URLS = {
+    _LANG_DE: "https://jaegerfeld.github.io/situation-report/testdata_generator_Benutzerhandbuch.pdf",
+    _LANG_EN: "https://jaegerfeld.github.io/situation-report/testdata_generator_UserManual.pdf",
+}
 
 _T: dict[str, dict[str, str]] = {
     _LANG_DE: {
@@ -54,6 +60,7 @@ _T: dict[str, dict[str, str]] = {
         "btn_browse_wf":    "Durchsuchen…",
         "btn_browse_out":   "Durchsuchen…",
         "btn_run":          "Generieren",
+        "menu_manual":      "Benutzerhandbuch öffnen",
         "err_no_workflow":  "FEHLER: Keine Workflow-Datei ausgewählt.",
         "err_no_output":    "FEHLER: Keine Ausgabedatei angegeben.",
         "err_issues":       "FEHLER: Anzahl Issues muss eine positive Ganzzahl sein.",
@@ -91,6 +98,7 @@ _T: dict[str, dict[str, str]] = {
         "btn_browse_wf":    "Browse…",
         "btn_browse_out":   "Browse…",
         "btn_run":          "Generate",
+        "menu_manual":      "Open User Manual",
         "err_no_workflow":  "ERROR: No workflow file selected.",
         "err_no_output":    "ERROR: No output file specified.",
         "err_issues":       "ERROR: Issue count must be a positive integer.",
@@ -149,6 +157,11 @@ class _App:
             label="English", command=lambda: self._set_lang(_LANG_EN)
         )
         self._menu_options.add_cascade(label="Language / Sprache", menu=self._menu_language)
+        self._menu_options.add_separator()
+        self._menu_options.add_command(
+            label="Benutzerhandbuch öffnen", command=self._open_manual
+        )
+        self._menu_manual_item_idx = self._menu_options.index("end")
         menubar.add_cascade(label="Optionen / Options", menu=self._menu_options)
         self._root.config(menu=menubar)
 
@@ -205,10 +218,17 @@ class _App:
             lbl.configure(text=self._t(key))
         self._btn_run.configure(text=self._t("btn_run"))
         self._log_frame.configure(text=self._t("lbl_log"))
+        self._menu_options.entryconfigure(
+            self._menu_manual_item_idx, label=self._t("menu_manual")
+        )
 
     def _set_lang(self, lang: str) -> None:
         self._lang = lang
         self._apply_lang()
+
+    def _open_manual(self) -> None:
+        """Open the language-appropriate user manual PDF on GitHub Pages."""
+        webbrowser.open(_MANUAL_URLS.get(self._lang, _MANUAL_URLS[_LANG_EN]))
 
     def _browse_workflow(self) -> None:
         path = filedialog.askopenfilename(
