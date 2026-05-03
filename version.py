@@ -3,7 +3,7 @@
 # Repository:     https://github.com/Jaegerfeld/situation-report
 # KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
 # Erstellt:       25.04.2026
-# Geändert:       03.05.2026
+# Geändert:       04.05.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
@@ -15,4 +15,4 @@
 #     PATCH: Bugfixes
 # =============================================================================
 
-__version__ = "0.9.2"
+__version__ = "0.9.3"

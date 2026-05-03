@@ -9,6 +9,26 @@ Das Format orientiert sich an [Keep a Changelog](https://keepachangelog.com/de/1
 
 ---
 
+## [0.9.3] – 2026-05-04
+
+### Added
+- `testdata_generator`: Benutzerhandbücher (DE + EN) als PDF — 8 Kapitel inkl.
+  vollständigem Jira-Cloud-Export-Guide (API-Token, curl, Paginierung, JSON-Merger)
+  und ART_A-Durchlaufbeispiel. `generate_testdata_generator_manual.py` als
+  ReportLab-Skript für Reproduzierbarkeit.
+- `testdata_generator` GUI: Menüeintrag „Benutzerhandbuch öffnen" (DE/EN)
+
+### Fixed
+- CI: Coverage-Badge wird jetzt automatisch per PR aktualisiert statt direkt
+  auf main zu pushen (branch protection umgeht direkten Push).
+  `coverage.yml` erstellt einen temporären Branch + Auto-Merge-PR.
+
+### Changed
+- Alle Handbücher (launcher 5×, transform_data 2×, build_reports 2×) auf
+  Version 0.9.3 neu generiert.
+
+---
+
 ## [0.9.2] – 2026-05-03
 
 ### Added
