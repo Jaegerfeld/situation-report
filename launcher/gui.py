@@ -3,7 +3,7 @@
 # Repository:     https://github.com/Jaegerfeld/situation-report
 # KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
 # Erstellt:       30.04.2026
-# Geändert:       02.05.2026
+# Geändert:       03.05.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
@@ -103,6 +103,7 @@ _T: dict[str, dict[str, str]] = {
     LANG_DE: {
         "window_title":                   "SituationReport",
         "btn_launch":                     "Starten",
+        "btn_info":                       "Anleitung",
         "lbl_planned":                    "(bald verfügbar)",
         "tip_language":                   "Sprache wechseln",
         "tip_manual":                     "Benutzerhandbuch öffnen",
@@ -118,12 +119,32 @@ _T: dict[str, dict[str, str]] = {
         "mod_simulate_desc":              "Prognosen und Simulationen",
         "mod_testdata_generator_name":    "Testdata Generator",
         "mod_testdata_generator_desc":    "Synthetische Testdaten erstellen",
-        "mod_helper_name":               "Helper",
-        "mod_helper_desc":               "JSON-Dateien zusammenführen",
+        "mod_helper_name":                "Helper",
+        "mod_helper_desc":                "JSON-Dateien zusammenführen",
+        "dlg_get_data_title":             "Get Data – Workaround",
+        "dlg_get_data_body": (
+            "Get Data ist noch nicht verfügbar.\n"
+            "So laden Sie Jira-Daten bis dahin manuell:\n"
+            "\n"
+            "① Jira-JSON exportieren\n"
+            "   Issues über die Jira REST API als JSON exportieren\n"
+            "   (max. 1.000 Issues pro Datei, ggf. mehrere Seiten).\n"
+            "\n"
+            "② Dateien zusammenführen  (nur bei mehreren Dateien)\n"
+            "   Helper starten → alle JSON-Dateien zu einer zusammen-\n"
+            "   führen.\n"
+            "\n"
+            "③ Daten aufbereiten\n"
+            "   Transform Data starten → zusammengeführte JSON-Datei\n"
+            "   laden."
+        ),
+        "btn_launch_helper":              "Helper starten",
+        "btn_close":                      "Schließen",
     },
     LANG_EN: {
         "window_title":                   "SituationReport",
         "btn_launch":                     "Launch",
+        "btn_info":                       "How to",
         "lbl_planned":                    "(coming soon)",
         "tip_language":                   "Switch language",
         "tip_manual":                     "Open user manual",
@@ -139,12 +160,31 @@ _T: dict[str, dict[str, str]] = {
         "mod_simulate_desc":              "Forecasts and simulations",
         "mod_testdata_generator_name":    "Testdata Generator",
         "mod_testdata_generator_desc":    "Generate synthetic test data",
-        "mod_helper_name":               "Helper",
-        "mod_helper_desc":               "Merge JSON files",
+        "mod_helper_name":                "Helper",
+        "mod_helper_desc":                "Merge JSON files",
+        "dlg_get_data_title":             "Get Data – How to use now",
+        "dlg_get_data_body": (
+            "Get Data is not yet available.\n"
+            "Until then, load your Jira data manually:\n"
+            "\n"
+            "① Export Jira JSON\n"
+            "   Export your issues via the Jira REST API as JSON\n"
+            "   (max. 1,000 issues per file; multiple pages possible).\n"
+            "\n"
+            "② Merge files  (only if you have more than one)\n"
+            "   Launch Helper → merge all JSON files into a single\n"
+            "   file.\n"
+            "\n"
+            "③ Transform data\n"
+            "   Launch Transform Data → load the (merged) JSON file."
+        ),
+        "btn_launch_helper":              "Launch Helper",
+        "btn_close":                      "Close",
     },
     LANG_RO: {
         "window_title":                   "SituationReport",
         "btn_launch":                     "Lansare",
+        "btn_info":                       "Instrucțiuni",
         "lbl_planned":                    "(în curând)",
         "tip_language":                   "Schimbați limba",
         "tip_manual":                     "Deschideți manualul",
@@ -160,12 +200,32 @@ _T: dict[str, dict[str, str]] = {
         "mod_simulate_desc":              "Prognoze și simulări",
         "mod_testdata_generator_name":    "Testdata Generator",
         "mod_testdata_generator_desc":    "Generare date de test sintetice",
-        "mod_helper_name":               "Helper",
-        "mod_helper_desc":               "Combinare fișiere JSON",
+        "mod_helper_name":                "Helper",
+        "mod_helper_desc":                "Combinare fișiere JSON",
+        "dlg_get_data_title":             "Get Data – Alternativă",
+        "dlg_get_data_body": (
+            "Get Data nu este încă disponibil.\n"
+            "Până atunci, încărcați datele Jira manual:\n"
+            "\n"
+            "① Export JSON Jira\n"
+            "   Exportați problemele prin Jira REST API ca JSON\n"
+            "   (max. 1.000 probleme per fișier; mai multe pagini posibile).\n"
+            "\n"
+            "② Combinare fișiere  (doar dacă aveți mai multe)\n"
+            "   Lansați Helper → combinați toate fișierele JSON\n"
+            "   într-unul singur.\n"
+            "\n"
+            "③ Transformare date\n"
+            "   Lansați Transform Data → încărcați fișierul JSON\n"
+            "   (combinat)."
+        ),
+        "btn_launch_helper":              "Lansare Helper",
+        "btn_close":                      "Închidere",
     },
     LANG_PT: {
         "window_title":                   "SituationReport",
         "btn_launch":                     "Iniciar",
+        "btn_info":                       "Instruções",
         "lbl_planned":                    "(em breve)",
         "tip_language":                   "Mudar idioma",
         "tip_manual":                     "Abrir manual do utilizador",
@@ -181,12 +241,32 @@ _T: dict[str, dict[str, str]] = {
         "mod_simulate_desc":              "Previsões e simulações",
         "mod_testdata_generator_name":    "Testdata Generator",
         "mod_testdata_generator_desc":    "Gerar dados de teste sintéticos",
-        "mod_helper_name":               "Helper",
-        "mod_helper_desc":               "Combinar ficheiros JSON",
+        "mod_helper_name":                "Helper",
+        "mod_helper_desc":                "Combinar ficheiros JSON",
+        "dlg_get_data_title":             "Get Data – Como usar agora",
+        "dlg_get_data_body": (
+            "Get Data ainda não está disponível.\n"
+            "Enquanto isso, carregue os seus dados do Jira manualmente:\n"
+            "\n"
+            "① Exportar JSON do Jira\n"
+            "   Exporte os seus itens via Jira REST API como JSON\n"
+            "   (máx. 1.000 itens por ficheiro; várias páginas possíveis).\n"
+            "\n"
+            "② Combinar ficheiros  (apenas se tiver mais de um)\n"
+            "   Iniciar Helper → combinar todos os ficheiros JSON\n"
+            "   num só.\n"
+            "\n"
+            "③ Transformar dados\n"
+            "   Iniciar Transform Data → carregar o ficheiro JSON\n"
+            "   (combinado)."
+        ),
+        "btn_launch_helper":              "Iniciar Helper",
+        "btn_close":                      "Fechar",
     },
     LANG_FR: {
         "window_title":                   "SituationReport",
         "btn_launch":                     "Lancer",
+        "btn_info":                       "Mode d'emploi",
         "lbl_planned":                    "(bientôt disponible)",
         "tip_language":                   "Changer de langue",
         "tip_manual":                     "Ouvrir le manuel",
@@ -202,8 +282,27 @@ _T: dict[str, dict[str, str]] = {
         "mod_simulate_desc":              "Prévisions et simulations",
         "mod_testdata_generator_name":    "Testdata Generator",
         "mod_testdata_generator_desc":    "Générer des données de test synthétiques",
-        "mod_helper_name":               "Helper",
-        "mod_helper_desc":               "Fusionner des fichiers JSON",
+        "mod_helper_name":                "Helper",
+        "mod_helper_desc":                "Fusionner des fichiers JSON",
+        "dlg_get_data_title":             "Get Data – Alternative",
+        "dlg_get_data_body": (
+            "Get Data n'est pas encore disponible.\n"
+            "En attendant, chargez vos données Jira manuellement :\n"
+            "\n"
+            "① Exporter le JSON Jira\n"
+            "   Exportez vos tickets via l'API REST Jira au format JSON\n"
+            "   (max. 1 000 tickets par fichier ; plusieurs pages possibles).\n"
+            "\n"
+            "② Fusionner les fichiers  (uniquement si vous en avez plusieurs)\n"
+            "   Lancer Helper → fusionner tous les fichiers JSON\n"
+            "   en un seul.\n"
+            "\n"
+            "③ Transformer les données\n"
+            "   Lancer Transform Data → charger le fichier JSON\n"
+            "   (fusionné)."
+        ),
+        "btn_launch_helper":              "Lancer Helper",
+        "btn_close":                      "Fermer",
     },
 }
 
@@ -219,12 +318,13 @@ class _ModuleEntry:
     icon: str
     available: bool
     maturity: Literal["alpha", "beta"] | None = None
+    has_info: bool = False
 
 
 _MODULES: list[_ModuleEntry] = [
     _ModuleEntry("transform_data",     "🔄", True,  "beta"),
     _ModuleEntry("build_reports",      "📊", True,  "beta"),
-    _ModuleEntry("get_data",           "📥", False, None),
+    _ModuleEntry("get_data",           "📥", False, None,  has_info=True),
     _ModuleEntry("simulate",           "🎲", False, None),
     _ModuleEntry("testdata_generator", "🧪", True,  "alpha"),
     _ModuleEntry("helper",             "🔧", True,  "alpha"),
@@ -425,6 +525,11 @@ class LauncherApp(tk.Tk):
                 frame,
                 command=lambda mid=entry.module_id: self._launch(mid),
             )
+        elif entry.has_info:
+            action_widget = ttk.Button(
+                frame,
+                command=lambda mid=entry.module_id: self._show_workaround_info(mid),
+            )
         else:
             action_widget = tk.Label(
                 frame, fg="#999999", font=("TkDefaultFont", 9, "italic")
@@ -439,6 +544,7 @@ class LauncherApp(tk.Tk):
             "action_widget": action_widget,
             "module_id": entry.module_id,
             "available": entry.available,
+            "has_info": entry.has_info,
         }
 
     def _apply_language(self) -> None:
@@ -456,6 +562,8 @@ class LauncherApp(tk.Tk):
             card["desc_lbl"].configure(text=self._tr(f"mod_{mid}_desc"))
             if card["available"]:
                 card["action_widget"].configure(text=self._tr("btn_launch"))
+            elif card["has_info"]:
+                card["action_widget"].configure(text=self._tr("btn_info"))
             else:
                 card["action_widget"].configure(text=self._tr("lbl_planned"))
 
@@ -530,6 +638,47 @@ class LauncherApp(tk.Tk):
     def _open_manual(self) -> None:
         """Open the language-appropriate user manual PDF on GitHub Pages."""
         webbrowser.open(_MANUAL_URLS.get(self._lang_var.get(), _MANUAL_URLS[LANG_EN]))
+
+    def _show_workaround_info(self, module_id: str) -> None:
+        """
+        Show a modal dialog with manual-workaround instructions for a planned module.
+
+        Args:
+            module_id: The module whose instructions to display (e.g. 'get_data').
+        """
+        dlg = tk.Toplevel(self)
+        dlg.title(self._tr(f"dlg_{module_id}_title"))
+        dlg.resizable(False, False)
+        dlg.grab_set()
+
+        tk.Label(
+            dlg,
+            text=self._tr(f"dlg_{module_id}_body"),
+            justify="left",
+            padx=20,
+            pady=16,
+            font=("TkFixedFont", 10),
+        ).pack()
+
+        btn_frame = tk.Frame(dlg)
+        btn_frame.pack(fill="x", padx=20, pady=(0, 14))
+
+        ttk.Button(
+            btn_frame,
+            text=self._tr("btn_launch_helper"),
+            command=lambda: (self._launch("helper"), dlg.destroy()),
+        ).pack(side="right", padx=(6, 0))
+
+        ttk.Button(
+            btn_frame,
+            text=self._tr("btn_close"),
+            command=dlg.destroy,
+        ).pack(side="right")
+
+        dlg.update_idletasks()
+        x = self.winfo_x() + (self.winfo_width() - dlg.winfo_width()) // 2
+        y = self.winfo_y() + (self.winfo_height() - dlg.winfo_height()) // 2
+        dlg.geometry(f"+{x}+{y}")
 
     def _launch(self, module_id: str) -> None:
         """
