@@ -26,6 +26,8 @@ müssen diese Dateien zu einer einzigen zusammengeführt werden.
 
 ### GUI-Oberfläche
 
+![Screenshot der Helper-GUI](../assets/Helper-GUI.png)
+
 ```
 ┌──────────────────────────────────────────────────┐
 │  helper – JSON Merger  v0.9.2                    │
