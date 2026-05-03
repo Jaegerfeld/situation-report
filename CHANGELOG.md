@@ -9,6 +9,15 @@ Das Format orientiert sich an [Keep a Changelog](https://keepachangelog.com/de/1
 
 ---
 
+## [0.9.2] – 2026-05-03
+
+### Added
+- `launcher`: Get-Data-Karte zeigt jetzt einen **Anleitung**-Button statt nur
+  "(bald verfügbar)". Öffnet einen Dialog mit 3-Schritt-Workaround:
+  Jira-JSON exportieren → Helper → Transform Data. Alle 5 Sprachen.
+
+---
+
 ## [0.9.1] – 2026-05-03
 
 ### Fixed
