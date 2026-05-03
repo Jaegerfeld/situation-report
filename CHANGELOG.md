@@ -9,6 +9,20 @@ Das Format orientiert sich an [Keep a Changelog](https://keepachangelog.com/de/1
 
 ---
 
+## [0.9.1] – 2026-05-03
+
+### Fixed
+- Windows: BAT-Startdateien zeigen jetzt eine klare deutsche Fehlermeldung mit
+  3-Schritt-Lösung, wenn das eingebettete `python.exe` von Windows Defender
+  blockiert wird (Mark-of-the-Web bei ZIP-Downloads aus dem Internet).
+  Vorher erschien die kryptische Microsoft-Store-Python-Meldung.
+- `release.yml`: Synchronisiert mit `dev-build.yml` — `helper` und
+  `testdata_generator` nun auch in offiziellen Releases enthalten;
+  `TestdataGenerator.bat`, `Helper.bat`, `TestdataGenerator.sh/.command`,
+  `Helper.sh/.command` werden jetzt generiert.
+
+---
+
 ## [0.9.0] – 2026-05-03
 
 ### Added
