@@ -130,6 +130,20 @@ jobs:
           @'
           @echo off
           set "D=%~dp0"
+          if not exist "%D%python\python.exe" (
+              echo.
+              echo FEHLER: Eingebettetes Python wurde nicht gefunden.
+              echo Pfad: "%D%python\python.exe"
+              echo.
+              echo Ursache: Windows Defender blockiert Dateien aus dem Internet.
+              echo Loesung:
+              echo   1. Rechtsklick auf SituationReport-Windows.zip
+              echo   2. Eigenschaften - Sicherheit - Zulassen - OK
+              echo   3. ZIP erneut entpacken und starten.
+              echo.
+              pause
+              exit /b 1
+          )
           for /d %%i in ("%D%python\tcl\tcl*") do set "TCL_LIBRARY=%%i"
           for /d %%i in ("%D%python\tcl\tk*") do set "TK_LIBRARY=%%i"
           "%D%python\python.exe" -m build_reports
@@ -143,6 +157,20 @@ jobs:
           @'
           @echo off
           set "D=%~dp0"
+          if not exist "%D%python\python.exe" (
+              echo.
+              echo FEHLER: Eingebettetes Python wurde nicht gefunden.
+              echo Pfad: "%D%python\python.exe"
+              echo.
+              echo Ursache: Windows Defender blockiert Dateien aus dem Internet.
+              echo Loesung:
+              echo   1. Rechtsklick auf SituationReport-Windows.zip
+              echo   2. Eigenschaften - Sicherheit - Zulassen - OK
+              echo   3. ZIP erneut entpacken und starten.
+              echo.
+              pause
+              exit /b 1
+          )
           for /d %%i in ("%D%python\tcl\tcl*") do set "TCL_LIBRARY=%%i"
           for /d %%i in ("%D%python\tcl\tk*") do set "TK_LIBRARY=%%i"
           "%D%python\python.exe" -m transform_data
@@ -156,6 +184,20 @@ jobs:
           @'
           @echo off
           set "D=%~dp0"
+          if not exist "%D%python\python.exe" (
+              echo.
+              echo FEHLER: Eingebettetes Python wurde nicht gefunden.
+              echo Pfad: "%D%python\python.exe"
+              echo.
+              echo Ursache: Windows Defender blockiert Dateien aus dem Internet.
+              echo Loesung:
+              echo   1. Rechtsklick auf SituationReport-Windows.zip
+              echo   2. Eigenschaften - Sicherheit - Zulassen - OK
+              echo   3. ZIP erneut entpacken und starten.
+              echo.
+              pause
+              exit /b 1
+          )
           for /d %%i in ("%D%python\tcl\tcl*") do set "TCL_LIBRARY=%%i"
           for /d %%i in ("%D%python\tcl\tk*") do set "TK_LIBRARY=%%i"
           "%D%python\python.exe" -m launcher
@@ -169,6 +211,20 @@ jobs:
           @'
           @echo off
           set "D=%~dp0"
+          if not exist "%D%python\python.exe" (
+              echo.
+              echo FEHLER: Eingebettetes Python wurde nicht gefunden.
+              echo Pfad: "%D%python\python.exe"
+              echo.
+              echo Ursache: Windows Defender blockiert Dateien aus dem Internet.
+              echo Loesung:
+              echo   1. Rechtsklick auf SituationReport-Windows.zip
+              echo   2. Eigenschaften - Sicherheit - Zulassen - OK
+              echo   3. ZIP erneut entpacken und starten.
+              echo.
+              pause
+              exit /b 1
+          )
           for /d %%i in ("%D%python\tcl\tcl*") do set "TCL_LIBRARY=%%i"
           for /d %%i in ("%D%python\tcl\tk*") do set "TK_LIBRARY=%%i"
           "%D%python\python.exe" -m testdata_generator
@@ -182,6 +238,20 @@ jobs:
           @'
           @echo off
           set "D=%~dp0"
+          if not exist "%D%python\python.exe" (
+              echo.
+              echo FEHLER: Eingebettetes Python wurde nicht gefunden.
+              echo Pfad: "%D%python\python.exe"
+              echo.
+              echo Ursache: Windows Defender blockiert Dateien aus dem Internet.
+              echo Loesung:
+              echo   1. Rechtsklick auf SituationReport-Windows.zip
+              echo   2. Eigenschaften - Sicherheit - Zulassen - OK
+              echo   3. ZIP erneut entpacken und starten.
+              echo.
+              pause
+              exit /b 1
+          )
           for /d %%i in ("%D%python\tcl\tcl*") do set "TCL_LIBRARY=%%i"
           for /d %%i in ("%D%python\tcl\tk*") do set "TK_LIBRARY=%%i"
           "%D%python\python.exe" -m helper
@@ -326,9 +396,10 @@ jobs:
 
             ### Windows
 
-            1. `SituationReport-Windows.zip` herunterladen und entpacken
-            2. `BuildReports.bat` doppelklicken → Build Reports GUI
-               `TransformData.bat` doppelklicken → Transform Data GUI
+            1. `SituationReport-Windows.zip` herunterladen
+               **Wichtig:** ZIP vor dem Entpacken freigeben: Rechtsklick → Eigenschaften → Sicherheit → **Zulassen** → OK
+               (Sonst blockiert Windows Defender das eingebettete Python.)
+            2. ZIP entpacken → `BuildReports.bat` oder `SituationReport.bat` doppelklicken
             3. Beim ersten Start: Windows SmartScreen → **Weitere Informationen** → **Trotzdem ausführen**
 
             > Kein Python notwendig – alles ist im Paket enthalten inkl. Chrome für PDF-Export.
