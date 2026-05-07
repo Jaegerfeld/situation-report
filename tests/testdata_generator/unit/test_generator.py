@@ -3,7 +3,7 @@
 # Repository:     https://github.com/Jaegerfeld/situation-report
 # KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
 # Erstellt:       02.05.2026
-# Geändert:       02.05.2026
+# Geändert:       07.05.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
@@ -287,3 +287,69 @@ class TestJSONSerializable:
         data = generate(_simple_workflow(), _config(issue_count=10))
         serialised = json.dumps(data)
         assert serialised
+
+
+class TestCycleTimeDistribution:
+    """Verify that right-censoring does not create a scatter plot diagonal."""
+
+    @pytest.fixture(scope="class")
+    def completed_issues(self) -> list[dict]:
+        wf = _simple_workflow()
+        data = generate(wf, _config(issue_count=200, completion_rate=0.8, seed=42))
+        closed_stage = wf.closed_stage
+        return [i for i in data["issues"] if i["fields"]["status"]["name"] == closed_stage]
+
+    def _get_closed_date(self, issue: dict) -> datetime:
+        """Return the timestamp of the last transition into closed_stage."""
+        histories = issue["changelog"]["histories"]
+        for h in reversed(histories):
+            if h["items"][0]["toString"] == _simple_workflow().closed_stage:
+                ts_str = h["created"]
+                # Parse Jira format: 2025-11-30T16:49:19.000+0100
+                return datetime.strptime(ts_str[:19], "%Y-%m-%dT%H:%M:%S")
+        raise AssertionError(f"No closed transition found in {issue['key']}")
+
+    def test_completed_issues_close_within_to_date(self, completed_issues: list[dict]) -> None:
+        """All completed issues must close on or before to_date."""
+        to_date = date(2025, 12, 31)
+        for issue in completed_issues:
+            closed_dt = self._get_closed_date(issue)
+            assert closed_dt.date() <= to_date, (
+                f"{issue['key']} closed on {closed_dt.date()} which is after to_date {to_date}"
+            )
+
+    def test_cycle_time_not_correlated_with_closed_date(self, completed_issues: list[dict]) -> None:
+        """Pearson correlation between closed_date and cycle_time must be > -0.5.
+
+        A strong negative correlation (< -0.5) indicates right-censoring:
+        late close dates only allow short cycle times.
+        """
+        if len(completed_issues) < 10:
+            pytest.skip("Too few completed issues for correlation check")
+
+        xs: list[float] = []
+        ys: list[float] = []
+
+        for issue in completed_issues:
+            created_str = issue["fields"]["created"]
+            created_dt = datetime.strptime(created_str[:19], "%Y-%m-%dT%H:%M:%S")
+            closed_dt = self._get_closed_date(issue)
+            cycle_days = (closed_dt - created_dt).total_seconds() / 86400
+            closed_ordinal = closed_dt.toordinal()
+            xs.append(float(closed_ordinal))
+            ys.append(cycle_days)
+
+        n = len(xs)
+        mean_x = sum(xs) / n
+        mean_y = sum(ys) / n
+        cov = sum((x - mean_x) * (y - mean_y) for x, y in zip(xs, ys)) / n
+        std_x = (sum((x - mean_x) ** 2 for x in xs) / n) ** 0.5
+        std_y = (sum((y - mean_y) ** 2 for y in ys) / n) ** 0.5
+
+        if std_x == 0 or std_y == 0:
+            pytest.skip("Zero variance — cannot compute correlation")
+
+        pearson_r = cov / (std_x * std_y)
+        assert pearson_r > -0.5, (
+            f"Pearson r={pearson_r:.3f} indicates right-censoring (scatter plot diagonal)"
+        )

@@ -3,7 +3,7 @@
 # Repository:     https://github.com/Jaegerfeld/situation-report
 # KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
 # Erstellt:       02.05.2026
-# Geändert:       02.05.2026
+# Geändert:       07.05.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
@@ -17,6 +17,7 @@ from __future__ import annotations
 import random
 from dataclasses import dataclass, field
 from datetime import date, datetime, timedelta, timezone
+from math import ceil
 
 from .workflow_parser import WorkflowSpec
 
@@ -132,13 +133,21 @@ def _simulate_issue(
         workflow.closed_stage and workflow.closed_stage in stages
     ) else len(stages) - 1
 
-    created_ts = _random_datetime(rng, config.from_date, config.to_date)
     issue_type = rng.choices(list(config.issue_types.keys()), weights=list(config.issue_types.values()), k=1)[0]
-
     is_complete = rng.random() < config.completion_rate
 
     if is_complete:
         target_idx = closed_idx
+        # Sample created_ts early enough that the issue can close before to_date.
+        # Without this constraint, late-created completed issues would close after
+        # to_date and be filtered out by build_reports, creating a right-censoring
+        # artifact (downward diagonal in the scatter plot).
+        expected_steps = ceil(closed_idx / max(0.01, 1.0 - config.backflow_prob))
+        buffer_days = ceil((expected_steps + first_idx) * config.max_dwell_hours / 24) + 1
+        latest_start = config.to_date - timedelta(days=buffer_days)
+        if latest_start < config.from_date:
+            latest_start = config.from_date
+        created_ts = _random_datetime(rng, config.from_date, latest_start)
     else:
         # Decide if this is a To Do issue (before first_stage) or In Progress
         if first_idx > 0 and rng.random() < config.todo_rate:
@@ -147,6 +156,7 @@ def _simulate_issue(
             target_idx = rng.randint(first_idx, closed_idx - 1)
         else:
             target_idx = first_idx
+        created_ts = _random_datetime(rng, config.from_date, config.to_date)
 
     histories: list[dict] = []
     current_idx = 0  # issues implicitly start in stages[0]
