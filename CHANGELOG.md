@@ -9,6 +9,23 @@ Das Format orientiert sich an [Keep a Changelog](https://keepachangelog.com/de/1
 
 ---
 
+## [0.9.4] – 2026-05-07
+
+### Fixed
+- `build_reports`: Flow Time Methode B berechnete Cycle Time fälschlicherweise zu hoch,
+  wenn `closed_stage` nicht die letzte Stage im Workflow ist (z. B. ART-Workflows mit
+  „Completed" als Closed-Stage und „Done" als letzter Stage). Ursache: der Carry-forward
+  der Closed-Stage (Zeit seit Eintritt in Closed bis heute) wurde in die Stage-Minuten-Summe
+  eingerechnet und erzeugte eine Gerade von links-oben nach rechts-unten im Scatter-Plot.
+  Fix: `_cycle_days_method_b` summiert jetzt nur Stages bis ausschließlich der Closed-Stage.
+- `testdata_generator`: Completed Issues wurden gleichmäßig über `[from_date, to_date]`
+  erstellt; späte Erstellungsdaten führten dazu, dass Issues nach `to_date` abschlossen
+  und im Scatter-Plot gefilter wurden (Right-Censoring-Artefakt). Fix: Erstellungsdatum
+  für Completed Issues auf `[from_date, latest_start]` beschränkt, wobei `latest_start`
+  genug Puffer für die maximale Cycle-Time lässt.
+
+---
+
 ## [0.9.3] – 2026-05-04
 
 ### Added

@@ -3,7 +3,7 @@
 # Repository:     https://github.com/Jaegerfeld/situation-report
 # KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
 # Erstellt:       15.04.2026
-# Geändert:       25.04.2026
+# Geändert:       07.05.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
@@ -530,3 +530,131 @@ class TestScatterColors:
         y_values = list(scatter_trace.y)
         min_idx = y_values.index(min(y_values))
         assert colors[min_idx] == "steelblue"
+
+
+# Stages: Analysis, Completed (=closed), Monitoring, Done
+# When closed_stage="Completed", only Analysis should be summed.
+_STAGES_WITH_MID_CLOSED = ["Analysis", "Completed", "Monitoring", "Done"]
+
+
+class TestMethodBClosedStage:
+    """Verify that Method B excludes the closed_stage carry-forward.
+
+    Scenario: workflow where closed_stage is NOT the last stage (e.g. ART_E/ART_F).
+    The closed stage and any stages after it must be excluded from the sum to
+    prevent the carry-forward artefact that creates a descending diagonal in
+    the scatter plot.
+    """
+
+    @pytest.fixture
+    def metric_b(self) -> FlowTimeMetric:
+        m = FlowTimeMetric()
+        m.ct_method = CT_METHOD_B
+        return m
+
+    @pytest.fixture
+    def data_with_closed_stage(self) -> ReportData:
+        """ReportData: closed_stage='Completed', 1 issue.
+
+        stage_minutes:
+          Analysis:   1440 min  →  1.0 day  (real processing time)
+          Completed: 43200 min  → 30.0 days (carry-forward: issue is still in Completed)
+          Monitoring:     0
+          Done:           0
+        Expected Method B cycle time = 1.0 day (Analysis only, Completed excluded).
+        """
+        return ReportData(
+            issues=[
+                _issue(
+                    "X-1",
+                    datetime(2025, 1, 1),
+                    datetime(2025, 1, 2),
+                    {
+                        "Analysis": 1440,
+                        "Completed": 43200,
+                        "Monitoring": 0,
+                        "Done": 0,
+                    },
+                )
+            ],
+            cfd=[],
+            stages=_STAGES_WITH_MID_CLOSED,
+            source_prefix="TEST",
+            closed_stage="Completed",
+        )
+
+    def test_closed_stage_carry_forward_excluded(self, metric_b, data_with_closed_stage) -> None:
+        """Carry-forward in closed_stage must NOT inflate cycle time."""
+        result = metric_b.compute(data_with_closed_stage, SAFE)
+        assert result.stats["count"] == 1
+        # Only Analysis (1440 min = 1.0 day) should be counted.
+        assert result.stats["min"] == pytest.approx(1.0)
+
+    def test_stages_after_closed_stage_excluded(self, metric_b) -> None:
+        """Stages that come after closed_stage are also excluded from the sum."""
+        data = ReportData(
+            issues=[
+                _issue(
+                    "X-2",
+                    datetime(2025, 1, 1),
+                    datetime(2025, 1, 5),
+                    {
+                        "Analysis": 2880,    # 2 days — should be counted
+                        "Completed": 100,    # closed_stage — excluded
+                        "Monitoring": 5000,  # after closed_stage — excluded
+                        "Done": 1440,        # after closed_stage — excluded
+                    },
+                )
+            ],
+            cfd=[],
+            stages=_STAGES_WITH_MID_CLOSED,
+            source_prefix="TEST",
+            closed_stage="Completed",
+        )
+        result = metric_b.compute(data, SAFE)
+        # Only Analysis (2880 min = 2.0 days).
+        assert result.stats["min"] == pytest.approx(2.0)
+
+    def test_no_correlation_between_closed_date_and_cycle_time(self, metric_b) -> None:
+        """Method B must not create a negative correlation via carry-forward.
+
+        Issues closed in Jan have large carry-forward in closed_stage; issues
+        closed in Dec have small carry-forward. With the fix, carry-forward is
+        excluded, so Pearson r should be near zero (not strongly negative).
+        """
+        from datetime import timedelta
+
+        base_first = datetime(2025, 1, 1)
+        issues = []
+        # 12 issues: same actual processing time (30 days = 43200 min in Analysis),
+        # but each closed one month later → increasing carry-forward in Completed.
+        # Without the fix, later issues (small carry-forward) would appear faster.
+        for month in range(1, 13):
+            closed_dt = datetime(2025, month, 28)
+            carry_forward_min = (datetime(2026, 5, 7) - closed_dt).days * 1440
+            issues.append(
+                _issue(
+                    f"X-{month}",
+                    base_first,
+                    closed_dt,
+                    {
+                        "Analysis": 43200,
+                        "Completed": carry_forward_min,
+                        "Monitoring": 0,
+                        "Done": 0,
+                    },
+                )
+            )
+
+        data = ReportData(
+            issues=issues,
+            cfd=[],
+            stages=_STAGES_WITH_MID_CLOSED,
+            source_prefix="TEST",
+            closed_stage="Completed",
+        )
+        result = metric_b.compute(data, SAFE)
+        # All cycle times should be identical (30.0 days each) → zero variance.
+        vals = [p.cycle_days for p in result.chart_data]
+        assert len(vals) == 12
+        assert all(v == pytest.approx(30.0) for v in vals), f"Expected all 30.0, got {vals}"
