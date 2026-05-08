@@ -9,6 +9,24 @@ Das Format orientiert sich an [Keep a Changelog](https://keepachangelog.com/de/1
 
 ---
 
+## [0.9.5] – 2026-05-08
+
+### Added
+- `get_data`: Neues Benutzerhandbuch (DE + EN) — beschreibt den manuellen Export
+  echter Jira-Daten über die REST API: API-Token erstellen, curl-Abfragen,
+  benötigte Felder, Paginierung bei mehr als 1.000 Issues, Workflow-Datei ableiten.
+- `launcher`: „Handbuch öffnen"-Button im Get-Data-Workaround-Dialog — öffnet das
+  neue get_data-Benutzerhandbuch direkt im Browser (DE/EN sprachabhängig).
+
+### Changed
+- `testdata_generator`: Kapitel 6 (Jira Cloud Export) aus dem Benutzerhandbuch
+  ausgelagert — der Inhalt gehört inhaltlich zu `get_data`. Das Handbuch hat
+  jetzt 7 Kapitel; Querverweise zeigen auf das neue Get-Data-Handbuch.
+- `modules/get_data`: Modul-Dokumentation mit Workaround-Schritten und Links
+  zum neuen Benutzerhandbuch aktualisiert.
+
+---
+
 ## [0.9.4] – 2026-05-07
 
 ### Fixed

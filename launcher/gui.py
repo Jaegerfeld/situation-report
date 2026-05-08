@@ -70,6 +70,14 @@ _MANUAL_URLS: dict[str, str] = {
     LANG_FR: "https://jaegerfeld.github.io/situation-report/launcher_ManuelUtilisateur.pdf",
 }
 
+_GET_DATA_MANUAL_URLS: dict[str, str] = {
+    LANG_DE: "https://jaegerfeld.github.io/situation-report/get_data_Benutzerhandbuch.pdf",
+    LANG_EN: "https://jaegerfeld.github.io/situation-report/get_data_UserManual.pdf",
+    LANG_RO: "https://jaegerfeld.github.io/situation-report/get_data_UserManual.pdf",
+    LANG_PT: "https://jaegerfeld.github.io/situation-report/get_data_UserManual.pdf",
+    LANG_FR: "https://jaegerfeld.github.io/situation-report/get_data_UserManual.pdf",
+}
+
 
 def _load_lang_pref() -> str:
     """Load the last-used language preference from disk, defaulting to English."""
@@ -139,6 +147,7 @@ _T: dict[str, dict[str, str]] = {
             "   laden."
         ),
         "btn_launch_helper":              "Helper starten",
+        "btn_open_manual":                "Handbuch öffnen",
         "btn_close":                      "Schließen",
     },
     LANG_EN: {
@@ -179,6 +188,7 @@ _T: dict[str, dict[str, str]] = {
             "   Launch Transform Data → load the (merged) JSON file."
         ),
         "btn_launch_helper":              "Launch Helper",
+        "btn_open_manual":                "Open manual",
         "btn_close":                      "Close",
     },
     LANG_RO: {
@@ -220,6 +230,7 @@ _T: dict[str, dict[str, str]] = {
             "   (combinat)."
         ),
         "btn_launch_helper":              "Lansare Helper",
+        "btn_open_manual":                "Deschideți manualul",
         "btn_close":                      "Închidere",
     },
     LANG_PT: {
@@ -261,6 +272,7 @@ _T: dict[str, dict[str, str]] = {
             "   (combinado)."
         ),
         "btn_launch_helper":              "Iniciar Helper",
+        "btn_open_manual":                "Abrir manual",
         "btn_close":                      "Fechar",
     },
     LANG_FR: {
@@ -302,6 +314,7 @@ _T: dict[str, dict[str, str]] = {
             "   (fusionné)."
         ),
         "btn_launch_helper":              "Lancer Helper",
+        "btn_open_manual":                "Ouvrir le manuel",
         "btn_close":                      "Fermer",
     },
 }
@@ -674,6 +687,17 @@ class LauncherApp(tk.Tk):
             text=self._tr("btn_close"),
             command=dlg.destroy,
         ).pack(side="right")
+
+        if module_id == "get_data":
+            ttk.Button(
+                btn_frame,
+                text=self._tr("btn_open_manual"),
+                command=lambda: webbrowser.open(
+                    _GET_DATA_MANUAL_URLS.get(
+                        self._lang_var.get(), _GET_DATA_MANUAL_URLS[LANG_EN]
+                    )
+                ),
+            ).pack(side="left")
 
         dlg.update_idletasks()
         x = self.winfo_x() + (self.winfo_width() - dlg.winfo_width()) // 2
