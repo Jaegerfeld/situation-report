@@ -74,3 +74,9 @@ python -m build_reports IssueTimes.xlsx --metrics flow_time process_flow process
 ## Templates
 
 Die GUI unterstützt das Speichern und Laden aller Einstellungen als JSON-Template (Menü → Templates). Templates sind versioniert (`"version": 4`) und abwärtskompatibel.
+
+## Hinweis: Flow Time Methode B und Workflow-Aufbau
+
+Methode B summiert die Stage-Minuten **bis ausschließlich der `<Closed>`-Stage**. Stages, die nach der Closed-Stage im Workflow definiert sind (z. B. „Monitoring", „Done"), werden ebenfalls nicht eingerechnet. Die Closed-Stage selbst enthält für abgeschlossene Issues einen Carry-forward-Wert (`reference_dt − closed_date`), der die gemessene Cycle Time verzerren würde — er wird daher ausgeschlossen.
+
+Methode A (Kalendertage `First Date → Closed Date`) ist davon nicht betroffen und empfiehlt sich als Vergleich.

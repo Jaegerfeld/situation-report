@@ -30,7 +30,7 @@ müssen diese Dateien zu einer einzigen zusammengeführt werden.
 
 ```
 ┌──────────────────────────────────────────────────┐
-│  helper – JSON Merger  v0.9.2                    │
+│  helper – JSON Merger  v0.9.4                    │
 ├──────────────────────────────────────────────────┤
 │  Eingabedateien                                  │
 │  ┌────────────────────────────────────────────┐  │

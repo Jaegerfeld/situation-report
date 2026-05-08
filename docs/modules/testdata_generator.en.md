@@ -92,3 +92,7 @@ testdata_generator/
 ```bash
 python -m pytest tests/testdata_generator/
 ```
+
+## Note: Random cycle time distribution
+
+The generator ensures that completed issues close **before** the configured `to-date`. The creation date is sampled from a restricted window `[from-date, latest_start]` where `latest_start` leaves enough buffer for the maximum cycle time. This produces an evenly distributed, random point cloud in the Flow Time scatter plot rather than a descending diagonal (right-censoring artefact).
