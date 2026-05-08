@@ -9,6 +9,17 @@ Das Format orientiert sich an [Keep a Changelog](https://keepachangelog.com/de/1
 
 ---
 
+## [0.9.7] – 2026-05-09
+
+### Changed
+- `testdata_generator`, `helper`: GUI-Sprachauswahl und Handbuch-Aufruf vereinheitlicht.
+  Beide Module folgen jetzt dem `build_reports`/`transform_data`-Standard:
+  5 Sprachen (DE/EN/RO/PT/FR), persistierte Sprachauswahl (`prefs.json`),
+  `Hilfe → Manual`-Menüeintrag, Flaggen-Kaskade als Sprachumschalter.
+  `helper` hat erstmals einen Manual-Menüeintrag (URL folgt mit PDF-Erstellung).
+
+---
+
 ## [0.9.6] – 2026-05-08
 
 ### Changed
