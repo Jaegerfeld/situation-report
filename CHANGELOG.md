@@ -9,6 +9,17 @@ Das Format orientiert sich an [Keep a Changelog](https://keepachangelog.com/de/1
 
 ---
 
+## [0.9.6] – 2026-05-08
+
+### Changed
+- `get_data`: Benutzerhandbuch Abschnitte 1.3 und 1.5 auf aktuelle Jira Cloud API v3
+  aktualisiert. Die neue API (`POST /rest/api/3/search/jql`) verwendet cursor-basierte
+  Paginierung mit `nextPageToken` statt `startAt`. Beide Varianten werden erklärt:
+  v3 (neu, empfohlen) und v2 (Legacy, weiterhin unterstützt). `startAt` ist im
+  neuen v3-Endpunkt nicht mehr verfügbar.
+
+---
+
 ## [0.9.5] – 2026-05-08
 
 ### Added
