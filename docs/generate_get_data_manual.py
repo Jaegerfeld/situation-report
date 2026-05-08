@@ -299,9 +299,39 @@ def content_de(st: dict) -> list:
               SP(6),
 
               H2("1.3  Die Jira REST API abfragen", st),
-              P("Die Jira REST API v2 liefert Issues im JSON-Format. Der Parameter "
-                "<font name='Courier'>expand=changelog</font> ist <b>Pflicht</b> — "
-                "ohne ihn fehlen die Statusübergänge, die transform_data benötigt.", st),
+              P("Jira Cloud bietet zwei API-Varianten. Für neue Skripte empfiehlt sich "
+                "die aktuelle v3-API; bestehende v2-Skripte funktionieren weiterhin. "
+                "<font name='Courier'>expand=changelog</font> ist in <b>beiden</b> "
+                "Varianten Pflicht — ohne ihn fehlen die Statusübergänge, die "
+                "transform_data benötigt.", st),
+
+              H3("Aktuelle API (v3) – empfohlen", st),
+              P("Endpoint: <font name='Courier'>POST /rest/api/3/search/jql</font><br/>"
+                "Parameter werden als JSON im Request-Body übergeben. "
+                "Die Antwort enthält zusätzlich "
+                "<font name='Courier'>isLast</font> und "
+                "<font name='Courier'>nextPageToken</font> für die Paginierung "
+                "(Abschnitt 1.5).", st),
+              PRE("curl -X POST \\\n"
+                  "  \"https://firma.atlassian.net/rest/api/3/search/jql\" \\\n"
+                  "  -u \"name@firma.de:IhrAPIToken\" \\\n"
+                  "  -H \"Content-Type: application/json\" \\\n"
+                  "  -d '{\"jql\":\"project=ART_A ORDER BY created ASC\",\n"
+                  "       \"maxResults\":100,\n"
+                  "       \"expand\":[\"changelog\"],\n"
+                  "       \"fields\":[\"issuetype\",\"created\",\n"
+                  "                  \"status\",\"summary\"]}' \\\n"
+                  "  -o ART_A_page1.json", st),
+              HI("maxResults ist bei der v3-API auf 100 Issues pro Anfrage begrenzt. "
+                 "Verwenden Sie nextPageToken für Projekte mit mehr als 100 Issues "
+                 "(Abschnitt 1.5).", st),
+              SP(6),
+
+              H3("Ältere API (v2) – weiterhin unterstützt", st),
+              P("Endpoint: <font name='Courier'>GET /rest/api/2/search</font><br/>"
+                "Parameter als URL-Query-String. Unterstützt bis zu 1.000 Issues "
+                "pro Anfrage und Offset-Paginierung mit "
+                "<font name='Courier'>startAt</font>.", st),
               PRE("curl -u \"name@firma.de:IhrAPIToken\" \\\n"
                   "  \"https://firma.atlassian.net/rest/api/2/search?\\\n"
                   "jql=project=ART_A+ORDER+BY+created+ASC\\\n"
@@ -309,17 +339,8 @@ def content_de(st: dict) -> list:
                   "&maxResults=1000\\\n"
                   "&fields=issuetype,created,status,project,summary,resolution\" \\\n"
                   "  -o ART_A_page1.json", st),
-              P("Ersetzen Sie <font name='Courier'>firma</font> durch Ihre "
-                "Atlassian-Subdomain und <font name='Courier'>ART_A</font> durch Ihren "
-                "Projekt-Key.", st),
-              H3("Browser-Methode (ohne curl)", st),
-              P("Wer curl nicht installiert hat, kann die URL direkt im Browser aufrufen "
-                "— der Browser nutzt die bestehende Jira-Session:", st),
-              PRE("https://firma.atlassian.net/rest/api/2/search\n"
-                  "  ?jql=project=ART_A&expand=changelog&maxResults=1000", st),
-              P("Der Browser zeigt die JSON-Antwort als Text. "
-                "<b>Strg+S</b> → Dateityp 'Alle Dateien' → Als "
-                "<font name='Courier'>ART_A_page1.json</font> speichern.", st),
+              HI("Tipp: Für neue Skripte empfiehlt sich die v3-API. "
+                 "Bestehende v2-Skripte müssen nicht migriert werden.", st),
               SP(6),
 
               H2("1.4  Welche Felder transform_data benötigt", st),
@@ -341,26 +362,69 @@ def content_de(st: dict) -> list:
                   col_widths=[5.5 * cm, 1.5 * cm, 8.5 * cm]),
               SP(6),
 
-              H2("1.5  Paginierung – mehr als 1.000 Issues", st),
-              P("Jira liefert maximal 1.000 Issues pro Anfrage. Bei größeren Projekten "
-                "mehrere Seiten abrufen und anschließend mit dem Helper zusammenführen:", st),
-              PRE("# Seite 1 (Issues 1-1000)\n"
-                  "curl -u \"name@firma.de:Token\" \\\n"
-                  "  \"https://firma.atlassian.net/rest/api/2/search?jql=project=ART_A\\\n"
-                  "&expand=changelog&maxResults=1000&startAt=0\" \\\n"
+              H2("1.5  Paginierung – mehr als 100 Issues", st),
+
+              H3("API v3 – Cursor-basierte Paginierung (nextPageToken)", st),
+              P("Die v3-API liefert maximal 100 Issues pro Anfrage. Jede Antwort enthält "
+                "entweder einen <font name='Courier'>nextPageToken</font> für die nächste "
+                "Seite oder <font name='Courier'>\"isLast\": true</font>, wenn alle Issues "
+                "abgerufen wurden. Seiten müssen <b>sequenziell</b> abgerufen werden — "
+                "das Token aus der aktuellen Antwort wird im nächsten Request eingesetzt.", st),
+              PRE("# Seite 1 – ohne nextPageToken\n"
+                  "curl -X POST \\\n"
+                  "  \"https://firma.atlassian.net/rest/api/3/search/jql\" \\\n"
+                  "  -u \"name@firma.de:Token\" \\\n"
+                  "  -H \"Content-Type: application/json\" \\\n"
+                  "  -d '{\"jql\":\"project=ART_A ORDER BY created ASC\",\n"
+                  "       \"maxResults\":100,\"expand\":[\"changelog\"],\n"
+                  "       \"fields\":[\"issuetype\",\"created\",\n"
+                  "                  \"status\",\"summary\"]}' \\\n"
                   "  -o ART_A_page1.json\n\n"
-                  "# Seite 2 (Issues 1001-2000)\n"
+                  "# nextPageToken aus Seite 1 auslesen:\n"
+                  "#   cat ART_A_page1.json | grep nextPageToken\n"
+                  "#   (oder mit jq: jq -r '.nextPageToken' ART_A_page1.json)\n\n"
+                  "# Seite 2 – nextPageToken einfuegen\n"
+                  "curl -X POST \\\n"
+                  "  \"https://firma.atlassian.net/rest/api/3/search/jql\" \\\n"
+                  "  -u \"name@firma.de:Token\" \\\n"
+                  "  -H \"Content-Type: application/json\" \\\n"
+                  "  -d '{\"jql\":\"project=ART_A ORDER BY created ASC\",\n"
+                  "       \"maxResults\":100,\"expand\":[\"changelog\"],\n"
+                  "       \"fields\":[\"issuetype\",\"created\",\n"
+                  "                  \"status\",\"summary\"],\n"
+                  "       \"nextPageToken\":\"<Token aus Seite 1>\"}' \\\n"
+                  "  -o ART_A_page2.json\n\n"
+                  "# Wiederholen bis isLast:true in der Antwort\n\n"
+                  "# Alle Seiten zusammenfuehren\n"
+                  "python -m helper ART_A_page1.json ART_A_page2.json ... \\\n"
+                  "  --output ART_A_merged.json", st),
+              P("Wiederholen Sie den Vorgang, bis die Antwort "
+                "<font name='Courier'>\"isLast\": true</font> enthält. "
+                "Der <b>Helper</b> führt alle Seiten zusammen und entfernt "
+                "Duplikate automatisch.", st),
+              SP(6),
+
+              H3("API v2 – Offset-basierte Paginierung (startAt) – Legacy", st),
+              P("Die v2-API unterstützt bis zu 1.000 Issues pro Anfrage. "
+                "Mit <font name='Courier'>startAt</font> kann jede Seite direkt "
+                "angesprungen werden. "
+                "<b>Wichtig:</b> <font name='Courier'>startAt</font> ist nur mit "
+                "dem v2-Endpunkt kompatibel — nicht mit dem neuen v3-Endpunkt.", st),
+              PRE("# Seite 1 (Issues 1–1000)\n"
                   "curl -u \"name@firma.de:Token\" \\\n"
-                  "  \"https://firma.atlassian.net/rest/api/2/search?jql=project=ART_A\\\n"
-                  "&expand=changelog&maxResults=1000&startAt=1000\" \\\n"
+                  "  \"https://firma.atlassian.net/rest/api/2/search?\\\n"
+                  "jql=project=ART_A&expand=changelog&maxResults=1000&startAt=0\" \\\n"
+                  "  -o ART_A_page1.json\n\n"
+                  "# Seite 2 (Issues 1001–2000)\n"
+                  "curl -u \"name@firma.de:Token\" \\\n"
+                  "  \"https://firma.atlassian.net/rest/api/2/search?\\\n"
+                  "jql=project=ART_A&expand=changelog&maxResults=1000&startAt=1000\" \\\n"
                   "  -o ART_A_page2.json\n\n"
                   "# Dateien mit dem Helper zusammenfuehren\n"
                   "python -m helper ART_A_page1.json ART_A_page2.json \\\n"
                   "  --output ART_A_merged.json", st),
               P("Erhöhen Sie <font name='Courier'>startAt</font> schrittweise um 1.000, "
-                "bis das Ergebnis weniger als 1.000 Issues enthält — dann haben Sie alle "
-                "Seiten erfasst. Der <b>Helper</b> führt die Seiten zusammen und entfernt "
-                "Duplikate automatisch.", st),
+                "bis das Ergebnis weniger als 1.000 Issues enthält.", st),
               SP(6),
 
               H2("1.6  Vom JSON-Export zur Workflow-Datei", st),
@@ -508,10 +572,39 @@ def content_en(st: dict) -> list:
               SP(6),
 
               H2("1.3  Querying the Jira REST API", st),
-              P("The Jira REST API v2 returns issues as JSON. The parameter "
-                "<font name='Courier'>expand=changelog</font> is <b>required</b> — "
-                "without it, status transitions are missing and transform_data "
+              P("Jira Cloud offers two API variants. Use the current v3 API for new "
+                "scripts; existing v2 scripts continue to work. "
+                "<font name='Courier'>expand=changelog</font> is <b>required in both</b> "
+                "variants — without it, status transitions are missing and transform_data "
                 "cannot compute time-in-stage values.", st),
+
+              H3("Current API (v3) – recommended", st),
+              P("Endpoint: <font name='Courier'>POST /rest/api/3/search/jql</font><br/>"
+                "Parameters are passed as a JSON request body. "
+                "The response additionally includes "
+                "<font name='Courier'>isLast</font> and "
+                "<font name='Courier'>nextPageToken</font> for pagination "
+                "(Section 1.5).", st),
+              PRE("curl -X POST \\\n"
+                  "  \"https://company.atlassian.net/rest/api/3/search/jql\" \\\n"
+                  "  -u \"name@company.com:YourAPIToken\" \\\n"
+                  "  -H \"Content-Type: application/json\" \\\n"
+                  "  -d '{\"jql\":\"project=ART_A ORDER BY created ASC\",\n"
+                  "       \"maxResults\":100,\n"
+                  "       \"expand\":[\"changelog\"],\n"
+                  "       \"fields\":[\"issuetype\",\"created\",\n"
+                  "                  \"status\",\"summary\"]}' \\\n"
+                  "  -o ART_A_page1.json", st),
+              HI("maxResults is limited to 100 issues per request with the v3 API. "
+                 "Use nextPageToken for projects with more than 100 issues "
+                 "(Section 1.5).", st),
+              SP(6),
+
+              H3("Older API (v2) – still supported", st),
+              P("Endpoint: <font name='Courier'>GET /rest/api/2/search</font><br/>"
+                "Parameters as URL query string. Supports up to 1,000 issues per "
+                "request and offset-based pagination with "
+                "<font name='Courier'>startAt</font>.", st),
               PRE("curl -u \"name@company.com:YourAPIToken\" \\\n"
                   "  \"https://company.atlassian.net/rest/api/2/search?\\\n"
                   "jql=project=ART_A+ORDER+BY+created+ASC\\\n"
@@ -519,16 +612,8 @@ def content_en(st: dict) -> list:
                   "&maxResults=1000\\\n"
                   "&fields=issuetype,created,status,project,summary,resolution\" \\\n"
                   "  -o ART_A_page1.json", st),
-              P("Replace <font name='Courier'>company</font> with your Atlassian "
-                "subdomain and <font name='Courier'>ART_A</font> with your project key.", st),
-              H3("Browser method (without curl)", st),
-              P("If curl is not installed, open the URL directly in your browser — "
-                "it uses the existing Jira session:", st),
-              PRE("https://company.atlassian.net/rest/api/2/search\n"
-                  "  ?jql=project=ART_A&expand=changelog&maxResults=1000", st),
-              P("The browser displays the JSON response as text. "
-                "<b>Ctrl+S</b> → file type 'All files' → save as "
-                "<font name='Courier'>ART_A_page1.json</font>.", st),
+              HI("Tip: For new scripts, the v3 API is preferred. "
+                 "Existing v2 scripts do not need to be migrated.", st),
               SP(6),
 
               H2("1.4  Fields required by transform_data", st),
@@ -550,26 +635,69 @@ def content_en(st: dict) -> list:
                   col_widths=[5.5 * cm, 1.5 * cm, 8.5 * cm]),
               SP(6),
 
-              H2("1.5  Pagination – more than 1,000 issues", st),
-              P("Jira returns at most 1,000 issues per request. For larger projects, "
-                "fetch multiple pages and then merge them with the Helper:", st),
-              PRE("# Page 1 (issues 1-1000)\n"
-                  "curl -u \"name@company.com:Token\" \\\n"
-                  "  \"https://company.atlassian.net/rest/api/2/search?jql=project=ART_A\\\n"
-                  "&expand=changelog&maxResults=1000&startAt=0\" \\\n"
+              H2("1.5  Pagination – more than 100 issues", st),
+
+              H3("API v3 – Cursor-based pagination (nextPageToken)", st),
+              P("The v3 API returns at most 100 issues per request. Each response "
+                "contains either a <font name='Courier'>nextPageToken</font> for the "
+                "next page, or <font name='Courier'>\"isLast\": true</font> when all "
+                "issues have been fetched. Pages must be retrieved <b>sequentially</b> "
+                "— the token from the current response is used in the next request.", st),
+              PRE("# Page 1 – no nextPageToken\n"
+                  "curl -X POST \\\n"
+                  "  \"https://company.atlassian.net/rest/api/3/search/jql\" \\\n"
+                  "  -u \"name@company.com:Token\" \\\n"
+                  "  -H \"Content-Type: application/json\" \\\n"
+                  "  -d '{\"jql\":\"project=ART_A ORDER BY created ASC\",\n"
+                  "       \"maxResults\":100,\"expand\":[\"changelog\"],\n"
+                  "       \"fields\":[\"issuetype\",\"created\",\n"
+                  "                  \"status\",\"summary\"]}' \\\n"
                   "  -o ART_A_page1.json\n\n"
-                  "# Page 2 (issues 1001-2000)\n"
+                  "# Read nextPageToken from page 1:\n"
+                  "#   cat ART_A_page1.json | grep nextPageToken\n"
+                  "#   (or with jq: jq -r '.nextPageToken' ART_A_page1.json)\n\n"
+                  "# Page 2 – insert nextPageToken\n"
+                  "curl -X POST \\\n"
+                  "  \"https://company.atlassian.net/rest/api/3/search/jql\" \\\n"
+                  "  -u \"name@company.com:Token\" \\\n"
+                  "  -H \"Content-Type: application/json\" \\\n"
+                  "  -d '{\"jql\":\"project=ART_A ORDER BY created ASC\",\n"
+                  "       \"maxResults\":100,\"expand\":[\"changelog\"],\n"
+                  "       \"fields\":[\"issuetype\",\"created\",\n"
+                  "                  \"status\",\"summary\"],\n"
+                  "       \"nextPageToken\":\"<token from page 1>\"}' \\\n"
+                  "  -o ART_A_page2.json\n\n"
+                  "# Repeat until isLast:true appears in the response\n\n"
+                  "# Merge all pages\n"
+                  "python -m helper ART_A_page1.json ART_A_page2.json ... \\\n"
+                  "  --output ART_A_merged.json", st),
+              P("Repeat until the response contains "
+                "<font name='Courier'>\"isLast\": true</font>. "
+                "The <b>Helper</b> merges all pages and removes duplicates "
+                "automatically.", st),
+              SP(6),
+
+              H3("API v2 – Offset-based pagination (startAt) – Legacy", st),
+              P("The v2 API supports up to 1,000 issues per request. "
+                "With <font name='Courier'>startAt</font>, any page can be accessed "
+                "directly. <b>Important:</b> "
+                "<font name='Courier'>startAt</font> is only compatible with the v2 "
+                "endpoint — not with the new v3 endpoint.", st),
+              PRE("# Page 1 (issues 1–1,000)\n"
                   "curl -u \"name@company.com:Token\" \\\n"
-                  "  \"https://company.atlassian.net/rest/api/2/search?jql=project=ART_A\\\n"
-                  "&expand=changelog&maxResults=1000&startAt=1000\" \\\n"
+                  "  \"https://company.atlassian.net/rest/api/2/search?\\\n"
+                  "jql=project=ART_A&expand=changelog&maxResults=1000&startAt=0\" \\\n"
+                  "  -o ART_A_page1.json\n\n"
+                  "# Page 2 (issues 1,001–2,000)\n"
+                  "curl -u \"name@company.com:Token\" \\\n"
+                  "  \"https://company.atlassian.net/rest/api/2/search?\\\n"
+                  "jql=project=ART_A&expand=changelog&maxResults=1000&startAt=1000\" \\\n"
                   "  -o ART_A_page2.json\n\n"
                   "# Merge files with the Helper\n"
                   "python -m helper ART_A_page1.json ART_A_page2.json \\\n"
                   "  --output ART_A_merged.json", st),
               P("Increment <font name='Courier'>startAt</font> by 1,000 until the "
-                "response contains fewer than 1,000 issues — then you have fetched all "
-                "pages. The <b>Helper</b> merges the pages and removes duplicates "
-                "automatically.", st),
+                "response contains fewer than 1,000 issues.", st),
               SP(6),
 
               H2("1.6  From JSON export to workflow file", st),
