@@ -3,7 +3,7 @@
 # Repository:     https://github.com/Jaegerfeld/situation-report
 # KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
 # Erstellt:       03.05.2026
-# Geändert:       03.05.2026
+# Geändert:       08.05.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
@@ -17,8 +17,10 @@
 
 from __future__ import annotations
 
+import json
 import threading
 import tkinter as tk
+import webbrowser
 from pathlib import Path
 from tkinter import filedialog, scrolledtext, ttk
 
@@ -29,14 +31,59 @@ except ImportError:
 
 from .cli import run_merge
 
-_LANG_DE = "de"
-_LANG_EN = "en"
+LANG_DE = "de"
+LANG_EN = "en"
+LANG_RO = "ro"
+LANG_PT = "pt"
+LANG_FR = "fr"
+
+_LANG_ORDER = [LANG_DE, LANG_EN, LANG_RO, LANG_PT, LANG_FR]
+
+_LANG_FLAGS: dict[str, str] = {
+    LANG_DE: "🇩🇪", LANG_EN: "🇬🇧", LANG_RO: "🇷🇴", LANG_PT: "🇵🇹", LANG_FR: "🇫🇷",
+}
+
+_MANUAL_URLS: dict[str, str] = {
+    LANG_DE: "https://jaegerfeld.github.io/situation-report/helper_Benutzerhandbuch.pdf",
+    LANG_EN: "https://jaegerfeld.github.io/situation-report/helper_UserManual.pdf",
+    LANG_RO: "https://jaegerfeld.github.io/situation-report/helper_UserManual.pdf",
+    LANG_PT: "https://jaegerfeld.github.io/situation-report/helper_UserManual.pdf",
+    LANG_FR: "https://jaegerfeld.github.io/situation-report/helper_UserManual.pdf",
+}
+
+_PREFS_PATH = Path.home() / ".situation_report" / "prefs.json"
+
+
+def _load_lang_pref() -> str:
+    """Load the last-used language preference from disk, defaulting to English."""
+    try:
+        with open(_PREFS_PATH) as f:
+            val = json.load(f).get("lang", LANG_EN)
+            return val if val in _T else LANG_EN
+    except Exception:
+        return LANG_EN
+
+
+def _save_lang_pref(lang: str) -> None:
+    """Persist the language preference to disk."""
+    _PREFS_PATH.parent.mkdir(parents=True, exist_ok=True)
+    prefs: dict = {}
+    try:
+        with open(_PREFS_PATH) as f:
+            prefs = json.load(f)
+    except Exception:
+        pass
+    prefs["lang"] = lang
+    with open(_PREFS_PATH, "w") as f:
+        json.dump(prefs, f, indent=2)
+
 
 _T: dict[str, dict[str, str]] = {
-    _LANG_DE: {
+    LANG_DE: {
         "title":           f"helper – JSON Merger  {_VERSION}",
-        "menu_options":    "Optionen",
-        "menu_language":   "Sprache",
+        "menu_help":       "Hilfe",
+        "menu_manual":     "Manual",
+        "tip_language":    "Sprache wechseln",
         "lbl_inputs":      "Eingabedateien",
         "btn_add":         "Hinzufügen…",
         "btn_remove":      "Entfernen",
@@ -53,10 +100,11 @@ _T: dict[str, dict[str, str]] = {
         "dlg_add":         "JSON-Dateien hinzufügen",
         "dlg_output":      "Ausgabedatei wählen",
     },
-    _LANG_EN: {
+    LANG_EN: {
         "title":           f"helper – JSON Merger  {_VERSION}",
-        "menu_options":    "Options",
-        "menu_language":   "Language",
+        "menu_help":       "Help",
+        "menu_manual":     "Manual",
+        "tip_language":    "Change language",
         "lbl_inputs":      "Input files",
         "btn_add":         "Add…",
         "btn_remove":      "Remove",
@@ -81,30 +129,38 @@ class _App:
 
     def __init__(self, root: tk.Tk) -> None:
         self._root = root
-        self._lang = _LANG_DE
         self._running = False
         self._var_output = tk.StringVar()
         self._var_dedup = tk.BooleanVar(value=True)
         self._labels: dict[str, tk.Widget] = {}
+        self._lang_var = tk.StringVar(value=_load_lang_pref())
 
         self._build_menu()
         self._build_form()
         self._build_log()
-        self._apply_lang()
+        self._lang_var.trace_add("write", lambda *_: self._apply_language())
+        self._apply_language()
 
     def _t(self, key: str) -> str:
         """Look up a translation key for the current language."""
-        return _T[self._lang].get(key, key)
+        return _T.get(self._lang_var.get(), _T[LANG_EN]).get(key, key)
 
     def _build_menu(self) -> None:
-        """Build the Options → Language menu."""
+        """Build (or rebuild) the top menu bar with Help → Manual and a language flag."""
         menubar = tk.Menu(self._root)
-        self._menu_options = tk.Menu(menubar, tearoff=False)
-        lang_menu = tk.Menu(self._menu_options, tearoff=False)
-        lang_menu.add_command(label="Deutsch", command=lambda: self._set_lang(_LANG_DE))
-        lang_menu.add_command(label="English", command=lambda: self._set_lang(_LANG_EN))
-        self._menu_options.add_cascade(label="Language / Sprache", menu=lang_menu)
-        menubar.add_cascade(label="Optionen / Options", menu=self._menu_options)
+
+        help_menu = tk.Menu(menubar, tearoff=False)
+        menubar.add_cascade(label=self._t("menu_help"), menu=help_menu)
+        help_menu.add_command(label=self._t("menu_manual"), command=self._open_manual)
+
+        lang_menu = tk.Menu(menubar, tearoff=False)
+        lang_menu.add_radiobutton(label="🇩🇪  Deutsch",   variable=self._lang_var, value=LANG_DE)
+        lang_menu.add_radiobutton(label="🇬🇧  English",   variable=self._lang_var, value=LANG_EN)
+        lang_menu.add_radiobutton(label="🇷🇴  Română",    variable=self._lang_var, value=LANG_RO)
+        lang_menu.add_radiobutton(label="🇵🇹  Português", variable=self._lang_var, value=LANG_PT)
+        lang_menu.add_radiobutton(label="🇫🇷  Français",  variable=self._lang_var, value=LANG_FR)
+        menubar.add_cascade(label=_LANG_FLAGS.get(self._lang_var.get(), "🌐"), menu=lang_menu)
+
         self._root.config(menu=menubar)
 
     def _build_form(self) -> None:
@@ -182,18 +238,20 @@ class _App:
         )
         self._log.grid(row=0, column=0, sticky="nsew")
 
-    def _apply_lang(self) -> None:
+    def _apply_language(self) -> None:
         """Update all translatable widgets for the current language."""
+        _save_lang_pref(self._lang_var.get())
         self._root.title(self._t("title"))
         self._log_frame.configure(text=self._t("lbl_log"))
         for key, widget in self._labels.items():
             text = self._t(key)
             if hasattr(widget, "configure"):
                 widget.configure(text=text)
+        self._build_menu()
 
-    def _set_lang(self, lang: str) -> None:
-        self._lang = lang
-        self._apply_lang()
+    def _open_manual(self) -> None:
+        """Open the language-appropriate user manual PDF on GitHub Pages."""
+        webbrowser.open(_MANUAL_URLS.get(self._lang_var.get(), _MANUAL_URLS[LANG_EN]))
 
     def _add_files(self) -> None:
         """Open a multi-file dialog and add selected JSON files to the list."""
