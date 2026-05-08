@@ -18,7 +18,7 @@ Or via the start script in the portable package:
 
 ```
 ┌──────────────────────────────────────────┐
-│  SituationReport  v0.9.4  BETA     ?  🌐 │
+│  SituationReport  v0.9.8  BETA     ?  🌐 │
 ├──────────────────────────────────────────┤
 │  ┌──────────────┐ ┌──────────────┐       │
 │  │  🔄          │ │  📊          │       │
@@ -74,7 +74,7 @@ The launcher shows two levels of maturity badges:
 On startup, the launcher checks in the background whether a newer version is available on GitHub. If so, a yellow banner appears above the module grid:
 
 ```
-Update available: v0.9.4   [Download]
+Update available: v0.9.8   [Download]
 ```
 
 Clicking **Download** opens the GitHub releases page in the browser. The check runs silently — no error is shown when there is no internet connection.
