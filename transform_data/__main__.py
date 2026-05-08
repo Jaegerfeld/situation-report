@@ -3,7 +3,7 @@
 # Repository:     https://github.com/Jaegerfeld/situation-report
 # KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
 # Erstellt:       10.04.2026
-# Geändert:       10.04.2026
+# Geändert:       09.05.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
@@ -31,7 +31,16 @@ def main() -> None:
                 file=sys.stderr,
             )
             sys.exit(1)
-        from transform_data.gui import TransformApp
+        try:
+            from transform_data.gui import TransformApp
+        except ImportError as exc:
+            print(
+                f"ERROR: GUI dependencies are not installed ({exc}).\n"
+                "Install them with:  pip install situation-report[gui]\n"
+                "Or run the CLI:     python -m transform_data <json> <workflow> --help",
+                file=sys.stderr,
+            )
+            sys.exit(1)
         TransformApp().mainloop()
 
 

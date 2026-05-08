@@ -9,6 +9,18 @@ Das Format orientiert sich an [Keep a Changelog](https://keepachangelog.com/de/1
 
 ---
 
+## [0.9.8] – 2026-05-09
+
+### Changed
+- `transform_data`, `testdata_generator`, `helper`: Emoji-Flaggen-Kaskade im Menü
+  durch pixel-gezeichnete `PhotoImage`-Flaggen-Buttons ersetzt (32×20 px, inline,
+  keine externen Dateien). Windows rendert Regional-Indicator-Emoji nicht als
+  Flaggen — sie erschienen als Länderkürzel ("DE", "EN"). Neues Verhalten:
+  Klick auf die Flagge oben rechts im Formular zykliert durch DE/EN/RO/PT/FR.
+  Entspricht jetzt dem `build_reports`-Standard.
+
+---
+
 ## [0.9.7] – 2026-05-09
 
 ### Changed

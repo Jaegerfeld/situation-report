@@ -3,7 +3,7 @@
 # Repository:     https://github.com/Jaegerfeld/situation-report
 # KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
 # Erstellt:       10.04.2026
-# Geändert:       28.04.2026
+# Geändert:       09.05.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
@@ -199,10 +199,6 @@ _MANUAL_URLS: dict[str, str] = {
     LANG_FR: "https://jaegerfeld.github.io/situation-report/transform_data_UserManual.pdf",
 }
 
-_LANG_FLAGS: dict[str, str] = {
-    LANG_DE: "🇩🇪", LANG_EN: "🇬🇧", LANG_RO: "🇷🇴", LANG_PT: "🇵🇹", LANG_FR: "🇫🇷",
-}
-
 _PREFS_PATH = Path.home() / ".situation_report" / "prefs.json"
 
 
@@ -256,6 +252,8 @@ class TransformApp(tk.Tk):
         self._btn_browse_output: ttk.Button
         self._run_btn: ttk.Button
 
+        self._flag_imgs: dict[str, tk.PhotoImage] = {}
+        self._create_flag_imgs()
         self._build_ui()
         self._apply_language()
         self._fit_to_screen()
@@ -282,27 +280,69 @@ class TransformApp(tk.Tk):
     # -------------------------------------------------------------------------
 
     def _build_menubar(self) -> None:
-        """Build (or rebuild) the top menu bar with Help → Manual and a language flag."""
+        """Build (or rebuild) the top menu bar with Help → Manual."""
         menubar = tk.Menu(self)
 
         help_menu = tk.Menu(menubar, tearoff=0)
         menubar.add_cascade(label=self._tr("menu_help"), menu=help_menu)
         help_menu.add_command(label=self._tr("menu_manual"), command=self._open_manual)
 
-        # Language flag (rightmost)
-        lang_menu = tk.Menu(menubar, tearoff=0)
-        lang_menu.add_radiobutton(label="🇩🇪  Deutsch",   variable=self._lang_var, value=LANG_DE)
-        lang_menu.add_radiobutton(label="🇬🇧  English",   variable=self._lang_var, value=LANG_EN)
-        lang_menu.add_radiobutton(label="🇷🇴  Română",    variable=self._lang_var, value=LANG_RO)
-        lang_menu.add_radiobutton(label="🇵🇹  Português", variable=self._lang_var, value=LANG_PT)
-        lang_menu.add_radiobutton(label="🇫🇷  Français",  variable=self._lang_var, value=LANG_FR)
-        menubar.add_cascade(label=_LANG_FLAGS.get(self._lang_var.get(), "🌐"), menu=lang_menu)
-
         self.config(menu=menubar)
 
     def _open_manual(self) -> None:
         """Open the language-appropriate user manual PDF on GitHub Pages."""
         webbrowser.open(_MANUAL_URLS.get(self._lang_var.get(), _MANUAL_URLS[LANG_EN]))
+
+    def _create_flag_imgs(self) -> None:
+        """Build PhotoImage objects for all supported language flags using inline pixel drawing."""
+        W, H = 32, 20
+
+        de = tk.PhotoImage(width=W, height=H)
+        for y in range(H):
+            color = ["#000000", "#DD0000", "#FFCC00"][y * 3 // H]
+            de.put("{" + " ".join([color] * W) + "}", to=(0, y))
+
+        gb = tk.PhotoImage(width=W, height=H)
+        for y in range(H):
+            row: list[str] = []
+            for x in range(W):
+                cx = abs(x - (W - 1) / 2)
+                cy = abs(y - (H - 1) / 2)
+                nx, ny = x / (W - 1), y / (H - 1)
+                if cx < W * 0.13 or cy < H * 0.13:
+                    row.append("#C8102E")
+                elif cx < W * 0.24 or cy < H * 0.24:
+                    row.append("#FFFFFF")
+                elif abs(nx - ny) < 0.16 or abs(nx - (1 - ny)) < 0.16:
+                    row.append("#FFFFFF")
+                else:
+                    row.append("#012169")
+            gb.put("{" + " ".join(row) + "}", to=(0, y))
+
+        ro = tk.PhotoImage(width=W, height=H)
+        for y in range(H):
+            row = ["#002B7F" if x < W // 3 else "#FCD116" if x < 2 * W // 3 else "#CE1126"
+                   for x in range(W)]
+            ro.put("{" + " ".join(row) + "}", to=(0, y))
+
+        pt = tk.PhotoImage(width=W, height=H)
+        for y in range(H):
+            row = ["#006600" if x < W * 2 // 5 else "#FF0000" for x in range(W)]
+            pt.put("{" + " ".join(row) + "}", to=(0, y))
+
+        fr = tk.PhotoImage(width=W, height=H)
+        for y in range(H):
+            row = ["#002395" if x < W // 3 else "#FFFFFF" if x < 2 * W // 3 else "#ED2939"
+                   for x in range(W)]
+            fr.put("{" + " ".join(row) + "}", to=(0, y))
+
+        self._flag_imgs = {LANG_DE: de, LANG_EN: gb, LANG_RO: ro, LANG_PT: pt, LANG_FR: fr}
+
+    def _toggle_language(self) -> None:
+        """Cycle the UI language through all available languages."""
+        current = self._lang_var.get()
+        idx = _LANG_ORDER.index(current) if current in _LANG_ORDER else -1
+        self._lang_var.set(_LANG_ORDER[(idx + 1) % len(_LANG_ORDER)])
 
     # -------------------------------------------------------------------------
     # UI build
@@ -312,6 +352,7 @@ class TransformApp(tk.Tk):
         """Build all widgets. Labels and buttons are stored for language updates."""
         pad = {"padx": 8, "pady": 4}
         self.columnconfigure(1, weight=1)
+        self.columnconfigure(3, minsize=44)
 
         self._lbl_json = tk.Label(self, anchor="w")
         self._lbl_json.grid(row=0, column=0, sticky="w", **pad)
@@ -343,6 +384,18 @@ class TransformApp(tk.Tk):
             row=3, column=1, sticky="ew", **pad
         )
 
+        self._flag_btn = tk.Button(
+            self,
+            image=self._flag_imgs[self._lang_var.get()],
+            command=self._toggle_language,
+            relief="flat",
+            cursor="hand2",
+            bd=0,
+            padx=4,
+            pady=2,
+        )
+        self._flag_btn.grid(row=0, column=3, sticky="ne", rowspan=4, padx=(2, 8))
+
         self._run_btn = ttk.Button(self, command=self._run)
         self._run_btn.grid(row=4, column=0, columnspan=3, pady=8)
 
@@ -363,6 +416,7 @@ class TransformApp(tk.Tk):
         _save_lang_pref(self._lang_var.get())
         self.title(f"{self._tr('window_title')}  v{_VERSION}")
         self._build_menubar()
+        self._flag_btn.configure(image=self._flag_imgs[self._lang_var.get()])
         self._lbl_json.config(text=self._tr("lbl_json"))
         self._lbl_workflow.config(text=self._tr("lbl_workflow"))
         self._lbl_output_dir.config(text=self._tr("lbl_output_dir"))

@@ -18,7 +18,7 @@ Oder über die Startdatei im portablen Paket:
 
 ```
 ┌──────────────────────────────────────────┐
-│  SituationReport  v0.9.4  BETA     ?  🌐 │
+│  SituationReport  v0.9.8  BETA     ?  🌐 │
 ├──────────────────────────────────────────┤
 │  ┌──────────────┐ ┌──────────────┐       │
 │  │  🔄          │ │  📊          │       │
@@ -74,7 +74,7 @@ Der Launcher zeigt zwei Arten von Reifegrad-Badges:
 Beim Start prüft der Launcher im Hintergrund, ob auf GitHub eine neuere Version verfügbar ist. Ist das der Fall, erscheint ein gelbes Banner oberhalb des Modul-Grids:
 
 ```
-Update verfügbar: v0.9.4   [Herunterladen]
+Update verfügbar: v0.9.8   [Herunterladen]
 ```
 
 Ein Klick auf **Herunterladen** öffnet die GitHub-Release-Seite im Browser. Die Prüfung läuft ohne Netz-Anforderung — bei fehlendem Internet erscheint kein Fehler.
