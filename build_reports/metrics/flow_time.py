@@ -3,7 +3,7 @@
 # Repository:     https://github.com/Jaegerfeld/situation-report
 # KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
 # Erstellt:       15.04.2026
-# Geändert:       25.04.2026
+# Geändert:       07.05.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
@@ -215,18 +215,29 @@ class FlowTimeMetric(MetricPlugin):
     ct_method: str = CT_METHOD_A
     target_ct: int = 90
 
-    def _cycle_days_method_b(self, issue: IssueRecord, stages: list[str]) -> float:
+    def _cycle_days_method_b(
+        self, issue: IssueRecord, stages: list[str], closed_stage: str | None
+    ) -> float:
         """
-        Compute cycle time via Method B: sum of stage minutes excluding the last stage.
+        Compute cycle time via Method B: sum of stage minutes up to (excluding) closed_stage.
+
+        Stage minutes for the closed_stage and any stages after it are excluded because
+        closed issues that remain in the closed stage accumulate carry-forward time
+        (reference_dt - closed_date), which creates a false negative correlation between
+        closed_date and cycle_time in the scatter plot.
 
         Args:
-            issue:  IssueRecord with stage_minutes populated.
-            stages: Ordered list of workflow stages from ReportData.
+            issue:        IssueRecord with stage_minutes populated.
+            stages:       Ordered list of workflow stages from ReportData.
+            closed_stage: The workflow's closed stage name (from ReportData.closed_stage).
 
         Returns:
             Cycle time in days (float), or 0.0 if no relevant stage data.
         """
-        stages_to_sum = stages[:-1] if len(stages) > 1 else stages
+        if closed_stage and closed_stage in stages:
+            stages_to_sum = stages[: stages.index(closed_stage)]
+        else:
+            stages_to_sum = stages[:-1] if len(stages) > 1 else stages
         minutes = sum(issue.stage_minutes.get(s, 0) for s in stages_to_sum)
         return round(minutes / 1440, 2)
 
@@ -256,7 +267,7 @@ class FlowTimeMetric(MetricPlugin):
                 continue
 
             if self.ct_method == CT_METHOD_B:
-                delta = self._cycle_days_method_b(issue, data.stages)
+                delta = self._cycle_days_method_b(issue, data.stages, data.closed_stage)
             else:
                 delta = (issue.closed_date - issue.first_date).total_seconds() / 86400
                 delta = round(delta, 2)
