@@ -3,14 +3,14 @@
 # Repository:     https://github.com/Jaegerfeld/situation-report
 # KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
 # Erstellt:       03.05.2026
-# Geändert:       03.05.2026
+# Geändert:       08.05.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
 #   Erzeugt das Benutzerhandbuch für testdata_generator als PDF in Deutsch und
-#   Englisch. Beschreibt Start, Workflow-Datei, Parameter, vollständiges ART_A-
-#   Beispiel sowie den Export echter Daten aus Jira Cloud (API-Token, curl,
-#   Paginierung, Helper-Nutzung).
+#   Englisch. Beschreibt Start, Workflow-Datei, Parameter und vollständiges
+#   ART_A-Beispiel. Der Jira-Datenexport (API-Token, curl, Paginierung) ist im
+#   Benutzerhandbuch von get_data dokumentiert.
 # =============================================================================
 
 import sys
@@ -139,9 +139,9 @@ def _build_cover(canvas, doc, lang: str = "de"):
     w, h = A4
     subtitle = "Benutzerhandbuch" if lang == "de" else "User Manual"
     tagline = (
-        "Synthetische Jira-Daten erzeugen und echte Daten aus Jira Cloud exportieren"
+        "Synthetische Jira-Issue-Daten für SituationReport erzeugen"
         if lang == "de"
-        else "Generate synthetic Jira data and export real data from Jira Cloud"
+        else "Generate synthetic Jira issue data for SituationReport"
     )
     audience = (
         "Fuer Agile Coaches und PI Manager"
@@ -314,8 +314,9 @@ def content_de(st: dict) -> list:
                   st),
               SP(8),
               P("Der Testdata Generator ergänzt das Modul <b>Get Data</b> (noch in "
-                "Entwicklung), das echte Daten direkt aus Jira lädt. Für Produktiv-"
-                "umgebungen mit echten Jira-Daten siehe Kapitel 6.", st)]
+                "Entwicklung), das echte Daten direkt aus Jira lädt. Für den manuellen "
+                "Export echter Jira-Daten steht das <b>Benutzerhandbuch Get Data</b> "
+                "zur Verfügung.", st)]
 
     # ---- 2. Voraussetzungen und Start ----
     story += [PageBreak(),
@@ -464,165 +465,21 @@ def content_de(st: dict) -> list:
                   "- Erstellungsdaten verteilt über das Jahr 2025<br/>"
                   "- Gelegentliche Rückschritte (backflow-prob 0.08 = ca. 8 %)", st)]
 
-    # ---- 6. Echte Daten aus Jira Cloud exportieren ----
+    # ---- 6. FAQ ----
     story += [PageBreak(),
-              H1("6  Echte Daten aus Jira Cloud exportieren", st), HR(),
-              P("Dieses Kapitel erklärt, wie Sie echte Issue-Daten aus Jira Cloud für "
-                "SituationReport exportieren. Der Export liefert dieselbe JSON-Struktur "
-                "wie der Testdata Generator — transform_data verarbeitet beide "
-                "identisch.", st),
-
-              H2("6.1  Was Sie benötigen", st),
-              tbl(["Voraussetzung", "Details"],
-                  [["Jira Cloud Zugang",
-                    "Ein Konto mit Lesezugriff auf das gewünschte Projekt"],
-                   ["API-Token",
-                    "Persönliches Token von id.atlassian.com — einmalig erstellen"],
-                   ["Projekt-Key",
-                    "Kürzel des Jira-Projekts, z. B. 'ART_A' oder 'SCRUM'"],
-                   ["curl oder Browser",
-                    "curl für automatisierte Abfragen; Browser für einfache Tests"]],
-                  col_widths=[4.5 * cm, 11 * cm]),
-              SP(8),
-
-              H2("6.2  API-Token erstellen", st),
-              P("Das API-Token ersetzt bei API-Abfragen Ihr Passwort und wird "
-                "einmalig erstellt:", st),
-              tbl(["Schritt", "Aktion"],
-                  [["1", "https://id.atlassian.com im Browser aufrufen (in Jira eingeloggt sein)"],
-                   ["2", "Security → API tokens → Create API token"],
-                   ["3", "Einen Namen eingeben, z. B. 'SituationReport', auf 'Create' klicken"],
-                   ["4", "Token kopieren und sicher speichern — er wird nur einmal angezeigt!"]],
-                  col_widths=[1.5 * cm, 14 * cm]),
-              SP(4),
-              HI("Sicherheitshinweis: Behandeln Sie den API-Token wie ein Passwort. "
-                 "Speichern Sie ihn in einem Passwort-Manager und teilen Sie ihn "
-                 "nicht mit anderen.", st),
-              SP(6),
-
-              H2("6.3  Die Jira REST API abfragen", st),
-              P("Die Jira REST API v2 liefert Issues im JSON-Format. Der Parameter "
-                "<font name='Courier'>expand=changelog</font> ist <b>Pflicht</b> — "
-                "ohne ihn fehlen die Statusübergänge, die transform_data benötigt.", st),
-              PRE("curl -u \"name@firma.de:IhrAPIToken\" \\\n"
-                  "  \"https://firma.atlassian.net/rest/api/2/search?\\\n"
-                  "jql=project=ART_A+ORDER+BY+created+ASC\\\n"
-                  "&expand=changelog\\\n"
-                  "&maxResults=1000\\\n"
-                  "&fields=issuetype,created,status,project,summary,resolution\" \\\n"
-                  "  -o ART_A_page1.json", st),
-              P("Ersetzen Sie <font name='Courier'>firma</font> durch Ihre "
-                "Atlassian-Subdomain und <font name='Courier'>ART_A</font> durch Ihren "
-                "Projekt-Key.", st),
-              H3("Browser-Methode (ohne curl)", st),
-              P("Wer curl nicht installiert hat, kann die URL direkt im Browser aufrufen "
-                "— der Browser nutzt die bestehende Jira-Session:", st),
-              PRE("https://firma.atlassian.net/rest/api/2/search\n"
-                  "  ?jql=project=ART_A&expand=changelog&maxResults=1000", st),
-              P("Der Browser zeigt die JSON-Antwort als Text. "
-                "<b>Strg+S</b> → Dateityp 'Alle Dateien' → Als "
-                "<font name='Courier'>ART_A_page1.json</font> speichern.", st),
-              SP(6),
-
-              H2("6.4  Welche Felder transform_data benötigt", st),
-              tbl(["Jira-Feld", "Pflicht", "Verwendung"],
-                  [["key", "✓",
-                    "Issue-Kennung (z. B. ART_A-001)"],
-                   ["fields.issuetype.name", "✓",
-                    "Issue-Typ für Filterung (Feature, Bug, ...)"],
-                   ["fields.created", "✓",
-                    "Erstellungsdatum des Issues"],
-                   ["fields.status.name", "✓",
-                    "Aktueller Status"],
-                   ["changelog (expand=changelog)", "✓",
-                    "Statusübergänge mit Zeitstempeln — MUSS im URL-Parameter gesetzt sein"],
-                   ["fields.resolution", "–",
-                    "Optional — Auflösungstyp (z. B. 'Done', 'Won't Fix')"],
-                   ["fields.summary", "–",
-                    "Optional — Issue-Titel"]],
-                  col_widths=[5.5 * cm, 1.5 * cm, 8.5 * cm]),
-              SP(6),
-
-              H2("6.5  Paginierung – mehr als 1.000 Issues", st),
-              P("Jira liefert maximal 1.000 Issues pro Anfrage. Bei größeren Projekten "
-                "mehrere Seiten abrufen und anschließend mit dem Helper zusammenführen:", st),
-              PRE("# Seite 1 (Issues 1-1000)\n"
-                  "curl -u \"name@firma.de:Token\" \\\n"
-                  "  \"https://firma.atlassian.net/rest/api/2/search?jql=project=ART_A\\\n"
-                  "&expand=changelog&maxResults=1000&startAt=0\" \\\n"
-                  "  -o ART_A_page1.json\n\n"
-                  "# Seite 2 (Issues 1001-2000)\n"
-                  "curl -u \"name@firma.de:Token\" \\\n"
-                  "  \"https://firma.atlassian.net/rest/api/2/search?jql=project=ART_A\\\n"
-                  "&expand=changelog&maxResults=1000&startAt=1000\" \\\n"
-                  "  -o ART_A_page2.json\n\n"
-                  "# Dateien mit dem Helper zusammenfuehren\n"
-                  "python -m helper ART_A_page1.json ART_A_page2.json \\\n"
-                  "  --output ART_A_merged.json", st),
-              P("Erhöhen Sie <font name='Courier'>startAt</font> schrittweise um 1.000, "
-                "bis das Ergebnis weniger als 1.000 Issues enthält — dann haben Sie alle "
-                "Seiten erfasst. Der <b>Helper</b> führt die Seiten zusammen und entfernt "
-                "Duplikate automatisch.", st),
-              SP(6),
-
-              H2("6.6  Vom JSON-Export zur Workflow-Datei", st),
-              P("Nach dem Export müssen Sie eine Workflow-Datei erstellen, die Ihre "
-                "tatsächlichen Jira-Status abbildet. Das folgende Python-Skript "
-                "extrahiert alle Status-Namen aus der JSON-Datei:", st),
-              PRE("import json\n"
-                  "data = json.loads(open('ART_A_page1.json').read())\n"
-                  "statuses = set()\n"
-                  "for issue in data['issues']:\n"
-                  "    for h in issue['changelog']['histories']:\n"
-                  "        for item in h['items']:\n"
-                  "            if item['field'] == 'status':\n"
-                  "                statuses.add(item['toString'])\n"
-                  "print(sorted(statuses))", st),
-              P("Aus den gefundenen Status-Namen erstellen Sie eine "
-                "<font name='Courier'>workflow.txt</font> — ordnen Sie die Status in "
-                "logischer Reihenfolge an und setzen Sie "
-                "<font name='Courier'>&lt;First&gt;</font> und "
-                "<font name='Courier'>&lt;Closed&gt;</font> "
-                "(Kapitel 3).", st)]
-
-    # ---- 7. FAQ ----
-    story += [PageBreak(),
-              H1("7  Häufige Fragen (FAQ)", st), HR(),
-
-              H2("Was passiert, wenn expand=changelog fehlt?", st),
-              P("transform_data findet keine Statusübergänge und gibt für alle Issues "
-                "leere Zeitwerte aus. Die Excel-Ausgaben enthalten keine nutzbaren "
-                "Daten. Stellen Sie sicher, dass "
-                "<font name='Courier'>expand=changelog</font> immer in der URL steht.", st),
+              H1("6  Häufige Fragen (FAQ)", st), HR(),
 
               H2("Unterschied zwischen Testdaten und echten Daten?", st),
-              P("Für Demos und Schulungen sind Testdaten die bessere Wahl — keine "
-                "Datenschutzbedenken, reproduzierbar und kontrolliert. "
-                "Für echte Analysen spiegeln echte Daten den tatsächlichen "
-                "Workflow-Zustand wider und liefern verlässliche Flow-Metriken.", st),
+              P("Für Demos, Schulungen und Installationstests sind Testdaten die bessere "
+                "Wahl — keine Datenschutzbedenken, reproduzierbar und kontrolliert. "
+                "Für echte Flow-Analysen und Entscheidungen spiegeln echte Daten den "
+                "tatsächlichen Workflow-Zustand wider.", st),
+              HI("Für den manuellen Export echter Jira-Daten (API-Token, curl, "
+                 "Paginierung): Siehe Benutzerhandbuch Get Data.", st)]
 
-              H2("Kann ich mehrere Jira-Projekte zusammenführen?", st),
-              P("Ja — entweder über JQL "
-                "(<font name='Courier'>jql=project in (ART_A, ART_B)</font>) für einen "
-                "einzigen Export, oder mit dem Helper mehrere separate Exporte "
-                "zusammenführen. Achten Sie darauf, dass die Workflows beider Projekte "
-                "kompatibel sind.", st),
-
-              H2("Wie groß kann die JSON-Datei werden?", st),
-              P("Faustregel: ca. 2–5 KB pro Issue (abhängig von der Changelog-Länge). "
-                "1.000 Issues entsprechen ca. 2–5 MB. Bei sehr großen Projekten "
-                "(10.000+ Issues) empfiehlt sich Paginierung und der Einsatz des "
-                "Helpers.", st),
-
-              H2("Ich erhalte den Fehler 'Unauthorized' beim curl-Aufruf.", st),
-              P("Prüfen Sie: E-Mail-Adresse und API-Token korrekt? Sind sie durch "
-                "einen Doppelpunkt getrennt? Hat Ihr Konto Lesezugriff auf das Projekt? "
-                "Tipp: Einen neuen API-Token generieren, falls der alte abgelaufen ist "
-                "oder verloren wurde.", st)]
-
-    # ---- 8. Glossar ----
+    # ---- 7. Glossar ----
     story += [PageBreak(),
-              H1("8  Glossar", st), HR(),
+              H1("7  Glossar", st), HR(),
               tbl(["Begriff", "Erklärung"],
                   [["ART",       "Agile Release Train — ein Team aus mehreren Scrum-Teams in SAFe"],
                    ["API",       "Application Programming Interface — Programmierschnittstelle"],
@@ -689,8 +546,8 @@ def content_en(st: dict) -> list:
                   st),
               SP(8),
               P("The Testdata Generator complements the <b>Get Data</b> module (still "
-                "in development), which loads real data directly from Jira. For "
-                "production environments with real Jira data, see Chapter 6.", st)]
+                "in development), which loads real data directly from Jira. For the "
+                "manual export of real Jira data, see the <b>Get Data User Manual</b>.", st)]
 
     # ---- 2. Prerequisites and Start ----
     story += [PageBreak(),
@@ -837,157 +694,21 @@ def content_en(st: dict) -> list:
                   "- Creation dates distributed across 2025<br/>"
                   "- Occasional backward transitions (backflow-prob 0.08 = ~8 %)", st)]
 
-    # ---- 6. Exporting Real Data from Jira Cloud ----
+    # ---- 6. FAQ ----
     story += [PageBreak(),
-              H1("6  Exporting Real Data from Jira Cloud", st), HR(),
-              P("This chapter explains how to export real issue data from Jira Cloud for "
-                "SituationReport. The export produces the same JSON structure as the "
-                "Testdata Generator — transform_data processes both identically.", st),
-
-              H2("6.1  What you need", st),
-              tbl(["Requirement", "Details"],
-                  [["Jira Cloud account",
-                    "An account with read access to the desired project"],
-                   ["API token",
-                    "Personal token from id.atlassian.com — created once"],
-                   ["Project key",
-                    "The Jira project shortcode, e.g. 'ART_A' or 'SCRUM'"],
-                   ["curl or browser",
-                    "curl for automated queries; browser for quick tests"]],
-                  col_widths=[4.5 * cm, 11 * cm]),
-              SP(8),
-
-              H2("6.2  Creating an API token", st),
-              P("The API token replaces your password for API calls and is created once:", st),
-              tbl(["Step", "Action"],
-                  [["1", "Open https://id.atlassian.com in your browser (while logged into Jira)"],
-                   ["2", "Security → API tokens → Create API token"],
-                   ["3", "Enter a label, e.g. 'SituationReport', click 'Create'"],
-                   ["4", "Copy the token and store it safely — it is only shown once!"]],
-                  col_widths=[1.5 * cm, 14 * cm]),
-              SP(4),
-              HI("Security note: Treat the API token like a password. Store it in a "
-                 "password manager and do not share it.", st),
-              SP(6),
-
-              H2("6.3  Querying the Jira REST API", st),
-              P("The Jira REST API v2 returns issues as JSON. The parameter "
-                "<font name='Courier'>expand=changelog</font> is <b>required</b> — "
-                "without it, status transitions are missing and transform_data "
-                "cannot compute time-in-stage values.", st),
-              PRE("curl -u \"name@company.com:YourAPIToken\" \\\n"
-                  "  \"https://company.atlassian.net/rest/api/2/search?\\\n"
-                  "jql=project=ART_A+ORDER+BY+created+ASC\\\n"
-                  "&expand=changelog\\\n"
-                  "&maxResults=1000\\\n"
-                  "&fields=issuetype,created,status,project,summary,resolution\" \\\n"
-                  "  -o ART_A_page1.json", st),
-              P("Replace <font name='Courier'>company</font> with your Atlassian "
-                "subdomain and <font name='Courier'>ART_A</font> with your project key.", st),
-              H3("Browser method (without curl)", st),
-              P("If curl is not installed, open the URL directly in your browser — "
-                "it uses the existing Jira session:", st),
-              PRE("https://company.atlassian.net/rest/api/2/search\n"
-                  "  ?jql=project=ART_A&expand=changelog&maxResults=1000", st),
-              P("The browser displays the JSON response as text. "
-                "<b>Ctrl+S</b> → file type 'All files' → save as "
-                "<font name='Courier'>ART_A_page1.json</font>.", st),
-              SP(6),
-
-              H2("6.4  Fields required by transform_data", st),
-              tbl(["Jira field", "Required", "Purpose"],
-                  [["key", "✓",
-                    "Issue identifier (e.g. ART_A-001)"],
-                   ["fields.issuetype.name", "✓",
-                    "Issue type for filtering (Feature, Bug, ...)"],
-                   ["fields.created", "✓",
-                    "Issue creation date"],
-                   ["fields.status.name", "✓",
-                    "Current status"],
-                   ["changelog (expand=changelog)", "✓",
-                    "Status transitions with timestamps — MUST be set in the URL"],
-                   ["fields.resolution", "–",
-                    "Optional — resolution type (e.g. 'Done', 'Won't Fix')"],
-                   ["fields.summary", "–",
-                    "Optional — issue title"]],
-                  col_widths=[5.5 * cm, 1.5 * cm, 8.5 * cm]),
-              SP(6),
-
-              H2("6.5  Pagination – more than 1,000 issues", st),
-              P("Jira returns at most 1,000 issues per request. For larger projects, "
-                "fetch multiple pages and then merge them with the Helper:", st),
-              PRE("# Page 1 (issues 1-1000)\n"
-                  "curl -u \"name@company.com:Token\" \\\n"
-                  "  \"https://company.atlassian.net/rest/api/2/search?jql=project=ART_A\\\n"
-                  "&expand=changelog&maxResults=1000&startAt=0\" \\\n"
-                  "  -o ART_A_page1.json\n\n"
-                  "# Page 2 (issues 1001-2000)\n"
-                  "curl -u \"name@company.com:Token\" \\\n"
-                  "  \"https://company.atlassian.net/rest/api/2/search?jql=project=ART_A\\\n"
-                  "&expand=changelog&maxResults=1000&startAt=1000\" \\\n"
-                  "  -o ART_A_page2.json\n\n"
-                  "# Merge files with the Helper\n"
-                  "python -m helper ART_A_page1.json ART_A_page2.json \\\n"
-                  "  --output ART_A_merged.json", st),
-              P("Increment <font name='Courier'>startAt</font> by 1,000 until the "
-                "response contains fewer than 1,000 issues — then you have fetched all "
-                "pages. The <b>Helper</b> merges the pages and removes duplicates "
-                "automatically.", st),
-              SP(6),
-
-              H2("6.6  From JSON export to workflow file", st),
-              P("After exporting, create a workflow file that maps your actual Jira "
-                "statuses. The following Python snippet extracts all status names from "
-                "the export:", st),
-              PRE("import json\n"
-                  "data = json.loads(open('ART_A_page1.json').read())\n"
-                  "statuses = set()\n"
-                  "for issue in data['issues']:\n"
-                  "    for h in issue['changelog']['histories']:\n"
-                  "        for item in h['items']:\n"
-                  "            if item['field'] == 'status':\n"
-                  "                statuses.add(item['toString'])\n"
-                  "print(sorted(statuses))", st),
-              P("From the status names found, create a "
-                "<font name='Courier'>workflow.txt</font> — arrange the statuses in "
-                "logical order and set the "
-                "<font name='Courier'>&lt;First&gt;</font> and "
-                "<font name='Courier'>&lt;Closed&gt;</font> markers "
-                "(see Chapter 3).", st)]
-
-    # ---- 7. FAQ ----
-    story += [PageBreak(),
-              H1("7  Frequently Asked Questions (FAQ)", st), HR(),
-
-              H2("What happens if expand=changelog is missing?", st),
-              P("transform_data finds no status transitions and outputs empty time values "
-                "for all issues. The Excel files contain no usable data. Always include "
-                "<font name='Courier'>expand=changelog</font> in the URL.", st),
+              H1("6  Frequently Asked Questions (FAQ)", st), HR(),
 
               H2("Difference between test data and real data?", st),
-              P("For demos and training, test data is the better choice — no privacy "
-                "concerns, reproducible, and fully controlled. For real analyses, actual "
-                "data reflects the true workflow state and delivers reliable flow metrics.", st),
+              P("For demos, training, and installation tests, test data is the better "
+                "choice — no privacy concerns, reproducible, and fully controlled. "
+                "For real flow analyses and decisions, actual data reflects the true "
+                "workflow state.", st),
+              HI("For the manual export of real Jira data (API token, curl, "
+                 "pagination): See the Get Data User Manual.", st)]
 
-              H2("Can I merge multiple Jira projects?", st),
-              P("Yes — either via JQL "
-                "(<font name='Courier'>jql=project in (ART_A, ART_B)</font>) for a "
-                "single export, or merge two separate exports with the Helper. Make sure "
-                "the workflows of both projects are compatible.", st),
-
-              H2("How large can the JSON file get?", st),
-              P("Rule of thumb: approximately 2–5 KB per issue (depending on changelog "
-                "length). 1,000 issues ≈ 2–5 MB. For very large projects (10,000+ "
-                "issues), use pagination and the Helper.", st),
-
-              H2("I get an 'Unauthorized' error when calling curl.", st),
-              P("Check: Is the email address correct? Is the API token correct? Are they "
-                "separated by a colon? Does your account have read access to the project? "
-                "Tip: Generate a new API token if the old one was lost or expired.", st)]
-
-    # ---- 8. Glossary ----
+    # ---- 7. Glossary ----
     story += [PageBreak(),
-              H1("8  Glossary", st), HR(),
+              H1("7  Glossary", st), HR(),
               tbl(["Term", "Explanation"],
                   [["ART",       "Agile Release Train — a team-of-teams structure in SAFe"],
                    ["API",       "Application Programming Interface — programming interface"],
