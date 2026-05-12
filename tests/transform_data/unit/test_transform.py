@@ -147,3 +147,44 @@ class TestRunTransform:
         wb = openpyxl.load_workbook(tmp_path / "T_IssueTimes.xlsx")
         ws = wb.active
         assert ws.max_row == 6  # header + 5 issues
+
+
+# ---------------------------------------------------------------------------
+# main() — argparse integration
+# ---------------------------------------------------------------------------
+
+class TestMain:
+    def _run_main(self, argv: list[str]):
+        import sys
+        from unittest.mock import patch
+        from transform_data.transform import main
+        with patch("sys.argv", ["prog"] + argv), \
+             patch("transform_data.transform.run_transform") as mock_run:
+            main()
+        return mock_run
+
+    def test_positional_args_forwarded(self, tmp_path):
+        jf = tmp_path / "T.json"
+        jf.touch()
+        wf = tmp_path / "wf.txt"
+        wf.touch()
+        mock = self._run_main([str(jf), str(wf)])
+        assert mock.call_args[0][0] == jf
+        assert mock.call_args[0][1] == wf
+
+    def test_output_dir_forwarded(self, tmp_path):
+        jf = tmp_path / "T.json"
+        jf.touch()
+        wf = tmp_path / "wf.txt"
+        wf.touch()
+        out = tmp_path / "out"
+        mock = self._run_main([str(jf), str(wf), "--output-dir", str(out)])
+        assert mock.call_args[0][2] == out
+
+    def test_prefix_forwarded(self, tmp_path):
+        jf = tmp_path / "T.json"
+        jf.touch()
+        wf = tmp_path / "wf.txt"
+        wf.touch()
+        mock = self._run_main([str(jf), str(wf), "--prefix", "MY_PREFIX"])
+        assert mock.call_args[0][3] == "MY_PREFIX"

@@ -104,3 +104,12 @@ def test_error_message_lists_known_stages(tmp_path: Path) -> None:
     wf_file.write_text("Funnel\nAnalysis\nDone\n<First>Typo\n<Closed>Done\n")
     with pytest.raises(ValueError, match="Funnel"):
         parse_workflow(wf_file)
+
+
+def test_blank_lines_in_workflow_file_are_skipped(tmp_path: Path) -> None:
+    """Blank lines between stage definitions don't produce empty stage names."""
+    wf_file = tmp_path / "wf.txt"
+    wf_file.write_text("Funnel\n\nAnalysis\n\nDone\n<First>Analysis\n<Closed>Done\n")
+    wf = parse_workflow(wf_file)
+    assert wf.stages == ["Funnel", "Analysis", "Done"]
+    assert "" not in wf.stages
