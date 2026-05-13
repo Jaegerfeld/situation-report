@@ -472,3 +472,29 @@ class TestTransitions:
         )])
         timestamps = [t.timestamp for t in records[0].transitions]
         assert timestamps == sorted(timestamps)
+
+
+# ---------------------------------------------------------------------------
+# _parse_dt (private, but testable directly)
+# ---------------------------------------------------------------------------
+
+class TestParseDt:
+    def test_invalid_datetime_string_raises(self):
+        from transform_data.processor import _parse_dt
+        with pytest.raises(ValueError, match="Cannot parse datetime"):
+            _parse_dt("not-a-datetime")
+
+
+# ---------------------------------------------------------------------------
+# process_issues with reference_dt=None (uses datetime.now() as fallback)
+# ---------------------------------------------------------------------------
+
+class TestReferenceNone:
+    def test_no_reference_dt_uses_now(self, tmp_path):
+        from transform_data.processor import process_issues
+        created = datetime(2025, 1, 1, 10, 0, tzinfo=timezone.utc)
+        payload = _make_json([_issue("T-1", created)])
+        jf = tmp_path / "T.json"
+        jf.write_text(payload, encoding="utf-8")
+        records, _ = process_issues(jf, SIMPLE_WORKFLOW, reference_dt=None)
+        assert len(records) == 1

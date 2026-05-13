@@ -3,14 +3,15 @@
 # Repository:     https://github.com/Jaegerfeld/situation-report
 # KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
 # Erstellt:       02.05.2026
-# Geändert:       02.05.2026
+# Geändert:       13.05.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
 #   Kommandozeileninterface für testdata_generator. Liest eine Workflow-Datei
 #   und erzeugt synthetische Jira-Issue-JSON-Dateien mit konfigurierbarer
-#   Anzahl an Issues, Durchlaufzeiten, Completion-Rate und Seed. Die Ausgabe
-#   ist direkt mit transform_data verarbeitbar.
+#   Anzahl an Issues, Durchlaufzeiten, Completion-Rate und Seed. Unterstützt
+#   vier Flow-Muster (Triangle, Flat Triangle, Cluster, Batch) sowie lognormale
+#   Cycle-Time-Steuerung. Die Ausgabe ist direkt mit transform_data verarbeitbar.
 # =============================================================================
 
 from __future__ import annotations
@@ -22,19 +23,21 @@ from collections.abc import Callable
 from datetime import date
 from pathlib import Path
 
-from .generator import GeneratorConfig, generate
+from .generator import (
+    PATTERN_BATCH,
+    PATTERN_CLUSTER,
+    PATTERN_FLAT_TRIANGLE,
+    PATTERN_NONE,
+    PATTERN_TRIANGLE,
+    GeneratorConfig,
+    generate,
+)
 from .workflow_parser import parse_workflow
 
 
 def _parse_date(value: str) -> date:
     """
     Parse a date string in YYYY-MM-DD format for argparse.
-
-    Args:
-        value: Date string from the command line.
-
-    Returns:
-        Parsed date object.
 
     Raises:
         argparse.ArgumentTypeError: If the format is invalid.
@@ -94,6 +97,10 @@ def run_generate(
     todo_rate: float = 0.15,
     backflow_prob: float = 0.1,
     seed: int | None = None,
+    mean_cycle_days: float | None = None,
+    std_cycle_days: float | None = None,
+    pattern: str = PATTERN_NONE,
+    pi_duration_weeks: int = 12,
     log: Callable[[str], None] = print,
 ) -> None:
     """
@@ -103,18 +110,22 @@ def run_generate(
     that takes a single string — defaults to print for CLI use.
 
     Args:
-        workflow:         Path to the workflow definition file (.txt).
-        output:           Path for the output JSON file.
-        project_key:      Jira project key for generated issues.
-        issue_count:      Number of issues to generate.
-        from_date:        Earliest creation date (default: 2025-01-01).
-        to_date:          Latest transition date (default: 2025-12-31).
-        issue_types:      Issue type name → relative weight mapping.
-        completion_rate:  Fraction of issues that reach the closed stage (0.0–1.0).
-        todo_rate:        Fraction of open issues that stay in a To Do stage (0.0–1.0).
-        backflow_prob:    Probability of a backward transition at each step (0.0–1.0).
-        seed:             Optional RNG seed for reproducible output.
-        log:              Callable for progress messages.
+        workflow:          Path to the workflow definition file (.txt).
+        output:            Path for the output JSON file.
+        project_key:       Jira project key for generated issues.
+        issue_count:       Number of issues to generate.
+        from_date:         Earliest creation date (default: 2025-01-01).
+        to_date:           Latest transition date (default: 2025-12-31).
+        issue_types:       Issue type name → relative weight mapping.
+        completion_rate:   Fraction of issues that reach the closed stage (0.0–1.0).
+        todo_rate:         Fraction of open issues that stay in a To Do stage (0.0–1.0).
+        backflow_prob:     Probability of a backward transition at each step (0.0–1.0).
+        seed:              Optional RNG seed for reproducible output.
+        mean_cycle_days:   Target mean cycle time in days. None = use min/max dwell hours.
+        std_cycle_days:    Std deviation of cycle time. None = 30 % of mean.
+        pattern:           Flow pattern to simulate (none/triangle/flat_triangle/cluster/batch).
+        pi_duration_weeks: PI cycle duration in weeks (cluster/batch patterns only).
+        log:               Callable for progress messages.
     """
     effective_from = from_date or date(2025, 1, 1)
     effective_to = to_date or date(2025, 12, 31)
@@ -141,9 +152,17 @@ def run_generate(
         todo_rate=todo_rate,
         backflow_prob=backflow_prob,
         seed=seed,
+        mean_cycle_days=mean_cycle_days,
+        std_cycle_days=std_cycle_days,
+        pattern=pattern,
+        pi_duration_weeks=pi_duration_weeks,
     )
 
     log(f"Generating {issue_count} issues for project '{project_key}'…")
+    if pattern != PATTERN_NONE:
+        log(f"Pattern: {pattern}" + (
+            f"  (mean={mean_cycle_days}d, std={std_cycle_days}d)" if mean_cycle_days else ""
+        ))
     data = generate(workflow_spec, config)
 
     output.parent.mkdir(parents=True, exist_ok=True)
@@ -190,6 +209,18 @@ def main() -> None:
                         help="Probability of a backward transition at each step (default: 0.1).")
     parser.add_argument("--seed", type=int, default=None,
                         help="RNG seed for reproducible output (optional).")
+    parser.add_argument("--mean-cycle-days", type=float, default=None,
+                        help="Target mean cycle time in days (lognormal). "
+                             "If omitted, min/max dwell hours are used instead.")
+    parser.add_argument("--std-cycle-days", type=float, default=None,
+                        help="Standard deviation of cycle time in days (default: 30 %% of mean).")
+    parser.add_argument("--pattern", default=PATTERN_NONE,
+                        choices=[PATTERN_NONE, PATTERN_TRIANGLE, PATTERN_FLAT_TRIANGLE,
+                                 PATTERN_CLUSTER, PATTERN_BATCH],
+                        help="Flow pattern to simulate (default: none). "
+                             "triangle/flat_triangle require --mean-cycle-days.")
+    parser.add_argument("--pi-duration-weeks", type=int, default=12,
+                        help="PI cycle duration in weeks for cluster/batch patterns (default: 12).")
 
     args = parser.parse_args()
 
@@ -200,6 +231,13 @@ def main() -> None:
         except argparse.ArgumentTypeError as exc:
             print(f"ERROR: {exc}", file=sys.stderr)
             sys.exit(1)
+
+    if args.pattern != PATTERN_NONE and args.mean_cycle_days is None:
+        print(
+            f"ERROR: --pattern {args.pattern} requires --mean-cycle-days to be set.",
+            file=sys.stderr,
+        )
+        sys.exit(1)
 
     output = args.output or Path(f"{args.project_key}_generated.json")
 
@@ -215,4 +253,12 @@ def main() -> None:
         todo_rate=args.todo_rate,
         backflow_prob=args.backflow_prob,
         seed=args.seed,
+        mean_cycle_days=args.mean_cycle_days,
+        std_cycle_days=args.std_cycle_days,
+        pattern=args.pattern,
+        pi_duration_weeks=args.pi_duration_weeks,
     )
+
+
+if __name__ == "__main__":
+    main()

@@ -52,6 +52,32 @@ python -m testdata_generator \
 | `--todo-rate FLOAT` | `0.15` | Anteil offener Issues in To-Do-Stages (0–1) |
 | `--backflow-prob FLOAT` | `0.1` | Wahrscheinlichkeit für Rückschritte (0–1) |
 | `--seed INT` | (zufällig) | Seed für reproduzierbare Ausgabe |
+| `--mean-cycle-days FLOAT` | (keiner) | Mittlere Cycle-Time in Tagen (lognormal) |
+| `--std-cycle-days FLOAT` | (30 % des Mittelwerts) | Standardabweichung der Cycle-Time |
+| `--pattern MUSTER` | `none` | Flow-Antipattern: `none` / `triangle` / `flat_triangle` / `cluster` / `batch` |
+| `--pi-duration-weeks INT` | `12` | PI-Zyklus-Länge in Wochen (für `cluster`/`batch`) |
+
+## Flow-Muster
+
+Mit `--mean-cycle-days` und `--pattern` lassen sich typische Flow-Antipatterns simulieren:
+
+| Muster | Beschreibung |
+|--------|-------------|
+| `none` | Zufällige Cycle-Time ohne Muster (Standard) |
+| `triangle` | Cycle-Time steigt linear über die Zeit — Dreieck im Scatterplot |
+| `flat_triangle` | Wie `triangle`, aber der Anstieg flacht am Ende ab (tanh) |
+| `cluster` | Lieferungen häufen sich in den letzten 2 Wochen jedes PI (Beta-Verteilung) |
+| `batch` | PI-Clustering mit stark variierender Cycle-Time (0,1× bis 3× Mittelwert) |
+
+```bash
+# Triangle-Muster mit mittlerer Cycle-Time von 30 Tagen
+python -m testdata_generator \
+    --workflow workflow.txt \
+    --pattern triangle \
+    --mean-cycle-days 30 \
+    --std-cycle-days 10 \
+    --output triangle.json
+```
 
 ## Workflow-Datei
 

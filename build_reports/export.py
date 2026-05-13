@@ -16,6 +16,7 @@
 
 from __future__ import annotations
 
+import io
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
@@ -24,6 +25,12 @@ import plotly.io as pio
 
 if TYPE_CHECKING:
     from .loader import IssueRecord
+
+
+def _save_wb(wb: object, path: Path) -> None:
+    buf = io.BytesIO()
+    wb.save(buf)
+    path.write_bytes(buf.getvalue())
 
 
 def export_pdf(figures: list[Any], output_path: Path, width: int = 1400, height: int = 700) -> None:
@@ -163,7 +170,7 @@ def write_zero_day_excel(records: "list[IssueRecord]", path: Path) -> None:
         max_len = max((len(str(cell.value or "")) for cell in col), default=0)
         ws.column_dimensions[col[0].column_letter].width = min(max_len + 4, 40)
 
-    wb.save(path)
+    _save_wb(wb, path)
 
 
 def write_report_excel(
@@ -247,7 +254,7 @@ def write_report_excel(
         max_len = max((len(str(cell.value or "")) for cell in col), default=0)
         ws.column_dimensions[col[0].column_letter].width = min(max_len + 4, 40)
 
-    wb.save(path)
+    _save_wb(wb, path)
 
 
 def export_png(figure: Any, output_path: Path, width: int = 1400, height: int = 700) -> None:

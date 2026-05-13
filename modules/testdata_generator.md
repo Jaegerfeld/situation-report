@@ -38,6 +38,16 @@ python -m testdata_generator \
 | `--todo-rate FLOAT` | `0.15` | Anteil offener Issues in To-Do-Stages (0–1) |
 | `--backflow-prob FLOAT` | `0.1` | Wahrscheinlichkeit für Rückschritte (0–1) |
 | `--seed INT` | (zufällig) | Seed für reproduzierbare Ausgabe |
+| `--mean-cycle-days FLOAT` | (keiner) | Mittlere Cycle-Time in Tagen (lognormal) |
+| `--std-cycle-days FLOAT` | (30 % des Mittelwerts) | Standardabweichung der Cycle-Time |
+| `--pattern MUSTER` | `none` | Flow-Antipattern: `none` / `triangle` / `flat_triangle` / `cluster` / `batch` |
+| `--pi-duration-weeks INT` | `12` | PI-Zyklus-Länge in Wochen (für `cluster`/`batch`) |
+
+## Flow-Muster
+
+Mit `--mean-cycle-days` und `--pattern` simulierbare Antipatterns:
+`triangle` (CT steigt linear), `flat_triangle` (Anstieg flacht ab),
+`cluster` (Lieferungen am PI-Ende häufen sich), `batch` (PI-Clustering + hohe CT-Varianz).
 
 ## Workflow-Datei
 

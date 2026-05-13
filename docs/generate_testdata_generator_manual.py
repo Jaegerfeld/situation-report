@@ -3,7 +3,7 @@
 # Repository:     https://github.com/Jaegerfeld/situation-report
 # KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
 # Erstellt:       03.05.2026
-# Geändert:       08.05.2026
+# Geändert:       13.05.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
@@ -416,14 +416,67 @@ def content_de(st: dict) -> list:
                    ["--backflow-prob FLOAT",     "0.1",
                     "Wahrscheinlichkeit eines Rückschritts bei jedem Übergang (0–1)"],
                    ["--seed INT",               "(zufällig)",
-                    "Seed für reproduzierbare Ausgabe (optional)"]],
-                  col_widths=[4.5 * cm, 4 * cm, 7 * cm]),
+                    "Seed für reproduzierbare Ausgabe (optional)"],
+                   ["--mean-cycle-days FLOAT",  "(keiner)",
+                    "Mittlere Cycle-Time in Tagen (lognormal); aktiviert CT-Steuerung"],
+                   ["--std-cycle-days FLOAT",   "(30 % des Mittels)",
+                    "Standardabweichung der Cycle-Time in Tagen"],
+                   ["--pattern MUSTER",         "none",
+                    "Flow-Antipattern: none / triangle / flat_triangle / cluster / batch"],
+                   ["--pi-duration-weeks INT",  "12",
+                    "PI-Zyklus-Länge in Wochen (für cluster/batch)"]],
+                  col_widths=[4.5 * cm, 3.5 * cm, 7.5 * cm]),
               SP(8),
               box("<b>Tipp: Reproduzierbare Ergebnisse</b><br/>"
                   "Mit einem festen Seed (z. B. <font name='Courier'>--seed 42</font>) "
                   "erzeugt der Generator bei gleichen Parametern immer dieselbe "
                   "JSON-Datei — ideal für Demos, bei denen alle Teilnehmer "
                   "dieselben Ergebnisse sehen sollen.", st)]
+
+    # ---- 4b. Flow-Antipattern-Muster ----
+    story += [PageBreak(),
+              H1("4b  Flow-Antipattern-Muster", st), HR(),
+              P("Ab Version 0.99 kann der Testdata Generator typische Flow-Antipatterns "
+                "aus Vacanti/Singh simulieren. Dazu wird <b>--mean-cycle-days</b> kombiniert "
+                "mit <b>--pattern</b>.", st),
+              tbl(["Muster", "Scatterplot-Erscheinung", "Erklärung"],
+                  [["none",
+                    "Gleichmäßige Punktwolke",
+                    "Zufällige Cycle-Time ohne Trend (Standard)"],
+                   ["triangle",
+                    "Dreieck mit rechtem Winkel unten rechts",
+                    "CT steigt linear über die Zeit: mult = 1 + 3×t"],
+                   ["flat_triangle",
+                    "Dreieck, aber Anstieg flacht am Ende ab",
+                    "CT-Anstieg wird durch tanh(2.5×t) gedämpft"],
+                   ["cluster",
+                    "Häufungen senkrechter Punkte am PI-Ende",
+                    "CT lognormal (stabil), aber Abschlüsse in letzten 2 Wochen eines PI"],
+                   ["batch",
+                    "Senkrechte Säulen mit variabler CT am PI-Ende",
+                    "CT uniform 0.1× bis 3× Mittelwert + PI-Clustering"]],
+                  col_widths=[3.5 * cm, 4.5 * cm, 7.5 * cm]),
+              SP(8),
+              H2("Beispiele", st),
+              PRE("# Triangle-Muster\n"
+                  "python -m testdata_generator \\\n"
+                  "    --workflow workflow.txt --issues 300 \\\n"
+                  "    --pattern triangle --mean-cycle-days 20 --std-cycle-days 6 \\\n"
+                  "    --output triangle.json\n\n"
+                  "# Cluster of Dots (12-Wochen-PI)\n"
+                  "python -m testdata_generator \\\n"
+                  "    --workflow workflow.txt --issues 300 \\\n"
+                  "    --pattern cluster --mean-cycle-days 30 \\\n"
+                  "    --pi-duration-weeks 12 --output cluster.json\n\n"
+                  "# Batch Transfers\n"
+                  "python -m testdata_generator \\\n"
+                  "    --workflow workflow.txt --issues 300 \\\n"
+                  "    --pattern batch --mean-cycle-days 30 \\\n"
+                  "    --pi-duration-weeks 12 --output batch.json", st),
+              SP(6),
+              box("<b>Hinweis:</b> --pattern erfordert --mean-cycle-days. "
+                  "Ohne --mean-cycle-days wird pattern ignoriert und das "
+                  "bisherige min/max-Dwell-Verhalten verwendet.", st)]
 
     # ---- 5. ART_A – Vollständiges Beispiel ----
     story += [PageBreak(),
@@ -646,14 +699,67 @@ def content_en(st: dict) -> list:
                    ["--backflow-prob FLOAT",     "0.1",
                     "Probability of a backward transition at each step (0–1)"],
                    ["--seed INT",               "(random)",
-                    "Seed for reproducible output (optional)"]],
-                  col_widths=[4.5 * cm, 4 * cm, 7 * cm]),
+                    "Seed for reproducible output (optional)"],
+                   ["--mean-cycle-days FLOAT",  "(none)",
+                    "Target mean cycle time in days (lognormal); enables CT control"],
+                   ["--std-cycle-days FLOAT",   "(30 % of mean)",
+                    "Standard deviation of cycle time in days"],
+                   ["--pattern PATTERN",        "none",
+                    "Flow anti-pattern: none / triangle / flat_triangle / cluster / batch"],
+                   ["--pi-duration-weeks INT",  "12",
+                    "PI cycle length in weeks (for cluster/batch)"]],
+                  col_widths=[4.5 * cm, 3.5 * cm, 7.5 * cm]),
               SP(8),
               box("<b>Tip: Reproducible results</b><br/>"
                   "With a fixed seed (e.g. <font name='Courier'>--seed 42</font>), the "
                   "generator always produces the same JSON file for the same parameters "
                   "— ideal for demos where all participants should see identical results.",
                   st)]
+
+    # ---- 4b. Flow Anti-Pattern Modes ----
+    story += [PageBreak(),
+              H1("4b  Flow Anti-Pattern Modes", st), HR(),
+              P("Since version 0.99, the Testdata Generator can simulate typical flow "
+                "anti-patterns from Vacanti/Singh. Combine <b>--mean-cycle-days</b> "
+                "with <b>--pattern</b>.", st),
+              tbl(["Pattern", "Scatter plot appearance", "Explanation"],
+                  [["none",
+                    "Even point cloud",
+                    "Random cycle time without trend (default)"],
+                   ["triangle",
+                    "Triangle with right angle at bottom right",
+                    "CT rises linearly over time: mult = 1 + 3×t"],
+                   ["flat_triangle",
+                    "Triangle, but the rise flattens at the end",
+                    "CT increase is damped by tanh(2.5×t)"],
+                   ["cluster",
+                    "Vertical clusters of points at PI end",
+                    "CT lognormal (stable), but deliveries in last 2 weeks of each PI"],
+                   ["batch",
+                    "Vertical columns with variable CT at PI end",
+                    "CT uniform 0.1× to 3× mean + PI clustering"]],
+                  col_widths=[3.5 * cm, 4.5 * cm, 7.5 * cm]),
+              SP(8),
+              H2("Examples", st),
+              PRE("# Triangle pattern\n"
+                  "python -m testdata_generator \\\n"
+                  "    --workflow workflow.txt --issues 300 \\\n"
+                  "    --pattern triangle --mean-cycle-days 20 --std-cycle-days 6 \\\n"
+                  "    --output triangle.json\n\n"
+                  "# Cluster of Dots (12-week PI)\n"
+                  "python -m testdata_generator \\\n"
+                  "    --workflow workflow.txt --issues 300 \\\n"
+                  "    --pattern cluster --mean-cycle-days 30 \\\n"
+                  "    --pi-duration-weeks 12 --output cluster.json\n\n"
+                  "# Batch Transfers\n"
+                  "python -m testdata_generator \\\n"
+                  "    --workflow workflow.txt --issues 300 \\\n"
+                  "    --pattern batch --mean-cycle-days 30 \\\n"
+                  "    --pi-duration-weeks 12 --output batch.json", st),
+              SP(6),
+              box("<b>Note:</b> --pattern requires --mean-cycle-days. "
+                  "Without --mean-cycle-days the pattern is ignored and "
+                  "the original min/max dwell-hour behaviour is used.", st)]
 
     # ---- 5. ART_A – Complete Example ----
     story += [PageBreak(),

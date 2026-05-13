@@ -9,6 +9,33 @@ Das Format orientiert sich an [Keep a Changelog](https://keepachangelog.com/de/1
 
 ---
 
+## [0.99] – 2026-05-13
+
+### Added
+- `testdata_generator`: Vier Flow-Antipattern-Muster aus Vacanti/Singh simulierbar:
+  **Triangle** (Cycle-Time steigt linear über Zeit), **Flat Triangle** (Anstieg
+  verflacht via tanh), **Cluster of Dots** (Lieferungen häufen sich in den letzten
+  2 Wochen jedes PI, Beta-Verteilung), **Batch Transfers** (PI-Clustering mit stark
+  variierender Cycle-Time). Muster wählbar per Radiobuttons in der GUI oder
+  `--pattern` auf der Kommandozeile.
+- `testdata_generator`: Lognormale Cycle-Time-Steuerung über Mittelwert und
+  Standardabweichung (`--mean-cycle-days`, `--std-cycle-days`; GUI: Eingabefelder
+  + Schieberegler). Ersetzt das bisherige min/max-Dwell-Verhalten wenn angegeben.
+- `testdata_generator`: PI-Zyklus-Länge konfigurierbar (`--pi-duration-weeks`,
+  Standard 12 Wochen) für Cluster- und Batch-Muster.
+
+### Fixed
+- `testdata_generator`: Im Muster-Modus wurden alle Issues als abgeschlossen
+  generiert (0 offene Issues). Ursache: `completion_rate` wurde intern doppelt
+  gewürfelt. Fix: Abschluss wird in `generate()` vorab ausgewürfelt und als
+  `_prerolled_incomplete`-Flag an `_simulate_issue` übergeben.
+- `transform_data`, `build_reports`: `openpyxl` schrieb Excel-Dateien über
+  temporäre Datei + Umbenennung — bei aktiven OneDrive-Synchronisierungssperren
+  schlug dies mit `[Errno 22] Invalid argument` fehl. Fix: BytesIO-Buffer +
+  `path.write_bytes()` umgeht den problematischen Rename-Schritt.
+
+---
+
 ## [0.9.8] – 2026-05-09
 
 ### Changed
