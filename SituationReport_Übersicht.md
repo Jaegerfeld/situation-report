@@ -1,6 +1,6 @@
 # SituationReport – Übersicht für Einsteiger
 
-**Version 0.99** | Erstellt: 03.05.2026 | Aktualisiert: 13.05.2026
+**Version 0.9.9** | Erstellt: 03.05.2026 | Aktualisiert: 13.05.2026
 
 Dieses Dokument fasst alle Bestandteile von SituationReport zusammen und erklärt sie
 in einfacher Sprache. Technische Details aus den Original-Dokumentationen wurden
@@ -503,7 +503,7 @@ Transform Data und Build Reports verarbeitet werden.
 > Das ist nützlich, wenn man sicherstellen möchte, dass ein Test immer
 > mit den gleichen Daten läuft.
 
-### Flow-Antipattern-Muster (neu in v0.99)
+### Flow-Antipattern-Muster (neu in v0.9.9)
 
 Der Testdata Generator kann typische Probleme aus dem agilen Prozess-Monitoring simulieren:
 
@@ -561,7 +561,7 @@ Menge an Aufgaben voraussichtlich fertig sein?"
 
 | Version | Datum | Wichtigste Neuerungen |
 |---------|-------|----------------------|
-| **0.99** | 13.05.2026 | Testdata Generator: Flow-Antipattern (Triangle, Flat Triangle, Cluster, Batch), lognormale Cycle-Time |
+| **0.9.9** | 13.05.2026 | Testdata Generator: Flow-Antipattern (Triangle, Flat Triangle, Cluster, Batch), lognormale Cycle-Time |
 | 0.9.8 | 09.05.2026 | Pixel-Flaggen-Buttons in allen GUIs |
 | 0.9.0 | 03.05.2026 | Helper-Modul (JSON Merger) |
 | 0.8.5 | 02.05.2026 | Testdata Generator, BETA-Badge für stabile Module |
@@ -607,7 +607,7 @@ situation-report/
 - **Sprache:** Python
 - **GUI-Framework:** tkinter
 - **Diagramme:** Plotly
-- **Tests:** pytest (ca. 650+ Tests, Stand v0.99)
+- **Tests:** pytest (ca. 650+ Tests, Stand v0.9.9)
 - **CI/CD:** GitHub Actions (automatische Builds für Windows, macOS, Linux)
 - **Lizenz:** BSD-3-Clause
 

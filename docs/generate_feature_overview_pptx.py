@@ -29,7 +29,7 @@ SLIDES = [
     {
         "type": "title",
         "title": "situation-report",
-        "subtitle": "Feature-Übersicht — v0.99 | Stand Mai 2026",
+        "subtitle": "Feature-Übersicht — v0.9.9 | Stand Mai 2026",
     },
     # ── launcher ────────────────────────────────────────────────────────────
     {
@@ -213,7 +213,7 @@ SLIDES = [
         "rows": [
             ("Versionierung",
              "SemVer ab v0.2.0; zentrale version.py wird von allen GUIs "
-             "und den Manuals gelesen; aktuell v0.99"),
+             "und den Manuals gelesen; aktuell v0.9.9"),
             ("Sprachauswahl",
              "Launcher: DE/EN/RO/PT/FR (5 Sprachen); build_reports und "
              "transform_data: DE/EN; letzte Wahl persistent in "

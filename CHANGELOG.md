@@ -9,7 +9,7 @@ Das Format orientiert sich an [Keep a Changelog](https://keepachangelog.com/de/1
 
 ---
 
-## [0.99] – 2026-05-13
+## [0.9.9] – 2026-05-13
 
 ### Added
 - `testdata_generator`: Vier Flow-Antipattern-Muster aus Vacanti/Singh simulierbar:
