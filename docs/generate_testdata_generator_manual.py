@@ -3,14 +3,13 @@
 # Repository:     https://github.com/Jaegerfeld/situation-report
 # KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
 # Erstellt:       03.05.2026
-# Geändert:       08.05.2026
+# Geändert:       13.05.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
-#   Erzeugt das Benutzerhandbuch für testdata_generator als PDF in Deutsch und
-#   Englisch. Beschreibt Start, Workflow-Datei, Parameter und vollständiges
-#   ART_A-Beispiel. Der Jira-Datenexport (API-Token, curl, Paginierung) ist im
-#   Benutzerhandbuch von get_data dokumentiert.
+#   Erzeugt das Benutzerhandbuch für testdata_generator als PDF in fünf
+#   Sprachen: DE, EN, RO, PT, FR. Beschreibt Start, Workflow-Datei,
+#   Parameter, Flow-Antipattern-Muster und vollständiges ART_A-Beispiel.
 # =============================================================================
 
 import sys
@@ -41,6 +40,9 @@ except ImportError:
 
 OUTPUT_DE = Path(__file__).parent / "testdata_generator_Benutzerhandbuch.pdf"
 OUTPUT_EN = Path(__file__).parent / "testdata_generator_UserManual.pdf"
+OUTPUT_RO = Path(__file__).parent / "testdata_generator_ManualUtilizator.pdf"
+OUTPUT_PT = Path(__file__).parent / "testdata_generator_ManualUtilizador.pdf"
+OUTPUT_FR = Path(__file__).parent / "testdata_generator_ManuelUtilisateur.pdf"
 
 _ASSETS = Path(__file__).parent / "assets"
 CONTENT_WIDTH = 15.5 * cm
@@ -52,13 +54,52 @@ C_MID    = colors.HexColor("#bdc3c7")
 C_WHITE  = colors.white
 C_HINT   = colors.HexColor("#7f8c8d")
 
+_HEADER = {
+    "de": "testdata_generator  --  Benutzerhandbuch",
+    "en": "testdata_generator  --  User Manual",
+    "ro": "testdata_generator  --  Manual de Utilizator",
+    "pt": "testdata_generator  --  Manual do Utilizador",
+    "fr": "testdata_generator  --  Manuel d'utilisation",
+}
+
+_PAGE_LABEL = {
+    "de": "Seite %d",
+    "en": "Page %d",
+    "ro": "Pagina %d",
+    "pt": "Página %d",
+    "fr": "Page %d",
+}
+
+_COVER_SUBTITLE = {
+    "de": "Benutzerhandbuch",
+    "en": "User Manual",
+    "ro": "Manual de Utilizator",
+    "pt": "Manual do Utilizador",
+    "fr": "Manuel d'utilisation",
+}
+
+_COVER_TAGLINE = {
+    "de": "Synthetische Jira-Issue-Daten für SituationReport erzeugen",
+    "en": "Generate synthetic Jira issue data for SituationReport",
+    "ro": "Generați date sintetice de probleme Jira pentru SituationReport",
+    "pt": "Gerar dados sintéticos de issues Jira para SituationReport",
+    "fr": "Générer des données de tickets Jira synthétiques pour SituationReport",
+}
+
+_COVER_AUDIENCE = {
+    "de": "Fuer Agile Coaches und PI Manager",
+    "en": "For Agile Coaches and PI Managers",
+    "ro": "Pentru Agile Coaches si Manageri PI",
+    "pt": "Para Agile Coaches e Gestores de PI",
+    "fr": "Pour les Agile Coaches et les PI Managers",
+}
+
 
 # ---------------------------------------------------------------------------
 # Styles
 # ---------------------------------------------------------------------------
 
 def make_styles() -> dict:
-    """Build and return the paragraph style dictionary."""
     def s(name, **kw):
         return ParagraphStyle(name, **kw)
 
@@ -88,16 +129,11 @@ def make_styles() -> dict:
 # ---------------------------------------------------------------------------
 
 class _TDGDoc(BaseDocTemplate):
-    """BaseDocTemplate with cover and normal page templates."""
 
     def __init__(self, filename: str, lang: str = "de", **kw):
         super().__init__(filename, pagesize=A4, **kw)
         self._lang = lang
-        self._header_text = (
-            "testdata_generator  --  Benutzerhandbuch"
-            if lang == "de"
-            else "testdata_generator  --  User Manual"
-        )
+        self._header_text = _HEADER[lang]
         margin = 2.2 * cm
         w, h = A4
         self.addPageTemplates([
@@ -116,7 +152,6 @@ class _TDGDoc(BaseDocTemplate):
         ])
 
     def _header_footer(self, canvas, doc):
-        """Draw header bar and page number footer."""
         canvas.saveState()
         w, h = A4
         canvas.setFillColor(C_BLUE)
@@ -127,28 +162,14 @@ class _TDGDoc(BaseDocTemplate):
         canvas.drawRightString(w - 2.2 * cm, h - 0.7 * cm, "situation-report")
         canvas.setFillColor(C_HINT)
         canvas.setFont("Helvetica", 8)
-        page_label = "Seite %d" if self._lang == "de" else "Page %d"
-        canvas.drawCentredString(w / 2, 1.0 * cm, page_label % doc.page)
+        canvas.drawCentredString(w / 2, 1.0 * cm, _PAGE_LABEL[self._lang] % doc.page)
         canvas.setStrokeColor(C_MID)
         canvas.line(2.2 * cm, 1.4 * cm, w - 2.2 * cm, 1.4 * cm)
         canvas.restoreState()
 
 
 def _build_cover(canvas, doc, lang: str = "de"):
-    """Draw the cover page with color blocks and centered text."""
     w, h = A4
-    subtitle = "Benutzerhandbuch" if lang == "de" else "User Manual"
-    tagline = (
-        "Synthetische Jira-Issue-Daten für SituationReport erzeugen"
-        if lang == "de"
-        else "Generate synthetic Jira issue data for SituationReport"
-    )
-    audience = (
-        "Fuer Agile Coaches und PI Manager"
-        if lang == "de"
-        else "For Agile Coaches and PI Managers"
-    )
-
     canvas.saveState()
     canvas.setFillColor(C_BLUE)
     canvas.rect(0, 0, w, h, fill=1, stroke=0)
@@ -160,10 +181,10 @@ def _build_cover(canvas, doc, lang: str = "de"):
     canvas.setFont("Helvetica-Bold", 20)
     canvas.drawCentredString(w / 2, h * 0.57, "testdata_generator")
     canvas.setFont("Helvetica-Bold", 16)
-    canvas.drawCentredString(w / 2, h * 0.515, subtitle)
+    canvas.drawCentredString(w / 2, h * 0.515, _COVER_SUBTITLE[lang])
     canvas.setFont("Helvetica", 11)
     canvas.setFillColor(C_LIGHT)
-    canvas.drawCentredString(w / 2, h * 0.47, tagline)
+    canvas.drawCentredString(w / 2, h * 0.47, _COVER_TAGLINE[lang])
     canvas.setStrokeColor(C_LIGHT)
     canvas.setLineWidth(0.5)
     canvas.line(w * 0.2, h * 0.44, w * 0.8, h * 0.44)
@@ -171,7 +192,8 @@ def _build_cover(canvas, doc, lang: str = "de"):
     canvas.setFillColor(C_MID)
     canvas.drawCentredString(w / 2, h * 0.12,
                              "situation-report -- github.com/Jaegerfeld/situation-report")
-    canvas.drawCentredString(w / 2, h * 0.09, f"{audience} -- Version {_VERSION}")
+    canvas.drawCentredString(w / 2, h * 0.09,
+                             f"{_COVER_AUDIENCE[lang]} -- Version {_VERSION}")
     canvas.restoreState()
 
 
@@ -194,18 +216,6 @@ def HR():          return HRFlowable(width=CONTENT_WIDTH, thickness=1,
 
 def img(filename: str, width_cm: float, caption_text: str | None = None,
         st: dict | None = None) -> list:
-    """
-    Return image flowable list for embedding in a story.
-
-    Args:
-        filename:     Image filename relative to docs/assets/.
-        width_cm:     Render width in centimetres (height scaled proportionally).
-        caption_text: Optional caption paragraph below the image.
-        st:           Style dictionary from make_styles().
-
-    Returns:
-        List of Platypus flowables (image + optional caption + spacer).
-    """
     path = _ASSETS / filename
     if _HAS_IMAGE and path.exists():
         image = RLImage(str(path))
@@ -223,17 +233,6 @@ def img(filename: str, width_cm: float, caption_text: str | None = None,
 
 
 def box(text: str, st: dict, bg: str = "#eaf4fb") -> Table:
-    """
-    Highlighted info box with a border.
-
-    Args:
-        text: Paragraph content (XML markup allowed).
-        st:   Style dictionary from make_styles().
-        bg:   Background colour as hex string.
-
-    Returns:
-        Table flowable styled as an info box.
-    """
     t = Table([[Paragraph(text, st["body"])]], colWidths=[CONTENT_WIDTH])
     t.setStyle(TableStyle([
         ("BACKGROUND",    (0, 0), (-1, -1), colors.HexColor(bg)),
@@ -247,17 +246,6 @@ def box(text: str, st: dict, bg: str = "#eaf4fb") -> Table:
 
 
 def tbl(headers: list, rows: list, col_widths: list | None = None) -> Table:
-    """
-    Standard striped table with blue header row.
-
-    Args:
-        headers:    List of column header strings.
-        rows:       List of row lists (strings or Paragraphs).
-        col_widths: Optional list of column widths in points.
-
-    Returns:
-        Table flowable with standard styling.
-    """
     data = [headers] + rows
     t = Table(data, colWidths=col_widths, repeatRows=1)
     t.setStyle(TableStyle([
@@ -282,18 +270,8 @@ def tbl(headers: list, rows: list, col_widths: list | None = None) -> Table:
 # ---------------------------------------------------------------------------
 
 def content_de(st: dict) -> list:
-    """
-    Build the German manual story (list of ReportLab flowables).
-
-    Args:
-        st: Style dictionary from make_styles().
-
-    Returns:
-        List of Platypus flowables for the German manual.
-    """
     story = []
 
-    # ---- 1. Was ist der Testdata Generator? ----
     story += [PageBreak(),
               H1("1  Was ist der Testdata Generator?", st), HR(),
               P("Der <b>Testdata Generator</b> erzeugt synthetische Jira-Issue-Daten im "
@@ -318,7 +296,6 @@ def content_de(st: dict) -> list:
                 "Export echter Jira-Daten steht das <b>Benutzerhandbuch Get Data</b> "
                 "zur Verfügung.", st)]
 
-    # ---- 2. Voraussetzungen und Start ----
     story += [PageBreak(),
               H1("2  Voraussetzungen und Start", st), HR(),
               H2("2.1  Portables Paket (empfohlen)", st),
@@ -345,7 +322,6 @@ def content_de(st: dict) -> list:
     story += img("Testdata-Generator-GUI.png", 13.0,
                  "Abb. 1: Benutzeroberfläche des Testdata Generators", st)
 
-    # ---- 3. Die Workflow-Datei ----
     story += [PageBreak(),
               H1("3  Die Workflow-Datei", st), HR(),
               P("Die Workflow-Datei definiert die Stages Ihres Jira-Boards und ist das "
@@ -389,7 +365,6 @@ def content_de(st: dict) -> list:
                  "(Cycle-Time beginnt hier). Releasing gilt als abgeschlossen. Done (nach "
                  "Releasing) nimmt auch Canceled-Issues auf.", st)]
 
-    # ---- 4. Parameter-Referenz ----
     story += [PageBreak(),
               H1("4  Parameter-Referenz", st), HR(),
               P("Alle Parameter sind sowohl in der GUI als auch auf der Kommandozeile "
@@ -433,7 +408,6 @@ def content_de(st: dict) -> list:
                   "JSON-Datei — ideal für Demos, bei denen alle Teilnehmer "
                   "dieselben Ergebnisse sehen sollen.", st)]
 
-    # ---- 4b. Flow-Antipattern-Muster ----
     story += [PageBreak(),
               H1("4b  Flow-Antipattern-Muster", st), HR(),
               P("Ab Version 0.9.9 kann der Testdata Generator typische Flow-Antipatterns "
@@ -467,9 +441,7 @@ def content_de(st: dict) -> list:
               SP(8),
               H2("Cycle-Time-Steuerung", st),
               P("Wenn <b>--mean-cycle-days</b> angegeben ist, wird die Cycle-Time "
-                "lognormalverteilt mit dem angegebenen Mittelwert erzeugt. Die "
-                "Lognormalverteilung erzeugt die in der Praxis typische Rechtsschiefe — "
-                "die meisten Issues sind schnell, wenige dauern sehr lang.", st),
+                "lognormalverteilt mit dem angegebenen Mittelwert erzeugt.", st),
               tbl(["Parameter", "Bedeutung"],
                   [["--mean-cycle-days",
                     "Mittelwert der Cycle-Time in Tagen (z. B. 20). "
@@ -506,10 +478,8 @@ def content_de(st: dict) -> list:
                   "    --output batch.json", st),
               SP(6),
               box("<b>Hinweis:</b> --pattern erfordert --mean-cycle-days. "
-                  "Ohne --mean-cycle-days wird das Muster ignoriert und das "
-                  "ursprüngliche min/max-Dwell-Verhalten verwendet.", st)]
+                  "Ohne --mean-cycle-days wird das Muster ignoriert.", st)]
 
-    # ---- 5. ART_A – Vollständiges Beispiel ----
     story += [PageBreak(),
               H1("5  ART_A – Vollständiges Beispiel", st), HR(),
               P("Dieses Beispiel zeigt den vollständigen Ablauf vom Generator bis zum "
@@ -527,20 +497,12 @@ def content_de(st: dict) -> list:
                   "    --seed 42 \\\n"
                   "    --output ART_A_generated.json", st),
               P("Ergebnis: <font name='Courier'>ART_A_generated.json</font> mit 200 "
-                "Issues, ca. 150 abgeschlossen und 50 in verschiedenen Stages offen. "
-                "Dank Seed 42 ist die Ausgabe jederzeit reproduzierbar.", st),
+                "Issues, ca. 150 abgeschlossen. Dank Seed 42 jederzeit reproduzierbar.", st),
               H2("Schritt 2: Mit transform_data verarbeiten", st),
               PRE("python -m transform_data ART_A_generated.json \\\n"
                   "    --workflow testdata_generator/workflow_ART_A.txt", st),
-              P("Erzeugt drei Excel-Dateien: "
-                "<font name='Courier'>ART_A_generated_IssueTimes.xlsx</font>, "
-                "<font name='Courier'>ART_A_generated_CFD.xlsx</font> und "
-                "<font name='Courier'>ART_A_generated_Transitions.xlsx</font>.", st),
               H2("Schritt 3: Report mit build_reports erstellen", st),
               PRE("python -m build_reports", st),
-              P("In build_reports die drei Excel-Dateien aus Schritt 2 laden — "
-                "das Programm erstellt daraus Flow-Diagramme, Cycle-Time-Analysen "
-                "und Metriken.", st),
               SP(6),
               box("<b>Was zu erwarten ist (Seed 42, 200 Issues):</b><br/>"
                   "- Issue-Keys: ART_A-0001 bis ART_A-0200<br/>"
@@ -549,46 +511,27 @@ def content_de(st: dict) -> list:
                   "- Erstellungsdaten verteilt über das Jahr 2025<br/>"
                   "- Gelegentliche Rückschritte (backflow-prob 0.08 = ca. 8 %)", st)]
 
-    # ---- 6. FAQ ----
     story += [PageBreak(),
               H1("6  Häufige Fragen (FAQ)", st), HR(),
-
               H2("Unterschied zwischen Testdaten und echten Daten?", st),
               P("Für Demos, Schulungen und Installationstests sind Testdaten die bessere "
-                "Wahl — keine Datenschutzbedenken, reproduzierbar und kontrolliert. "
-                "Für echte Flow-Analysen und Entscheidungen spiegeln echte Daten den "
-                "tatsächlichen Workflow-Zustand wider.", st),
-              HI("Für den manuellen Export echter Jira-Daten (API-Token, curl, "
-                 "Paginierung): Siehe Benutzerhandbuch Get Data.", st)]
+                "Wahl. Für echte Flow-Analysen und Entscheidungen spiegeln echte Daten "
+                "den tatsächlichen Workflow-Zustand wider.", st),
+              HI("Für den manuellen Export echter Jira-Daten: Siehe Benutzerhandbuch "
+                 "Get Data.", st)]
 
-    # ---- 7. Glossar ----
     story += [PageBreak(),
               H1("7  Glossar", st), HR(),
               tbl(["Begriff", "Erklärung"],
                   [["ART",       "Agile Release Train — ein Team aus mehreren Scrum-Teams in SAFe"],
                    ["API",       "Application Programming Interface — Programmierschnittstelle"],
-                   ["API-Token", "Sicherheitsschlüssel für den Zugang zur Jira-REST-API; "
-                                 "ersetzt das Passwort bei curl-Abfragen"],
-                   ["Changelog", "Jira-Protokoll aller Statusänderungen eines Issues "
-                                 "(expand=changelog)"],
-                   ["CFD",       "Cumulative Flow Diagram — zeigt den Issuebestand je Stage "
-                                 "kumuliert über die Zeit"],
-                   ["Closed Stage", "Die Stage, die ein Issue als abgeschlossen markiert "
-                                    "(workflow.txt: &lt;Closed&gt;)"],
-                   ["Cycle Time",  "Zeit von der ersten aktiven Stage (&lt;First&gt;) bis "
-                                   "zur Closed-Stage"],
-                   ["First Stage", "Erste aktive Stage, ab der die Cycle Time zählt "
-                                   "(workflow.txt: &lt;First&gt;)"],
-                   ["Helper",    "SituationReport-Modul zum Zusammenführen mehrerer "
-                                 "Jira-JSON-Dateien"],
+                   ["CFD",       "Cumulative Flow Diagram — zeigt den Issuebestand je Stage kumuliert"],
+                   ["Cycle Time", "Zeit von der ersten aktiven Stage bis zur Closed-Stage"],
+                   ["Helper",    "SituationReport-Modul zum Zusammenführen mehrerer JSON-Dateien"],
                    ["Issue",     "Arbeitselement in Jira (Feature, Bug, Enabler, Story, …)"],
-                   ["JQL",       "Jira Query Language — Abfragesprache für Jira-Suchen, "
-                                 "z. B. project=ART_A"],
                    ["JSON",      "JavaScript Object Notation — Format der Jira-API-Exporte"],
-                   ["Seed",      "Startwert für den Zufallsgenerator — gleicher Seed ergibt "
-                                 "immer dieselbe Ausgabe"],
-                   ["Stage",     "Ein Schritt im Workflow (entspricht einer Jira-Spalte oder "
-                                 "einem Status-Namen)"],
+                   ["Seed",      "Startwert für den Zufallsgenerator — gleicher Seed = gleiche Ausgabe"],
+                   ["Stage",     "Ein Schritt im Workflow (entspricht einer Jira-Spalte)"],
                    ["Workflow",  "Geordnete Abfolge von Stages, die ein Issue durchläuft"]],
                   col_widths=[3.5 * cm, 12 * cm])]
 
@@ -600,18 +543,8 @@ def content_de(st: dict) -> list:
 # ---------------------------------------------------------------------------
 
 def content_en(st: dict) -> list:
-    """
-    Build the English manual story (list of ReportLab flowables).
-
-    Args:
-        st: Style dictionary from make_styles().
-
-    Returns:
-        List of Platypus flowables for the English manual.
-    """
     story = []
 
-    # ---- 1. What is the Testdata Generator? ----
     story += [PageBreak(),
               H1("1  What is the Testdata Generator?", st), HR(),
               P("The <b>Testdata Generator</b> creates synthetic Jira issue data in "
@@ -633,7 +566,6 @@ def content_en(st: dict) -> list:
                 "in development), which loads real data directly from Jira. For the "
                 "manual export of real Jira data, see the <b>Get Data User Manual</b>.", st)]
 
-    # ---- 2. Prerequisites and Start ----
     story += [PageBreak(),
               H1("2  Prerequisites and Start", st), HR(),
               H2("2.1  Portable package (recommended)", st),
@@ -660,7 +592,6 @@ def content_en(st: dict) -> list:
     story += img("Testdata-Generator-GUI.png", 13.0,
                  "Fig. 1: Testdata Generator user interface", st)
 
-    # ---- 3. The Workflow File ----
     story += [PageBreak(),
               H1("3  The Workflow File", st), HR(),
               P("The workflow file defines the stages of your Jira board and is the only "
@@ -701,10 +632,8 @@ def content_en(st: dict) -> list:
               SP(4),
               HI("Notes: 'Funnel' has four aliases — all four Jira status names are "
                  "normalised to 'Funnel'. Analysis is the first active stage (cycle "
-                 "time begins here). Releasing is the closed stage. Done (after "
-                 "Releasing) also captures Canceled issues.", st)]
+                 "time begins here). Releasing is the closed stage.", st)]
 
-    # ---- 4. Parameter Reference ----
     story += [PageBreak(),
               H1("4  Parameter Reference", st), HR(),
               P("All parameters are available both in the GUI and on the command line.", st),
@@ -747,7 +676,6 @@ def content_en(st: dict) -> list:
                   "— ideal for demos where all participants should see identical results.",
                   st)]
 
-    # ---- 4b. Flow Anti-Pattern Modes ----
     story += [PageBreak(),
               H1("4b  Flow Anti-Pattern Modes", st), HR(),
               P("Since version 0.9.9 the Testdata Generator can simulate typical flow "
@@ -781,13 +709,10 @@ def content_en(st: dict) -> list:
               SP(8),
               H2("Cycle time control", st),
               P("When <b>--mean-cycle-days</b> is provided, cycle times are sampled "
-                "from a lognormal distribution with the given mean. The lognormal "
-                "distribution produces the right-skewed shape typical in practice — "
-                "most issues are fast, a few take much longer.", st),
+                "from a lognormal distribution with the given mean.", st),
               tbl(["Parameter", "Meaning"],
                   [["--mean-cycle-days",
-                    "Mean cycle time in days (e.g. 20). "
-                    "Required for all patterns except none."],
+                    "Mean cycle time in days (e.g. 20). Required for all patterns except none."],
                    ["--std-cycle-days",
                     "Standard deviation in days (default: 30 % of mean). "
                     "Higher values produce a wider spread in the scatter plot."],
@@ -820,10 +745,8 @@ def content_en(st: dict) -> list:
                   "    --output batch.json", st),
               SP(6),
               box("<b>Note:</b> --pattern requires --mean-cycle-days. "
-                  "Without --mean-cycle-days the pattern is ignored and "
-                  "the original min/max dwell-hour behaviour is used.", st)]
+                  "Without --mean-cycle-days the pattern is ignored.", st)]
 
-    # ---- 5. ART_A – Complete Example ----
     story += [PageBreak(),
               H1("5  ART_A – Complete Example", st), HR(),
               P("This example shows the full pipeline from generator to finished report "
@@ -840,68 +763,686 @@ def content_en(st: dict) -> list:
                   "    --backflow-prob 0.08 \\\n"
                   "    --seed 42 \\\n"
                   "    --output ART_A_generated.json", st),
-              P("Result: <font name='Courier'>ART_A_generated.json</font> with 200 "
-                "issues — approximately 150 closed and 50 open across various stages. "
-                "Seed 42 makes the output reproducible at any time.", st),
+              P("Result: <font name='Courier'>ART_A_generated.json</font> with 200 issues "
+                "— approximately 150 closed and 50 open. Reproducible with seed 42.", st),
               H2("Step 2: Process with transform_data", st),
               PRE("python -m transform_data ART_A_generated.json \\\n"
                   "    --workflow testdata_generator/workflow_ART_A.txt", st),
-              P("Produces three Excel files: "
-                "<font name='Courier'>ART_A_generated_IssueTimes.xlsx</font>, "
-                "<font name='Courier'>ART_A_generated_CFD.xlsx</font>, and "
-                "<font name='Courier'>ART_A_generated_Transitions.xlsx</font>.", st),
               H2("Step 3: Create report with build_reports", st),
               PRE("python -m build_reports", st),
-              P("Load the three Excel files from Step 2 in build_reports — the "
-                "module generates flow diagrams, cycle time analyses, and metrics.", st),
               SP(6),
               box("<b>Expected output (seed 42, 200 issues):</b><br/>"
                   "- Issue keys: ART_A-0001 to ART_A-0200<br/>"
                   "- Issue types: ~120 Feature, ~40 Bug, ~40 Enabler<br/>"
                   "- ~150 issues with status 'Releasing' or 'Done'<br/>"
                   "- Creation dates distributed across 2025<br/>"
-                  "- Occasional backward transitions (backflow-prob 0.08 = ~8 %)", st)]
+                  "- Occasional backward transitions (~8 %)", st)]
 
-    # ---- 6. FAQ ----
     story += [PageBreak(),
               H1("6  Frequently Asked Questions (FAQ)", st), HR(),
-
               H2("Difference between test data and real data?", st),
               P("For demos, training, and installation tests, test data is the better "
                 "choice — no privacy concerns, reproducible, and fully controlled. "
                 "For real flow analyses and decisions, actual data reflects the true "
                 "workflow state.", st),
-              HI("For the manual export of real Jira data (API token, curl, "
-                 "pagination): See the Get Data User Manual.", st)]
+              HI("For the manual export of real Jira data: See the Get Data User Manual.", st)]
 
-    # ---- 7. Glossary ----
     story += [PageBreak(),
               H1("7  Glossary", st), HR(),
               tbl(["Term", "Explanation"],
                   [["ART",       "Agile Release Train — a team-of-teams structure in SAFe"],
                    ["API",       "Application Programming Interface — programming interface"],
-                   ["API token", "Security key for accessing the Jira REST API; replaces "
-                                 "the password in curl calls"],
-                   ["Changelog", "Jira log of all status changes for an issue "
-                                 "(requires expand=changelog)"],
-                   ["CFD",       "Cumulative Flow Diagram — shows the cumulative issue count "
-                                 "per stage over time"],
-                   ["Closed stage", "The stage that marks an issue as completed "
-                                    "(workflow.txt: &lt;Closed&gt;)"],
-                   ["Cycle time",  "Time from the first active stage (&lt;First&gt;) to "
-                                   "the closed stage"],
-                   ["First stage", "First active stage where cycle time measurement begins "
-                                   "(workflow.txt: &lt;First&gt;)"],
+                   ["CFD",       "Cumulative Flow Diagram — cumulative issue count per stage over time"],
+                   ["Cycle time", "Time from the first active stage to the closed stage"],
                    ["Helper",    "SituationReport module for merging multiple Jira JSON files"],
                    ["Issue",     "A work item in Jira (Feature, Bug, Enabler, Story, …)"],
-                   ["JQL",       "Jira Query Language — query language for Jira searches, "
-                                 "e.g. project=ART_A"],
                    ["JSON",      "JavaScript Object Notation — format of Jira API exports"],
-                   ["Seed",      "Starting value for the random generator — same seed always "
-                                 "produces the same output"],
-                   ["Stage",     "One step in the workflow (corresponds to a Jira column or "
-                                 "status name)"],
+                   ["Seed",      "Starting value for the random generator — same seed = same output"],
+                   ["Stage",     "One step in the workflow (corresponds to a Jira column)"],
                    ["Workflow",  "Ordered sequence of stages that an issue passes through"]],
+                  col_widths=[3.5 * cm, 12 * cm])]
+
+    return story
+
+
+# ---------------------------------------------------------------------------
+# Content — Romanian
+# ---------------------------------------------------------------------------
+
+def content_ro(st: dict) -> list:
+    story = []
+
+    story += [PageBreak(),
+              H1("1  Ce este Generatorul de Date de Test?", st), HR(),
+              P("Generatorul de Date de Test (<b>Testdata Generator</b>) creează date "
+                "sintetice de probleme Jira în formatul Jira REST API. Fișierele generate "
+                "pot fi procesate direct de modulul <b>transform_data</b> — fără o "
+                "instanță Jira reală.", st),
+              P("Generatorul simulează istorii realiste de flux de lucru: problemele "
+                "parcurg etapele definite, petrec perioade variabile în fiecare etapă, "
+                "revin ocazional și se închid la o rată configurabilă.", st),
+              SP(6),
+              box("<b>Cazuri de utilizare tipice:</b><br/>"
+                  "- <b>Testarea unei instalări noi:</b> Verificați dacă transform_data și "
+                  "build_reports funcționează corect<br/>"
+                  "- <b>Demo-uri și prezentări:</b> Date realiste fără preocupări de "
+                  "confidențialitate<br/>"
+                  "- <b>Training:</b> Mediu de învățare controlat cu date cunoscute<br/>"
+                  "- <b>Dezvoltare:</b> Date de test reproductibile prin parametrul seed",
+                  st),
+              SP(8),
+              P("Generatorul completează modulul <b>Get Data</b> (în curs de dezvoltare), "
+                "care încarcă date reale direct din Jira. Pentru exportul manual al datelor "
+                "reale Jira, consultați <b>Manualul de Utilizator Get Data</b>.", st)]
+
+    story += [PageBreak(),
+              H1("2  Cerințe prealabile și pornire", st), HR(),
+              H2("2.1  Pachet portabil (recomandat)", st),
+              P("Pachetul portabil include deja Python integrat — nu este necesară o "
+                "instalare separată.", st),
+              tbl(["Sistem de operare", "Fișier de pornire"],
+                  [["Windows",  "TestdataGenerator.bat  (dublu-clic)"],
+                   ["macOS",    "TestdataGenerator.command  (clic dreapta → Deschide)"],
+                   ["Linux",    "./TestdataGenerator.sh"]],
+                  col_widths=[4 * cm, 11.5 * cm]),
+              SP(6),
+              HI("Notă pentru Windows: Dacă la pornire apare o eroare privind Python, "
+                 "fișierul ZIP a fost probabil blocat de Windows. Soluție: clic dreapta "
+                 "pe ZIP → Proprietăți → Securitate → Deblocare → OK → reextragere.", st),
+              SP(6),
+              H2("2.2  Din codul sursă (necesită Python)", st),
+              CD("python -m testdata_generator", st),
+              SP(6),
+              H2("2.3  Interfața utilizator", st),
+              P("La pornire se deschide fereastra principală cu câmpuri de intrare pentru "
+                "toți parametrii. Singurul câmp obligatoriu este fișierul de flux de "
+                "lucru — toate celelalte au valori implicite sensibile.", st)]
+    story += img("Testdata-Generator-GUI.png", 13.0,
+                 "Fig. 1: Interfața utilizator a Generatorului de Date de Test", st)
+
+    story += [PageBreak(),
+              H1("3  Fișierul de flux de lucru", st), HR(),
+              P("Fișierul de flux de lucru definește etapele tablei Jira și este singurul "
+                "parametru obligatoriu. Folosește același format ca transform_data — un "
+                "singur fișier funcționează pentru ambele module.", st),
+              H2("3.1  Format", st),
+              P("Fiecare linie descrie o etapă. Aliasurile (denumiri alternative de stare "
+                "în exportul Jira) sunt separate prin două puncte. Două linii speciale "
+                "marchează începutul și sfârșitul lucrului activ:", st),
+              PRE("NumeCanonic:Alias1:Alias2\n"
+                  "<First>PrimaEtapaActiva\n"
+                  "<Closed>EtapaInchisa", st),
+              tbl(["Linie", "Semnificație"],
+                  [["NumeCanonic:Alias1:Alias2",
+                    "Etapă cu unul sau mai multe denumiri alternative Jira"],
+                   ["NumeEtapa (fără :)", "Etapă fără aliasuri"],
+                   ["<First>NumeEtapa",
+                    "Prima etapă activă — unde începe prelucrarea (start cycle time)"],
+                   ["<Closed>NumeEtapa",
+                    "Etapă închisă — marchează o problemă ca finalizată"]],
+                  col_widths=[5 * cm, 10.5 * cm]),
+              SP(8),
+              H2("3.2  Exemplu de flux ART_A", st),
+              P("Exemplul inclus "
+                "<font name='Courier'>workflow_ART_A.txt</font> "
+                "modelează un flux SAFe ART tipic.", st),
+              PRE("Funnel:New:Open:To Do\n"
+                  "Analysis:In Analysis:Estimated\n"
+                  "Program Backlog:Ready for Dev:Backlog\n"
+                  "Implementation:In Implementation:In Review:In Progress\n"
+                  "Blocker\n"
+                  "Validating on Staging:QA\n"
+                  "Deploying to Production:Ready for Development\n"
+                  "Releasing:Completed\n"
+                  "Done:Canceled\n"
+                  "<First>Analysis\n"
+                  "<Closed>Releasing", st)]
+
+    story += [PageBreak(),
+              H1("4  Referință parametri", st), HR(),
+              P("Toți parametrii sunt disponibili atât în interfața grafică, cât și "
+                "în linia de comandă.", st),
+              tbl(["Parametru", "Implicit", "Descriere"],
+                  [["--workflow FILE",         "(obligatoriu)",
+                    "Fișier de definiție a fluxului de lucru (.txt)"],
+                   ["--output FILE.json",       "<proiect>_generated.json",
+                    "Calea fișierului de ieșire"],
+                   ["--project KEY",            "TEST",
+                    "Cheia proiectului Jira pentru problemele generate"],
+                   ["--issues N",               "100",
+                    "Numărul de probleme de generat"],
+                   ["--from-date YYYY-MM-DD",   "2025-01-01",
+                    "Data de creare cea mai timpurie"],
+                   ["--to-date YYYY-MM-DD",     "2025-12-31",
+                    "Data de tranziție cea mai târzie"],
+                   ["--issue-types TYPE:W ...", "Feature:0.6 Bug:0.3 Enabler:0.1",
+                    "Tipuri de probleme cu ponderi"],
+                   ["--completion-rate FLOAT",  "0.7",
+                    "Proporția problemelor care ajung la etapa închisă (0–1)"],
+                   ["--todo-rate FLOAT",         "0.15",
+                    "Proporția problemelor deschise care rămân în etapele timpurii (0–1)"],
+                   ["--backflow-prob FLOAT",     "0.1",
+                    "Probabilitatea unei tranziții înapoi la fiecare pas (0–1)"],
+                   ["--seed INT",               "(aleatoriu)",
+                    "Seed pentru rezultate reproductibile (opțional)"],
+                   ["--mean-cycle-days FLOAT",  "(niciunul)",
+                    "Cycle time mediu în zile (lognormal); activează controlul CT"],
+                   ["--std-cycle-days FLOAT",   "(30 % din medie)",
+                    "Abaterea standard a cycle time în zile"],
+                   ["--pattern TIPAR",          "none",
+                    "Anti-pattern: none / triangle / flat_triangle / cluster / batch"],
+                   ["--pi-duration-weeks INT",  "12",
+                    "Durata ciclului PI în săptămâni (pentru cluster/batch)"]],
+                  col_widths=[4.5 * cm, 3.5 * cm, 7.5 * cm])]
+
+    story += [PageBreak(),
+              H1("4b  Modele de Anti-Pattern de flux", st), HR(),
+              P("Începând cu versiunea 0.9.9, Generatorul de Date de Test poate simula "
+                "anti-pattern-uri tipice de flux din literatura lui Vacanti și Singh. "
+                "Combinați <b>--mean-cycle-days</b> cu <b>--pattern</b>.", st),
+              SP(4),
+              tbl(["Tipar", "Aspect scatter plot", "Descriere"],
+                  [["none",
+                    "Nor de puncte uniform",
+                    "Cycle time aleatoriu fără tendință — comportament implicit"],
+                   ["triangle",
+                    "Triunghi: unghi drept jos-dreapta",
+                    "Cycle time crește liniar în timp (multiplicator 1–4×). "
+                    "Indică un proces care devine progresiv mai lent."],
+                   ["flat_triangle",
+                    "Triunghi, creștere atenuată la final",
+                    "Ca triangle, dar creșterea este atenuată prin tanh(2.5×t). "
+                    "Arată o deteriorare a procesului care se stabilizează."],
+                   ["cluster",
+                    "Grupuri verticale de puncte la finalul PI",
+                    "Cycle time rămâne stabil, dar majoritatea problemelor sunt "
+                    "livrate în ultimele 2 săptămâni înainte de finalul PI. "
+                    "Comportament determinat de termen limită."],
+                   ["batch",
+                    "Coloane de înălțime variabilă la finalul PI",
+                    "Ca cluster, dar cu cycle time foarte variabilă (0.1–3× medie). "
+                    "Arată că problemele scurte și lungi sunt amânate împreună."]],
+                  col_widths=[3.0 * cm, 4.0 * cm, 8.5 * cm]),
+              SP(8),
+              H2("Controlul cycle time", st),
+              PRE("# Tipar triunghi: CT crește de la 20z la 80z\n"
+                  "python -m testdata_generator \\\n"
+                  "    --workflow workflow.txt --issues 300 \\\n"
+                  "    --pattern triangle \\\n"
+                  "    --mean-cycle-days 20 --std-cycle-days 6 \\\n"
+                  "    --completion-rate 0.8 --seed 1 \\\n"
+                  "    --output triangle.json", st)]
+
+    story += [PageBreak(),
+              H1("5  ART_A – Exemplu complet", st), HR(),
+              P("Acest exemplu arată întregul pipeline de la generator la raportul "
+                "final, folosind proiectul fictiv ART_A.", st),
+              H2("Pasul 1: Generare date de test", st),
+              PRE("python -m testdata_generator \\\n"
+                  "    --workflow testdata_generator/workflow_ART_A.txt \\\n"
+                  "    --project ART_A --issues 200 \\\n"
+                  "    --from-date 2025-01-01 --to-date 2025-12-31 \\\n"
+                  "    --completion-rate 0.75 --seed 42 \\\n"
+                  "    --output ART_A_generated.json", st),
+              H2("Pasul 2: Procesare cu transform_data", st),
+              PRE("python -m transform_data ART_A_generated.json \\\n"
+                  "    --workflow testdata_generator/workflow_ART_A.txt", st),
+              H2("Pasul 3: Creare raport cu build_reports", st),
+              PRE("python -m build_reports", st)]
+
+    story += [PageBreak(),
+              H1("6  Întrebări frecvente (FAQ)", st), HR(),
+              H2("Diferența dintre datele de test și datele reale?", st),
+              P("Pentru demo-uri, training și teste de instalare, datele de test sunt "
+                "alegerea mai bună — fără preocupări de confidențialitate, reproductibile "
+                "și complet controlate. Pentru analize reale de flux, datele reale "
+                "reflectă starea actuală a fluxului de lucru.", st),
+              HI("Pentru exportul manual al datelor reale Jira: Consultați Manualul "
+                 "de Utilizator Get Data.", st)]
+
+    story += [PageBreak(),
+              H1("7  Glosar", st), HR(),
+              tbl(["Termen", "Explicație"],
+                  [["ART",       "Agile Release Train — structură de echipă multiplă în SAFe"],
+                   ["API",       "Application Programming Interface — interfață de programare"],
+                   ["CFD",       "Cumulative Flow Diagram — număr cumulat de probleme per etapă"],
+                   ["Cycle Time", "Timp de la prima etapă activă până la etapa închisă"],
+                   ["Issue",     "Element de lucru în Jira (Feature, Bug, Enabler, Story, …)"],
+                   ["JSON",      "JavaScript Object Notation — format exporturi API Jira"],
+                   ["Seed",      "Valoare de start pentru generatorul aleatoriu — același seed = același rezultat"],
+                   ["Stage",     "Un pas în fluxul de lucru (corespunde unei coloane Jira)"],
+                   ["Workflow",  "Secvență ordonată de etape prin care trece o problemă"]],
+                  col_widths=[3.5 * cm, 12 * cm])]
+
+    return story
+
+
+# ---------------------------------------------------------------------------
+# Content — Portuguese
+# ---------------------------------------------------------------------------
+
+def content_pt(st: dict) -> list:
+    story = []
+
+    story += [PageBreak(),
+              H1("1  O que é o Gerador de Dados de Teste?", st), HR(),
+              P("O <b>Gerador de Dados de Teste</b> (Testdata Generator) cria dados "
+                "sintéticos de issues Jira no formato Jira REST API. Os ficheiros "
+                "gerados podem ser processados diretamente pelo módulo "
+                "<b>transform_data</b> — sem necessidade de uma instância Jira real.", st),
+              P("O gerador simula históricos de fluxo de trabalho realistas: as issues "
+                "percorrem as etapas definidas, permanecem períodos variáveis em cada "
+                "etapa, ocasionalmente regridem e fecham a uma taxa configurável.", st),
+              SP(6),
+              box("<b>Casos de uso típicos:</b><br/>"
+                  "- <b>Testar uma nova instalação:</b> Verificar se transform_data e "
+                  "build_reports funcionam corretamente<br/>"
+                  "- <b>Demos e apresentações:</b> Dados realistas sem preocupações de "
+                  "privacidade<br/>"
+                  "- <b>Formação:</b> Ambiente de aprendizagem controlado com dados "
+                  "conhecidos<br/>"
+                  "- <b>Desenvolvimento:</b> Dados de teste reprodutíveis via parâmetro seed",
+                  st),
+              SP(8),
+              P("O Gerador complementa o módulo <b>Get Data</b> (em desenvolvimento), "
+                "que carrega dados reais diretamente do Jira. Para exportar dados reais "
+                "do Jira manualmente, consulte o <b>Manual do Utilizador Get Data</b>.", st)]
+
+    story += [PageBreak(),
+              H1("2  Pré-requisitos e início", st), HR(),
+              H2("2.1  Pacote portátil (recomendado)", st),
+              P("O pacote portátil inclui o Python integrado — não é necessária "
+                "instalação separada.", st),
+              tbl(["Sistema operativo", "Ficheiro de início"],
+                  [["Windows",  "TestdataGenerator.bat  (duplo clique)"],
+                   ["macOS",    "TestdataGenerator.command  (clique direito → Abrir)"],
+                   ["Linux",    "./TestdataGenerator.sh"]],
+                  col_widths=[4 * cm, 11.5 * cm]),
+              SP(6),
+              HI("Nota para Windows: Se aparecer um erro sobre Python não encontrado, "
+                 "o ficheiro ZIP foi bloqueado pelo Windows. Solução: clique direito "
+                 "no ZIP → Propriedades → Segurança → Desbloquear → OK → "
+                 "extrair novamente.", st),
+              SP(6),
+              H2("2.2  A partir do código fonte (requer Python)", st),
+              CD("python -m testdata_generator", st),
+              SP(6),
+              H2("2.3  A interface do utilizador", st),
+              P("Após o arranque, a janela principal apresenta campos de entrada para "
+                "todos os parâmetros. Apenas o ficheiro de fluxo de trabalho é "
+                "obrigatório — todos os outros campos têm valores predefinidos sensatos.", st)]
+    story += img("Testdata-Generator-GUI.png", 13.0,
+                 "Fig. 1: Interface do utilizador do Gerador de Dados de Teste", st)
+
+    story += [PageBreak(),
+              H1("3  O ficheiro de fluxo de trabalho", st), HR(),
+              P("O ficheiro de fluxo de trabalho define as etapas do quadro Jira e é o "
+                "único parâmetro obrigatório. Usa o mesmo formato que o transform_data — "
+                "um ficheiro funciona para ambos os módulos.", st),
+              H2("3.1  Formato", st),
+              P("Cada linha descreve uma etapa. Os aliases (nomes de estado alternativos "
+                "no export Jira) são separados por dois pontos. Duas linhas especiais "
+                "marcam o início e o fim do trabalho ativo:", st),
+              PRE("NomeCanónico:Alias1:Alias2\n"
+                  "<First>PrimeiraEtapaAtiva\n"
+                  "<Closed>EtapaFechada", st),
+              tbl(["Linha", "Significado"],
+                  [["NomeCanónico:Alias1:Alias2",
+                    "Etapa com um ou mais nomes de estado Jira alternativos"],
+                   ["NomeEtapa (sem :)", "Etapa sem aliases"],
+                   ["<First>NomeEtapa",
+                    "Primeira etapa ativa — onde o processamento começa (início do cycle time)"],
+                   ["<Closed>NomeEtapa",
+                    "Etapa fechada — marca uma issue como concluída"]],
+                  col_widths=[5 * cm, 10.5 * cm]),
+              SP(8),
+              H2("3.2  Exemplo de fluxo ART_A", st),
+              P("O exemplo incluído "
+                "<font name='Courier'>workflow_ART_A.txt</font> "
+                "modela um fluxo SAFe ART típico.", st),
+              PRE("Funnel:New:Open:To Do\n"
+                  "Analysis:In Analysis:Estimated\n"
+                  "Program Backlog:Ready for Dev:Backlog\n"
+                  "Implementation:In Implementation:In Review:In Progress\n"
+                  "Blocker\n"
+                  "Validating on Staging:QA\n"
+                  "Deploying to Production:Ready for Development\n"
+                  "Releasing:Completed\n"
+                  "Done:Canceled\n"
+                  "<First>Analysis\n"
+                  "<Closed>Releasing", st)]
+
+    story += [PageBreak(),
+              H1("4  Referência de parâmetros", st), HR(),
+              P("Todos os parâmetros estão disponíveis tanto na interface gráfica como "
+                "na linha de comandos.", st),
+              tbl(["Parâmetro", "Predefinição", "Descrição"],
+                  [["--workflow FILE",         "(obrigatório)",
+                    "Ficheiro de definição do fluxo de trabalho (.txt)"],
+                   ["--output FILE.json",       "<projeto>_generated.json",
+                    "Caminho do ficheiro de saída"],
+                   ["--project KEY",            "TEST",
+                    "Chave do projeto Jira para as issues geradas"],
+                   ["--issues N",               "100",
+                    "Número de issues a gerar"],
+                   ["--from-date YYYY-MM-DD",   "2025-01-01",
+                    "Data de criação mais antiga"],
+                   ["--to-date YYYY-MM-DD",     "2025-12-31",
+                    "Data de transição mais recente"],
+                   ["--issue-types TYPE:W ...", "Feature:0.6 Bug:0.3 Enabler:0.1",
+                    "Tipos de issues com pesos"],
+                   ["--completion-rate FLOAT",  "0.7",
+                    "Fração de issues que atingem a etapa fechada (0–1)"],
+                   ["--todo-rate FLOAT",         "0.15",
+                    "Fração de issues abertas que ficam em etapas iniciais (0–1)"],
+                   ["--backflow-prob FLOAT",     "0.1",
+                    "Probabilidade de transição regressiva em cada passo (0–1)"],
+                   ["--seed INT",               "(aleatório)",
+                    "Seed para resultado reprodutível (opcional)"],
+                   ["--mean-cycle-days FLOAT",  "(nenhum)",
+                    "Cycle time médio em dias (lognormal); ativa controlo CT"],
+                   ["--std-cycle-days FLOAT",   "(30 % da média)",
+                    "Desvio padrão do cycle time em dias"],
+                   ["--pattern PADRÃO",         "none",
+                    "Anti-padrão: none / triangle / flat_triangle / cluster / batch"],
+                   ["--pi-duration-weeks INT",  "12",
+                    "Duração do ciclo PI em semanas (para cluster/batch)"]],
+                  col_widths=[4.5 * cm, 3.5 * cm, 7.5 * cm])]
+
+    story += [PageBreak(),
+              H1("4b  Modos de Anti-Padrão de fluxo", st), HR(),
+              P("Desde a versão 0.9.9, o Gerador de Dados de Teste pode simular "
+                "anti-padrões de fluxo típicos da literatura de Vacanti e Singh. "
+                "Combine <b>--mean-cycle-days</b> com <b>--pattern</b>.", st),
+              SP(4),
+              tbl(["Padrão", "Aparência scatter plot", "Descrição"],
+                  [["none",
+                    "Nuvem de pontos uniforme",
+                    "Cycle time aleatório sem tendência — comportamento predefinido"],
+                   ["triangle",
+                    "Triângulo: ângulo reto em baixo à direita",
+                    "Cycle time aumenta linearmente ao longo do tempo (multiplicador 1–4×). "
+                    "Indica um processo que está a tornar-se progressivamente mais lento."],
+                   ["flat_triangle",
+                    "Triângulo, aumento atenua no final",
+                    "Como triangle mas o aumento é atenuado por tanh(2.5×t). "
+                    "Mostra uma deterioração do processo que está a estabilizar."],
+                   ["cluster",
+                    "Grupos verticais de pontos no final do PI",
+                    "Cycle time mantém-se estável, mas a maioria das issues é "
+                    "entregue nas últimas 2 semanas antes do final do PI. "
+                    "Comportamento orientado por prazo."],
+                   ["batch",
+                    "Colunas de altura variável no final do PI",
+                    "Como cluster mas com cycle time muito variável (0.1–3× média). "
+                    "Mostra que issues curtas e longas são empurradas juntas para o PI."]],
+                  col_widths=[3.0 * cm, 4.0 * cm, 8.5 * cm]),
+              SP(8),
+              H2("Controlo do cycle time", st),
+              PRE("# Padrão triângulo: CT aumenta de 20d para 80d\n"
+                  "python -m testdata_generator \\\n"
+                  "    --workflow workflow.txt --issues 300 \\\n"
+                  "    --pattern triangle \\\n"
+                  "    --mean-cycle-days 20 --std-cycle-days 6 \\\n"
+                  "    --completion-rate 0.8 --seed 1 \\\n"
+                  "    --output triangle.json", st)]
+
+    story += [PageBreak(),
+              H1("5  ART_A – Exemplo completo", st), HR(),
+              P("Este exemplo mostra o pipeline completo do gerador ao relatório "
+                "final, usando o projeto fictício ART_A.", st),
+              H2("Passo 1: Gerar dados de teste", st),
+              PRE("python -m testdata_generator \\\n"
+                  "    --workflow testdata_generator/workflow_ART_A.txt \\\n"
+                  "    --project ART_A --issues 200 \\\n"
+                  "    --from-date 2025-01-01 --to-date 2025-12-31 \\\n"
+                  "    --completion-rate 0.75 --seed 42 \\\n"
+                  "    --output ART_A_generated.json", st),
+              H2("Passo 2: Processar com transform_data", st),
+              PRE("python -m transform_data ART_A_generated.json \\\n"
+                  "    --workflow testdata_generator/workflow_ART_A.txt", st),
+              H2("Passo 3: Criar relatório com build_reports", st),
+              PRE("python -m build_reports", st)]
+
+    story += [PageBreak(),
+              H1("6  Perguntas frequentes (FAQ)", st), HR(),
+              H2("Diferença entre dados de teste e dados reais?", st),
+              P("Para demos, formação e testes de instalação, os dados de teste são a "
+                "melhor escolha — sem preocupações de privacidade, reprodutíveis e "
+                "totalmente controlados. Para análises reais de fluxo, os dados reais "
+                "refletem o verdadeiro estado do fluxo de trabalho.", st),
+              HI("Para exportar dados reais do Jira manualmente: Consulte o Manual "
+                 "do Utilizador Get Data.", st)]
+
+    story += [PageBreak(),
+              H1("7  Glossário", st), HR(),
+              tbl(["Termo", "Explicação"],
+                  [["ART",       "Agile Release Train — estrutura de múltiplas equipas em SAFe"],
+                   ["API",       "Application Programming Interface — interface de programação"],
+                   ["CFD",       "Cumulative Flow Diagram — contagem cumulativa de issues por etapa"],
+                   ["Cycle Time", "Tempo desde a primeira etapa ativa até à etapa fechada"],
+                   ["Issue",     "Elemento de trabalho no Jira (Feature, Bug, Enabler, Story, …)"],
+                   ["JSON",      "JavaScript Object Notation — formato dos exports da API Jira"],
+                   ["Seed",      "Valor inicial para o gerador aleatório — mesmo seed = mesmo resultado"],
+                   ["Stage",     "Um passo no fluxo de trabalho (corresponde a uma coluna Jira)"],
+                   ["Workflow",  "Sequência ordenada de etapas que uma issue percorre"]],
+                  col_widths=[3.5 * cm, 12 * cm])]
+
+    return story
+
+
+# ---------------------------------------------------------------------------
+# Content — French
+# ---------------------------------------------------------------------------
+
+def content_fr(st: dict) -> list:
+    story = []
+
+    story += [PageBreak(),
+              H1("1  Qu'est-ce que le Générateur de données de test ?", st), HR(),
+              P("Le <b>Générateur de données de test</b> (Testdata Generator) crée des "
+                "données synthétiques de tickets Jira au format Jira REST API. Les "
+                "fichiers générés peuvent être traités directement par le module "
+                "<b>transform_data</b> — sans instance Jira réelle.", st),
+              P("Le générateur simule des historiques de flux de travail réalistes : "
+                "les tickets parcourent les étapes définies, passent des durées variables "
+                "dans chaque étape, régressent occasionnellement et se ferment à un "
+                "taux configurable.", st),
+              SP(6),
+              box("<b>Cas d'utilisation typiques :</b><br/>"
+                  "- <b>Tester une nouvelle installation :</b> Vérifier que transform_data "
+                  "et build_reports fonctionnent correctement<br/>"
+                  "- <b>Démos et présentations :</b> Données réalistes sans "
+                  "problèmes de confidentialité<br/>"
+                  "- <b>Formation :</b> Environnement d'apprentissage contrôlé avec "
+                  "des données connues<br/>"
+                  "- <b>Développement :</b> Données de test reproductibles via le "
+                  "paramètre seed",
+                  st),
+              SP(8),
+              P("Le Générateur complète le module <b>Get Data</b> (en cours de "
+                "développement), qui charge des données réelles directement depuis "
+                "Jira. Pour l'export manuel de données Jira réelles, consultez le "
+                "<b>Manuel d'utilisation Get Data</b>.", st)]
+
+    story += [PageBreak(),
+              H1("2  Prérequis et démarrage", st), HR(),
+              H2("2.1  Package portable (recommandé)", st),
+              P("Le package portable inclut Python déjà intégré — aucune installation "
+                "séparée requise.", st),
+              tbl(["Système d'exploitation", "Fichier de démarrage"],
+                  [["Windows",  "TestdataGenerator.bat  (double-clic)"],
+                   ["macOS",    "TestdataGenerator.command  (clic droit → Ouvrir)"],
+                   ["Linux",    "./TestdataGenerator.sh"]],
+                  col_widths=[4 * cm, 11.5 * cm]),
+              SP(6),
+              HI("Note Windows : Si un message d'erreur concernant Python apparaît, "
+                 "le fichier ZIP a peut-être été bloqué par Windows. Solution : "
+                 "clic droit sur le ZIP → Propriétés → Sécurité → Débloquer → "
+                 "OK → extraire à nouveau.", st),
+              SP(6),
+              H2("2.2  Depuis le code source (Python requis)", st),
+              CD("python -m testdata_generator", st),
+              SP(6),
+              H2("2.3  L'interface utilisateur", st),
+              P("Au démarrage, la fenêtre principale affiche des champs de saisie pour "
+                "tous les paramètres. Seul le fichier de flux de travail est obligatoire "
+                "— tous les autres champs ont des valeurs par défaut sensées.", st)]
+    story += img("Testdata-Generator-GUI.png", 13.0,
+                 "Fig. 1 : Interface utilisateur du Générateur de données de test", st)
+
+    story += [PageBreak(),
+              H1("3  Le fichier de flux de travail", st), HR(),
+              P("Le fichier de flux de travail définit les étapes de votre tableau Jira "
+                "et est le seul paramètre obligatoire. Il utilise le même format que "
+                "transform_data — un seul fichier fonctionne pour les deux modules.", st),
+              H2("3.1  Format", st),
+              P("Chaque ligne décrit une étape. Les alias (noms de statut alternatifs "
+                "dans l'export Jira) sont séparés par des deux-points. Deux lignes "
+                "spéciales marquent le début et la fin du travail actif :", st),
+              PRE("NomCanonique:Alias1:Alias2\n"
+                  "<First>PremiereEtapeActive\n"
+                  "<Closed>EtapeFermee", st),
+              tbl(["Ligne", "Signification"],
+                  [["NomCanonique:Alias1:Alias2",
+                    "Étape avec un ou plusieurs noms de statut Jira alternatifs"],
+                   ["NomEtape (sans :)", "Étape sans alias"],
+                   ["<First>NomEtape",
+                    "Première étape active — où commence le traitement (début du cycle time)"],
+                   ["<Closed>NomEtape",
+                    "Étape fermée — marque un ticket comme terminé"]],
+                  col_widths=[5 * cm, 10.5 * cm]),
+              SP(8),
+              H2("3.2  Exemple de flux ART_A", st),
+              P("L'exemple fourni "
+                "<font name='Courier'>workflow_ART_A.txt</font> "
+                "modélise un flux SAFe ART typique.", st),
+              PRE("Funnel:New:Open:To Do\n"
+                  "Analysis:In Analysis:Estimated\n"
+                  "Program Backlog:Ready for Dev:Backlog\n"
+                  "Implementation:In Implementation:In Review:In Progress\n"
+                  "Blocker\n"
+                  "Validating on Staging:QA\n"
+                  "Deploying to Production:Ready for Development\n"
+                  "Releasing:Completed\n"
+                  "Done:Canceled\n"
+                  "<First>Analysis\n"
+                  "<Closed>Releasing", st)]
+
+    story += [PageBreak(),
+              H1("4  Référence des paramètres", st), HR(),
+              P("Tous les paramètres sont disponibles dans l'interface graphique et "
+                "en ligne de commande.", st),
+              tbl(["Paramètre", "Défaut", "Description"],
+                  [["--workflow FILE",         "(obligatoire)",
+                    "Fichier de définition du flux de travail (.txt)"],
+                   ["--output FILE.json",       "<projet>_generated.json",
+                    "Chemin du fichier de sortie"],
+                   ["--project KEY",            "TEST",
+                    "Clé de projet Jira pour les tickets générés"],
+                   ["--issues N",               "100",
+                    "Nombre de tickets à générer"],
+                   ["--from-date YYYY-MM-DD",   "2025-01-01",
+                    "Date de création la plus ancienne"],
+                   ["--to-date YYYY-MM-DD",     "2025-12-31",
+                    "Date de transition la plus récente"],
+                   ["--issue-types TYPE:W ...", "Feature:0.6 Bug:0.3 Enabler:0.1",
+                    "Types de tickets avec pondérations"],
+                   ["--completion-rate FLOAT",  "0.7",
+                    "Fraction de tickets atteignant l'étape fermée (0–1)"],
+                   ["--todo-rate FLOAT",         "0.15",
+                    "Fraction de tickets ouverts restant dans les étapes initiales (0–1)"],
+                   ["--backflow-prob FLOAT",     "0.1",
+                    "Probabilité d'une transition en arrière à chaque pas (0–1)"],
+                   ["--seed INT",               "(aléatoire)",
+                    "Seed pour résultat reproductible (optionnel)"],
+                   ["--mean-cycle-days FLOAT",  "(aucun)",
+                    "Cycle time moyen en jours (lognormal) ; active le contrôle CT"],
+                   ["--std-cycle-days FLOAT",   "(30 % de la moyenne)",
+                    "Écart type du cycle time en jours"],
+                   ["--pattern MOTIF",          "none",
+                    "Anti-pattern : none / triangle / flat_triangle / cluster / batch"],
+                   ["--pi-duration-weeks INT",  "12",
+                    "Durée du cycle PI en semaines (pour cluster/batch)"]],
+                  col_widths=[4.5 * cm, 3.5 * cm, 7.5 * cm])]
+
+    story += [PageBreak(),
+              H1("4b  Modes d'anti-pattern de flux", st), HR(),
+              P("Depuis la version 0.9.9, le Générateur peut simuler des anti-patterns "
+                "de flux typiques de la littérature de Vacanti et Singh. Combinez "
+                "<b>--mean-cycle-days</b> avec <b>--pattern</b>.", st),
+              SP(4),
+              tbl(["Motif", "Apparence scatter plot", "Description"],
+                  [["none",
+                    "Nuage de points uniforme",
+                    "Cycle time aléatoire sans tendance — comportement par défaut"],
+                   ["triangle",
+                    "Triangle : angle droit en bas à droite",
+                    "Le cycle time augmente linéairement dans le temps (multiplicateur 1–4×). "
+                    "Indique un processus qui devient progressivement plus lent."],
+                   ["flat_triangle",
+                    "Triangle, augmentation s'atténue à la fin",
+                    "Comme triangle mais l'augmentation est atténuée par tanh(2.5×t). "
+                    "Montre une détérioration du processus qui se stabilise."],
+                   ["cluster",
+                    "Groupes verticaux de points en fin de PI",
+                    "Le cycle time reste stable, mais la plupart des tickets sont "
+                    "livrés dans les 2 dernières semaines avant la fin du PI. "
+                    "Comportement orienté par délai."],
+                   ["batch",
+                    "Colonnes de hauteur variable en fin de PI",
+                    "Comme cluster mais avec cycle time très variable (0.1–3× moyenne). "
+                    "Montre que tickets courts et longs sont tous poussés en fin de PI."]],
+                  col_widths=[3.0 * cm, 4.0 * cm, 8.5 * cm]),
+              SP(8),
+              H2("Contrôle du cycle time", st),
+              PRE("# Motif triangle : CT augmente de 20j à 80j\n"
+                  "python -m testdata_generator \\\n"
+                  "    --workflow workflow.txt --issues 300 \\\n"
+                  "    --pattern triangle \\\n"
+                  "    --mean-cycle-days 20 --std-cycle-days 6 \\\n"
+                  "    --completion-rate 0.8 --seed 1 \\\n"
+                  "    --output triangle.json", st)]
+
+    story += [PageBreak(),
+              H1("5  ART_A – Exemple complet", st), HR(),
+              P("Cet exemple montre le pipeline complet du générateur au rapport "
+                "final, en utilisant le projet fictif ART_A.", st),
+              H2("Étape 1 : Générer les données de test", st),
+              PRE("python -m testdata_generator \\\n"
+                  "    --workflow testdata_generator/workflow_ART_A.txt \\\n"
+                  "    --project ART_A --issues 200 \\\n"
+                  "    --from-date 2025-01-01 --to-date 2025-12-31 \\\n"
+                  "    --completion-rate 0.75 --seed 42 \\\n"
+                  "    --output ART_A_generated.json", st),
+              H2("Étape 2 : Traiter avec transform_data", st),
+              PRE("python -m transform_data ART_A_generated.json \\\n"
+                  "    --workflow testdata_generator/workflow_ART_A.txt", st),
+              H2("Étape 3 : Créer le rapport avec build_reports", st),
+              PRE("python -m build_reports", st)]
+
+    story += [PageBreak(),
+              H1("6  Foire aux questions (FAQ)", st), HR(),
+              H2("Différence entre données de test et données réelles ?", st),
+              P("Pour les démos, la formation et les tests d'installation, les données "
+                "de test sont le meilleur choix — sans problèmes de confidentialité, "
+                "reproductibles et entièrement contrôlées. Pour les analyses de flux "
+                "réelles, les données réelles reflètent l'état réel du flux de travail.", st),
+              HI("Pour l'export manuel de données Jira réelles : Consultez le Manuel "
+                 "d'utilisation Get Data.", st)]
+
+    story += [PageBreak(),
+              H1("7  Glossaire", st), HR(),
+              tbl(["Terme", "Explication"],
+                  [["ART",       "Agile Release Train — structure multi-équipes dans SAFe"],
+                   ["API",       "Application Programming Interface — interface de programmation"],
+                   ["CFD",       "Cumulative Flow Diagram — comptage cumulé des tickets par étape"],
+                   ["Cycle Time", "Temps depuis la première étape active jusqu'à l'étape fermée"],
+                   ["Issue",     "Élément de travail dans Jira (Feature, Bug, Enabler, Story, …)"],
+                   ["JSON",      "JavaScript Object Notation — format des exports API Jira"],
+                   ["Seed",      "Valeur initiale pour le générateur aléatoire — même seed = même résultat"],
+                   ["Stage",     "Une étape dans le flux de travail (correspond à une colonne Jira)"],
+                   ["Workflow",  "Séquence ordonnée d'étapes que parcourt un ticket"]],
                   col_widths=[3.5 * cm, 12 * cm])]
 
     return story
@@ -912,18 +1453,20 @@ def content_en(st: dict) -> list:
 # ---------------------------------------------------------------------------
 
 def main() -> None:
-    """Generate testdata_generator manuals as PDF in German and English."""
     st = make_styles()
 
     for lang, output, content_fn in [
         ("de", OUTPUT_DE, content_de),
         ("en", OUTPUT_EN, content_en),
+        ("ro", OUTPUT_RO, content_ro),
+        ("pt", OUTPUT_PT, content_pt),
+        ("fr", OUTPUT_FR, content_fr),
     ]:
         story = [NextPageTemplate("normal")]
         story += content_fn(st)
         doc = _TDGDoc(str(output), lang=lang)
         doc.multiBuild(story)
-        print(f"PDF created: {output}")
+        print(f"PDF erstellt: {output}")
 
 
 if __name__ == "__main__":
