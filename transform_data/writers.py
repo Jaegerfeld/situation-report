@@ -14,6 +14,7 @@
 #   fett gedruckte Kopfzeilen.
 # =============================================================================
 
+import io
 from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 
@@ -22,6 +23,12 @@ from openpyxl.styles import Font
 
 from .processor import IssueRecord, fmt_dt
 from .workflow import Workflow
+
+
+def _save_wb(wb: Workbook, path: Path) -> None:
+    buf = io.BytesIO()
+    wb.save(buf)
+    path.write_bytes(buf.getvalue())
 
 
 def _new_wb(headers: list[str]) -> tuple[Workbook, object]:
@@ -44,7 +51,7 @@ def write_transitions(records: list[IssueRecord], output_path: Path) -> None:
     for record in records:
         for t in record.transitions:
             ws.append([t.key, t.label, t.timestamp.strftime("%d.%m.%Y %H:%M:%S")])
-    wb.save(output_path)
+    _save_wb(wb, output_path)
 
 
 def write_issue_times(records: list[IssueRecord], workflow: Workflow, output_path: Path) -> None:
@@ -79,7 +86,7 @@ def write_issue_times(records: list[IssueRecord], workflow: Workflow, output_pat
             fmt_dt(r.closed_date),
         ] + [r.stage_minutes.get(s, 0) for s in stage_cols] + [r.resolution]
         ws.append(row)
-    wb.save(output_path)
+    _save_wb(wb, output_path)
 
 
 def write_cfd(
@@ -133,4 +140,4 @@ def write_cfd(
         ws.append([current_date.strftime("%d.%m.%Y")] + [daily[current_date][s] for s in stage_cols])
         current_date += timedelta(days=1)
 
-    wb.save(output_path)
+    _save_wb(wb, output_path)
