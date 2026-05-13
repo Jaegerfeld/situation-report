@@ -55,11 +55,17 @@ C_HINT   = colors.HexColor("#7f8c8d")
 
 OUTPUT_DE = Path(__file__).parent / "build_reports_Benutzerhandbuch.pdf"
 OUTPUT_EN = Path(__file__).parent / "build_reports_UserManual.pdf"
+OUTPUT_RO = Path(__file__).parent / "build_reports_ManualUtilizator.pdf"
+OUTPUT_PT = Path(__file__).parent / "build_reports_ManualUtilizador.pdf"
+OUTPUT_FR = Path(__file__).parent / "build_reports_ManuelUtilisateur.pdf"
 
 CONTENT_WIDTH_CM = 15.5
 
 LANG_DE = "de"
 LANG_EN = "en"
+LANG_RO = "ro"
+LANG_PT = "pt"
+LANG_FR = "fr"
 
 
 # ---------------------------------------------------------------------------
@@ -209,10 +215,16 @@ def make_styles():
 _HEADER_TEXT = {
     LANG_DE: "build_reports -- Benutzerhandbuch",
     LANG_EN: "build_reports -- User Manual",
+    LANG_RO: "build_reports -- Manual de Utilizator",
+    LANG_PT: "build_reports -- Manual do Utilizador",
+    LANG_FR: "build_reports -- Manuel d'utilisation",
 }
 _PAGE_LABEL = {
     LANG_DE: "Seite %d",
     LANG_EN: "Page %d",
+    LANG_RO: "Pagina %d",
+    LANG_PT: "Pagina %d",
+    LANG_FR: "Page %d",
 }
 
 
@@ -264,14 +276,23 @@ class ManualDoc(BaseDocTemplate):
 _COVER_SUBTITLE = {
     LANG_DE: "Benutzerhandbuch",
     LANG_EN: "User Manual",
+    LANG_RO: "Manual de Utilizator",
+    LANG_PT: "Manual do Utilizador",
+    LANG_FR: "Manuel d'utilisation",
 }
 _COVER_TAGLINE = {
     LANG_DE: "Flow-Metriken fuer agile Teams - Einrichtung und Bedienung",
     LANG_EN: "Flow Metrics for Agile Teams - Setup and Usage",
+    LANG_RO: "Metrici de flux pentru echipe agile - Configurare si utilizare",
+    LANG_PT: "Metricas de fluxo para equipas ageis - Configuracao e utilizacao",
+    LANG_FR: "Metriques de flux pour equipes agiles - Configuration et utilisation",
 }
 _COVER_AUDIENCE = {
     LANG_DE: "Fuer nicht-technische Anwender",
     LANG_EN: "For non-technical users",
+    LANG_RO: "Pentru utilizatori non-tehnici",
+    LANG_PT: "Para utilizadores nao tecnicos",
+    LANG_FR: "Pour les utilisateurs non techniques",
 }
 
 
@@ -389,11 +410,11 @@ def content_de(st, images: dict[str, Path] | None = None):
     story.append(H1("Inhalt", st))
     toc = TableOfContents()
     toc.levelStyles = [
-        ParagraphStyle("TOCH1", fontName="Helvetica-Bold", fontSize=11,
+        ParagraphStyle("TOCH1de", fontName="Helvetica-Bold", fontSize=11,
                        leading=18, leftIndent=0, spaceAfter=2),
-        ParagraphStyle("TOCH2", fontName="Helvetica", fontSize=9,
+        ParagraphStyle("TOCH2de", fontName="Helvetica", fontSize=9,
                        leading=15, leftIndent=16, spaceAfter=1),
-        ParagraphStyle("TOCH3", fontName="Helvetica-Oblique", fontSize=8,
+        ParagraphStyle("TOCH3de", fontName="Helvetica-Oblique", fontSize=8,
                        leading=13, leftIndent=28, spaceAfter=1),
     ]
     story.append(toc)
@@ -1886,6 +1907,2292 @@ def content_en(st, images: dict[str, Path] | None = None):
     return story, toc
 
 
+
+# ---------------------------------------------------------------------------
+# Content – Romanian
+# ---------------------------------------------------------------------------
+
+def content_ro(st, images=None):
+    """
+    Build the full Romanian document story with optional embedded chart images.
+
+    Args:
+        st:     Style dict from make_styles().
+        images: Dict of image key -> PNG path, or None to omit images.
+
+    Returns:
+        Tuple of (story list, TableOfContents instance).
+    """
+    story = []
+
+    def add_img(key, caption_text, width_cm=CONTENT_WIDTH_CM):
+        if images and key in images:
+            story.append(SP(6))
+            story.append(_img(images[key], width_cm))
+            story.append(CAP(caption_text, st))
+
+    # TOC
+    story.append(PageBreak())
+    story.append(H1("Cuprins", st))
+    toc = TableOfContents()
+    toc.levelStyles = [
+        ParagraphStyle("TOCH1ro", fontName="Helvetica-Bold", fontSize=11,
+                       leading=18, leftIndent=0, spaceAfter=2),
+        ParagraphStyle("TOCH2ro", fontName="Helvetica", fontSize=9,
+                       leading=15, leftIndent=16, spaceAfter=1),
+        ParagraphStyle("TOCH3ro", fontName="Helvetica-Oblique", fontSize=8,
+                       leading=13, leftIndent=28, spaceAfter=1),
+    ]
+    story.append(toc)
+
+    # =========================================================================
+    # 1. Introducere
+    # =========================================================================
+    story.append(PageBreak())
+    story.append(H1("1  Ce este build_reports?", st))
+    story.append(P(
+        "build_reports este un instrument care creeaza automat diagrame relevante despre "
+        "progresul si eficienta echipei tale agile. Ca date de intrare utilizeaza "
+        "fisierele exportate de modulul <b>transform_data</b> din sistemul tau de "
+        "gestionare a sarcinilor (de ex. Jira). "
+        "build_reports citeste aceste fisiere si calculeaza mai multe <b>metrici de flux</b> "
+        "— analize grafice care arata cat de rapid si cat de mult livreaza echipa ta.", st))
+    story.append(P(
+        "Programul dispune de o interfata grafica simpla (GUI): nu sunt necesare cunostinte "
+        "de programare. La un simplu click, diagramele sunt afisate in browser sau salvate "
+        "ca fisier PDF.", st))
+    story.append(SP(8))
+    story.append(box(
+        "<b>Prezentare generala a metricilor</b><br/>"
+        "- <b>Flow Time / Cycle Time</b>: Cat timp dureaza finalizarea unui issue?<br/>"
+        "- <b>Flow Velocity / Throughput</b>: Cate issues inchide echipa pe saptamana?<br/>"
+        "- <b>Flow Load / WIP</b>: Cate issues sunt in lucru simultan?<br/>"
+        "- <b>Cumulative Flow Diagram</b>: Cum evolueaza stocul in timp?<br/>"
+        "- <b>Flow Distribution</b>: Cum sunt distribuite issues dupa tip, etapa si timp de ciclu?<br/>"
+        "- <b>Process Flow: Transitions</b>: Ce trasee de stare parcurg issues? Unde apar reluari si bucle?<br/>"
+        "- <b>Process Flow: Time</b>: Cat timp stationeaza issues in fiecare etapa? Ce tranzitii consuma cel mai mult timp?", st))
+
+    # =========================================================================
+    # 2. Cerinte preliminare
+    # =========================================================================
+    story.append(PageBreak())
+    story.append(H1("2  Cerinte preliminare si instalare", st))
+
+    story.append(H2("2.1  Ce trebuie instalat?", st))
+    story.append(P(
+        "build_reports este livrat ca un <b>pachet portabil</b>. Nu este necesara o "
+        "instalare separata de Python.", st))
+    story.append(BL(
+        "<b>Windows:</b> Python 3.11 este deja inclus in pachet — dezarhiveaza si ruleaza.", st))
+    story.append(BL(
+        "<b>macOS / Linux:</b> La prima lansare, un mediu Python este configurat automat "
+        "(aprox. 1 minut, necesita conexiune la internet). Ulterior aplicatia ruleaza "
+        "offline.", st))
+
+    story.append(H2("2.2  Pornirea programului", st))
+    story.append(P(
+        "Faceaza dublu-click pe lansatorul corespunzator din folderul extras:", st))
+    story.append(BL(
+        "<b>Windows:</b> Dublu-click pe <b>BuildReports.bat</b> — porneste interfata "
+        "grafica fara fereastra de consola.", st))
+    story.append(BL(
+        "<b>macOS:</b> Click dreapta pe <b>BuildReports.command</b> → <i>Deschide</i> "
+        "(o data, pentru a ocoli Gatekeeper).", st))
+    story.append(BL(
+        "<b>Linux:</b> Intr-un terminal: "
+        "<font name='Courier'>./BuildReports.sh</font>", st))
+    story.append(SP(4))
+    story.append(box(
+        "<b>Sfat (Windows):</b> La prima lansare, SmartScreen poate afisa un avertisment. "
+        "Click pe <b>Mai multe informatii</b> → <b>Ruleaza oricum</b>.", st, "#e8f8f0"))
+
+    # =========================================================================
+    # 3. Fisiere de intrare
+    # =========================================================================
+    story.append(PageBreak())
+    story.append(H1("3  Fisiere de intrare", st))
+    story.append(P(
+        "build_reports necesita unul sau doua fisiere Excel generate de modulul "
+        "<b>transform_data</b>. Aceste fisiere nu trebuie editate manual — "
+        "structura trebuie sa corespunda exact formatului asteptat.", st))
+
+    story.append(H2("3.1  IssueTimes.xlsx  (obligatoriu)", st))
+    story.append(P(
+        "Acest fisier contine toate issues (tichetele) impreuna cu datele de timp si "
+        "starea curenta de procesare. Este necesar pentru toate metricile cu exceptia "
+        "Diagramei de Flux Cumulativ.", st))
+    story.append(SP(4))
+    story.append(tbl(
+        ["Coloana", "Semnificatie"],
+        [
+            ["Project",       "Cheia proiectului (de ex. ARTA)"],
+            ["Key",           "Cheia issue-ului (de ex. ARTA-123)"],
+            ["Issuetype",     "Tipul issue-ului (de ex. Feature, Bug, Story)"],
+            ["Status",        "Starea curenta (de ex. In Progress, Done)"],
+            ["Created",       "Data crearii issue-ului"],
+            ["First Date",    "Data la care s-a lucrat activ prima data la issue"],
+            ["Closed Date",   "Data finalizarii (goala = inca deschis)"],
+            ["Resolution",    "Tipul de rezolutie (de ex. Fixed, Duplicate)"],
+            ["Stage columns", "Cate o coloana per etapa de workflow cu minutele petrecute in acea etapa"],
+        ],
+        col_widths=[4*cm, 12*cm]))
+
+    story.append(SP(8))
+    story.append(H2("3.2  CFD.xlsx  (optional, pentru Diagrama de Flux Cumulativ)", st))
+    story.append(P(
+        "Acest fisier contine numarul zilnic de intrari: cate issues au <b>intrat</b> "
+        "intr-o etapa data in fiecare zi (nu instantanee). build_reports acumuleaza "
+        "aceste valori intr-un total cumulat. Este necesar doar daca se doreste calculul "
+        "Diagramei de Flux Cumulativ.", st))
+    story.append(SP(4))
+    story.append(tbl(
+        ["Coloana", "Semnificatie"],
+        [
+            ["Day",           "Data (YYYY-MM-DD)"],
+            ["Stage columns", "Cate o coloana per etapa cu numarul de intrari noi in ziua respectiva"],
+        ],
+        col_widths=[4*cm, 12*cm]))
+
+    story.append(SP(8))
+    story.append(H2("3.3  Fisier de configurare PI  (optional, pentru Flow Velocity)", st))
+    story.append(P(
+        "Cu un fisier de configurare JSON optional poti defini propriile intervale PI "
+        "(Program Increments) pentru diagrama cu bare a Flow Velocity. Fara acest fisier, "
+        "se folosesc automat trimestrele calendaristice.", st))
+    story.append(SP(4))
+    story.append(P("<b>Exemplu (modul data):</b>", st))
+    story.append(CD(
+        '{ "mode": "date",<br/>'
+        '&nbsp;&nbsp;"intervals": [<br/>'
+        '&nbsp;&nbsp;&nbsp;&nbsp;{"name": "PI 2025.1", "from": "2025-01-06", "to": "2025-04-04"},<br/>'
+        '&nbsp;&nbsp;&nbsp;&nbsp;{"name": "PI 2025.2", "from": "2025-04-05", "to": "2025-07-04"},<br/>'
+        '&nbsp;&nbsp;&nbsp;&nbsp;{"name": "PI 2025.3", "from": "2025-07-05", "to": "2025-10-03"},<br/>'
+        '&nbsp;&nbsp;&nbsp;&nbsp;{"name": "PI 2025.4", "from": "2025-10-04", "to": "2026-01-02"}<br/>'
+        '&nbsp;&nbsp;]<br/>'
+        '}', st))
+    story.append(P(
+        "Fisierul trebuie sa aiba extensia <b>.json</b>. Copiaza fisierul exemplu furnizat "
+        "<b>pi_config_example.json</b> si ajusteaza datele si denumirile pentru a corespunde "
+        "planificarii tale PI. Formatul trebuie pastrat.", st))
+    story.append(SP(4))
+    story.append(box(
+        "<b>Nota:</b> Foloseste intotdeauna formatul de data <b>YYYY-MM-DD</b> (an-luna-zi). "
+        "Exemplu: 6 ianuarie 2025 = 2025-01-06.", st, "#fff8e1"))
+
+    story.append(SP(8))
+    story.append(H2("3.4  Transitions.xlsx  (optional, pentru Process Flow)", st))
+    story.append(P(
+        "Acest fisier contine toate tranzitiile de stare per issue in ordine cronologica. "
+        "Este generat de modulul <b>transform_data</b> si este necesar exclusiv pentru "
+        "<b>metrica Process Flow</b>. Toate celelalte metrici pot fi calculate fara "
+        "acest fisier.", st))
+    story.append(SP(4))
+    story.append(tbl(
+        ["Coloana", "Semnificatie"],
+        [
+            ["Key",        "Cheia issue-ului (de ex. ARTA-123)"],
+            ["Transition", "Starea tinta dupa tranzitie (de ex. 'In Analysis')"],
+            ["Timestamp",  "Marca de timp a tranzitiei (DD.MM.YYYY HH:MM:SS)"],
+        ],
+        col_widths=[4*cm, 12*cm]))
+    story.append(SP(4))
+    story.append(box(
+        "<b>Nota:</b> Transitions.xlsx si IssueTimes.xlsx trebuie sa provina din aceeasi "
+        "executie de export transform_data, astfel incat cheile de issue sa corespunda.", st, "#fff8e1"))
+
+    # =========================================================================
+    # 4. Interfata grafica
+    # =========================================================================
+    story.append(PageBreak())
+    story.append(H1("4  Interfata grafica (GUI)", st))
+    story.append(P(
+        "Dupa pornire, se deschide fereastra principala. Aceasta consta din trei zone: "
+        "zona <b>fisierelor</b> (sus), zona <b>filtrelor</b> (mijloc) si zona "
+        "<b>actiunilor</b> (jos) cu fereastra de jurnal.", st))
+
+    story.append(H2("4.1  Incarcarea fisierelor", st))
+    story.append(P("Incarca mai intai fisierele necesare:", st))
+    story.append(BL(
+        "<b>IssueTimes</b> — Click pe butonul cu folder din dreapta campului si "
+        "selecteaza fisierul <b>IssueTimes.xlsx</b>. Dupa incarcare, proiectele disponibile si "
+        "tipurile de issue apar automat in jurnal.", st))
+    story.append(BL(
+        "<b>CFD (optional)</b> — Selecteaza fisierul <b>CFD.xlsx</b> daca ai nevoie de "
+        "Diagrama de Flux Cumulativ.", st))
+    story.append(BL(
+        "<b>Workflow (optional)</b> — Selecteaza fisierul text de workflow din transform_data. "
+        "Acesta contine marcatorii <b>&lt;First&gt;</b> si <b>&lt;Closed&gt;</b> care "
+        "determina limitele de etapa marcate de liniile de tendinta CFD.", st))
+    story.append(BL(
+        "<b>PI config (optional)</b> — Selecteaza fisierul tau JSON de configurare pentru "
+        "intervale PI personalizate. Lasa campul gol pentru a folosi trimestrele calendaristice.", st))
+    story.append(BL(
+        "<b>Transitions (optional)</b> — Selecteaza fisierul <b>Transitions.xlsx</b> din "
+        "transform_data. Necesar doar daca se doreste calculul metricii Process Flow.",
+        st))
+    story.append(SP(4))
+    story.append(box(
+        "<b>Sfat:</b> Trecerea cursorului peste un camp de intrare afiseaza un tooltip care "
+        "explica la ce este folosit campul.", st, "#e8f8f0"))
+
+    story.append(H2("4.2  Setarea filtrelor", st))
+    story.append(P(
+        "Filtrele restrictioneaza ce issues sunt incluse in analiza:", st))
+    story.append(SP(4))
+    story.append(tbl(
+        ["Filtru / Excludere", "Descriere"],
+        [
+            ["De la / Pana la",
+             "Considera doar issues inchise in acest interval de date. "
+             "Format: YYYY-MM-DD. Butonul calendar deschide un selector de date."],
+            ["Ultimele 365 de zile",
+             "Seteaza automat De la si Pana la pentru ultimele 365 de zile pana azi."],
+            ["Proiecte",
+             "Analizeaza doar proiecte specifice. Separa mai multe proiecte cu virgula, "
+             "de ex. ARTA, ARTB. Butonul de selectie afiseaza toate proiectele disponibile."],
+            ["Tipuri de issue",
+             "Analizeaza doar tipuri specifice de issue, de ex. Feature, Bug. "
+             "Gol = toate tipurile. Butonul de selectie afiseaza o lista de selectie."],
+            ["Excludere: Status",
+             "Elimina complet din toate metricile issues cu anumite stari Jira, "
+             "de ex. 'Canceled'. Butonul de selectie afiseaza toate starile existente."],
+            ["Excludere: Resolution",
+             "Exclude issues cu anumite tipuri de rezolutie, de ex. 'Won't Do' sau "
+             "'Duplicate'. Butonul de selectie afiseaza toate rezolutiile existente."],
+            ["Excludere issues zero-day",
+             "Casuta de bifat: issues al caror timp de ciclu (First pana la Closed Date) este mai "
+             "scurt decat pragul configurat sunt eliminate complet. Implicit: 5 minute. "
+             "Tipic pentru issues care au fost parcurse manual prin workflow fara "
+             "nicio activitate reala de dezvoltare."],
+        ],
+        col_widths=[3.8*cm, 12.2*cm]))
+
+    story.append(H2("4.3  Selectarea metricilor si a metodei CT", st))
+    story.append(P(
+        "Foloseste casetele de bifat pentru a selecta ce metrici sa fie calculate. "
+        "Butoanele <b>Toate</b> si <b>Nimic</b> seteaza sau deselecteaza toate casetele dintr-o data.",
+        st))
+    story.append(SP(4))
+    story.append(P(
+        "<b>Metoda CT</b> determina modul de calcul al timpului de ciclu — relevanta "
+        "doar pentru metrica Flow Time:", st))
+    story.append(SP(4))
+    story.append(tbl(
+        ["Metoda", "Calcul"],
+        [
+            ["Metoda A (implicit)",
+             "Diferenta in zile calendaristice intre First Date si Closed Date. "
+             "Simpla si directa."],
+            ["Metoda B",
+             "Suma minutelor in etapele individuale de workflow (ultima etapa exclusa), "
+             "impartita la 1440. Masoara doar timpul activ de procesare."],
+        ],
+        col_widths=[4*cm, 12*cm]))
+
+    story.append(H2("4.4  Crearea unui raport", st))
+    story.append(P("Ai doua optiuni:", st))
+    story.append(BL(
+        "<b>Afiseaza in browser</b> — Toate diagramele sunt deschise in browserul implicit. "
+        "Diagramele sunt pe deplin interactive: mareste, examineaza punctele de date prin "
+        "tooltip la hover si comuta categorii individuale in legenda.", st))
+    story.append(BL(
+        "<b>Exporta rapoarte</b> — Toate diagramele sunt exportate intr-un fisier PDF "
+        "cu mai multe pagini. Un dialog de salvare solicita numele fisierului si locatia. "
+        "Pe langa PDF, doua fisiere Excel sunt create automat: un Excel de raport cu toate "
+        "issues, grupele de stare si timpii de ciclu, si — daca exista issues zero-day — "
+        "un fisier separat pentru acele issues.", st))
+    story.append(SP(4))
+    story.append(box(
+        "<b>Nota:</b> In timp ce calculele ruleaza, interfata este blocata temporar. "
+        "Progresul este afisat in fereastra de jurnal. Nu inchide si nu da click pana cand "
+        "jurnalul nu afiseaza mesajul de finalizare.", st, "#fff8e1"))
+
+    story.append(H2("4.5  Template-uri — salvarea si incarcarea configuratiei", st))
+    story.append(P(
+        "In meniul <b>Templates</b> poti salva toate setarile curente "
+        "(cai de fisiere, filtre, selectie metrici, metoda CT, terminologie) ca fisier "
+        "JSON si le poti reincarca ulterior — fara a completa din nou toate campurile.", st))
+    story.append(BL(
+        "<b>Salveaza...</b> — Alege o locatie si un nume pentru fisierul de configurare "
+        "(de ex. echipaMea_RaportTrimestrial.json).", st))
+    story.append(BL(
+        "<b>Incarca...</b> — Deschide un fisier de configurare salvat. Toate campurile "
+        "sunt completate automat. Daca un fisier salvat nu mai poate fi gasit, apare o "
+        "nota in jurnal.", st))
+
+    story.append(H2("4.6  Limba si terminologie", st))
+    story.append(P(
+        "Limba poate fi schimbata in doua moduri:", st))
+    story.append(BL(
+        "<b>Butonul cu steag</b> din coltul din dreapta sus al ferestrei — afiseaza "
+        "limba curenta ca steag national. Un click comuta instant intre germana si "
+        "engleza.", st))
+    story.append(BL(
+        "<b>Optiuni → Limba</b> — alternativ prin meniu.", st))
+    story.append(P(
+        "Prin <b>Optiuni → Terminologie</b> poti comuta intre <b>SAFe</b> si "
+        "<b>Global</b>. In modul SAFe metricile se numesc de ex. 'Flow Time', in "
+        "modul Global 'Cycle Time'. Aceasta comutare afecteaza doar etichetele, nu "
+        "calculele.", st))
+
+    # =========================================================================
+    # 5. Metrici
+    # =========================================================================
+    story.append(PageBreak())
+    story.append(H1("5  Prezentare generala a metricilor", st))
+    story.append(P(
+        "Aceasta sectiune explica fiecare metrica in limbaj simplu: ce masoara, "
+        "ce arata diagramele si cum se interpreteaza rezultatele. "
+        "Diagramele exemplu se bazeaza pe un set de date demonstrativ.", st))
+
+    # --- 5.1 Flow Time -------------------------------------------------------
+    story.append(H2("5.1  Flow Time / Cycle Time", st))
+    story.append(P(
+        "<b>Ce se masoara?</b> Timpul de ciclu — adica numarul de zile pe care un issue "
+        "il petrece de la prima activitate pana la finalizare. Mai scurt inseamna mai bine.", st))
+
+    story.append(H3("Diagrama 1: Box plot (distributia)", st))
+    story.append(P(
+        "Box plot-ul arata dintr-o privire cum sunt distribuite timpii de ciclu. "
+        "Antetul diagramei contine statisticile cheie:", st))
+    story.append(SP(4))
+    story.append(tbl(
+        ["Statistica", "Semnificatie"],
+        [
+            ["Min / Max",   "Cel mai scurt si cel mai lung timp de ciclu masurat"],
+            ["Q1 / Q3",     "25% / 75% dintre issues se afla sub aceasta valoare"],
+            ["Median",      "Timpul de ciclu median — 50% dintre issues se afla sub el"],
+            ["Mean",        "Timpul de ciclu mediu (poate fi influentat de valori extreme)"],
+            ["90d CT%",     "Ponderea issues cu timp de ciclu <= 90 de zile (Service Level Expectation)"],
+            ["P85 / P95",   "85% / 95% dintre issues au fost finalizate in acest timp"],
+            ["Std dev",     "Abaterea standard — cat variaza valorile?"],
+            ["CV",          "Coeficientul de variatie — dispersia relativa (mai mic = proces mai stabil)"],
+            ["Zero-Day",    "Numarul de issues cu timp de ciclu 0 (excluse din analiza)"],
+        ],
+        col_widths=[3*cm, 13*cm]))
+    story.append(SP(4))
+    story.append(HI(
+        "Punct rosu in box plot = valoare statistica extrema. In browser poti citi "
+        "cheia issue-ului prin tooltip la hover.", st))
+    add_img("flow_time_box",
+            "Fig. 1: Box plot al timpilor de ciclu — distributie, quartile si antet statistic.")
+
+    story.append(H3("Diagrama 2: Scatter plot (tendinta in timp)", st))
+    story.append(P(
+        "Fiecare punct reprezinta un issue finalizat. Axa x afiseaza data finalizarii, "
+        "axa y timpul de ciclu in zile. Culorile si liniile de referinta ajuta la "
+        "interpretare:", st))
+    story.append(SP(4))
+    story.append(tbl(
+        ["Element", "Semnificatie"],
+        [
+            ["Punct albastru",  "Issues normale (sub percentila 85)"],
+            ["Punct portocaliu","Issues lente (intre percentilele 85 si 95)"],
+            ["Punct rosu",      "Issues foarte lente (peste percentila 95)"],
+            ["Curba albastra",  "Linie de tendinta LOESS — arata tendinta timpului de ciclu in timp"],
+            ["Linie rosie",     "Linie de referinta mediana"],
+            ["Linie verde",     "Linie de referinta percentila 85"],
+            ["Linie cian",      "Linie de referinta percentila 95"],
+        ],
+        col_widths=[4.5*cm, 11.5*cm]))
+    add_img("flow_time_scatter",
+            "Fig. 2: Scatter plot — timp de ciclu per data de finalizare cu linie de tendinta LOESS si linii de referinta.")
+    story.append(SP(4))
+    story.append(box(
+        "<b>Interpretare:</b> Daca linia de tendinta LOESS urca spre dreapta, issues devin "
+        "mai lente in timp. O linie plata semnaleaza un proces stabil. Multi puncte rosii si "
+        "portocalii indica blocaje frecvente.", st))
+
+    # --- 5.2 Flow Velocity ---------------------------------------------------
+    story.append(H2("5.2  Flow Velocity / Throughput", st))
+    story.append(P(
+        "<b>Ce se masoara?</b> Throughput-ul — adica cate issues inchide echipa "
+        "pe saptamana sau per PI. O viteza constant ridicata indica o echipa capabila "
+        "de livrare.", st))
+    story.append(SP(4))
+    story.append(tbl(
+        ["Diagrama", "Afiseaza"],
+        [
+            ["Frecventa zilnica (histograma)",
+             "De cate ori sunt inchise exact 1, 2, 3 ... issues intr-o singura zi. "
+             "Arata productia zilnica tipica."],
+            ["Tendinta saptamanala (diagrama linie)",
+             "Numarul de issues inchise per saptamana de-a lungul intregii perioade. "
+             "Fluctuatiile si tendintele devin imediat vizibile."],
+            ["Tendinta PI (diagrama cu bare)",
+             "Numarul de issues inchise per PI (Program Increment) sau trimestru. "
+             "Linia rosie arata media. Culorile barelor: "
+             "Gri = prima bara; Portocaliu = PI curent; Albastru = PI finalizate; "
+             "Gri deschis = PI viitoare."],
+        ],
+        col_widths=[4.5*cm, 11.5*cm]))
+    add_img("velocity_daily",
+            "Fig. 3: Frecventa zilnica — frecventa numarului de inchideri zilnice.")
+    add_img("velocity_weekly",
+            "Fig. 4: Tendinta saptamanala — issues inchise per saptamana calendaristica.")
+    add_img("velocity_pi",
+            "Fig. 5: Tendinta PI — issues inchise per PI sau trimestru cu linie de medie.")
+
+    # --- 5.3 Flow Load -------------------------------------------------------
+    story.append(H2("5.3  Flow Load / WIP  (Work in Progress)", st))
+    story.append(P(
+        "<b>Ce se masoara?</b> Cate issues sunt simultan in lucru si cat de vechi sunt "
+        "deja. Prea multe issues paralele incetinesc livrarea "
+        "(cu cat mai mult WIP, cu atat mai lung timpul de ciclu).", st))
+    story.append(SP(4))
+    story.append(P(
+        "Diagrama afiseaza un box plot grupat: fiecare etapa primeste un box care arata "
+        "varsta (in zile) a issues aflate acolo in prezent. Punctele individuale reprezinta "
+        "issues individuale — in browser vezi cheia issue-ului la hover.", st))
+    story.append(SP(4))
+    story.append(P(
+        "Liniile de referinta punctate din issues inchise (mediana, percentila 85, "
+        "percentila 95) ofera orientare: issues care depasesc deja percentila 95 a issues "
+        "inchise sunt semnificativ intarziate.", st))
+    add_img("flow_load",
+            "Fig. 6: Flow Load — varsta issues deschise per etapa cu linii de referinta din issues inchise.")
+
+    # --- 5.4 CFD -------------------------------------------------------------
+    story.append(H2("5.4  Diagrama de Flux Cumulativ (CFD)", st))
+    story.append(P(
+        "<b>Ce se masoara?</b> Cate issues in total au intrat in fiecare etapa — "
+        "cumulate in timp, defalcate pe etape de workflow. Un sistem bine functional "
+        "afiseaza benzi paralele, cu crestere uniforma, fara umflare in etape individuale.", st))
+    story.append(SP(4))
+    story.append(P(
+        "Diagrama este o diagrama de suprafata stivuita: fiecare strat colorat corespunde "
+        "unei etape. Prima etapa este sus, ultima (Done/Closed) jos. "
+        "Diagrama incepe intotdeauna de la 0 — indiferent de data de inceput selectata. "
+        "Doua linii de tendinta negre arata:", st))
+    story.append(BL(
+        "<b>Linia superioara (intrare):</b> Merge de-a lungul marginii vizuale superioare a "
+        "etapei &lt;First&gt; (intrarea in sistem). Fara fisier workflow: prima etapa.", st))
+    story.append(BL(
+        "<b>Linia inferioara (iesire):</b> Merge de-a lungul marginii vizuale superioare a "
+        "etapei &lt;Closed&gt; (finalizarea in sistem). Fara fisier workflow: ultima etapa.",
+        st))
+    add_img("cfd",
+            "Fig. 7: Diagrama de Flux Cumulativ — intrari cumulate per etapa cu linii de tendinta de intrare si iesire.")
+    story.append(SP(4))
+    story.append(P(
+        "Raportul <b>In/Out</b> din titlul diagramei (de ex. 'Ratio In/out 1.80 : 1') "
+        "arata daca intra mai mult decat se finalizeaza. O valoare de 1.0 inseamna un "
+        "sistem echilibrat; valori semnificativ peste 1.0 indica un backlog in crestere.",
+        st))
+    story.append(SP(4))
+    story.append(P(
+        "Axa x afiseaza limitele de luna cu etichete mari (de ex. 'Ian 2025') si "
+        "saptamanile calendaristice ISO cu etichete mici gri (de ex. 'S03'), astfel incat "
+        "etichetele sa nu se suprapuna.", st))
+    story.append(SP(4))
+    story.append(box(
+        "<b>Nota:</b> CFD necesita fisierul optional CFD.xlsx. Fara acest fisier "
+        "metrica CFD nu poate fi calculata.", st, "#fff8e1"))
+
+    # --- 5.5 Flow Distribution -----------------------------------------------
+    story.append(H2("5.5  Flow Distribution", st))
+    story.append(P(
+        "<b>Ce se masoara?</b> Compozitia tuturor issues dupa tip, etapa dominanta "
+        "si timp de ciclu mediu. Arata dintr-o privire ce tipuri de issue domina, "
+        "unde issues petrec cel mai mult timp si ce tipuri sunt procesate cel mai rapid "
+        "sau cel mai lent.", st))
+    story.append(SP(4))
+    story.append(P(
+        "Diagrama consta din trei subdiagrame alaturate:", st))
+    story.append(SP(4))
+    story.append(tbl(
+        ["Diagrama", "Ce se afiseaza?"],
+        [
+            ["Dupa tip de issue (donut)",
+             "Numar si pondere procentuala a issues per tip de issue. Toate issues sunt incluse."],
+            ["Stage Prominence (donut)",
+             "Pentru fiecare issue se identifica etapa in care a petrecut cel mai mult timp. "
+             "Diagrama numara de cate ori fiecare etapa a fost dominanta pentru toate issues. "
+             "Pentru issues inchise, etapa terminala Done (starea curenta) este exclusa, "
+             "astfel incat timpul de asteptare dupa inchidere sa nu distorsioneze rezultatul. "
+             "Subtitrarea afiseaza numarul de issues contributoare (n=...). "
+             "Issues fara date de etapa nu sunt numarate."],
+            ["Timp de ciclu mediu dupa tip (bare)",
+             "Timp de ciclu mediu in zile per tip de issue (Metoda A: "
+             "Closed Date - First Date). Sunt incluse doar issues cu ambele campuri de data si "
+             "CT > 0. Etichetele barelor in formatul '15.0d'."],
+        ],
+        col_widths=[4.5*cm, 11.5*cm]))
+    add_img("flow_dist",
+            "Fig. 8: Flow Distribution — distributia tipurilor de issue, Stage Prominence si timp de ciclu mediu per tip.")
+    story.append(SP(4))
+    story.append(box(
+        "<b>Interpretare Stage Prominence:</b> Daca o etapa domina in mod deosebit de "
+        "frecvent, issues stationeaza acolo disproportionat de mult — un potential blocaj in "
+        "workflow. Issues inchise sunt incluse, dar etapa lor terminala Done este "
+        "ascunsa, astfel incat blocajele reale de procesare raman vizibile.", st))
+
+    # --- 5.6 Process Flow: Transitions ----------------------------------------
+    story.append(H2("5.6  Process Flow: Transitions", st))
+    story.append(P(
+        "<b>Ce se masoara?</b> Toate tranzitiile de stare ale issues sunt vizualizate ca un "
+        "graf directionat: noduri = stari, sageti = tranzitii. Grosimea sagetii este "
+        "proportionala cu frecventa tranzitiei. Astfel devine imediat clar ce trasee parcurg "
+        "issues prin workflow, cat de des apar reluari si unde issues se blocheaza in bucle.", st))
+    story.append(SP(4))
+    story.append(P(
+        "Aceasta metrica necesita fisierul optional <b>Transitions.xlsx</b> (din "
+        "transform_data). Fara acest fisier apare un avertisment in jurnal.", st))
+    story.append(SP(4))
+    story.append(tbl(
+        ["Element", "Semnificatie"],
+        [
+            ["Sageata albastra",    "Tranzitie inainte — issue avanseaza in workflow."],
+            ["Sageata rosie",       "Tranzitie inapoi (reluare) — issue revine la o etapa anterioara."],
+            ["Arc portocaliu",      "Bucla proprie — issue ramane in acelasi status (de ex. etapa parcursa din nou)."],
+            ["Grosimea sagetii",    "Cu cat sageata e mai groasa, cu atat tranzitia este mai frecventa."],
+            ["Numar pe sageata",    "Numarul absolut al acestei tranzitii pentru toate issues."],
+            ["Nod",                 "Cerc albastru inchis cu numele starii. Ordine: etapele workflow mai intai "
+                                    "(in sensul acelor de ceasornic), apoi stari suplimentare alfabetic."],
+        ],
+        col_widths=[4*cm, 12*cm]))
+    add_img("process_flow",
+            "Fig. 9: Process Flow: Transitions — graf directionat al tuturor tranzitiilor de stare cu grosimea si codificarea de culoare a muchiilor.")
+    story.append(SP(4))
+    story.append(box(
+        "<b>Interpretare:</b> Multe sageti rosii inseamna reluari frecvente — semn al unor "
+        "probleme de calitate sau cerinte neclare. Sagetile albastre groase arata traseul "
+        "principal de workflow. Buclele proprii (portocaliu) apar cand un issue este setat "
+        "de mai multe ori in acelasi status.", st))
+
+    # --- 5.7 Process Flow: Time -----------------------------------------------
+    story.append(H2("5.7  Process Flow: Time", st))
+    story.append(P(
+        "<b>Ce se masoara?</b> Acelasi graf directionat ca Process Flow: Transitions, "
+        "dar cu accent pe <b>timp</b>: latimea nodului si etichetele muchiilor se bazeaza pe "
+        "timpul median de stationare al etapei sursa. Astfel devine imediat vizibil in "
+        "care etape issues asteapta cel mai mult si care tranzitii consuma cel mai mult timp.", st))
+    story.append(SP(4))
+    story.append(P(
+        "Aceasta metrica necesita de asemenea fisierul optional <b>Transitions.xlsx</b> "
+        "(din transform_data).", st))
+    story.append(SP(4))
+    story.append(tbl(
+        ["Element", "Semnificatie"],
+        [
+            ["Latimea nodului",      "Proportionala cu timpul median de stationare in aceasta etapa."],
+            ["Grosimea muchiei",     "Proportionala cu timpul median de stationare al etapei sursa."],
+            ["Numar pe sageata",     "Timpul median de stationare al etapei sursa in zile (z) pentru issues care au urmat exact aceasta tranzitie."],
+            ["Sageata albastra",     "Tranzitie inainte."],
+            ["Sageata rosie",        "Tranzitie inapoi (reluare)."],
+            ["Arc portocaliu",       "Bucla proprie."],
+        ],
+        col_widths=[4*cm, 12*cm]))
+    add_img("process_flow_time",
+            "Fig. 10: Process Flow: Time — latimea nodului si etichetele muchiilor bazate pe timpul median de stationare per etapa.")
+    story.append(SP(4))
+    story.append(box(
+        "<b>Interpretare:</b> Noduri late si muchii groase indica etape unde issues "
+        "stationeaza deosebit de mult — potentiale blocaje. Comparativ cu Process Flow: "
+        "Transitions, poti vedea daca tranzitiile frecvente au si o pondere semnificativa "
+        "de timp sau sunt doar schimbari rapide de stare.", st))
+
+    # =========================================================================
+    # 6. Export PDF
+    # =========================================================================
+    story.append(PageBreak())
+    story.append(H1("6  Export PDF", st))
+    story.append(P(
+        "Exportul PDF creeaza un fisier PDF cu mai multe pagini cu toate diagramele selectate. "
+        "Fiecare diagrama apare pe propria pagina.", st))
+    story.append(SP(6))
+    story.append(tbl(
+        ["Pas", "Actiune"],
+        [
+            ["1", "Incarca fisierele si seteaza filtrele (asa cum este descris in Capitolul 4)."],
+            ["2", "Selecteaza metricile dorite prin casete de bifat."],
+            ["3", "Click pe 'Exporta rapoarte'."],
+            ["4", "In dialogul de salvare, alege un nume de fisier si o locatie si confirma."],
+            ["5", "Programul calculeaza si exporta; progresul apare in jurnal."],
+            ["6", "Dupa finalizare, PDF-ul si Excel-ul de raport sunt disponibile la locatia aleasa."],
+        ],
+        col_widths=[1.5*cm, 14.5*cm]))
+    story.append(SP(8))
+    story.append(H2("6.1  Excel de raport automat", st))
+    story.append(P(
+        "La fiecare export PDF un fisier Excel cu acelasi nume este creat automat "
+        "(de ex. raport.xlsx langa raport.pdf). Acest fisier contine toate issues "
+        "filtrate in formatul IssueTimes, completat cu trei coloane:", st))
+    story.append(SP(4))
+    story.append(tbl(
+        ["Coloana", "Continut"],
+        [
+            ["Status Group",
+             "Grupa de stare a issue-ului: 'To Do' (neinceputa), "
+             "'In Progress' (in lucru) sau 'Done' (finalizata). "
+             "Derivata din First Date si Closed Date."],
+            ["Cycle Time (First->Closed)",
+             "Timp de ciclu in zile calendaristice de la First Date la Closed Date "
+             "(Metoda A). Gol daca lipseste oricare data."],
+            ["Cycle Time B (days in Status)",
+             "Suma minutelor in toate etapele de workflow exceptand ultima, "
+             "impartita la 1440 (Metoda B). Gol daca lipseste oricare data."],
+        ],
+        col_widths=[5*cm, 11*cm]))
+    story.append(SP(8))
+    story.append(box(
+        "<b>Issues zero-day:</b> Doua mecanisme functioneaza independent:<br/>"
+        "1. <b>Filtru de excludere (inainte de calcul):</b> Daca caseta de bifat "
+        "'Excludere issues zero-day' este activa, issues cu un timp de ciclu sub pragul "
+        "configurat (implicit: 5 minute) sunt eliminate complet din toate metricile.<br/>"
+        "2. <b>In cadrul metricii Flow Time:</b> Issues cu timp de ciclu de 0 zile "
+        "(aceeasi zi calendaristica) sunt raportate separat si nu sunt incluse in "
+        "statistici.<br/>"
+        "In ambele cazuri un fisier Excel separat este creat "
+        "(de ex. raport_issues_zero_day.xlsx in acelasi folder).", st,
+        "#fff8e1"))
+
+    # =========================================================================
+    # 7. Intrebari frecvente
+    # =========================================================================
+    story.append(PageBreak())
+    story.append(H1("7  Intrebari frecvente", st))
+
+    faqs = [
+        (
+            "Diagramele nu apar in browser.",
+            "Verifica daca este configurat un browser implicit. Incearca alternativ exportul "
+            "PDF. Asigura-te ca fisierul IssueTimes a fost incarcat corect (verifica jurnalul)."
+        ),
+        (
+            "Exportul PDF dureaza foarte mult sau esueaza.",
+            "Randarea diagramelor ca PDF necesita pachetul Kaleido. Daca acesta nu a fost "
+            "inca configurat, contacteaza persoana tehnica responsabila."
+        ),
+        (
+            "Jurnalul afiseaza 'Stage only in IssueTimes' sau 'Stage only in CFD'.",
+            "Coloanele de etapa din IssueTimes.xlsx si CFD.xlsx nu corespund. Acesta este un "
+            "avertisment care nu opreste analiza, dar indica faptul ca fisierele provin "
+            "din versiuni diferite de workflow."
+        ),
+        (
+            "Cum pot analiza doar un anumit proiect?",
+            "Introdu cheia proiectului dorit in campul 'Proiecte' (de ex. ARTA). "
+            "Separa mai multe proiecte cu virgula. Alternativ: foloseste butonul de selectie "
+            "pentru o lista a tuturor proiectelor disponibile."
+        ),
+        (
+            "Diagrama de Flux Cumulativ nu apare.",
+            "Metrica CFD necesita un fisier CFD.xlsx. Incarca-l in campul 'CFD (optional)'."
+        ),
+        (
+            "Process Flow afiseaza 'No transition data available'.",
+            "Metrica Process Flow necesita un fisier Transitions.xlsx din transform_data. "
+            "Incarca-l in campul 'Transitions (optional)'. Asigura-te ca fisierul provine din "
+            "aceeasi executie de export ca IssueTimes.xlsx."
+        ),
+        (
+            "Care este diferenta dintre intervalele PI si trimestre?",
+            "In mod implicit, trimestrele calendaristice (T1-T4) sunt folosite ca intervale "
+            "de timp. Cu un fisier de configurare PI poti defini propriile intervale care "
+            "corespund PI-urilor tale reale — de exemplu daca PI-ul tau incepe pe 6 ianuarie "
+            "in loc de 1 ianuarie."
+        ),
+        (
+            "Cum imi salvez setarile?",
+            "Foloseste meniul 'Templates' -> 'Salveaza...' pentru a salva toate setarile "
+            "curente intr-un fisier JSON. Data viitoare: 'Templates' -> 'Incarca...'. "
+            "Setarile de excludere pot fi stocate permanent suplimentar sub "
+            "'Templates' -> 'Salveaza excluderile ca implicit'."
+        ),
+        (
+            "Un issue apare in metrici desi nu s-a lucrat niciodata cu adevarat la el.",
+            "Acest lucru se intampla cand un issue a fost parcurs manual prin toate etapele "
+            "de workflow in cateva secunde — fara nicio activitate reala de dezvoltare. "
+            "Activeaza caseta de bifat 'Excludere issues zero-day' la 'Excluderi' in GUI "
+            "(prag de ex. 5 minute). Issue-ul este eliminat complet din toate metricile si "
+            "documentat intr-un fisier Excel separat."
+        ),
+        (
+            "Pot prezenta rezultatele fara calculator?",
+            "Da: exporteaza mai intai un raport PDF. Fisierul PDF contine toate diagramele "
+            "si poate fi deschis pe orice dispozitiv. Pentru prezentari interactive, "
+            "se recomanda vizualizarea in browser."
+        ),
+    ]
+    for q, a in faqs:
+        story.append(H3("I: " + q, st))
+        story.append(P("R: " + a, st))
+        story.append(SP(4))
+
+    # =========================================================================
+    # 8. Glosar
+    # =========================================================================
+    story.append(PageBreak())
+    story.append(H1("8  Glosar", st))
+    story.append(tbl(
+        ["Termen", "Explicatie"],
+        [
+            ["Closed Date",    "Data la care un issue a fost finalizat."],
+            ["Cycle Time",     "Termen alternativ pentru Flow Time (terminologie globala)."],
+            ["First Date",     "Data primei activitati active la un issue."],
+            ["Flow Load",      "Numarul de issues aflate in prezent in lucru (termen SAFe)."],
+            ["Flow Time",      "Timp de ciclu de la prima activitate pana la finalizare."],
+            ["Flow Velocity",  "Numarul de issues finalizate pe unitate de timp (termen SAFe)."],
+            ["Issue",          "Un tichet in sistemul de gestionare a sarcinilor (de ex. un card Jira)."],
+            ["Issue type",     "Categoria unui issue, de ex. Feature, Bug, Story, Task."],
+            ["IssueTimes",     "Fisierul Excel cu toate issues generat de transform_data."],
+            ["JSON",           "Format text simplu pentru fisierele de configurare."],
+            ["LOESS",          "Metoda statistica de netezire pentru liniile de tendinta."],
+            ["P85 / P95",      "Percentila 85 / 95 a timpilor de ciclu."],
+            ["PI",             "Program Increment — o perioada fixa de planificare si livrare."],
+            ["Process Flow: Transitions", "Graf directionat al tuturor tranzitiilor de stare (bazat pe frecventa). Arata traseele principale, reluarile si buclele in workflow."],
+            ["Process Flow: Time",        "Graf directionat al tuturor tranzitiilor de stare (bazat pe timp). Latimea nodului si etichetele muchiilor arata timpul median de stationare per etapa."],
+            ["Resolution",     "Tipul de rezolutie al unui issue, de ex. 'Done', 'Won't Do', 'Duplicate'."],
+            ["SAFe",           "Scaled Agile Framework — un framework pentru scalare agila."],
+            ["Stage",          "Un pas in workflow, de ex. Analiza, Implementare, Done."],
+            ["Template",       "Fisier de configurare salvat cu toate setarile."],
+            ["Throughput",     "Termen alternativ pentru Flow Velocity (terminologie globala)."],
+            ["Transitions",    "Inregistrarea fiecarei schimbari de stare per issue. Exportat de transform_data ca Transitions.xlsx."],
+            ["WIP",            "Work in Progress — issues aflate in prezent in lucru."],
+            ["Zero-day issue", "Un issue al carui timp de ciclu (First pana la Closed Date) este atat de scurt "
+                               "incat nu reprezinta un timp real de procesare. De obicei cauzat de "
+                               "parcurgerea manuala a workflow-ului. Poate fi eliminat din "
+                               "toate metricile printr-un filtru de prag."],
+        ],
+        col_widths=[4*cm, 12*cm]))
+
+    return story, toc
+
+
+# ---------------------------------------------------------------------------
+# Content – Portuguese
+# ---------------------------------------------------------------------------
+
+def content_pt(st, images=None):
+    """
+    Build the full Portuguese document story with optional embedded chart images.
+
+    Args:
+        st:     Style dict from make_styles().
+        images: Dict of image key -> PNG path, or None to omit images.
+
+    Returns:
+        Tuple of (story list, TableOfContents instance).
+    """
+    story = []
+
+    def add_img(key, caption_text, width_cm=CONTENT_WIDTH_CM):
+        if images and key in images:
+            story.append(SP(6))
+            story.append(_img(images[key], width_cm))
+            story.append(CAP(caption_text, st))
+
+    # TOC
+    story.append(PageBreak())
+    story.append(H1("Conteudo", st))
+    toc = TableOfContents()
+    toc.levelStyles = [
+        ParagraphStyle("TOCH1pt", fontName="Helvetica-Bold", fontSize=11,
+                       leading=18, leftIndent=0, spaceAfter=2),
+        ParagraphStyle("TOCH2pt", fontName="Helvetica", fontSize=9,
+                       leading=15, leftIndent=16, spaceAfter=1),
+        ParagraphStyle("TOCH3pt", fontName="Helvetica-Oblique", fontSize=8,
+                       leading=13, leftIndent=28, spaceAfter=1),
+    ]
+    story.append(toc)
+
+    # =========================================================================
+    # 1. Introducao
+    # =========================================================================
+    story.append(PageBreak())
+    story.append(H1("1  O que e o build_reports?", st))
+    story.append(P(
+        "build_reports e uma ferramenta que cria automaticamente graficos significativos sobre "
+        "o progresso e a eficiencia da sua equipa agil. Como entrada, utiliza os dados que o "
+        "modulo <b>transform_data</b> exportou do seu sistema de tickets (por exemplo, Jira). "
+        "build_reports le estes ficheiros e calcula varias <b>metricas de fluxo</b> -- "
+        "analises graficas que mostram quao rapida e eficiente e a entrega da equipa.", st))
+    story.append(P(
+        "O programa tem uma interface grafica simples (GUI): nao sao necessarios "
+        "conhecimentos de programacao. Com um clique, os graficos sao apresentados no "
+        "navegador ou guardados como ficheiro PDF.", st))
+    story.append(SP(8))
+    story.append(box(
+        "<b>Resumo das metricas</b><br/>"
+        "- <b>Flow Time / Cycle Time</b>: Quanto tempo demora um issue a ser concluido?<br/>"
+        "- <b>Flow Velocity / Throughput</b>: Quantos issues a equipa fecha por semana?<br/>"
+        "- <b>Flow Load / WIP</b>: Quantos issues estao em curso simultaneamente?<br/>"
+        "- <b>Cumulative Flow Diagram</b>: Como evolui o inventario ao longo do tempo?<br/>"
+        "- <b>Flow Distribution</b>: Como se distribuem os issues por tipos, etapas e tempos de ciclo?<br/>"
+        "- <b>Process Flow: Transitions</b>: Que caminhos de status percorrem os issues? Onde ocorrem retrabalhos e ciclos?<br/>"
+        "- <b>Process Flow: Time</b>: Quanto tempo permanecem os issues em cada etapa? Que transicoes custam mais tempo?", st))
+
+    # =========================================================================
+    # 2. Requisitos
+    # =========================================================================
+    story.append(PageBreak())
+    story.append(H1("2  Requisitos e instalacao", st))
+
+    story.append(H2("2.1  O que precisa de ser instalado?", st))
+    story.append(P(
+        "build_reports e fornecido como um <b>pacote portatil</b>. Nao e necessaria uma "
+        "instalacao Python separada.", st))
+    story.append(BL(
+        "<b>Windows:</b> O Python 3.11 ja esta incluido no pacote -- basta descompactar "
+        "e iniciar.", st))
+    story.append(BL(
+        "<b>macOS / Linux:</b> No primeiro arranque, um ambiente Python e configurado "
+        "automaticamente (aprox. 1 minuto, internet necessaria). Apos isso, a aplicacao "
+        "funciona sem ligacao a internet.", st))
+
+    story.append(H2("2.2  Iniciar o programa", st))
+    story.append(P(
+        "Faca duplo clique no iniciador adequado na pasta extraida:", st))
+    story.append(BL(
+        "<b>Windows:</b> Duplo clique em <b>BuildReports.bat</b> -- inicia a GUI "
+        "sem janela de consola.", st))
+    story.append(BL(
+        "<b>macOS:</b> Clique com o botao direito em <b>BuildReports.command</b> → <i>Abrir</i> "
+        "(uma vez, para contornar o Gatekeeper).", st))
+    story.append(BL(
+        "<b>Linux:</b> Num terminal: "
+        "<font name='Courier'>./BuildReports.sh</font>", st))
+    story.append(SP(4))
+    story.append(box(
+        "<b>Dica (Windows):</b> No primeiro arranque, o SmartScreen pode mostrar um aviso. "
+        "Clique em <b>Mais informacoes</b> → <b>Executar mesmo assim</b>.", st, "#e8f8f0"))
+
+    # =========================================================================
+    # 3. Ficheiros de entrada
+    # =========================================================================
+    story.append(PageBreak())
+    story.append(H1("3  Ficheiros de entrada", st))
+    story.append(P(
+        "build_reports requer um ou dois ficheiros Excel produzidos pelo modulo "
+        "<b>transform_data</b>. Estes ficheiros nao devem ser editados manualmente -- "
+        "a estrutura tem de corresponder exatamente ao formato esperado.", st))
+
+    story.append(H2("3.1  IssueTimes.xlsx  (obrigatorio)", st))
+    story.append(P(
+        "Este ficheiro contem todos os issues (tickets) com os respetivos dados de tempo "
+        "e estado de processamento atual. E necessario para todas as metricas, exceto o "
+        "Cumulative Flow Diagram.", st))
+    story.append(SP(4))
+    story.append(tbl(
+        ["Coluna", "Significado"],
+        [
+            ["Project",       "Chave do projeto (por exemplo, ARTA)"],
+            ["Key",           "Chave do issue (por exemplo, ARTA-123)"],
+            ["Issuetype",     "Tipo de issue (por exemplo, Feature, Bug, Story)"],
+            ["Status",        "Estado atual (por exemplo, In Progress, Done)"],
+            ["Created",       "Data de criacao do issue"],
+            ["First Date",    "Data em que o issue foi trabalhado pela primeira vez ativamente"],
+            ["Closed Date",   "Data de conclusao (vazio = ainda em aberto)"],
+            ["Resolution",    "Tipo de resolucao (por exemplo, Fixed, Duplicate)"],
+            ["Stage columns", "Uma coluna por etapa do fluxo com os minutos passados nessa etapa"],
+        ],
+        col_widths=[4*cm, 12*cm]))
+
+    story.append(SP(8))
+    story.append(H2("3.2  CFD.xlsx  (opcional, para o Cumulative Flow Diagram)", st))
+    story.append(P(
+        "Este ficheiro contem contagens diarias de entradas: quantos issues <b>entraram</b> "
+        "numa determinada etapa em cada dia (nao instantaneos). build_reports acumula estes "
+        "valores num total progressivo. So e necessario se o Cumulative Flow Diagram for "
+        "calculado.", st))
+    story.append(SP(4))
+    story.append(tbl(
+        ["Coluna", "Significado"],
+        [
+            ["Day",           "Data (AAAA-MM-DD)"],
+            ["Stage columns", "Uma coluna por etapa com o numero de novas entradas nesse dia"],
+        ],
+        col_widths=[4*cm, 12*cm]))
+
+    story.append(SP(8))
+    story.append(H2("3.3  Ficheiro de configuracao PI  (opcional, para Flow Velocity)", st))
+    story.append(P(
+        "Com um ficheiro de configuracao JSON opcional pode definir os seus proprios "
+        "intervalos PI (Program Increments) para o grafico de barras Flow Velocity. "
+        "Sem este ficheiro, sao utilizados automaticamente os trimestres do calendario.", st))
+    story.append(SP(4))
+    story.append(P("<b>Exemplo (modo data):</b>", st))
+    story.append(CD(
+        '{ "mode": "date",<br/>'
+        '&nbsp;&nbsp;"intervals": [<br/>'
+        '&nbsp;&nbsp;&nbsp;&nbsp;{"name": "PI 2025.1", "from": "2025-01-06", "to": "2025-04-04"},<br/>'
+        '&nbsp;&nbsp;&nbsp;&nbsp;{"name": "PI 2025.2", "from": "2025-04-05", "to": "2025-07-04"},<br/>'
+        '&nbsp;&nbsp;&nbsp;&nbsp;{"name": "PI 2025.3", "from": "2025-07-05", "to": "2025-10-03"},<br/>'
+        '&nbsp;&nbsp;&nbsp;&nbsp;{"name": "PI 2025.4", "from": "2025-10-04", "to": "2026-01-02"}<br/>'
+        '&nbsp;&nbsp;]<br/>'
+        '}', st))
+    story.append(P(
+        "O ficheiro tem de ter a extensao <b>.json</b>. Copie o ficheiro de exemplo "
+        "<b>pi_config_example.json</b> fornecido e ajuste as datas e os nomes ao seu "
+        "calendario de PIs. O formato tem de ser preservado.", st))
+    story.append(SP(4))
+    story.append(box(
+        "<b>Nota:</b> Utilize sempre o formato de data <b>AAAA-MM-DD</b> (ano-mes-dia). "
+        "Exemplo: 6 de janeiro de 2025 = 2025-01-06.", st, "#fff8e1"))
+
+    story.append(SP(8))
+    story.append(H2("3.4  Transitions.xlsx  (opcional, para Process Flow)", st))
+    story.append(P(
+        "Este ficheiro contem todas as transicoes de estado por issue em ordem cronologica. "
+        "E produzido pelo modulo <b>transform_data</b> e e necessario exclusivamente "
+        "para a <b>metrica Process Flow</b>. Todas as outras metricas podem ser calculadas "
+        "sem este ficheiro.", st))
+    story.append(SP(4))
+    story.append(tbl(
+        ["Coluna", "Significado"],
+        [
+            ["Key",        "Chave do issue (por exemplo, ARTA-123)"],
+            ["Transition", "Estado de destino apos a transicao (por exemplo, 'In Analysis')"],
+            ["Timestamp",  "Data e hora da transicao (DD.MM.AAAA HH:MM:SS)"],
+        ],
+        col_widths=[4*cm, 12*cm]))
+    story.append(SP(4))
+    story.append(box(
+        "<b>Nota:</b> Transitions.xlsx e IssueTimes.xlsx devem provir da mesma execucao "
+        "de exportacao do transform_data, para que as chaves dos issues correspondam.", st, "#fff8e1"))
+
+    # =========================================================================
+    # 4. GUI
+    # =========================================================================
+    story.append(PageBreak())
+    story.append(H1("4  A Interface Grafica (GUI)", st))
+    story.append(P(
+        "Apos o arranque, abre-se a janela principal. E composta por tres areas: "
+        "a <b>area de ficheiros</b> (em cima), a <b>area de filtros</b> (ao centro) e "
+        "a <b>area de acoes</b> (em baixo) com a janela de registo.", st))
+
+    story.append(H2("4.1  Carregar ficheiros", st))
+    story.append(P("Carregue primeiro os ficheiros necessarios:", st))
+    story.append(BL(
+        "<b>IssueTimes</b> -- Clique no botao de pasta a direita do campo e selecione "
+        "o ficheiro <b>IssueTimes.xlsx</b>. Apos o carregamento, os projetos e tipos "
+        "de issue disponiveis aparecem automaticamente no registo.", st))
+    story.append(BL(
+        "<b>CFD (opcional)</b> -- Selecione o ficheiro <b>CFD.xlsx</b> se necessitar "
+        "do Cumulative Flow Diagram.", st))
+    story.append(BL(
+        "<b>Workflow (opcional)</b> -- Selecione o ficheiro de texto do fluxo do "
+        "transform_data. Contem os marcadores <b>&lt;First&gt;</b> e <b>&lt;Closed&gt;</b> "
+        "que determinam quais os limites de etapa assinalados pelas linhas de tendencia do CFD.", st))
+    story.append(BL(
+        "<b>Config PI (opcional)</b> -- Selecione o seu ficheiro de configuracao JSON "
+        "para intervalos PI personalizados. Deixe o campo vazio para usar trimestres do calendario.", st))
+    story.append(BL(
+        "<b>Transitions (opcional)</b> -- Selecione o ficheiro <b>Transitions.xlsx</b> do "
+        "transform_data. So e necessario se a metrica Process Flow for calculada.",
+        st))
+    story.append(SP(4))
+    story.append(box(
+        "<b>Dica:</b> Pairar o rato sobre um campo de entrada mostra uma dica de contexto "
+        "a explicar para que serve esse campo.", st, "#e8f8f0"))
+
+    story.append(H2("4.2  Definir filtros", st))
+    story.append(P(
+        "Os filtros restringem quais os issues incluidos na analise:", st))
+    story.append(SP(4))
+    story.append(tbl(
+        ["Filtro / Exclusao", "Descricao"],
+        [
+            ["De / Ate",
+             "Considerar apenas issues fechados neste intervalo de datas. "
+             "Formato: AAAA-MM-DD. O botao de calendario abre um seletor de datas."],
+            ["Ultimos 365 dias",
+             "Define automaticamente De e Ate para os ultimos 365 dias ate hoje."],
+            ["Projetos",
+             "Analisar apenas projetos especificos. Separe varios projetos com virgula, "
+             "por exemplo ARTA, ARTB. O botao de selecao mostra todos os projetos disponiveis."],
+            ["Tipos de issue",
+             "Analisar apenas tipos de issue especificos, por exemplo Feature, Bug. "
+             "Vazio = todos os tipos. O botao de selecao mostra uma lista de escolha."],
+            ["Excluir: Estado",
+             "Remover completamente issues com determinados estados Jira de todas as metricas, "
+             "por exemplo 'Canceled'. O botao de selecao mostra todos os estados existentes."],
+            ["Excluir: Resolucao",
+             "Excluir issues com determinados tipos de resolucao, por exemplo 'Won't Do' ou "
+             "'Duplicate'. O botao de selecao mostra todas as resolucoes existentes."],
+            ["Excluir issues zero-day",
+             "Caixa de selecao: issues cujo tempo de ciclo (First to Closed Date) seja inferior "
+             "ao limiar configurado sao completamente removidos. Padrao: 5 minutos. "
+             "Tipico de issues que foram clicados manualmente pelo fluxo sem qualquer "
+             "trabalho de desenvolvimento real."],
+        ],
+        col_widths=[3.8*cm, 12.2*cm]))
+
+    story.append(H2("4.3  Selecionar metricas e metodo CT", st))
+    story.append(P(
+        "Utilize as caixas de selecao para escolher quais as metricas a calcular. "
+        "Os botoes <b>Todas</b> e <b>Nenhuma</b> ativam ou desativam todas as caixas de uma vez.",
+        st))
+    story.append(SP(4))
+    story.append(P(
+        "O <b>metodo CT</b> determina como e calculado o tempo de ciclo -- relevante "
+        "apenas para a metrica Flow Time:", st))
+    story.append(SP(4))
+    story.append(tbl(
+        ["Metodo", "Calculo"],
+        [
+            ["Metodo A (padrao)",
+             "Diferenca em dias de calendario entre First Date e Closed Date. "
+             "Simples e direto."],
+            ["Metodo B",
+             "Soma de minutos nas etapas individuais do fluxo (excluindo a ultima etapa), "
+             "dividida por 1440. Mede apenas o tempo de processamento ativo."],
+        ],
+        col_widths=[4*cm, 12*cm]))
+
+    story.append(H2("4.4  Criar um relatorio", st))
+    story.append(P("Tem duas opcoes:", st))
+    story.append(BL(
+        "<b>Mostrar no navegador</b> -- Todos os graficos sao abertos no seu navegador "
+        "predefinido. Os graficos sao totalmente interativos: ampliar, inspecionar pontos "
+        "de dados com o cursor e ativar/desativar categorias individuais na legenda.", st))
+    story.append(BL(
+        "<b>Exportar relatorios</b> -- Todos os graficos sao exportados para um ficheiro "
+        "PDF de multiplas paginas. Uma caixa de dialogo pede o nome e o local do ficheiro. "
+        "Para alem do PDF, sao criados automaticamente dois ficheiros Excel: um Excel de "
+        "relatorio com todos os issues, grupos de estado e tempos de ciclo, e -- se existirem "
+        "issues zero-day -- um ficheiro separado para esses issues.", st))
+    story.append(SP(4))
+    story.append(box(
+        "<b>Nota:</b> Enquanto os calculos estao em curso, a interface fica brevemente "
+        "bloqueada. O progresso e apresentado na janela de registo. Nao feche nem clique "
+        "ate o registo mostrar a mensagem de conclusao.", st, "#fff8e1"))
+
+    story.append(H2("4.5  Templates -- guardar e carregar configuracao", st))
+    story.append(P(
+        "No menu <b>Templates</b> pode guardar todas as definicoes atuais "
+        "(caminhos de ficheiros, filtros, selecao de metricas, metodo CT, terminologia) "
+        "como ficheiro JSON e recarrega-las mais tarde -- sem necessidade de preencher "
+        "todos os campos de novo.", st))
+    story.append(BL(
+        "<b>Guardar...</b> -- Escolha um local e um nome para o ficheiro de configuracao "
+        "(por exemplo myEquipa_RelatorioTrimestral.json).", st))
+    story.append(BL(
+        "<b>Carregar...</b> -- Abra um ficheiro de configuracao guardado. Todos os campos "
+        "sao preenchidos automaticamente. Se um ficheiro guardado ja nao puder ser "
+        "encontrado, aparece uma nota no registo.", st))
+
+    story.append(H2("4.6  Idioma e terminologia", st))
+    story.append(P(
+        "O idioma pode ser alterado de duas formas:", st))
+    story.append(BL(
+        "<b>Botao de bandeira</b> no canto superior direito da janela -- mostra o idioma "
+        "atual como bandeira nacional. Um clique alterna imediatamente entre alemao e "
+        "ingles.", st))
+    story.append(BL(
+        "<b>Opcoes → Idioma</b> menu -- alternativamente atraves do menu.", st))
+    story.append(P(
+        "Via <b>Opcoes → Terminologia</b> tambem pode alternar entre <b>SAFe</b> e "
+        "<b>Global</b>. No modo SAFe as metricas chamam-se por exemplo 'Flow Time', no "
+        "modo Global 'Cycle Time'. Esta alteracao afeta apenas as etiquetas, nao os "
+        "calculos.", st))
+
+    # =========================================================================
+    # 5. Metricas
+    # =========================================================================
+    story.append(PageBreak())
+    story.append(H1("5  Visao geral das metricas", st))
+    story.append(P(
+        "Esta seccao explica cada metrica em linguagem simples: o que mede, "
+        "o que os graficos mostram e como interpretar os resultados. "
+        "Os graficos de exemplo baseiam-se num conjunto de dados de amostra.", st))
+
+    # --- 5.1 Flow Time -------------------------------------------------------
+    story.append(H2("5.1  Flow Time / Cycle Time", st))
+    story.append(P(
+        "<b>O que e medido?</b> O tempo de ciclo -- ou seja, o numero de dias que um "
+        "issue demora desde o inicio do trabalho ate a conclusao. Quanto menor, melhor.", st))
+
+    story.append(H3("Grafico 1: Box plot (distribuicao)", st))
+    story.append(P(
+        "O box plot mostra de imediato como se distribuem os tempos de ciclo. "
+        "O cabecalho do grafico contem as principais estatisticas:", st))
+    story.append(SP(4))
+    story.append(tbl(
+        ["Estatistica", "Significado"],
+        [
+            ["Min / Max",   "Tempo de ciclo mais curto e mais longo medido"],
+            ["Q1 / Q3",     "25% / 75% dos issues ficam abaixo deste valor"],
+            ["Mediana",     "O tempo de ciclo mediano -- 50% dos issues ficam abaixo dele"],
+            ["Media",       "Tempo de ciclo medio (pode ser distorcido por valores extremos)"],
+            ["90d CT%",     "Percentagem de issues com tempo de ciclo <= 90 dias (Service Level Expectation)"],
+            ["P85 / P95",   "85% / 95% dos issues foram concluidos dentro deste prazo"],
+            ["Desvio pad.",  "Desvio padrao -- quanta variacao existe nos valores?"],
+            ["CV",          "Coeficiente de variacao -- dispersao relativa (menor = processo mais estavel)"],
+            ["Zero-Day",    "Numero de issues com tempo de ciclo 0 (excluidos da analise)"],
+        ],
+        col_widths=[3*cm, 13*cm]))
+    story.append(SP(4))
+    story.append(HI(
+        "Ponto vermelho no box plot = valor extremo estatistico. No navegador pode ler "
+        "a chave do issue com o cursor.", st))
+    add_img("flow_time_box",
+            "Fig. 1: Box plot dos tempos de ciclo -- distribuicao, quartis e cabecalho de estatisticas.")
+
+    story.append(H3("Grafico 2: Scatter plot (tendencia ao longo do tempo)", st))
+    story.append(P(
+        "Cada ponto e um issue concluido. O eixo x mostra a data de conclusao, "
+        "o eixo y o tempo de ciclo em dias. As cores e linhas de referencia facilitam "
+        "a interpretacao:", st))
+    story.append(SP(4))
+    story.append(tbl(
+        ["Elemento", "Significado"],
+        [
+            ["Ponto azul",    "Issues normais (abaixo do percentil 85)"],
+            ["Ponto laranja", "Issues lentos (entre o percentil 85 e o percentil 95)"],
+            ["Ponto vermelho","Issues muito lentos (acima do percentil 95)"],
+            ["Curva azul",    "Linha de tendencia LOESS -- mostra a tendencia do tempo de ciclo ao longo do tempo"],
+            ["Linha vermelha","Linha de referencia da mediana"],
+            ["Linha verde",   "Linha de referencia do percentil 85"],
+            ["Linha ciana",   "Linha de referencia do percentil 95"],
+        ],
+        col_widths=[4.5*cm, 11.5*cm]))
+    add_img("flow_time_scatter",
+            "Fig. 2: Scatter plot -- tempo de ciclo por data de conclusao com linha de tendencia LOESS e linhas de referencia.")
+    story.append(SP(4))
+    story.append(box(
+        "<b>Interpretacao:</b> Se a linha de tendencia LOESS subir para a direita, os issues "
+        "estao a ficar mais lentos ao longo do tempo. Uma linha plana indica um processo "
+        "estavel. Muitos pontos vermelhos e laranja indicam estrangulamentos frequentes.", st))
+
+    # --- 5.2 Flow Velocity ---------------------------------------------------
+    story.append(H2("5.2  Flow Velocity / Throughput", st))
+    story.append(P(
+        "<b>O que e medido?</b> O throughput -- ou seja, quantos issues a equipa fecha "
+        "por semana ou por PI. Uma velocidade consistentemente alta indica uma equipa "
+        "com capacidade de entrega.", st))
+    story.append(SP(4))
+    story.append(tbl(
+        ["Grafico", "Mostra"],
+        [
+            ["Frequencia diaria (histograma)",
+             "Com que frequencia sao fechados exatamente 1, 2, 3 ... issues num unico dia. "
+             "Mostra a producao diaria tipica."],
+            ["Tendencia semanal (grafico de linhas)",
+             "Numero de issues fechados por semana ao longo de todo o periodo. "
+             "As flutuacoes e tendencias ficam imediatamente visiveis."],
+            ["Tendencia PI (grafico de barras)",
+             "Numero de issues fechados por PI (Program Increment) ou trimestre. "
+             "A linha vermelha mostra a media. Cores das barras: "
+             "Cinzento = primeira barra; Laranja = PI atual; Azul = PIs concluidos; "
+             "Cinzento claro = PIs futuros."],
+        ],
+        col_widths=[4.5*cm, 11.5*cm]))
+    add_img("velocity_daily",
+            "Fig. 3: Frequencia diaria -- frequencia das contagens de fecho diario.")
+    add_img("velocity_weekly",
+            "Fig. 4: Tendencia semanal -- issues fechados por semana de calendario.")
+    add_img("velocity_pi",
+            "Fig. 5: Tendencia PI -- issues fechados por PI ou trimestre com linha de media.")
+
+    # --- 5.3 Flow Load -------------------------------------------------------
+    story.append(H2("5.3  Flow Load / WIP  (Work in Progress)", st))
+    story.append(P(
+        "<b>O que e medido?</b> Quantos issues estao simultaneamente em curso e "
+        "qual a sua antiguidade. Demasiados issues em paralelo atrasam a entrega "
+        "(quanto mais WIP, maior o tempo de ciclo).", st))
+    story.append(SP(4))
+    story.append(P(
+        "O grafico mostra um box plot agrupado: cada etapa tem uma caixa que mostra "
+        "a idade (em dias) dos issues atualmente nessa etapa. Os pontos individuais "
+        "representam issues individuais -- no navegador ve a chave do issue ao passar "
+        "o cursor.", st))
+    story.append(SP(4))
+    story.append(P(
+        "As linhas de referencia tracejadas provenientes dos issues fechados (mediana, "
+        "percentil 85, percentil 95) fornecem orientacao: issues ja acima do percentil 95 "
+        "dos issues fechados estao significativamente atrasados.", st))
+    add_img("flow_load",
+            "Fig. 6: Flow Load -- idade dos issues em aberto por etapa com linhas de referencia dos issues fechados.")
+
+    # --- 5.4 CFD -------------------------------------------------------------
+    story.append(H2("5.4  Cumulative Flow Diagram (CFD)", st))
+    story.append(P(
+        "<b>O que e medido?</b> Quantos issues entraram no total em cada etapa -- "
+        "acumulados ao longo do tempo, divididos por etapa do fluxo. Um sistema bem "
+        "a funcionar mostra bandas paralelas a subir de forma uniforme, sem inchacos "
+        "em etapas individuais.", st))
+    story.append(SP(4))
+    story.append(P(
+        "O grafico e um diagrama de areas empilhadas: cada camada colorida corresponde "
+        "a uma etapa. A primeira etapa esta no topo, a ultima (Done/Closed) na base. "
+        "O grafico comeca sempre em 0 -- independentemente da data de inicio selecionada. "
+        "Duas linhas de tendencia a preto mostram:", st))
+    story.append(BL(
+        "<b>Linha superior (entrada):</b> Corre ao longo da margem visual superior da "
+        "etapa &lt;First&gt; (entrada no sistema). Sem ficheiro de fluxo: primeira etapa.", st))
+    story.append(BL(
+        "<b>Linha inferior (saida):</b> Corre ao longo da margem visual superior da "
+        "etapa &lt;Closed&gt; (conclusao no sistema). Sem ficheiro de fluxo: ultima etapa.",
+        st))
+    add_img("cfd",
+            "Fig. 7: Cumulative Flow Diagram -- entradas cumulativas por etapa com linhas de tendencia de entrada e saida.")
+    story.append(SP(4))
+    story.append(P(
+        "O <b>racio In/Out</b> no titulo do grafico (por exemplo 'Ratio In/out 1.80 : 1') "
+        "mostra se entra mais do que e concluido. Um valor de 1.0 significa um sistema "
+        "equilibrado; valores significativamente acima de 1.0 indicam um backlog crescente.",
+        st))
+    story.append(SP(4))
+    story.append(P(
+        "O eixo x mostra limites mensais com etiquetas grandes (por exemplo 'Jan 2025') e "
+        "semanas do calendario ISO com etiquetas cinzentas pequenas (por exemplo 'W03'), "
+        "para que as etiquetas nao se sobreponham.", st))
+    story.append(SP(4))
+    story.append(box(
+        "<b>Nota:</b> O CFD requer o ficheiro CFD.xlsx opcional. Sem este ficheiro "
+        "a metrica CFD nao pode ser calculada.", st, "#fff8e1"))
+
+    # --- 5.5 Flow Distribution -----------------------------------------------
+    story.append(H2("5.5  Flow Distribution", st))
+    story.append(P(
+        "<b>O que e medido?</b> A composicao de todos os issues por tipo, etapa dominante "
+        "e tempo de ciclo medio. Mostra de imediato que tipos de issue dominam, "
+        "onde os issues passam mais tempo e quais os tipos processados mais rapida ou "
+        "lentamente.", st))
+    story.append(SP(4))
+    story.append(P(
+        "O grafico e composto por tres sub-graficos lado a lado:", st))
+    story.append(SP(4))
+    story.append(tbl(
+        ["Grafico", "O que e mostrado?"],
+        [
+            ["By Issue Type (donut)",
+             "Contagem e percentagem dos issues por tipo de issue. Todos os issues sao incluidos."],
+            ["Stage Prominence (donut)",
+             "Para cada issue e identificada a etapa em que passou mais tempo. "
+             "O grafico conta quantas vezes cada etapa foi dominante em todos os issues. "
+             "Para issues fechados, a etapa terminal Done (estado atual) e excluida, "
+             "para que o tempo de espera apos o fecho nao distorca o resultado. "
+             "O subtitulo mostra o numero de issues contribuintes (n=...). "
+             "Issues sem dados de etapa nao sao contados."],
+            ["Avg Cycle Time by Type (barras)",
+             "Tempo de ciclo medio em dias por tipo de issue (Metodo A: "
+             "Closed Date - First Date). Apenas issues com ambos os campos de data e "
+             "CT > 0 sao incluidos. Etiquetas das barras no formato '15.0d'."],
+        ],
+        col_widths=[4.5*cm, 11.5*cm]))
+    add_img("flow_dist",
+            "Fig. 8: Flow Distribution -- distribuicao por tipo de issue, Stage Prominence e tempo de ciclo medio por tipo.")
+    story.append(SP(4))
+    story.append(box(
+        "<b>Interpretacao Stage Prominence:</b> Se uma etapa domina com particular "
+        "frequencia, os issues ficam la desproporcionalmente tempo -- um possivel "
+        "estrangulamento no fluxo. Os issues fechados sao incluidos, mas a sua etapa "
+        "terminal Done e ocultada, para que os reais estrangulamentos de processamento "
+        "permanecam visiveis.", st))
+
+    # --- 5.6 Process Flow: Transitions ----------------------------------------
+    story.append(H2("5.6  Process Flow: Transitions", st))
+    story.append(P(
+        "<b>O que e medido?</b> Todas as transicoes de estado dos issues sao visualizadas "
+        "como um grafo dirigido: nos = estados, setas = transicoes. A espessura das setas "
+        "e proporcional a frequencia da transicao. Isto torna imediatamente claro que "
+        "caminhos os issues percorrem no fluxo, com que frequencia ocorre retrabalho e "
+        "onde os issues ficam presos em ciclos.", st))
+    story.append(SP(4))
+    story.append(P(
+        "Esta metrica requer o ficheiro opcional <b>Transitions.xlsx</b> (do "
+        "transform_data). Sem este ficheiro aparece um aviso no registo.", st))
+    story.append(SP(4))
+    story.append(tbl(
+        ["Elemento", "Significado"],
+        [
+            ["Seta azul",    "Transicao para a frente -- o issue avanca no fluxo."],
+            ["Seta vermelha","Transicao para tras (retrabalho) -- o issue regressa a uma etapa anterior."],
+            ["Arco laranja", "Self-loop -- o issue permanece no mesmo estado (por exemplo, etapa percorrida novamente)."],
+            ["Espessura da seta", "Quanto mais espessa a seta, mais frequente esta transicao."],
+            ["Numero na seta",   "Contagem absoluta desta transicao em todos os issues."],
+            ["No",           "Circulo azul escuro com nome de estado. Ordem: etapas do fluxo primeiro "
+                             "(no sentido dos ponteiros do relogio), depois estados adicionais por ordem alfabetica."],
+        ],
+        col_widths=[4*cm, 12*cm]))
+    add_img("process_flow",
+            "Fig. 9: Process Flow: Transitions -- grafo dirigido de todas as transicoes de estado com espessura e codificacao por cores.")
+    story.append(SP(4))
+    story.append(box(
+        "<b>Interpretacao:</b> Muitas setas vermelhas significam retrabalho frequente -- "
+        "um sinal de problemas de qualidade ou requisitos pouco claros. Setas azuis espessas "
+        "mostram o caminho principal do fluxo. "
+        "Os self-loops (laranja) ocorrem quando um issue e colocado no mesmo estado "
+        "multiplas vezes.", st))
+
+    # --- 5.7 Process Flow: Time -----------------------------------------------
+    story.append(H2("5.7  Process Flow: Time", st))
+    story.append(P(
+        "<b>O que e medido?</b> O mesmo grafo dirigido que Process Flow: Transitions, "
+        "mas com enfoque no <b>tempo</b>: a largura dos nos e as etiquetas das arestas "
+        "baseiam-se na mediana do tempo de permanencia da etapa de origem. Isto torna "
+        "imediatamente visivel em que etapas os issues esperam mais e que transicoes "
+        "custam mais tempo.", st))
+    story.append(SP(4))
+    story.append(P(
+        "Esta metrica tambem requer o ficheiro opcional <b>Transitions.xlsx</b> "
+        "(do transform_data).", st))
+    story.append(SP(4))
+    story.append(tbl(
+        ["Elemento", "Significado"],
+        [
+            ["Largura do no",       "Proporcional a mediana do tempo de permanencia nesta etapa."],
+            ["Largura da aresta",   "Proporcional a mediana do tempo de permanencia da etapa de origem."],
+            ["Numero na seta",      "Mediana do tempo de permanencia da etapa de origem em dias (d) para issues que tomaram exatamente esta transicao."],
+            ["Seta azul",           "Transicao para a frente."],
+            ["Seta vermelha",       "Transicao para tras (retrabalho)."],
+            ["Arco laranja",        "Self-loop."],
+        ],
+        col_widths=[4*cm, 12*cm]))
+    add_img("process_flow_time",
+            "Fig. 10: Process Flow: Time -- largura dos nos e etiquetas das arestas baseadas na mediana do tempo de permanencia por etapa.")
+    story.append(SP(4))
+    story.append(box(
+        "<b>Interpretacao:</b> Nos largos e arestas espessas indicam etapas onde os issues "
+        "permanecem particularmente tempo -- possiveis estrangulamentos. Comparando com "
+        "Process Flow: Transitions, pode verificar-se se transicoes frequentes tambem "
+        "implicam peso temporal significativo ou sao apenas breves mudancas de estado.", st))
+
+    # =========================================================================
+    # 6. Exportacao PDF
+    # =========================================================================
+    story.append(PageBreak())
+    story.append(H1("6  Exportacao PDF", st))
+    story.append(P(
+        "A exportacao PDF cria um ficheiro PDF de multiplas paginas com todos os graficos "
+        "selecionados. Cada grafico aparece na sua propria pagina.", st))
+    story.append(SP(6))
+    story.append(tbl(
+        ["Passo", "Acao"],
+        [
+            ["1", "Carregar ficheiros e definir filtros (conforme descrito no Capitulo 4)."],
+            ["2", "Selecionar as metricas pretendidas atraves das caixas de selecao."],
+            ["3", "Clicar em 'Exportar relatorios'."],
+            ["4", "Na caixa de dialogo de guardar, escolher nome e local do ficheiro e confirmar."],
+            ["5", "O programa calcula e exporta; o progresso aparece no registo."],
+            ["6", "Apos a conclusao, o PDF e o Excel de relatorio estao disponiveis no local escolhido."],
+        ],
+        col_widths=[1.5*cm, 14.5*cm]))
+    story.append(SP(8))
+    story.append(H2("6.1  Excel de relatorio automatico", st))
+    story.append(P(
+        "Em cada exportacao PDF e criado automaticamente um ficheiro Excel com o mesmo "
+        "nome (por exemplo report.xlsx junto a report.pdf). Este ficheiro contem todos "
+        "os issues filtrados no formato IssueTimes, complementado por tres colunas:", st))
+    story.append(SP(4))
+    story.append(tbl(
+        ["Coluna", "Conteudo"],
+        [
+            ["Status Group",
+             "Grupo de estado do issue: 'To Do' (ainda nao iniciado), "
+             "'In Progress' (em processamento) ou 'Done' (concluido). "
+             "Derivado de First Date e Closed Date."],
+            ["Cycle Time (First->Closed)",
+             "Tempo de ciclo em dias de calendario de First Date a Closed Date "
+             "(Metodo A). Vazio se alguma das datas estiver em falta."],
+            ["Cycle Time B (days in Status)",
+             "Soma de minutos em todas as etapas do fluxo exceto a ultima, "
+             "dividida por 1440 (Metodo B). Vazio se alguma das datas estiver em falta."],
+        ],
+        col_widths=[5*cm, 11*cm]))
+    story.append(SP(8))
+    story.append(box(
+        "<b>Issues zero-day:</b> Dois mecanismos funcionam de forma independente:<br/>"
+        "1. <b>Filtro de exclusao (antes do calculo):</b> Se a caixa de selecao "
+        "'Excluir issues zero-day' estiver ativa, os issues com um tempo de ciclo abaixo "
+        "do limiar configurado (padrao: 5 minutos) sao completamente removidos de todas "
+        "as metricas.<br/>"
+        "2. <b>Dentro da metrica Flow Time:</b> Issues com um tempo de ciclo de 0 dias "
+        "(mesmo dia de calendario) sao reportados separadamente e nao incluidos nas "
+        "estatisticas.<br/>"
+        "Em ambos os casos e criado um ficheiro Excel separado "
+        "(por exemplo report_zero_day_issues.xlsx na mesma pasta).", st,
+        "#fff8e1"))
+
+    # =========================================================================
+    # 7. FAQ
+    # =========================================================================
+    story.append(PageBreak())
+    story.append(H1("7  Perguntas Frequentes", st))
+
+    faqs = [
+        (
+            "Os graficos nao aparecem no navegador.",
+            "Verifique se esta configurado um navegador predefinido. Experimente "
+            "alternativamente a exportacao PDF. Certifique-se de que o ficheiro "
+            "IssueTimes foi carregado corretamente (consulte o registo)."
+        ),
+        (
+            "A exportacao PDF demora muito ou falha.",
+            "A renderizacao dos graficos como PDF requer o pacote Kaleido. Se este ainda "
+            "nao foi configurado, contacte o seu responsavel tecnico."
+        ),
+        (
+            "O registo mostra 'Stage only in IssueTimes' ou 'Stage only in CFD'.",
+            "As colunas de etapa em IssueTimes.xlsx e CFD.xlsx nao correspondem. Isto e "
+            "um aviso que nao interrompe a analise, mas indica que os ficheiros provem "
+            "de versoes diferentes do fluxo."
+        ),
+        (
+            "Como posso analisar apenas um projeto especifico?",
+            "Introduza a chave do projeto pretendido no campo 'Projetos' (por exemplo ARTA). "
+            "Separe varios projetos com virgula. Em alternativa: utilize o botao de selecao "
+            "para uma lista de todos os projetos disponiveis."
+        ),
+        (
+            "O Cumulative Flow Diagram nao aparece.",
+            "A metrica CFD requer um ficheiro CFD.xlsx. Carregue-o no campo "
+            "'CFD (opcional)'."
+        ),
+        (
+            "O Process Flow mostra 'No transition data available'.",
+            "A metrica Process Flow requer um ficheiro Transitions.xlsx do transform_data. "
+            "Carregue-o no campo 'Transitions (opcional)'. Certifique-se de que o ficheiro "
+            "provem da mesma execucao de exportacao que o IssueTimes.xlsx."
+        ),
+        (
+            "Qual e a diferenca entre intervalos PI e trimestres?",
+            "Por defeito, sao utilizados os trimestres do calendario (Q1-Q4) como "
+            "intervalos de tempo. Com um ficheiro de configuracao PI pode definir os seus "
+            "proprios intervalos que correspondam aos seus PIs reais -- por exemplo se o "
+            "seu PI comeca a 6 de janeiro em vez de 1 de janeiro."
+        ),
+        (
+            "Como guardo as minhas definicoes?",
+            "Utilize o menu 'Templates' -> 'Guardar...' para guardar todas as definicoes "
+            "atuais num ficheiro JSON. Da proxima vez: 'Templates' -> 'Carregar...'. As "
+            "definicoes de exclusao podem ser adicionalmente guardadas de forma permanente "
+            "em 'Templates' -> 'Guardar exclusoes como padrao'."
+        ),
+        (
+            "Um issue aparece nas metricas embora nunca tenha sido realmente trabalhado.",
+            "Isto acontece quando um issue foi clicado manualmente por todas as etapas "
+            "do fluxo em segundos -- sem qualquer trabalho de desenvolvimento real. Ative "
+            "a caixa de selecao 'Excluir issues zero-day' em 'Exclusoes' na GUI "
+            "(limiar por exemplo 5 minutos). O issue e entao completamente removido de "
+            "todas as metricas e documentado num ficheiro Excel separado."
+        ),
+        (
+            "Posso apresentar os resultados sem um computador?",
+            "Sim: exporte primeiro um relatorio PDF. O ficheiro PDF contem todos os "
+            "graficos e pode ser aberto em qualquer dispositivo. Para apresentacoes "
+            "interativas, recomenda-se a visualizacao no navegador."
+        ),
+    ]
+    for q, a in faqs:
+        story.append(H3("P: " + q, st))
+        story.append(P("R: " + a, st))
+        story.append(SP(4))
+
+    # =========================================================================
+    # 8. Glossario
+    # =========================================================================
+    story.append(PageBreak())
+    story.append(H1("8  Glossario", st))
+    story.append(tbl(
+        ["Termo", "Explicacao"],
+        [
+            ["Closed Date",    "A data em que um issue foi concluido."],
+            ["Cycle Time",     "Designacao alternativa para Flow Time (terminologia Global)."],
+            ["First Date",     "Data do primeiro trabalho ativo num issue."],
+            ["Flow Load",      "Numero de issues atualmente em curso (termo SAFe)."],
+            ["Flow Time",      "Tempo de ciclo desde o primeiro trabalho ate a conclusao."],
+            ["Flow Velocity",  "Numero de issues concluidos por periodo de tempo (termo SAFe)."],
+            ["Issue",          "Um ticket no sistema de tickets (por exemplo, um cartao Jira)."],
+            ["Issue type",     "Categoria de um issue, por exemplo Feature, Bug, Story, Task."],
+            ["IssueTimes",     "O ficheiro Excel com todos os issues produzido pelo transform_data."],
+            ["JSON",           "Formato de texto simples para ficheiros de configuracao."],
+            ["LOESS",          "Metodo de suavizacao estatistica para linhas de tendencia."],
+            ["P85 / P95",      "Percentil 85 / 95 dos tempos de ciclo."],
+            ["PI",             "Program Increment -- um periodo fixo de planeamento e entrega."],
+            ["Process Flow: Transitions", "Grafo dirigido de todas as transicoes de estado (baseado em frequencia). Mostra caminhos principais, retrabalhos e ciclos no fluxo."],
+            ["Process Flow: Time",        "Grafo dirigido de todas as transicoes de estado (baseado em tempo). A largura dos nos e as etiquetas das arestas mostram a mediana do tempo de permanencia por etapa."],
+            ["Resolution",     "Tipo de resolucao de um issue, por exemplo 'Done', 'Won't Do', 'Duplicate'."],
+            ["SAFe",           "Scaled Agile Framework -- uma framework para escalamento agil."],
+            ["Stage",          "Um passo no fluxo, por exemplo Analysis, Implementation, Done."],
+            ["Template",       "Ficheiro de configuracao guardado com todas as definicoes."],
+            ["Throughput",     "Designacao alternativa para Flow Velocity (terminologia Global)."],
+            ["Transitions",    "Registo de cada mudanca de estado por issue. Exportado pelo transform_data como Transitions.xlsx."],
+            ["WIP",            "Work in Progress -- issues que estao atualmente a ser trabalhados."],
+            ["Zero-day issue", "Um issue cujo tempo de ciclo (First to Closed Date) e tao curto "
+                               "que nao representa tempo de processamento real. Normalmente causado "
+                               "por clicar manualmente pelo fluxo. Pode ser removido de todas as "
+                               "metricas atraves de um filtro de limiar."],
+        ],
+        col_widths=[4*cm, 12*cm]))
+
+    return story, toc
+
+
+# ---------------------------------------------------------------------------
+# Content – French
+# ---------------------------------------------------------------------------
+
+def content_fr(st, images=None):
+    """
+    Build the full French document story with optional embedded chart images.
+
+    Args:
+        st:     Style dict from make_styles().
+        images: Dict of image key -> PNG path, or None to omit images.
+
+    Returns:
+        Tuple of (story list, TableOfContents instance).
+    """
+    story = []
+
+    def add_img(key, caption_text, width_cm=CONTENT_WIDTH_CM):
+        if images and key in images:
+            story.append(SP(6))
+            story.append(_img(images[key], width_cm))
+            story.append(CAP(caption_text, st))
+
+    # TOC
+    story.append(PageBreak())
+    story.append(H1("Table des matieres", st))
+    toc = TableOfContents()
+    toc.levelStyles = [
+        ParagraphStyle("TOCH1fr", fontName="Helvetica-Bold", fontSize=11,
+                       leading=18, leftIndent=0, spaceAfter=2),
+        ParagraphStyle("TOCH2fr", fontName="Helvetica", fontSize=9,
+                       leading=15, leftIndent=16, spaceAfter=1),
+        ParagraphStyle("TOCH3fr", fontName="Helvetica-Oblique", fontSize=8,
+                       leading=13, leftIndent=28, spaceAfter=1),
+    ]
+    story.append(toc)
+
+    # =========================================================================
+    # 1. Introduction
+    # =========================================================================
+    story.append(PageBreak())
+    story.append(H1("1  Qu'est-ce que build_reports ?", st))
+    story.append(P(
+        "build_reports est un outil qui cree automatiquement des diagrammes pertinents sur "
+        "la progression et l'efficacite de votre equipe agile. En entree, il utilise les "
+        "donnees que le module <b>transform_data</b> a exportees depuis votre gestionnaire "
+        "de tickets (par ex. Jira). build_reports lit ces fichiers et calcule plusieurs "
+        "<b>metriques de flux</b> -- des analyses graphiques montrant a quelle vitesse et "
+        "en quelle quantite votre equipe livre.", st))
+    story.append(P(
+        "Le programme dispose d'une interface graphique simple (GUI) : aucune connaissance "
+        "en programmation n'est requise. En un clic, les diagrammes s'affichent dans le "
+        "navigateur ou sont enregistres sous forme de fichier PDF.", st))
+    story.append(SP(8))
+    story.append(box(
+        "<b>Apercu des metriques</b><br/>"
+        "- <b>Flow Time / Cycle Time</b> : Combien de temps faut-il pour qu'un ticket soit termine ?<br/>"
+        "- <b>Flow Velocity / Throughput</b> : Combien de tickets l'equipe cloture-t-elle par semaine ?<br/>"
+        "- <b>Flow Load / WIP</b> : Combien de tickets sont en cours simultanement ?<br/>"
+        "- <b>Cumulative Flow Diagram</b> : Comment l'inventaire evolue-t-il dans le temps ?<br/>"
+        "- <b>Flow Distribution</b> : Comment les tickets se repartissent-ils par type, etape et duree ?<br/>"
+        "- <b>Process Flow: Transitions</b> : Quels chemins les tickets empruntent-ils ? Ou se produisent les retours et les boucles ?<br/>"
+        "- <b>Process Flow: Time</b> : Combien de temps les tickets sejournent-ils dans chaque etape ? Quelles transitions coutent le plus de temps ?", st))
+
+    # =========================================================================
+    # 2. Prerequis et installation
+    # =========================================================================
+    story.append(PageBreak())
+    story.append(H1("2  Prerequis et installation", st))
+
+    story.append(H2("2.1  Que faut-il installer ?", st))
+    story.append(P(
+        "build_reports est fourni sous forme de <b>package portable</b>. Aucune "
+        "installation Python separee n'est necessaire.", st))
+    story.append(BL(
+        "<b>Windows :</b> Python 3.11 est deja inclus dans le package -- il suffit de "
+        "decompresser et d'executer.", st))
+    story.append(BL(
+        "<b>macOS / Linux :</b> Au premier lancement, un environnement Python est configure "
+        "automatiquement (environ 1 minute, connexion Internet requise). Ensuite "
+        "l'application fonctionne hors ligne.", st))
+
+    story.append(H2("2.2  Demarrer le programme", st))
+    story.append(P(
+        "Double-cliquez sur le lanceur approprie dans le dossier extrait :", st))
+    story.append(BL(
+        "<b>Windows :</b> Double-cliquez sur <b>BuildReports.bat</b> -- lance l'interface "
+        "graphique sans fenetre de console.", st))
+    story.append(BL(
+        "<b>macOS :</b> Clic droit sur <b>BuildReports.command</b> -> <i>Ouvrir</i> "
+        "(une fois, pour contourner Gatekeeper).", st))
+    story.append(BL(
+        "<b>Linux :</b> Dans un terminal : "
+        "<font name='Courier'>./BuildReports.sh</font>", st))
+    story.append(SP(4))
+    story.append(box(
+        "<b>Conseil (Windows) :</b> Au premier lancement, SmartScreen peut afficher un "
+        "avertissement. Cliquez sur <b>Informations complementaires</b> -> "
+        "<b>Executer quand meme</b>.", st, "#e8f8f0"))
+
+    # =========================================================================
+    # 3. Fichiers d'entree
+    # =========================================================================
+    story.append(PageBreak())
+    story.append(H1("3  Fichiers d'entree", st))
+    story.append(P(
+        "build_reports requiert un ou deux fichiers Excel produits par le module "
+        "<b>transform_data</b>. Ces fichiers ne doivent pas etre modifies manuellement -- "
+        "la structure doit correspondre exactement au format attendu.", st))
+
+    story.append(H2("3.1  IssueTimes.xlsx  (obligatoire)", st))
+    story.append(P(
+        "Ce fichier contient tous les tickets avec leurs donnees temporelles et leur "
+        "statut de traitement actuel. Il est obligatoire pour toutes les metriques sauf "
+        "le Cumulative Flow Diagram.", st))
+    story.append(SP(4))
+    story.append(tbl(
+        ["Colonne", "Signification"],
+        [
+            ["Project",       "Cle de projet (ex. ARTA)"],
+            ["Key",           "Cle du ticket (ex. ARTA-123)"],
+            ["Issuetype",     "Type de ticket (ex. Feature, Bug, Story)"],
+            ["Status",        "Statut actuel (ex. In Progress, Done)"],
+            ["Created",       "Date de creation du ticket"],
+            ["First Date",    "Date a laquelle le ticket a ete activement traite pour la premiere fois"],
+            ["Closed Date",   "Date de cloture (vide = encore ouvert)"],
+            ["Resolution",    "Type de resolution (ex. Fixed, Duplicate)"],
+            ["Stage columns", "Une colonne par etape du workflow avec les minutes passees dans cette etape"],
+        ],
+        col_widths=[4*cm, 12*cm]))
+
+    story.append(SP(8))
+    story.append(H2("3.2  CFD.xlsx  (optionnel, pour le Cumulative Flow Diagram)", st))
+    story.append(P(
+        "Ce fichier contient les comptages journaliers d'entrees : combien de tickets ont "
+        "<b>entre</b> dans une etape donnee chaque jour (pas des instantanes). "
+        "build_reports accumule ces valeurs en un total cumulatif. Il n'est necessaire "
+        "que si le Cumulative Flow Diagram doit etre calcule.", st))
+    story.append(SP(4))
+    story.append(tbl(
+        ["Colonne", "Signification"],
+        [
+            ["Day",           "Date (YYYY-MM-DD)"],
+            ["Stage columns", "Une colonne par etape avec le nombre de nouvelles entrees ce jour-la"],
+        ],
+        col_widths=[4*cm, 12*cm]))
+
+    story.append(SP(8))
+    story.append(H2("3.3  Fichier de configuration PI  (optionnel, pour Flow Velocity)", st))
+    story.append(P(
+        "Avec un fichier de configuration JSON optionnel, vous pouvez definir vos propres "
+        "intervalles PI (Program Increments) pour le diagramme a barres Flow Velocity. "
+        "Sans ce fichier, les trimestres calendaires sont utilises automatiquement.", st))
+    story.append(SP(4))
+    story.append(P("<b>Exemple (mode date) :</b>", st))
+    story.append(CD(
+        '{ "mode": "date",<br/>'
+        '&nbsp;&nbsp;"intervals": [<br/>'
+        '&nbsp;&nbsp;&nbsp;&nbsp;{"name": "PI 2025.1", "from": "2025-01-06", "to": "2025-04-04"},<br/>'
+        '&nbsp;&nbsp;&nbsp;&nbsp;{"name": "PI 2025.2", "from": "2025-04-05", "to": "2025-07-04"},<br/>'
+        '&nbsp;&nbsp;&nbsp;&nbsp;{"name": "PI 2025.3", "from": "2025-07-05", "to": "2025-10-03"},<br/>'
+        '&nbsp;&nbsp;&nbsp;&nbsp;{"name": "PI 2025.4", "from": "2025-10-04", "to": "2026-01-02"}<br/>'
+        '&nbsp;&nbsp;]<br/>'
+        '}', st))
+    story.append(P(
+        "Le fichier doit avoir une extension <b>.json</b>. Copiez le fichier d'exemple "
+        "fourni <b>pi_config_example.json</b> et ajustez les dates et les noms pour "
+        "correspondre a votre calendrier PI. Le format doit etre conserve.", st))
+    story.append(SP(4))
+    story.append(box(
+        "<b>Remarque :</b> Utilisez toujours le format de date <b>YYYY-MM-DD</b> "
+        "(annee-mois-jour). Exemple : 6 janvier 2025 = 2025-01-06.", st, "#fff8e1"))
+
+    story.append(SP(8))
+    story.append(H2("3.4  Transitions.xlsx  (optionnel, pour Process Flow)", st))
+    story.append(P(
+        "Ce fichier contient toutes les transitions de statut par ticket dans l'ordre "
+        "chronologique. Il est produit par le module <b>transform_data</b> et est requis "
+        "exclusivement pour la <b>metrique Process Flow</b>. Toutes les autres metriques "
+        "peuvent etre calculees sans ce fichier.", st))
+    story.append(SP(4))
+    story.append(tbl(
+        ["Colonne", "Signification"],
+        [
+            ["Key",        "Cle du ticket (ex. ARTA-123)"],
+            ["Transition", "Statut cible apres la transition (ex. 'In Analysis')"],
+            ["Timestamp",  "Horodatage de la transition (DD.MM.YYYY HH:MM:SS)"],
+        ],
+        col_widths=[4*cm, 12*cm]))
+    story.append(SP(4))
+    story.append(box(
+        "<b>Remarque :</b> Transitions.xlsx et IssueTimes.xlsx doivent provenir du meme "
+        "export transform_data afin que les cles de tickets correspondent.", st, "#fff8e1"))
+
+    # =========================================================================
+    # 4. Interface graphique
+    # =========================================================================
+    story.append(PageBreak())
+    story.append(H1("4  L'interface graphique (GUI)", st))
+    story.append(P(
+        "Apres le lancement, la fenetre principale s'ouvre. Elle se compose de trois "
+        "zones : la <b>zone de fichiers</b> (haut), la <b>zone de filtres</b> (milieu) "
+        "et la <b>zone d'actions</b> (bas) avec la fenetre de journal.", st))
+
+    story.append(H2("4.1  Charger les fichiers", st))
+    story.append(P("Chargez d'abord les fichiers necessaires :", st))
+    story.append(BL(
+        "<b>IssueTimes</b> -- Cliquez sur le bouton de dossier a droite du champ et "
+        "selectionnez le fichier <b>IssueTimes.xlsx</b>. Apres le chargement, les projets "
+        "disponibles et les types de tickets apparaissent automatiquement dans le journal.", st))
+    story.append(BL(
+        "<b>CFD (optionnel)</b> -- Selectionnez le fichier <b>CFD.xlsx</b> si vous avez "
+        "besoin du Cumulative Flow Diagram.", st))
+    story.append(BL(
+        "<b>Workflow (optionnel)</b> -- Selectionnez le fichier texte de workflow de "
+        "transform_data. Il contient les marqueurs <b>&lt;First&gt;</b> et "
+        "<b>&lt;Closed&gt;</b> qui determinent quelles limites d'etapes les lignes de "
+        "tendance du CFD marquent.", st))
+    story.append(BL(
+        "<b>Config PI (optionnel)</b> -- Selectionnez votre fichier de configuration JSON "
+        "pour des intervalles PI personnalises. Laissez le champ vide pour utiliser les "
+        "trimestres calendaires.", st))
+    story.append(BL(
+        "<b>Transitions (optionnel)</b> -- Selectionnez le fichier <b>Transitions.xlsx</b> "
+        "de transform_data. Requis uniquement si la metrique Process Flow doit etre "
+        "calculee.", st))
+    story.append(SP(4))
+    story.append(box(
+        "<b>Conseil :</b> Survoler un champ de saisie affiche une info-bulle expliquant "
+        "a quoi sert ce champ.", st, "#e8f8f0"))
+
+    story.append(H2("4.2  Parametrer les filtres", st))
+    story.append(P(
+        "Les filtres restreignent les tickets inclus dans l'analyse :", st))
+    story.append(SP(4))
+    story.append(tbl(
+        ["Filtre / Exclusion", "Description"],
+        [
+            ["De / A",
+             "Ne prendre en compte que les tickets clos dans cette plage de dates. "
+             "Format : YYYY-MM-DD. Le bouton calendrier ouvre un selecteur de date."],
+            ["365 derniers jours",
+             "Definit automatiquement De et A sur les 365 derniers jours jusqu'a aujourd'hui."],
+            ["Projets",
+             "Analyser uniquement des projets specifiques. Separez plusieurs projets par une "
+             "virgule, ex. ARTA, ARTB. Le bouton de selection affiche tous les projets disponibles."],
+            ["Types de tickets",
+             "Analyser uniquement des types de tickets specifiques, ex. Feature, Bug. "
+             "Laisser vide = tous les types. Le bouton de selection affiche une liste de choix."],
+            ["Exclure : Statut",
+             "Supprimer completement les tickets ayant certains statuts Jira de toutes les "
+             "metriques, ex. 'Canceled'. Le bouton de selection affiche tous les statuts existants."],
+            ["Exclure : Resolution",
+             "Exclure les tickets ayant certains types de resolution, ex. 'Won't Do' ou "
+             "'Duplicate'. Le bouton de selection affiche toutes les resolutions existantes."],
+            ["Exclure les tickets zero-day",
+             "Case a cocher : les tickets dont le cycle time (First to Closed Date) est "
+             "inferieur au seuil configure sont supprimes completement. Defaut : 5 minutes. "
+             "Typique pour les tickets passes manuellement en revue dans le workflow sans "
+             "aucun travail de developpement reel."],
+        ],
+        col_widths=[3.8*cm, 12.2*cm]))
+
+    story.append(H2("4.3  Selectionner les metriques et la methode CT", st))
+    story.append(P(
+        "Utilisez les cases a cocher pour selectionner les metriques a calculer. "
+        "Les boutons <b>Tout</b> et <b>Aucun</b> cochent ou decochen toutes les cases "
+        "en meme temps.", st))
+    story.append(SP(4))
+    story.append(P(
+        "La <b>methode CT</b> determine comment le cycle time est calcule -- pertinent "
+        "uniquement pour la metrique Flow Time :", st))
+    story.append(SP(4))
+    story.append(tbl(
+        ["Methode", "Calcul"],
+        [
+            ["Methode A (defaut)",
+             "Difference en jours calendaires entre First Date et Closed Date. "
+             "Simple et directe."],
+            ["Methode B",
+             "Somme des minutes dans les etapes individuelles du workflow (derniere etape "
+             "exclue), divisee par 1440. Mesure uniquement le temps de traitement actif."],
+        ],
+        col_widths=[4*cm, 12*cm]))
+
+    story.append(H2("4.4  Creer un rapport", st))
+    story.append(P("Vous avez deux options :", st))
+    story.append(BL(
+        "<b>Afficher dans le navigateur</b> -- Tous les diagrammes sont ouverts dans votre "
+        "navigateur par defaut. Les diagrammes y sont entierement interactifs : zoom, "
+        "inspection des points de donnees via info-bulle au survol, et activation/desactivation "
+        "de categories individuelles dans la legende.", st))
+    story.append(BL(
+        "<b>Exporter les rapports</b> -- Tous les diagrammes sont exportes dans un fichier "
+        "PDF multi-pages. Une boite de dialogue d'enregistrement demande le nom et "
+        "l'emplacement du fichier. En plus du PDF, deux fichiers Excel sont "
+        "automatiquement crees : un Excel de rapport avec tous les tickets, groupes de "
+        "statut et cycle times, et -- si des tickets zero-day existent -- un fichier "
+        "separe pour ces tickets.", st))
+    story.append(SP(4))
+    story.append(box(
+        "<b>Remarque :</b> Pendant les calculs, l'interface est brievement bloquee. "
+        "La progression est affichee dans la fenetre de journal. Ne fermez pas et ne "
+        "cliquez pas jusqu'a ce que le journal affiche le message de fin.", st, "#fff8e1"))
+
+    story.append(H2("4.5  Modeles -- enregistrer et charger une configuration", st))
+    story.append(P(
+        "Dans le menu <b>Modeles</b>, vous pouvez enregistrer tous les parametres actuels "
+        "(chemins de fichiers, filtres, selection de metriques, methode CT, terminologie) "
+        "sous forme de fichier JSON et les recharger ulterieuremen -- plus besoin de "
+        "remplir tous les champs a chaque fois.", st))
+    story.append(BL(
+        "<b>Enregistrer...</b> -- Choisissez un emplacement et un nom pour le fichier de "
+        "configuration (ex. monEquipe_RapportTrimestriel.json).", st))
+    story.append(BL(
+        "<b>Charger...</b> -- Ouvrez un fichier de configuration enregistre. Tous les "
+        "champs sont remplis automatiquement. Si un fichier enregistre est introuvable, "
+        "une note apparait dans le journal.", st))
+
+    story.append(H2("4.6  Langue et terminologie", st))
+    story.append(P(
+        "La langue peut etre changee de deux facons :", st))
+    story.append(BL(
+        "<b>Bouton drapeau</b> dans le coin superieur droit de la fenetre -- affiche la "
+        "langue actuelle sous forme de drapeau national. Un clic bascule instantanement "
+        "entre l'allemand et l'anglais.", st))
+    story.append(BL(
+        "<b>Options -> Langue</b> -- alternativement via le menu.", st))
+    story.append(P(
+        "Via <b>Options -> Terminologie</b>, vous pouvez egalement basculer entre "
+        "<b>SAFe</b> et <b>Global</b>. En mode SAFe, les metriques s'appellent par ex. "
+        "'Flow Time', en mode Global 'Cycle Time'. Ce changement affecte uniquement les "
+        "etiquettes, pas les calculs.", st))
+
+    # =========================================================================
+    # 5. Metriques
+    # =========================================================================
+    story.append(PageBreak())
+    story.append(H1("5  Apercu des metriques", st))
+    story.append(P(
+        "Cette section explique chaque metrique en termes simples : ce qu'elle mesure, "
+        "ce que les diagrammes montrent et comment interpreter les resultats. "
+        "Les diagrammes d'exemple sont bases sur un jeu de donnees exemple.", st))
+
+    # --- 5.1 Flow Time -------------------------------------------------------
+    story.append(H2("5.1  Flow Time / Cycle Time", st))
+    story.append(P(
+        "<b>Qu'est-ce qui est mesure ?</b> Le cycle time -- c'est-a-dire le nombre de "
+        "jours qu'un ticket prend depuis le premier travail jusqu'a la completion. "
+        "Moins c'est mieux.", st))
+
+    story.append(H3("Diagramme 1 : Boite a moustaches (distribution)", st))
+    story.append(P(
+        "La boite a moustaches montre en un coup d'oeil comment les cycle times sont "
+        "distribues. L'en-tete du diagramme contient les statistiques cles :", st))
+    story.append(SP(4))
+    story.append(tbl(
+        ["Statistique", "Signification"],
+        [
+            ["Min / Max",   "Cycle time le plus court et le plus long mesure"],
+            ["Q1 / Q3",     "25 % / 75 % des tickets sont en dessous de cette valeur"],
+            ["Mediane",     "Le cycle time median -- 50 % des tickets sont en dessous"],
+            ["Moyenne",     "Cycle time moyen (peut etre fausse par les valeurs aberrantes)"],
+            ["90d CT%",     "Part des tickets avec cycle time <= 90 jours (Service Level Expectation)"],
+            ["P85 / P95",   "85 % / 95 % des tickets ont ete termines dans ce delai"],
+            ["Ecart-type",  "Ecart-type -- dans quelle mesure les valeurs varient-elles ?"],
+            ["CV",          "Coefficient de variation -- dispersion relative (plus petit = processus plus stable)"],
+            ["Zero-Day",    "Nombre de tickets avec cycle time 0 (exclus de l'analyse)"],
+        ],
+        col_widths=[3*cm, 13*cm]))
+    story.append(SP(4))
+    story.append(HI(
+        "Point rouge dans la boite a moustaches = valeur aberrante statistique. Dans le "
+        "navigateur, vous pouvez lire la cle du ticket via l'info-bulle au survol.", st))
+    add_img("flow_time_box",
+            "Fig. 1 : Boite a moustaches des cycle times -- distribution, quartiles et en-tete de statistiques.")
+
+    story.append(H3("Diagramme 2 : Nuage de points (tendance dans le temps)", st))
+    story.append(P(
+        "Chaque point est un ticket termine. L'axe x montre la date de cloture, "
+        "l'axe y le cycle time en jours. Les couleurs et les lignes de reference "
+        "facilitent l'interpretation :", st))
+    story.append(SP(4))
+    story.append(tbl(
+        ["Element", "Signification"],
+        [
+            ["Point bleu",    "Tickets normaux (en dessous du 85e percentile)"],
+            ["Point orange",  "Tickets lents (entre le 85e et le 95e percentile)"],
+            ["Point rouge",   "Tickets tres lents (au-dessus du 95e percentile)"],
+            ["Courbe bleue",  "Ligne de tendance LOESS -- montre la tendance du cycle time dans le temps"],
+            ["Ligne rouge",   "Ligne de reference mediane"],
+            ["Ligne verte",   "Ligne de reference du 85e percentile"],
+            ["Ligne cyan",    "Ligne de reference du 95e percentile"],
+        ],
+        col_widths=[4.5*cm, 11.5*cm]))
+    add_img("flow_time_scatter",
+            "Fig. 2 : Nuage de points -- cycle time par date de cloture avec ligne de tendance LOESS et lignes de reference.")
+    story.append(SP(4))
+    story.append(box(
+        "<b>Interpretation :</b> Si la ligne de tendance LOESS monte vers la droite, les "
+        "tickets ralentissent au fil du temps. Une ligne plate signale un processus stable. "
+        "De nombreux points rouges et oranges indiquent des goulets d'etranglement frequents.", st))
+
+    # --- 5.2 Flow Velocity ---------------------------------------------------
+    story.append(H2("5.2  Flow Velocity / Throughput", st))
+    story.append(P(
+        "<b>Qu'est-ce qui est mesure ?</b> Le debit -- c'est-a-dire combien de tickets "
+        "l'equipe cloture par semaine ou par PI. Une velocity constamment elevee indique "
+        "une equipe capable de livrer.", st))
+    story.append(SP(4))
+    story.append(tbl(
+        ["Diagramme", "Montre"],
+        [
+            ["Frequence journaliere (histogramme)",
+             "A quelle frequence exactement 1, 2, 3 ... tickets sont clos en une seule "
+             "journee. Montre la production journaliere typique."],
+            ["Tendance hebdomadaire (graphique lineaire)",
+             "Nombre de tickets clos par semaine sur toute la periode. "
+             "Les fluctuations et les tendances deviennent immediatement visibles."],
+            ["Tendance PI (diagramme a barres)",
+             "Nombre de tickets clos par PI (Program Increment) ou trimestre. "
+             "La ligne rouge montre la moyenne. Couleurs des barres : "
+             "Gris = premiere barre ; Orange = PI en cours ; Bleu = PIs termines ; "
+             "Gris clair = PIs futurs."],
+        ],
+        col_widths=[4.5*cm, 11.5*cm]))
+    add_img("velocity_daily",
+            "Fig. 3 : Frequence journaliere -- frequence des nombres de clotures journalieres.")
+    add_img("velocity_weekly",
+            "Fig. 4 : Tendance hebdomadaire -- tickets clos par semaine calendaire.")
+    add_img("velocity_pi",
+            "Fig. 5 : Tendance PI -- tickets clos par PI ou trimestre avec ligne moyenne.")
+
+    # --- 5.3 Flow Load -------------------------------------------------------
+    story.append(H2("5.3  Flow Load / WIP  (Work in Progress)", st))
+    story.append(P(
+        "<b>Qu'est-ce qui est mesure ?</b> Combien de tickets sont simultanement en cours "
+        "et depuis combien de temps. Trop de tickets en parallele ralentit la livraison "
+        "(plus le WIP est eleve, plus le cycle time est long).", st))
+    story.append(SP(4))
+    story.append(P(
+        "Le diagramme montre une boite a moustaches groupee : chaque etape obtient une "
+        "boite montrant l'age (en jours) des tickets qui s'y trouvent actuellement. "
+        "Les points individuels representent des tickets individuels -- dans le navigateur, "
+        "vous voyez la cle du ticket au survol.", st))
+    story.append(SP(4))
+    story.append(P(
+        "Des lignes de reference en pointilles issues des tickets termines (mediane, "
+        "85e percentile, 95e percentile) donnent des reperes : les tickets deja au-dessus "
+        "du 95e percentile des tickets termines accusent un retard significatif.", st))
+    add_img("flow_load",
+            "Fig. 6 : Flow Load -- age des tickets ouverts par etape avec lignes de reference issues des tickets termines.")
+
+    # --- 5.4 CFD -------------------------------------------------------------
+    story.append(H2("5.4  Cumulative Flow Diagram (CFD)", st))
+    story.append(P(
+        "<b>Qu'est-ce qui est mesure ?</b> Combien de tickets au total ont entre dans "
+        "chaque etape -- cumules dans le temps, par etape de workflow. Un systeme bien "
+        "fonctionnel montre des bandes paralleles montant regulierement sans gonflement "
+        "dans des etapes individuelles.", st))
+    story.append(SP(4))
+    story.append(P(
+        "Le diagramme est un graphique de surface empilee : chaque couche coloree "
+        "correspond a une etape. La premiere etape est en haut, la derniere "
+        "(Done/Closed) en bas. Le diagramme commence toujours a 0 -- quelle que soit "
+        "la date de debut selectionnee. Deux lignes de tendance noires montrent :", st))
+    story.append(BL(
+        "<b>Ligne superieure (entrees) :</b> Suit le bord superieur visuel de l'etape "
+        "&lt;First&gt; (entree dans le systeme). Sans fichier workflow : premiere etape.", st))
+    story.append(BL(
+        "<b>Ligne inferieure (sorties) :</b> Suit le bord superieur visuel de l'etape "
+        "&lt;Closed&gt; (completion dans le systeme). Sans fichier workflow : derniere etape.", st))
+    add_img("cfd",
+            "Fig. 7 : Cumulative Flow Diagram -- entrees cumulatives par etape avec lignes de tendance entrees et sorties.")
+    story.append(SP(4))
+    story.append(P(
+        "Le <b>ratio In/Out</b> dans le titre du diagramme (ex. 'Ratio In/out 1.80 : 1') "
+        "indique si davantage entre que ce qui est termine. Une valeur de 1.0 signifie un "
+        "systeme equilibre ; des valeurs nettement superieures a 1.0 indiquent un backlog "
+        "croissant.", st))
+    story.append(SP(4))
+    story.append(P(
+        "L'axe x montre les limites de mois avec de grandes etiquettes (ex. 'Jan 2025') "
+        "et les semaines ISO avec de petites etiquettes grises (ex. 'W03'), afin que les "
+        "etiquettes ne se chevauchent pas.", st))
+    story.append(SP(4))
+    story.append(box(
+        "<b>Remarque :</b> Le CFD requiert le fichier optionnel CFD.xlsx. Sans ce fichier, "
+        "la metrique CFD ne peut pas etre calculee.", st, "#fff8e1"))
+
+    # --- 5.5 Flow Distribution -----------------------------------------------
+    story.append(H2("5.5  Flow Distribution", st))
+    story.append(P(
+        "<b>Qu'est-ce qui est mesure ?</b> La composition de tous les tickets par type, "
+        "etape dominante et cycle time moyen. Montre en un coup d'oeil quels types de "
+        "tickets dominent, ou les tickets passent le plus de temps, et quels types sont "
+        "traites le plus rapidement ou le plus lentement.", st))
+    story.append(SP(4))
+    story.append(P(
+        "Le diagramme se compose de trois sous-diagrammes cote a cote :", st))
+    story.append(SP(4))
+    story.append(tbl(
+        ["Diagramme", "Ce qui est montre"],
+        [
+            ["Par type de ticket (anneau)",
+             "Nombre et part en pourcentage des tickets par type de ticket. Tous les tickets sont inclus."],
+            ["Stage Prominence (anneau)",
+             "Pour chaque ticket, l'etape dans laquelle il a passe le plus de temps est identifiee. "
+             "Le diagramme compte combien de fois chaque etape a ete dominante sur tous les tickets. "
+             "Pour les tickets termines, l'etape terminale Done (statut actuel) est exclue, "
+             "afin que le temps d'attente apres la cloture ne fausse pas le resultat. "
+             "Le sous-titre indique le nombre de tickets contribuant (n=...). "
+             "Les tickets sans donnees d'etape ne sont pas comptes."],
+            ["Cycle time moyen par type (barres)",
+             "Cycle time moyen en jours par type de ticket (Methode A : "
+             "Closed Date - First Date). Seuls les tickets avec les deux champs de date et "
+             "CT > 0 sont inclus. Etiquettes de barres au format '15.0j'."],
+        ],
+        col_widths=[4.5*cm, 11.5*cm]))
+    add_img("flow_dist",
+            "Fig. 8 : Flow Distribution -- distribution par type de ticket, Stage Prominence et cycle time moyen par type.")
+    story.append(SP(4))
+    story.append(box(
+        "<b>Interpretation Stage Prominence :</b> Si une etape domine particulierement "
+        "souvent, les tickets y sejournent de maniere disproportionnee -- un goulet "
+        "d'etranglement potentiel dans le workflow. Les tickets termines sont inclus, "
+        "mais leur etape terminale Done est masquee, de sorte que les vrais goulets "
+        "d'etranglement de traitement restent visibles.", st))
+
+    # --- 5.6 Process Flow: Transitions ----------------------------------------
+    story.append(H2("5.6  Process Flow: Transitions", st))
+    story.append(P(
+        "<b>Qu'est-ce qui est mesure ?</b> Toutes les transitions de statut des tickets "
+        "sont visualisees sous forme de graphe oriente : noeuds = statuts, fleches = "
+        "transitions. L'epaisseur des fleches est proportionnelle a la frequence de la "
+        "transition. Cela rend immediatement visible quels chemins les tickets empruntent "
+        "dans le workflow, a quelle frequence des retours se produisent et ou les tickets "
+        "restent bloques dans des boucles.", st))
+    story.append(SP(4))
+    story.append(P(
+        "Cette metrique requiert le fichier optionnel <b>Transitions.xlsx</b> (de "
+        "transform_data). Sans ce fichier, un avertissement apparait dans le journal.", st))
+    story.append(SP(4))
+    story.append(tbl(
+        ["Element", "Signification"],
+        [
+            ["Fleche bleue",    "Transition en avant -- le ticket avance dans le workflow."],
+            ["Fleche rouge",    "Transition en arriere (retour) -- le ticket revient a une etape anterieure."],
+            ["Arc orange",      "Auto-boucle -- le ticket reste dans le meme statut (ex. etape traversee a nouveau)."],
+            ["Largeur de fleche", "Plus la fleche est epaisse, plus cette transition est frequente."],
+            ["Chiffre sur la fleche", "Nombre absolu de cette transition sur tous les tickets."],
+            ["Noeud",           "Cercle bleu fonce avec le nom du statut. Ordre : etapes du workflow d'abord "
+                                "(sens horaire), puis statuts supplementaires par ordre alphabetique."],
+        ],
+        col_widths=[4*cm, 12*cm]))
+    add_img("process_flow",
+            "Fig. 9 : Process Flow: Transitions -- graphe oriente de toutes les transitions de statut avec largeur d'arete et codage couleur.")
+    story.append(SP(4))
+    story.append(box(
+        "<b>Interpretation :</b> De nombreuses fleches rouges signifient de frequents "
+        "retours -- signe de problemes de qualite ou d'exigences peu claires. Les "
+        "fleches bleues epaisses montrent le chemin principal du workflow. Les "
+        "auto-boucles (orange) se produisent lorsqu'un ticket est mis plusieurs fois "
+        "dans le meme statut.", st))
+
+    # --- 5.7 Process Flow: Time -----------------------------------------------
+    story.append(H2("5.7  Process Flow: Time", st))
+    story.append(P(
+        "<b>Qu'est-ce qui est mesure ?</b> Le meme graphe oriente que Process Flow: "
+        "Transitions, mais avec un focus sur le <b>temps</b> : la largeur des noeuds et "
+        "les etiquettes des aretes sont basees sur le temps de sejour median de l'etape "
+        "source. Cela rend immediatement visible dans quelles etapes les tickets attendent "
+        "le plus longtemps et quelles transitions coutent le plus de temps.", st))
+    story.append(SP(4))
+    story.append(P(
+        "Cette metrique requiert egalement le fichier optionnel <b>Transitions.xlsx</b> "
+        "(de transform_data).", st))
+    story.append(SP(4))
+    story.append(tbl(
+        ["Element", "Signification"],
+        [
+            ["Largeur du noeud",      "Proportionnelle au temps de sejour median dans cette etape."],
+            ["Largeur de l'arete",    "Proportionnelle au temps de sejour median de l'etape source."],
+            ["Chiffre sur la fleche", "Temps de sejour median de l'etape source en jours (j) pour les tickets ayant emprunte exactement cette transition."],
+            ["Fleche bleue",          "Transition en avant."],
+            ["Fleche rouge",          "Transition en arriere (retour)."],
+            ["Arc orange",            "Auto-boucle."],
+        ],
+        col_widths=[4*cm, 12*cm]))
+    add_img("process_flow_time",
+            "Fig. 10 : Process Flow: Time -- largeur des noeuds et etiquettes d'aretes basees sur le temps de sejour median par etape.")
+    story.append(SP(4))
+    story.append(box(
+        "<b>Interpretation :</b> Les noeuds larges et les aretes epaisses indiquent des "
+        "etapes ou les tickets sejournent particulierement longtemps -- des goulets "
+        "d'etranglement potentiels. Compare a Process Flow: Transitions, vous pouvez "
+        "voir si des transitions frequentes comportent egalement un poids temporel "
+        "significatif ou s'il s'agit simplement de brefs changements de statut.", st))
+
+    # =========================================================================
+    # 6. Export PDF
+    # =========================================================================
+    story.append(PageBreak())
+    story.append(H1("6  Export PDF", st))
+    story.append(P(
+        "L'export PDF cree un fichier PDF multi-pages avec tous les diagrammes "
+        "selectionnes. Chaque diagramme apparait sur sa propre page.", st))
+    story.append(SP(6))
+    story.append(tbl(
+        ["Etape", "Action"],
+        [
+            ["1", "Charger les fichiers et definir les filtres (comme decrit au chapitre 4)."],
+            ["2", "Selectionner les metriques souhaitees via les cases a cocher."],
+            ["3", "Cliquer sur 'Exporter les rapports'."],
+            ["4", "Dans la boite de dialogue, choisir un nom de fichier et un emplacement et confirmer."],
+            ["5", "Le programme calcule et exporte ; la progression apparait dans le journal."],
+            ["6", "Apres completion, le PDF et l'Excel de rapport sont disponibles a l'emplacement choisi."],
+        ],
+        col_widths=[1.5*cm, 14.5*cm]))
+    story.append(SP(8))
+    story.append(H2("6.1  Excel de rapport automatique", st))
+    story.append(P(
+        "A chaque export PDF, un fichier Excel portant le meme nom est automatiquement "
+        "cree (ex. report.xlsx a cote de report.pdf). Ce fichier contient tous les "
+        "tickets filtres au format IssueTimes, complete par trois colonnes :", st))
+    story.append(SP(4))
+    story.append(tbl(
+        ["Colonne", "Contenu"],
+        [
+            ["Status Group",
+             "Groupe de statut du ticket : 'To Do' (pas encore commence), "
+             "'In Progress' (en cours de traitement) ou 'Done' (termine). "
+             "Derive de First Date et Closed Date."],
+            ["Cycle Time (First->Closed)",
+             "Cycle time en jours calendaires de First Date a Closed Date "
+             "(Methode A). Vide si l'une des dates est manquante."],
+            ["Cycle Time B (days in Status)",
+             "Somme des minutes dans toutes les etapes du workflow sauf la derniere, "
+             "divisee par 1440 (Methode B). Vide si l'une des dates est manquante."],
+        ],
+        col_widths=[5*cm, 11*cm]))
+    story.append(SP(8))
+    story.append(box(
+        "<b>Tickets zero-day :</b> Deux mecanismes fonctionnent independamment :<br/>"
+        "1. <b>Filtre d'exclusion (avant le calcul) :</b> Si la case "
+        "'Exclure les tickets zero-day' est active, les tickets avec un cycle time "
+        "inferieur au seuil configure (defaut : 5 minutes) sont completement supprimes "
+        "de toutes les metriques.<br/>"
+        "2. <b>Au sein de la metrique Flow Time :</b> Les tickets avec un cycle time de "
+        "0 jour (meme jour calendaire) sont signales separement et non inclus dans les "
+        "statistiques.<br/>"
+        "Dans les deux cas, un fichier Excel separe est cree "
+        "(ex. report_zero_day_issues.xlsx dans le meme dossier).", st,
+        "#fff8e1"))
+
+    # =========================================================================
+    # 7. FAQ
+    # =========================================================================
+    story.append(PageBreak())
+    story.append(H1("7  Questions frequemment posees", st))
+
+    faqs = [
+        (
+            "Les diagrammes n'apparaissent pas dans le navigateur.",
+            "Verifiez si un navigateur par defaut est configure. Essayez alternativement "
+            "l'export PDF. Assurez-vous que le fichier IssueTimes a ete charge correctement "
+            "(verifiez le journal)."
+        ),
+        (
+            "L'export PDF prend tres longtemps ou echoue.",
+            "Le rendu des diagrammes en PDF necessite le package Kaleido. Si celui-ci n'a "
+            "pas encore ete configure, contactez votre correspondant technique."
+        ),
+        (
+            "Le journal affiche 'Stage only in IssueTimes' ou 'Stage only in CFD'.",
+            "Les colonnes d'etapes dans IssueTimes.xlsx et CFD.xlsx ne correspondent pas. "
+            "Il s'agit d'un avertissement qui n'arrete pas l'analyse, mais indique que les "
+            "fichiers proviennent de versions de workflow differentes."
+        ),
+        (
+            "Comment analyser uniquement un projet specifique ?",
+            "Saisissez la cle de projet souhaitee dans le champ 'Projets' (ex. ARTA). "
+            "Separaz plusieurs projets par une virgule. Alternativement : utilisez le bouton "
+            "de selection pour une liste de tous les projets disponibles."
+        ),
+        (
+            "Le Cumulative Flow Diagram n'apparait pas.",
+            "La metrique CFD requiert un fichier CFD.xlsx. Chargez-le dans le champ "
+            "'CFD (optionnel)'."
+        ),
+        (
+            "Process Flow affiche 'No transition data available'.",
+            "La metrique Process Flow requiert un fichier Transitions.xlsx de transform_data. "
+            "Chargez-le dans le champ 'Transitions (optionnel)'. Assurez-vous que le fichier "
+            "provient du meme export que IssueTimes.xlsx."
+        ),
+        (
+            "Quelle est la difference entre les intervalles PI et les trimestres ?",
+            "Par defaut, les trimestres calendaires (Q1-Q4) sont utilises comme intervalles "
+            "de temps. Avec un fichier de configuration PI, vous pouvez definir vos propres "
+            "intervalles correspondant a vos PIs reels -- par exemple si votre PI commence "
+            "le 6 janvier au lieu du 1er janvier."
+        ),
+        (
+            "Comment enregistrer mes parametres ?",
+            "Utilisez le menu 'Modeles' -> 'Enregistrer...' pour enregistrer tous les "
+            "parametres actuels dans un fichier JSON. La prochaine fois : 'Modeles' -> "
+            "'Charger...'. Les parametres d'exclusion peuvent egalement etre stockes "
+            "definitivement sous 'Modeles' -> 'Enregistrer les exclusions par defaut'."
+        ),
+        (
+            "Un ticket apparait dans les metriques alors qu'il n'a jamais vraiment ete traite.",
+            "Cela se produit lorsqu'un ticket a ete passe manuellement en revue dans toutes "
+            "les etapes du workflow en quelques secondes -- sans aucun travail de "
+            "developpement reel. Activez la case 'Exclure les tickets zero-day' sous "
+            "'Exclusions' dans la GUI (seuil par ex. 5 minutes). Le ticket est alors "
+            "completement supprime de toutes les metriques et documente dans un fichier "
+            "Excel separe."
+        ),
+        (
+            "Puis-je presenter les resultats sans ordinateur ?",
+            "Oui : exportez d'abord un rapport PDF. Le fichier PDF contient tous les "
+            "diagrammes et peut etre ouvert sur n'importe quel appareil. Pour les "
+            "presentations interactives, la vue navigateur est recommandee."
+        ),
+    ]
+    for q, a in faqs:
+        story.append(H3("Q : " + q, st))
+        story.append(P("R : " + a, st))
+        story.append(SP(4))
+
+    # =========================================================================
+    # 8. Glossaire
+    # =========================================================================
+    story.append(PageBreak())
+    story.append(H1("8  Glossaire", st))
+    story.append(tbl(
+        ["Terme", "Explication"],
+        [
+            ["Closed Date",    "La date a laquelle un ticket a ete termine."],
+            ["Cycle Time",     "Terme alternatif pour Flow Time (terminologie Global)."],
+            ["First Date",     "Date du premier travail actif sur un ticket."],
+            ["Flow Load",      "Nombre de tickets actuellement en cours (terme SAFe)."],
+            ["Flow Time",      "Cycle time du premier travail jusqu'a la completion."],
+            ["Flow Velocity",  "Nombre de tickets termines par periode de temps (terme SAFe)."],
+            ["Issue",          "Un ticket dans le gestionnaire de tickets (ex. une carte Jira)."],
+            ["Issue type",     "Categorie d'un ticket, ex. Feature, Bug, Story, Task."],
+            ["IssueTimes",     "Le fichier Excel avec tous les tickets produit par transform_data."],
+            ["JSON",           "Format texte simple pour les fichiers de configuration."],
+            ["LOESS",          "Methode de lissage statistique pour les lignes de tendance."],
+            ["P85 / P95",      "85e / 95e percentile des cycle times."],
+            ["PI",             "Program Increment -- une periode de planification et de livraison fixe."],
+            ["Process Flow: Transitions", "Graphe oriente de toutes les transitions de statut (base sur la frequence). Montre les chemins principaux, les retours et les boucles dans le workflow."],
+            ["Process Flow: Time",        "Graphe oriente de toutes les transitions de statut (base sur le temps). La largeur des noeuds et les etiquettes d'aretes montrent le temps de sejour median par etape."],
+            ["Resolution",     "Type de resolution d'un ticket, ex. 'Done', 'Won't Do', 'Duplicate'."],
+            ["SAFe",           "Scaled Agile Framework -- un framework pour la mise a l'echelle agile."],
+            ["Stage",          "Une etape dans le workflow, ex. Analyse, Implementation, Done."],
+            ["Template",       "Fichier de configuration enregistre avec tous les parametres."],
+            ["Throughput",     "Terme alternatif pour Flow Velocity (terminologie Global)."],
+            ["Transitions",    "Enregistrement de chaque changement de statut par ticket. Exporte par transform_data sous Transitions.xlsx."],
+            ["WIP",            "Work in Progress -- tickets actuellement en cours de traitement."],
+            ["Zero-day issue", "Un ticket dont le cycle time (First to Closed Date) est si court "
+                               "qu'il ne represente pas un temps de traitement reel. Generalement cause "
+                               "par un passage manuel dans le workflow. Peut etre supprime de toutes "
+                               "les metriques via un filtre de seuil."],
+        ],
+        col_widths=[4*cm, 12*cm]))
+
+    return story, toc
+
+
 # ---------------------------------------------------------------------------
 # Build helper
 # ---------------------------------------------------------------------------
@@ -1918,7 +4225,7 @@ def _build_doc(output: Path, lang: str, story_fn, title: str, subject: str,
 # ---------------------------------------------------------------------------
 
 def main():
-    """Generate German and English build_reports user manual PDFs with chart images."""
+    """Generate build_reports user manual PDFs in all 5 languages."""
     print("Generating chart images from ART_A test data...")
     tmp_dir = Path(tempfile.mkdtemp(prefix="br_manual_"))
     try:
@@ -1935,6 +4242,24 @@ def main():
             OUTPUT_EN, LANG_EN, content_en,
             title="build_reports User Manual",
             subject="Flow Metrics for Agile Teams",
+            images=images,
+        )
+        _build_doc(
+            OUTPUT_RO, LANG_RO, content_ro,
+            title="build_reports Manual de Utilizator",
+            subject="Metrici de flux pentru echipe agile",
+            images=images,
+        )
+        _build_doc(
+            OUTPUT_PT, LANG_PT, content_pt,
+            title="build_reports Manual do Utilizador",
+            subject="Metricas de fluxo para equipas ageis",
+            images=images,
+        )
+        _build_doc(
+            OUTPUT_FR, LANG_FR, content_fr,
+            title="build_reports Manuel d'utilisation",
+            subject="Metriques de flux pour equipes agiles",
             images=images,
         )
     finally:
