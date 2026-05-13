@@ -29,7 +29,7 @@ SLIDES = [
     {
         "type": "title",
         "title": "situation-report",
-        "subtitle": "Feature-Übersicht — v0.8.5 | Stand Mai 2026",
+        "subtitle": "Feature-Übersicht — v0.99 | Stand Mai 2026",
     },
     # ── launcher ────────────────────────────────────────────────────────────
     {
@@ -178,6 +178,33 @@ SLIDES = [
              "FullHD-Displays (1080p); Log-Bereich fest am unteren Rand"),
         ],
     },
+    # ── testdata_generator ───────────────────────────────────────────────────
+    {
+        "type": "table",
+        "heading": "testdata_generator  ⚠ ALPHA",
+        "rows": [
+            ("Synthetische Jira-Daten",
+             "Erzeugt Jira-Issues im REST-API-Format — direkt mit transform_data "
+             "verarbeitbar. Workflow-Datei, Projekt-Key, Anzahl, Datum-Bereich, "
+             "Completion-Rate, Backflow, Issue-Typen und Seed konfigurierbar."),
+            ("Flow-Antipattern",
+             "Vier simulierbare Muster (Triangle, Flat Triangle, Cluster of Dots, "
+             "Batch Transfers) — Radiobuttons in der GUI oder --pattern auf der CLI. "
+             "Basiert auf Vacanti/Singh-Antipatterns zur Flow-Überwachung."),
+            ("Lognormale Cycle-Time",
+             "Mittlere Cycle-Time und Standardabweichung direkt einstellbar "
+             "(--mean-cycle-days, --std-cycle-days); GUI mit Eingabefeld + "
+             "Schieberegler. Lognormal-Verteilung ergibt realistische Rechtsschiefe."),
+            ("PI-Zyklus",
+             "Konfigurierbare PI-Länge in Wochen (Standard 12) für "
+             "Cluster- und Batch-Muster — Lieferungen werden auf die letzten "
+             "2 Wochen vor PI-Ende konzentriert (Beta(2, 0.5)-Verteilung)."),
+            ("CLI + GUI",
+             "Alle Parameter über GUI (Schieberegler, Radiobuttons, Dateidialoge) "
+             "oder Kommandozeile (python -m testdata_generator --pattern ...) "
+             "steuerbar. 5 Sprachen (DE/EN/RO/PT/FR)."),
+        ],
+    },
     # ── Infrastruktur ────────────────────────────────────────────────────────
     {
         "type": "table",
@@ -186,7 +213,7 @@ SLIDES = [
         "rows": [
             ("Versionierung",
              "SemVer ab v0.2.0; zentrale version.py wird von allen GUIs "
-             "und den Manuals gelesen; aktuell v0.8.5"),
+             "und den Manuals gelesen; aktuell v0.99"),
             ("Sprachauswahl",
              "Launcher: DE/EN/RO/PT/FR (5 Sprachen); build_reports und "
              "transform_data: DE/EN; letzte Wahl persistent in "

@@ -3,15 +3,17 @@
 # Repository:     https://github.com/Jaegerfeld/situation-report
 # KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
 # Erstellt:       02.05.2026
-# Geändert:       09.05.2026
+# Geändert:       13.05.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
 #   Grafische Benutzeroberfläche (tkinter) für testdata_generator. Ermöglicht
 #   die Konfiguration aller Generator-Parameter über Eingabefelder und startet
-#   die Generierung per Knopfdruck. Die Generierung läuft in einem separaten
-#   Thread; bei Operationen über 3 Sekunden erscheint ein Ladebalken.
-#   Ergebnisse und Fehler werden im Log-Bereich angezeigt.
+#   die Generierung per Knopfdruck. Unterstützt vier Flow-Muster (Triangle,
+#   Flat Triangle, Cluster, Batch) sowie Cycle-Time-Steuerung per Slider.
+#   Die Generierung läuft in einem separaten Thread; bei Operationen über
+#   3 Sekunden erscheint ein Ladebalken. Ergebnisse und Fehler werden im
+#   Log-Bereich angezeigt.
 # =============================================================================
 
 from __future__ import annotations
@@ -30,6 +32,13 @@ except ImportError:
     _VERSION = "?"
 
 from .cli import run_generate
+from .generator import (
+    PATTERN_BATCH,
+    PATTERN_CLUSTER,
+    PATTERN_FLAT_TRIANGLE,
+    PATTERN_NONE,
+    PATTERN_TRIANGLE,
+)
 
 LANG_DE = "de"
 LANG_EN = "en"
@@ -48,6 +57,14 @@ _MANUAL_URLS: dict[str, str] = {
 }
 
 _PREFS_PATH = Path.home() / ".situation_report" / "prefs.json"
+
+_PATTERN_LABELS = [
+    (PATTERN_NONE,         "Kein Muster",    "No Pattern"),
+    (PATTERN_TRIANGLE,     "Triangle",       "Triangle"),
+    (PATTERN_FLAT_TRIANGLE,"Flat Triangle",  "Flat Triangle"),
+    (PATTERN_CLUSTER,      "Cluster",        "Cluster"),
+    (PATTERN_BATCH,        "Batch",          "Batch"),
+]
 
 
 def _load_lang_pref() -> str:
@@ -76,76 +93,92 @@ def _save_lang_pref(lang: str) -> None:
 
 _T: dict[str, dict[str, str]] = {
     LANG_DE: {
-        "title":            f"testdata_generator {_VERSION}",
-        "menu_help":        "Hilfe",
-        "menu_manual":      "Manual",
-        "tip_language":     "Sprache wechseln",
-        "lbl_workflow":     "Workflow-Datei",
-        "lbl_output":       "Ausgabedatei (JSON)",
-        "lbl_project":      "Projekt-Key",
-        "lbl_issues":       "Anzahl Issues",
-        "lbl_from_date":    "Von (YYYY-MM-DD)",
-        "lbl_to_date":      "Bis (YYYY-MM-DD)",
-        "lbl_issue_types":  "Issue-Typen (Typ:Gewicht …)",
-        "lbl_completion":   "Completion-Rate (0–1)",
-        "lbl_todo":         "To-Do-Rate (0–1)",
-        "lbl_backflow":     "Backflow-Prob. (0–1)",
-        "lbl_seed":         "Seed (leer = zufällig)",
-        "lbl_log":          "Log",
-        "btn_browse_wf":    "Durchsuchen…",
-        "btn_browse_out":   "Durchsuchen…",
-        "btn_run":          "Generieren",
-        "err_no_workflow":  "FEHLER: Keine Workflow-Datei ausgewählt.",
-        "err_no_output":    "FEHLER: Keine Ausgabedatei angegeben.",
-        "err_issues":       "FEHLER: Anzahl Issues muss eine positive Ganzzahl sein.",
-        "err_completion":   "FEHLER: Completion-Rate muss zwischen 0 und 1 liegen.",
-        "err_todo":         "FEHLER: To-Do-Rate muss zwischen 0 und 1 liegen.",
-        "err_backflow":     "FEHLER: Backflow-Prob. muss zwischen 0 und 1 liegen.",
-        "err_seed":         "FEHLER: Seed muss eine ganze Zahl sein.",
-        "err_issue_types":  "FEHLER: Issue-Typen müssen im Format 'Typ:Gewicht' angegeben sein, z.B. Feature:0.6 Bug:0.3.",
-        "log_started":      "--- Generierung gestartet ---",
-        "log_done":         "--- Fertig ---",
-        "log_error":        "FEHLER: {}",
-        "dlg_workflow":     "Workflow-Datei wählen",
-        "dlg_output":       "Ausgabedatei wählen",
-        "tip_issue_types":  "Leer = Feature:0.6 Bug:0.3 Enabler:0.1 (Standard)",
-        "tip_seed":         "Gleicher Seed → identische Ausgabe (reproduzierbar)",
+        "title":              f"testdata_generator {_VERSION}",
+        "menu_help":          "Hilfe",
+        "menu_manual":        "Manual",
+        "tip_language":       "Sprache wechseln",
+        "lbl_workflow":       "Workflow-Datei",
+        "lbl_output":         "Ausgabedatei (JSON)",
+        "lbl_project":        "Projekt-Key",
+        "lbl_issues":         "Anzahl Issues",
+        "lbl_from_date":      "Von (YYYY-MM-DD)",
+        "lbl_to_date":        "Bis (YYYY-MM-DD)",
+        "lbl_issue_types":    "Issue-Typen (Typ:Gewicht …)",
+        "lbl_completion":     "Completion-Rate (0–1)",
+        "lbl_todo":           "To-Do-Rate (0–1)",
+        "lbl_backflow":       "Backflow-Prob. (0–1)",
+        "lbl_seed":           "Seed (leer = zufällig)",
+        "lbl_mean_cycle":     "Ø Cycle Time (Tage, leer=auto)",
+        "lbl_std_cycle":      "Std.-Abw. (Tage, leer=auto)",
+        "lbl_pattern":        "Muster",
+        "lbl_pi_weeks":       "PI-Dauer (Wochen)",
+        "lbl_log":            "Log",
+        "btn_browse_wf":      "Durchsuchen…",
+        "btn_browse_out":     "Durchsuchen…",
+        "btn_run":            "Generieren",
+        "err_no_workflow":    "FEHLER: Keine Workflow-Datei ausgewählt.",
+        "err_no_output":      "FEHLER: Keine Ausgabedatei angegeben.",
+        "err_issues":         "FEHLER: Anzahl Issues muss eine positive Ganzzahl sein.",
+        "err_completion":     "FEHLER: Completion-Rate muss zwischen 0 und 1 liegen.",
+        "err_todo":           "FEHLER: To-Do-Rate muss zwischen 0 und 1 liegen.",
+        "err_backflow":       "FEHLER: Backflow-Prob. muss zwischen 0 und 1 liegen.",
+        "err_seed":           "FEHLER: Seed muss eine ganze Zahl sein.",
+        "err_issue_types":    "FEHLER: Issue-Typen müssen im Format 'Typ:Gewicht' angegeben sein, z.B. Feature:0.6 Bug:0.3.",
+        "err_mean_cycle":     "FEHLER: Ø Cycle Time muss eine positive Zahl sein.",
+        "err_std_cycle":      "FEHLER: Std.-Abw. muss eine positive Zahl sein.",
+        "err_pattern_no_mean":"FEHLER: Muster erfordert eine Angabe für Ø Cycle Time.",
+        "err_pi_weeks":       "FEHLER: PI-Dauer muss eine positive Ganzzahl sein.",
+        "log_started":        "--- Generierung gestartet ---",
+        "log_done":           "--- Fertig ---",
+        "log_error":          "FEHLER: {}",
+        "dlg_workflow":       "Workflow-Datei wählen",
+        "dlg_output":         "Ausgabedatei wählen",
+        "tip_issue_types":    "Leer = Feature:0.6 Bug:0.3 Enabler:0.1 (Standard)",
+        "tip_seed":           "Gleicher Seed → identische Ausgabe (reproduzierbar)",
     },
     LANG_EN: {
-        "title":            f"testdata_generator {_VERSION}",
-        "menu_help":        "Help",
-        "menu_manual":      "Manual",
-        "tip_language":     "Change language",
-        "lbl_workflow":     "Workflow File",
-        "lbl_output":       "Output File (JSON)",
-        "lbl_project":      "Project Key",
-        "lbl_issues":       "Issue Count",
-        "lbl_from_date":    "From (YYYY-MM-DD)",
-        "lbl_to_date":      "To (YYYY-MM-DD)",
-        "lbl_issue_types":  "Issue Types (Type:weight …)",
-        "lbl_completion":   "Completion Rate (0–1)",
-        "lbl_todo":         "To-Do Rate (0–1)",
-        "lbl_backflow":     "Backflow Prob. (0–1)",
-        "lbl_seed":         "Seed (empty = random)",
-        "lbl_log":          "Log",
-        "btn_browse_wf":    "Browse…",
-        "btn_browse_out":   "Browse…",
-        "btn_run":          "Generate",
-        "err_no_workflow":  "ERROR: No workflow file selected.",
-        "err_no_output":    "ERROR: No output file specified.",
-        "err_issues":       "ERROR: Issue count must be a positive integer.",
-        "err_completion":   "ERROR: Completion rate must be between 0 and 1.",
-        "err_todo":         "ERROR: To-Do rate must be between 0 and 1.",
-        "err_backflow":     "ERROR: Backflow probability must be between 0 and 1.",
-        "err_seed":         "ERROR: Seed must be an integer.",
-        "err_issue_types":  "ERROR: Issue types must be in 'Type:weight' format, e.g. Feature:0.6 Bug:0.3.",
-        "log_started":      "--- Generation started ---",
-        "log_done":         "--- Done ---",
-        "log_error":        "ERROR: {}",
-        "dlg_workflow":     "Select workflow file",
-        "dlg_output":       "Select output file",
-        "tip_issue_types":  "Empty = Feature:0.6 Bug:0.3 Enabler:0.1 (default)",
-        "tip_seed":         "Same seed → identical output (reproducible)",
+        "title":              f"testdata_generator {_VERSION}",
+        "menu_help":          "Help",
+        "menu_manual":        "Manual",
+        "tip_language":       "Change language",
+        "lbl_workflow":       "Workflow File",
+        "lbl_output":         "Output File (JSON)",
+        "lbl_project":        "Project Key",
+        "lbl_issues":         "Issue Count",
+        "lbl_from_date":      "From (YYYY-MM-DD)",
+        "lbl_to_date":        "To (YYYY-MM-DD)",
+        "lbl_issue_types":    "Issue Types (Type:weight …)",
+        "lbl_completion":     "Completion Rate (0–1)",
+        "lbl_todo":           "To-Do Rate (0–1)",
+        "lbl_backflow":       "Backflow Prob. (0–1)",
+        "lbl_seed":           "Seed (empty = random)",
+        "lbl_mean_cycle":     "Avg Cycle Time (days, empty=auto)",
+        "lbl_std_cycle":      "Std Dev (days, empty=auto)",
+        "lbl_pattern":        "Pattern",
+        "lbl_pi_weeks":       "PI Duration (weeks)",
+        "lbl_log":            "Log",
+        "btn_browse_wf":      "Browse…",
+        "btn_browse_out":     "Browse…",
+        "btn_run":            "Generate",
+        "err_no_workflow":    "ERROR: No workflow file selected.",
+        "err_no_output":      "ERROR: No output file specified.",
+        "err_issues":         "ERROR: Issue count must be a positive integer.",
+        "err_completion":     "ERROR: Completion rate must be between 0 and 1.",
+        "err_todo":           "ERROR: To-Do rate must be between 0 and 1.",
+        "err_backflow":       "ERROR: Backflow probability must be between 0 and 1.",
+        "err_seed":           "ERROR: Seed must be an integer.",
+        "err_issue_types":    "ERROR: Issue types must be in 'Type:weight' format, e.g. Feature:0.6 Bug:0.3.",
+        "err_mean_cycle":     "ERROR: Avg cycle time must be a positive number.",
+        "err_std_cycle":      "ERROR: Std dev must be a positive number.",
+        "err_pattern_no_mean":"ERROR: Pattern requires an average cycle time to be set.",
+        "err_pi_weeks":       "ERROR: PI duration must be a positive integer.",
+        "log_started":        "--- Generation started ---",
+        "log_done":           "--- Done ---",
+        "log_error":          "ERROR: {}",
+        "dlg_workflow":       "Select workflow file",
+        "dlg_output":         "Select output file",
+        "tip_issue_types":    "Empty = Feature:0.6 Bug:0.3 Enabler:0.1 (default)",
+        "tip_seed":           "Same seed → identical output (reproducible)",
     },
 }
 
@@ -157,18 +190,22 @@ class _App:
         self._root = root
         self._running = False
 
-        self._var_workflow = tk.StringVar()
-        self._var_output = tk.StringVar()
-        self._var_project = tk.StringVar(value="TEST")
-        self._var_issues = tk.StringVar(value="100")
-        self._var_from_date = tk.StringVar(value="2025-01-01")
-        self._var_to_date = tk.StringVar(value="2025-12-31")
+        self._var_workflow    = tk.StringVar()
+        self._var_output      = tk.StringVar()
+        self._var_project     = tk.StringVar(value="TEST")
+        self._var_issues      = tk.StringVar(value="100")
+        self._var_from_date   = tk.StringVar(value="2025-01-01")
+        self._var_to_date     = tk.StringVar(value="2025-12-31")
         self._var_issue_types = tk.StringVar()
-        self._var_completion = tk.StringVar(value="0.7")
-        self._var_todo = tk.StringVar(value="0.15")
-        self._var_backflow = tk.StringVar(value="0.1")
-        self._var_seed = tk.StringVar()
-        self._lang_var = tk.StringVar(value=_load_lang_pref())
+        self._var_completion  = tk.StringVar(value="0.7")
+        self._var_todo        = tk.StringVar(value="0.15")
+        self._var_backflow    = tk.StringVar(value="0.1")
+        self._var_seed        = tk.StringVar()
+        self._var_mean_cycle  = tk.StringVar(value="")
+        self._var_std_cycle   = tk.StringVar(value="")
+        self._var_pattern     = tk.StringVar(value=PATTERN_NONE)
+        self._var_pi_weeks    = tk.StringVar(value="12")
+        self._lang_var        = tk.StringVar(value=_load_lang_pref())
         self._flag_imgs: dict[str, tk.PhotoImage] = {}
         self._create_flag_imgs()
 
@@ -183,11 +220,9 @@ class _App:
 
     def _build_menu(self) -> None:
         menubar = tk.Menu(self._root)
-
         help_menu = tk.Menu(menubar, tearoff=False)
         menubar.add_cascade(label=self._t("menu_help"), menu=help_menu)
         help_menu.add_command(label=self._t("menu_manual"), command=self._open_manual)
-
         self._root.config(menu=menubar)
 
     def _build_form(self) -> None:
@@ -196,6 +231,20 @@ class _App:
         self._root.columnconfigure(0, weight=1)
         self._root.rowconfigure(1, weight=1)
 
+        frame.columnconfigure(1, weight=1)
+        frame.columnconfigure(3, minsize=44)
+        self._labels: dict[str, ttk.Label] = {}
+
+        # ── Flag button (top-right) ──────────────────────────────────────────
+        self._flag_btn = tk.Button(
+            frame,
+            image=self._flag_imgs[self._lang_var.get()],
+            command=self._toggle_language,
+            relief="flat", cursor="hand2", bd=0, padx=4, pady=2,
+        )
+        self._flag_btn.grid(row=0, column=3, sticky="ne", rowspan=5, padx=(2, 0))
+
+        # ── Standard field rows ──────────────────────────────────────────────
         def row(r: int, lbl_key: str, var: tk.StringVar, browse_cmd=None) -> None:
             lbl = ttk.Label(frame, text="")
             lbl.grid(row=r, column=0, sticky="w", pady=2)
@@ -206,40 +255,115 @@ class _App:
                 btn = ttk.Button(frame, text="…", width=4, command=browse_cmd)
                 btn.grid(row=r, column=2, padx=(2, 0))
 
-        frame.columnconfigure(1, weight=1)
-        frame.columnconfigure(3, minsize=44)
-        self._labels: dict[str, ttk.Label] = {}
+        row(0,  "lbl_workflow",    self._var_workflow,    self._browse_workflow)
+        row(1,  "lbl_output",      self._var_output,      self._browse_output)
+        row(2,  "lbl_project",     self._var_project)
+        row(3,  "lbl_issues",      self._var_issues)
+        row(4,  "lbl_from_date",   self._var_from_date)
+        row(5,  "lbl_to_date",     self._var_to_date)
+        row(6,  "lbl_issue_types", self._var_issue_types)
+        row(7,  "lbl_completion",  self._var_completion)
+        row(8,  "lbl_todo",        self._var_todo)
+        row(9,  "lbl_backflow",    self._var_backflow)
+        row(10, "lbl_seed",        self._var_seed)
 
-        self._flag_btn = tk.Button(
-            frame,
-            image=self._flag_imgs[self._lang_var.get()],
-            command=self._toggle_language,
-            relief="flat",
-            cursor="hand2",
-            bd=0,
-            padx=4,
-            pady=2,
+        # ── Separator ────────────────────────────────────────────────────────
+        ttk.Separator(frame, orient="horizontal").grid(
+            row=11, column=0, columnspan=3, sticky="ew", pady=(8, 4)
         )
-        self._flag_btn.grid(row=0, column=3, sticky="ne", rowspan=5, padx=(2, 0))
 
-        row(0, "lbl_workflow", self._var_workflow, self._browse_workflow)
-        row(1, "lbl_output", self._var_output, self._browse_output)
-        row(2, "lbl_project", self._var_project)
-        row(3, "lbl_issues", self._var_issues)
-        row(4, "lbl_from_date", self._var_from_date)
-        row(5, "lbl_to_date", self._var_to_date)
-        row(6, "lbl_issue_types", self._var_issue_types)
-        row(7, "lbl_completion", self._var_completion)
-        row(8, "lbl_todo", self._var_todo)
-        row(9, "lbl_backflow", self._var_backflow)
-        row(10, "lbl_seed", self._var_seed)
+        # ── Cycle Time rows (with sliders) ───────────────────────────────────
+        self._mean_scale, self._mean_entry = self._slider_row(
+            frame, 12, "lbl_mean_cycle", self._var_mean_cycle, 1, 365
+        )
+        self._std_scale, self._std_entry = self._slider_row(
+            frame, 13, "lbl_std_cycle", self._var_std_cycle, 1, 180
+        )
 
+        # ── Pattern row ───────────────────────────────────────────────────────
+        lbl_pat = ttk.Label(frame, text="")
+        lbl_pat.grid(row=14, column=0, sticky="w", pady=(6, 2))
+        self._labels["lbl_pattern"] = lbl_pat
+
+        pf = ttk.Frame(frame)
+        pf.grid(row=14, column=1, columnspan=2, sticky="w", padx=(4, 0), pady=(6, 2))
+        self._pattern_rbs: list[ttk.Radiobutton] = []
+        lang = self._lang_var.get()
+        for val, lbl_de, lbl_en in _PATTERN_LABELS:
+            lbl_text = lbl_de if lang == LANG_DE else lbl_en
+            rb = ttk.Radiobutton(
+                pf, text=lbl_text, variable=self._var_pattern, value=val,
+                command=self._on_pattern_change,
+            )
+            rb.pack(side="left", padx=(0, 8))
+            self._pattern_rbs.append(rb)
+
+        # ── PI Duration row ───────────────────────────────────────────────────
+        self._pi_scale, self._pi_entry = self._slider_row(
+            frame, 15, "lbl_pi_weeks", self._var_pi_weeks, 4, 26
+        )
+        self._pi_scale.configure(state="disabled")
+        self._pi_entry.configure(state="disabled")
+
+        # ── Run + Progress ────────────────────────────────────────────────────
         self._btn_run = ttk.Button(frame, text="Generate", command=self._run)
-        self._btn_run.grid(row=11, column=0, columnspan=3, pady=(10, 4))
+        self._btn_run.grid(row=16, column=0, columnspan=3, pady=(10, 4))
 
         self._progress = ttk.Progressbar(frame, mode="indeterminate")
-        self._progress.grid(row=12, column=0, columnspan=3, sticky="ew")
+        self._progress.grid(row=17, column=0, columnspan=3, sticky="ew")
         self._progress.grid_remove()
+
+    def _slider_row(
+        self,
+        frame: ttk.Frame,
+        r: int,
+        lbl_key: str,
+        var: tk.StringVar,
+        from_v: float,
+        to_v: float,
+    ) -> tuple[ttk.Scale, ttk.Entry]:
+        """Create a label + scale + entry row with bidirectional sync."""
+        lbl = ttk.Label(frame, text="")
+        lbl.grid(row=r, column=0, sticky="w", pady=2)
+        self._labels[lbl_key] = lbl
+
+        sc = ttk.Scale(frame, from_=from_v, to=to_v, orient="horizontal")
+        sc.grid(row=r, column=1, sticky="ew", padx=(4, 0))
+
+        ent = ttk.Entry(frame, textvariable=var, width=7)
+        ent.grid(row=r, column=2, sticky="e", padx=(2, 0))
+
+        _guard = [False]
+
+        def _on_scale(val: str) -> None:
+            if _guard[0]:
+                return
+            _guard[0] = True
+            try:
+                var.set(str(round(float(val))))
+            finally:
+                _guard[0] = False
+
+        def _on_var(*_: object) -> None:
+            if _guard[0]:
+                return
+            _guard[0] = True
+            try:
+                sc.set(float(var.get()))
+            except ValueError:
+                pass
+            finally:
+                _guard[0] = False
+
+        sc.configure(command=_on_scale)
+        var.trace_add("write", _on_var)
+
+        try:
+            sc.set(float(var.get()))
+        except ValueError:
+            pass
+
+        return sc, ent
 
     def _build_log(self) -> None:
         log_frame = ttk.LabelFrame(self._root, text="Log", padding=4)
@@ -247,8 +371,10 @@ class _App:
         log_frame.columnconfigure(0, weight=1)
         log_frame.rowconfigure(0, weight=1)
         self._log_frame = log_frame
-        self._log = scrolledtext.ScrolledText(log_frame, height=12, state="disabled", wrap="word")
-        self._log.grid(row=0, column=0, sticky="nsew")
+        self._log_widget = scrolledtext.ScrolledText(
+            log_frame, height=12, state="disabled", wrap="word"
+        )
+        self._log_widget.grid(row=0, column=0, sticky="nsew")
 
     def _apply_language(self) -> None:
         _save_lang_pref(self._lang_var.get())
@@ -258,10 +384,18 @@ class _App:
             lbl.configure(text=self._t(key))
         self._btn_run.configure(text=self._t("btn_run"))
         self._log_frame.configure(text=self._t("lbl_log"))
+        lang = self._lang_var.get()
+        for rb, (val, lbl_de, lbl_en) in zip(self._pattern_rbs, _PATTERN_LABELS):
+            rb.configure(text=lbl_de if lang == LANG_DE else lbl_en)
         self._build_menu()
 
+    def _on_pattern_change(self) -> None:
+        enabled = self._var_pattern.get() in (PATTERN_CLUSTER, PATTERN_BATCH)
+        state = "normal" if enabled else "disabled"
+        self._pi_scale.configure(state=state)
+        self._pi_entry.configure(state=state)
+
     def _open_manual(self) -> None:
-        """Open the language-appropriate user manual PDF on GitHub Pages."""
         webbrowser.open(_MANUAL_URLS.get(self._lang_var.get(), _MANUAL_URLS[LANG_EN]))
 
     def _create_flag_imgs(self) -> None:
@@ -275,37 +409,37 @@ class _App:
 
         gb = tk.PhotoImage(width=W, height=H)
         for y in range(H):
-            row: list[str] = []
+            row_px: list[str] = []
             for x in range(W):
                 cx = abs(x - (W - 1) / 2)
                 cy = abs(y - (H - 1) / 2)
                 nx, ny = x / (W - 1), y / (H - 1)
                 if cx < W * 0.13 or cy < H * 0.13:
-                    row.append("#C8102E")
+                    row_px.append("#C8102E")
                 elif cx < W * 0.24 or cy < H * 0.24:
-                    row.append("#FFFFFF")
+                    row_px.append("#FFFFFF")
                 elif abs(nx - ny) < 0.16 or abs(nx - (1 - ny)) < 0.16:
-                    row.append("#FFFFFF")
+                    row_px.append("#FFFFFF")
                 else:
-                    row.append("#012169")
-            gb.put("{" + " ".join(row) + "}", to=(0, y))
+                    row_px.append("#012169")
+            gb.put("{" + " ".join(row_px) + "}", to=(0, y))
 
         ro = tk.PhotoImage(width=W, height=H)
         for y in range(H):
-            row = ["#002B7F" if x < W // 3 else "#FCD116" if x < 2 * W // 3 else "#CE1126"
-                   for x in range(W)]
-            ro.put("{" + " ".join(row) + "}", to=(0, y))
+            row_px = ["#002B7F" if x < W // 3 else "#FCD116" if x < 2 * W // 3 else "#CE1126"
+                      for x in range(W)]
+            ro.put("{" + " ".join(row_px) + "}", to=(0, y))
 
         pt = tk.PhotoImage(width=W, height=H)
         for y in range(H):
-            row = ["#006600" if x < W * 2 // 5 else "#FF0000" for x in range(W)]
-            pt.put("{" + " ".join(row) + "}", to=(0, y))
+            row_px = ["#006600" if x < W * 2 // 5 else "#FF0000" for x in range(W)]
+            pt.put("{" + " ".join(row_px) + "}", to=(0, y))
 
         fr = tk.PhotoImage(width=W, height=H)
         for y in range(H):
-            row = ["#002395" if x < W // 3 else "#FFFFFF" if x < 2 * W // 3 else "#ED2939"
-                   for x in range(W)]
-            fr.put("{" + " ".join(row) + "}", to=(0, y))
+            row_px = ["#002395" if x < W // 3 else "#FFFFFF" if x < 2 * W // 3 else "#ED2939"
+                      for x in range(W)]
+            fr.put("{" + " ".join(row_px) + "}", to=(0, y))
 
         self._flag_imgs = {LANG_DE: de, LANG_EN: gb, LANG_RO: ro, LANG_PT: pt, LANG_FR: fr}
 
@@ -336,20 +470,29 @@ class _App:
             self._var_output.set(path)
 
     def _log_msg(self, msg: str) -> None:
-        self._log.configure(state="normal")
-        self._log.insert("end", msg + "\n")
-        self._log.see("end")
-        self._log.configure(state="disabled")
+        self._log_widget.configure(state="normal")
+        self._log_widget.insert("end", msg + "\n")
+        self._log_widget.see("end")
+        self._log_widget.configure(state="disabled")
 
     def _parse_float_in_range(self, var: tk.StringVar, err_key: str) -> float | None:
-        """
-        Parse a float from a StringVar and validate it is in [0.0, 1.0].
-
-        Returns the float on success, or None after logging an error message.
-        """
         try:
             val = float(var.get())
             if not (0.0 <= val <= 1.0):
+                raise ValueError
+            return val
+        except ValueError:
+            self._log_msg(self._t(err_key))
+            return None
+
+    def _parse_positive_float(self, var: tk.StringVar, err_key: str) -> float | None:
+        """Parse a positive float; return None (no error) if the field is empty."""
+        raw = var.get().strip()
+        if not raw:
+            return None
+        try:
+            val = float(raw)
+            if val <= 0:
                 raise ValueError
             return val
         except ValueError:
@@ -395,11 +538,9 @@ class _App:
         completion_rate = self._parse_float_in_range(self._var_completion, "err_completion")
         if completion_rate is None:
             return
-
         todo_rate = self._parse_float_in_range(self._var_todo, "err_todo")
         if todo_rate is None:
             return
-
         backflow_prob = self._parse_float_in_range(self._var_backflow, "err_backflow")
         if backflow_prob is None:
             return
@@ -429,19 +570,43 @@ class _App:
             self._log_msg("ERROR: Invalid date format — expected YYYY-MM-DD.")
             return
 
+        # ── New: cycle time + pattern ────────────────────────────────────────
+        mean_cycle_days = self._parse_positive_float(self._var_mean_cycle, "err_mean_cycle")
+        if self._var_mean_cycle.get().strip() and mean_cycle_days is None:
+            return
+
+        std_cycle_days = self._parse_positive_float(self._var_std_cycle, "err_std_cycle")
+        if self._var_std_cycle.get().strip() and std_cycle_days is None:
+            return
+
+        pattern = self._var_pattern.get()
+        if pattern != PATTERN_NONE and mean_cycle_days is None:
+            self._log_msg(self._t("err_pattern_no_mean"))
+            return
+
+        pi_duration_weeks = 12
+        if pattern in (PATTERN_CLUSTER, PATTERN_BATCH):
+            try:
+                pi_duration_weeks = int(self._var_pi_weeks.get())
+                if pi_duration_weeks <= 0:
+                    raise ValueError
+            except ValueError:
+                self._log_msg(self._t("err_pi_weeks"))
+                return
+
         self._running = True
         self._btn_run.configure(state="disabled")
         self._log_msg(self._t("log_started"))
 
         _progress_timer: list = []
 
-        def show_progress():
+        def show_progress() -> None:
             self._progress.grid()
             self._progress.start(10)
 
         _progress_timer.append(self._root.after(3000, show_progress))
 
-        def _do():
+        def _do() -> None:
             try:
                 run_generate(
                     workflow=Path(workflow_str),
@@ -455,6 +620,10 @@ class _App:
                     todo_rate=todo_rate,
                     backflow_prob=backflow_prob,
                     seed=seed,
+                    mean_cycle_days=mean_cycle_days,
+                    std_cycle_days=std_cycle_days,
+                    pattern=pattern,
+                    pi_duration_weeks=pi_duration_weeks,
                     log=self._log_msg,
                 )
                 self._root.after(0, lambda: self._log_msg(self._t("log_done")))
@@ -478,6 +647,6 @@ def main() -> None:
     """Launch the testdata_generator GUI."""
     root = tk.Tk()
     root.resizable(True, True)
-    root.minsize(520, 400)
+    root.minsize(520, 480)
     app = _App(root)  # noqa: F841
     root.mainloop()

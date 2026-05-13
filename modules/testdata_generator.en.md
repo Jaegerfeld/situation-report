@@ -38,6 +38,16 @@ python -m testdata_generator \
 | `--todo-rate FLOAT` | `0.15` | Fraction of open issues in To Do stages (0–1) |
 | `--backflow-prob FLOAT` | `0.1` | Probability of backward transitions (0–1) |
 | `--seed INT` | (random) | Seed for reproducible output |
+| `--mean-cycle-days FLOAT` | (none) | Target mean cycle time in days (lognormal) |
+| `--std-cycle-days FLOAT` | (30 % of mean) | Standard deviation of cycle time |
+| `--pattern PATTERN` | `none` | Flow anti-pattern: `none` / `triangle` / `flat_triangle` / `cluster` / `batch` |
+| `--pi-duration-weeks INT` | `12` | PI cycle length in weeks (for `cluster`/`batch`) |
+
+## Flow Patterns
+
+Simulatable anti-patterns via `--mean-cycle-days` + `--pattern`:
+`triangle` (CT rises linearly), `flat_triangle` (rise flattens out),
+`cluster` (deliveries cluster at PI end), `batch` (PI clustering + high CT variance).
 
 ## Workflow file
 

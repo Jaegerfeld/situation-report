@@ -305,7 +305,7 @@ def slide_title(prs):
                size=8, bold=True, color=C_WHITE, align=PP_ALIGN.CENTER)
 
     # Footer
-    txtbox(sl, "github.com/Jaegerfeld/situation-report  |  Stand April 2026",
+    txtbox(sl, "github.com/Jaegerfeld/situation-report  |  Stand Mai 2026",
            0.5, 6.55, 12.3, 0.35,
            size=9, color=C_HINT, align=PP_ALIGN.CENTER)
 
