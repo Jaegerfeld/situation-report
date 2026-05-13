@@ -3,7 +3,7 @@
 # Repository:     https://github.com/Jaegerfeld/situation-report
 # KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
 # Erstellt:       03.05.2026
-# Geändert:       13.05.2026
+# Geändert:       08.05.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
@@ -436,47 +436,78 @@ def content_de(st: dict) -> list:
     # ---- 4b. Flow-Antipattern-Muster ----
     story += [PageBreak(),
               H1("4b  Flow-Antipattern-Muster", st), HR(),
-              P("Ab Version 0.99 kann der Testdata Generator typische Flow-Antipatterns "
-                "aus Vacanti/Singh simulieren. Dazu wird <b>--mean-cycle-days</b> kombiniert "
-                "mit <b>--pattern</b>.", st),
-              tbl(["Muster", "Scatterplot-Erscheinung", "Erklärung"],
+              P("Ab Version 0.9.9 kann der Testdata Generator typische Flow-Antipatterns "
+                "aus der Literatur von Vacanti und Singh simulieren. Dazu wird "
+                "<b>--mean-cycle-days</b> mit <b>--pattern</b> kombiniert. In der GUI "
+                "stehen Radiobuttons und Schieberegler zur Verfügung.", st),
+              SP(4),
+              tbl(["Muster", "Scatterplot-Erscheinung", "Beschreibung"],
                   [["none",
                     "Gleichmäßige Punktwolke",
-                    "Zufällige Cycle-Time ohne Trend (Standard)"],
+                    "Zufällige Cycle-Time ohne Trend — Standard-Verhalten"],
                    ["triangle",
-                    "Dreieck mit rechtem Winkel unten rechts",
-                    "CT steigt linear über die Zeit: mult = 1 + 3×t"],
+                    "Dreieck: rechter Winkel unten rechts",
+                    "Cycle-Time steigt linear über die Zeit (Multiplikator 1–4×). "
+                    "Zeigt einen Prozess, der zunehmend langsamer wird."],
                    ["flat_triangle",
-                    "Dreieck, aber Anstieg flacht am Ende ab",
-                    "CT-Anstieg wird durch tanh(2.5×t) gedämpft"],
+                    "Dreieck, Anstieg flacht am Ende ab",
+                    "Wie triangle, aber der Anstieg verflacht durch tanh(2.5×t). "
+                    "Zeigt eine Prozessverschlechterung, die sich stabilisiert."],
                    ["cluster",
-                    "Häufungen senkrechter Punkte am PI-Ende",
-                    "CT lognormal (stabil), aber Abschlüsse in letzten 2 Wochen eines PI"],
+                    "Senkrechte Punkthäufungen am PI-Ende",
+                    "Cycle-Time bleibt stabil (lognormal), aber die meisten Issues "
+                    "werden in den letzten 2 Wochen vor PI-Ende abgeschlossen. "
+                    "Deadline-getriebenes Verhalten."],
                    ["batch",
-                    "Senkrechte Säulen mit variabler CT am PI-Ende",
-                    "CT uniform 0.1× bis 3× Mittelwert + PI-Clustering"]],
-                  col_widths=[3.5 * cm, 4.5 * cm, 7.5 * cm]),
+                    "Säulen variabler Höhe am PI-Ende",
+                    "Wie cluster, aber mit stark unterschiedlicher Cycle-Time "
+                    "(0.1× bis 3× Mittelwert). Zeigt, dass kurze und sehr lange "
+                    "Aufgaben gemeinsam ans PI-Ende geschoben werden."]],
+                  col_widths=[3.0 * cm, 4.0 * cm, 8.5 * cm]),
+              SP(8),
+              H2("Cycle-Time-Steuerung", st),
+              P("Wenn <b>--mean-cycle-days</b> angegeben ist, wird die Cycle-Time "
+                "lognormalverteilt mit dem angegebenen Mittelwert erzeugt. Die "
+                "Lognormalverteilung erzeugt die in der Praxis typische Rechtsschiefe — "
+                "die meisten Issues sind schnell, wenige dauern sehr lang.", st),
+              tbl(["Parameter", "Bedeutung"],
+                  [["--mean-cycle-days",
+                    "Mittelwert der Cycle-Time in Tagen (z. B. 20). "
+                    "Pflicht für alle Muster außer none."],
+                   ["--std-cycle-days",
+                    "Standardabweichung in Tagen (Standard: 30 % des Mittelwerts). "
+                    "Höhere Werte erzeugen breitere Streuung im Scatterplot."],
+                   ["--pi-duration-weeks",
+                    "Länge eines PI-Zyklus in Wochen (Standard 12). "
+                    "Nur relevant für cluster und batch."]],
+                  col_widths=[4.5 * cm, 11.0 * cm]),
               SP(8),
               H2("Beispiele", st),
-              PRE("# Triangle-Muster\n"
+              PRE("# Triangle-Muster: CT steigt von 20d auf 80d\n"
                   "python -m testdata_generator \\\n"
                   "    --workflow workflow.txt --issues 300 \\\n"
-                  "    --pattern triangle --mean-cycle-days 20 --std-cycle-days 6 \\\n"
+                  "    --pattern triangle \\\n"
+                  "    --mean-cycle-days 20 --std-cycle-days 6 \\\n"
+                  "    --completion-rate 0.8 --seed 1 \\\n"
                   "    --output triangle.json\n\n"
-                  "# Cluster of Dots (12-Wochen-PI)\n"
+                  "# Cluster of Dots: Lieferungen am PI-Ende (12 Wochen)\n"
                   "python -m testdata_generator \\\n"
                   "    --workflow workflow.txt --issues 300 \\\n"
-                  "    --pattern cluster --mean-cycle-days 30 \\\n"
-                  "    --pi-duration-weeks 12 --output cluster.json\n\n"
-                  "# Batch Transfers\n"
+                  "    --pattern cluster \\\n"
+                  "    --mean-cycle-days 30 --pi-duration-weeks 12 \\\n"
+                  "    --completion-rate 0.8 --seed 2 \\\n"
+                  "    --output cluster.json\n\n"
+                  "# Batch Transfers: PI-Ende + hohe CT-Varianz\n"
                   "python -m testdata_generator \\\n"
                   "    --workflow workflow.txt --issues 300 \\\n"
-                  "    --pattern batch --mean-cycle-days 30 \\\n"
-                  "    --pi-duration-weeks 12 --output batch.json", st),
+                  "    --pattern batch \\\n"
+                  "    --mean-cycle-days 30 --pi-duration-weeks 12 \\\n"
+                  "    --completion-rate 0.8 --seed 3 \\\n"
+                  "    --output batch.json", st),
               SP(6),
               box("<b>Hinweis:</b> --pattern erfordert --mean-cycle-days. "
-                  "Ohne --mean-cycle-days wird pattern ignoriert und das "
-                  "bisherige min/max-Dwell-Verhalten verwendet.", st)]
+                  "Ohne --mean-cycle-days wird das Muster ignoriert und das "
+                  "ursprüngliche min/max-Dwell-Verhalten verwendet.", st)]
 
     # ---- 5. ART_A – Vollständiges Beispiel ----
     story += [PageBreak(),
@@ -719,43 +750,74 @@ def content_en(st: dict) -> list:
     # ---- 4b. Flow Anti-Pattern Modes ----
     story += [PageBreak(),
               H1("4b  Flow Anti-Pattern Modes", st), HR(),
-              P("Since version 0.99, the Testdata Generator can simulate typical flow "
-                "anti-patterns from Vacanti/Singh. Combine <b>--mean-cycle-days</b> "
-                "with <b>--pattern</b>.", st),
-              tbl(["Pattern", "Scatter plot appearance", "Explanation"],
+              P("Since version 0.9.9 the Testdata Generator can simulate typical flow "
+                "anti-patterns from Vacanti and Singh. Combine <b>--mean-cycle-days</b> "
+                "with <b>--pattern</b>. The GUI provides radio buttons and sliders for "
+                "all pattern settings.", st),
+              SP(4),
+              tbl(["Pattern", "Scatter plot appearance", "Description"],
                   [["none",
                     "Even point cloud",
-                    "Random cycle time without trend (default)"],
+                    "Random cycle time without trend — default behaviour"],
                    ["triangle",
-                    "Triangle with right angle at bottom right",
-                    "CT rises linearly over time: mult = 1 + 3×t"],
+                    "Triangle: right angle bottom right",
+                    "Cycle time rises linearly over time (multiplier 1–4×). "
+                    "Indicates a process that is becoming progressively slower."],
                    ["flat_triangle",
-                    "Triangle, but the rise flattens at the end",
-                    "CT increase is damped by tanh(2.5×t)"],
+                    "Triangle, rise flattens at the end",
+                    "Like triangle but the increase is damped by tanh(2.5×t). "
+                    "Shows a process deterioration that is levelling off."],
                    ["cluster",
                     "Vertical clusters of points at PI end",
-                    "CT lognormal (stable), but deliveries in last 2 weeks of each PI"],
+                    "Cycle time stays stable (lognormal), but most issues are "
+                    "delivered in the last 2 weeks before the PI end. "
+                    "Deadline-driven behaviour."],
                    ["batch",
-                    "Vertical columns with variable CT at PI end",
-                    "CT uniform 0.1× to 3× mean + PI clustering"]],
-                  col_widths=[3.5 * cm, 4.5 * cm, 7.5 * cm]),
+                    "Columns of variable height at PI end",
+                    "Like cluster but with highly variable cycle time "
+                    "(0.1× to 3× mean). Shows that both short and very long "
+                    "issues are pushed to the PI end together."]],
+                  col_widths=[3.0 * cm, 4.0 * cm, 8.5 * cm]),
+              SP(8),
+              H2("Cycle time control", st),
+              P("When <b>--mean-cycle-days</b> is provided, cycle times are sampled "
+                "from a lognormal distribution with the given mean. The lognormal "
+                "distribution produces the right-skewed shape typical in practice — "
+                "most issues are fast, a few take much longer.", st),
+              tbl(["Parameter", "Meaning"],
+                  [["--mean-cycle-days",
+                    "Mean cycle time in days (e.g. 20). "
+                    "Required for all patterns except none."],
+                   ["--std-cycle-days",
+                    "Standard deviation in days (default: 30 % of mean). "
+                    "Higher values produce a wider spread in the scatter plot."],
+                   ["--pi-duration-weeks",
+                    "Length of one PI cycle in weeks (default 12). "
+                    "Only relevant for cluster and batch."]],
+                  col_widths=[4.5 * cm, 11.0 * cm]),
               SP(8),
               H2("Examples", st),
-              PRE("# Triangle pattern\n"
+              PRE("# Triangle pattern: CT rises from 20d to 80d\n"
                   "python -m testdata_generator \\\n"
                   "    --workflow workflow.txt --issues 300 \\\n"
-                  "    --pattern triangle --mean-cycle-days 20 --std-cycle-days 6 \\\n"
+                  "    --pattern triangle \\\n"
+                  "    --mean-cycle-days 20 --std-cycle-days 6 \\\n"
+                  "    --completion-rate 0.8 --seed 1 \\\n"
                   "    --output triangle.json\n\n"
-                  "# Cluster of Dots (12-week PI)\n"
+                  "# Cluster of Dots: deliveries at PI end (12-week PI)\n"
                   "python -m testdata_generator \\\n"
                   "    --workflow workflow.txt --issues 300 \\\n"
-                  "    --pattern cluster --mean-cycle-days 30 \\\n"
-                  "    --pi-duration-weeks 12 --output cluster.json\n\n"
-                  "# Batch Transfers\n"
+                  "    --pattern cluster \\\n"
+                  "    --mean-cycle-days 30 --pi-duration-weeks 12 \\\n"
+                  "    --completion-rate 0.8 --seed 2 \\\n"
+                  "    --output cluster.json\n\n"
+                  "# Batch Transfers: PI end + high CT variance\n"
                   "python -m testdata_generator \\\n"
                   "    --workflow workflow.txt --issues 300 \\\n"
-                  "    --pattern batch --mean-cycle-days 30 \\\n"
-                  "    --pi-duration-weeks 12 --output batch.json", st),
+                  "    --pattern batch \\\n"
+                  "    --mean-cycle-days 30 --pi-duration-weeks 12 \\\n"
+                  "    --completion-rate 0.8 --seed 3 \\\n"
+                  "    --output batch.json", st),
               SP(6),
               box("<b>Note:</b> --pattern requires --mean-cycle-days. "
                   "Without --mean-cycle-days the pattern is ignored and "
