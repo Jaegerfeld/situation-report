@@ -20,6 +20,9 @@ from functools import partial
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
+
+from _font_config import setup as _setup_fonts
+_FN, _FB, _FI, _FBI = _setup_fonts()  # normal, bold, italic, bold_italic
 from version import __version__ as _VERSION
 
 import plotly.io as pio
@@ -54,11 +57,11 @@ C_WHITE  = colors.white
 C_HINT   = colors.HexColor("#7f8c8d")
 _TBL_HDR_STYLE = ParagraphStyle(
     "TblHdr_manual",
-    fontName="Helvetica-Bold", fontSize=9, textColor=C_WHITE, leading=12,
+    fontName=_FB, fontSize=9, textColor=C_WHITE, leading=12,
 )
 _TBL_CELL_STYLE = ParagraphStyle(
     "TblCell_manual",
-    fontName="Helvetica", fontSize=9, leading=12,
+    fontName=_FN, fontSize=9, leading=12,
 )
 
 
@@ -197,19 +200,19 @@ def make_styles():
         return ParagraphStyle(name, **kw)
 
     return dict(
-        h1=s("H1", fontName="Helvetica-Bold", fontSize=18, textColor=C_BLUE,
+        h1=s("H1", fontName=_FB, fontSize=18, textColor=C_BLUE,
               spaceBefore=24, spaceAfter=8, keepWithNext=1),
-        h2=s("H2", fontName="Helvetica-Bold", fontSize=13, textColor=C_ACCENT,
+        h2=s("H2", fontName=_FB, fontSize=13, textColor=C_ACCENT,
               spaceBefore=14, spaceAfter=5, keepWithNext=1),
-        h3=s("H3", fontName="Helvetica-BoldOblique", fontSize=11, textColor=C_BLUE,
+        h3=s("H3", fontName=_FBI, fontSize=11, textColor=C_BLUE,
               spaceBefore=10, spaceAfter=4, keepWithNext=1),
-        body=s("Body", fontName="Helvetica", fontSize=10, leading=15,
+        body=s("Body", fontName=_FN, fontSize=10, leading=15,
                alignment=TA_JUSTIFY, spaceAfter=6),
-        bullet=s("Bullet", fontName="Helvetica", fontSize=10, leading=14,
+        bullet=s("Bullet", fontName=_FN, fontSize=10, leading=14,
                  leftIndent=16, spaceAfter=3, bulletIndent=4),
-        hint=s("Hint", fontName="Helvetica-Oblique", fontSize=9, textColor=C_HINT,
+        hint=s("Hint", fontName=_FI, fontSize=9, textColor=C_HINT,
                leading=13, leftIndent=12, spaceAfter=4),
-        caption=s("Caption", fontName="Helvetica-Oblique", fontSize=8,
+        caption=s("Caption", fontName=_FI, fontSize=8,
                   textColor=C_HINT, leading=11, alignment=TA_CENTER, spaceAfter=8),
         code=s("Code", fontName="Courier", fontSize=9, leading=13,
                leftIndent=12, spaceBefore=4, spaceAfter=4,
@@ -261,12 +264,12 @@ class ManualDoc(BaseDocTemplate):
         w, h = A4
         canvas.setFillColor(C_BLUE)
         canvas.rect(0, h - 1.1*cm, w, 1.1*cm, fill=1, stroke=0)
-        canvas.setFont("Helvetica-Bold", 9)
+        canvas.setFont(_FB, 9)
         canvas.setFillColor(C_WHITE)
         canvas.drawString(2.2*cm, h - 0.7*cm, _HEADER_TEXT[self._lang])
         canvas.drawRightString(w - 2.2*cm, h - 0.7*cm, "situation-report")
         canvas.setFillColor(C_HINT)
-        canvas.setFont("Helvetica", 8)
+        canvas.setFont(_FN, 8)
         canvas.drawCentredString(w/2, 1.0*cm, _PAGE_LABEL[self._lang] % doc.page)
         canvas.setStrokeColor(C_MID)
         canvas.line(2.2*cm, 1.4*cm, w - 2.2*cm, 1.4*cm)
@@ -314,17 +317,17 @@ def build_cover(canvas, doc, lang: str = LANG_DE):
     canvas.setFillColor(C_ACCENT)
     canvas.rect(0, h*0.35, w, h*0.32, fill=1, stroke=0)
     canvas.setFillColor(C_WHITE)
-    canvas.setFont("Helvetica-Bold", 32)
+    canvas.setFont(_FB, 32)
     canvas.drawCentredString(w/2, h*0.60, "build_reports")
-    canvas.setFont("Helvetica-Bold", 18)
+    canvas.setFont(_FB, 18)
     canvas.drawCentredString(w/2, h*0.545, _COVER_SUBTITLE[lang])
-    canvas.setFont("Helvetica", 12)
+    canvas.setFont(_FN, 12)
     canvas.setFillColor(C_LIGHT)
     canvas.drawCentredString(w/2, h*0.49, _COVER_TAGLINE[lang])
     canvas.setStrokeColor(C_LIGHT)
     canvas.setLineWidth(0.5)
     canvas.line(w*0.2, h*0.455, w*0.8, h*0.455)
-    canvas.setFont("Helvetica", 9)
+    canvas.setFont(_FN, 9)
     canvas.setFillColor(C_MID)
     canvas.drawCentredString(w/2, h*0.12,
                              "situation-report - github.com/Jaegerfeld/situation-report")
@@ -419,11 +422,11 @@ def content_de(st, images: dict[str, Path] | None = None):
     story.append(H1("Inhalt", st))
     toc = TableOfContents()
     toc.levelStyles = [
-        ParagraphStyle("TOCH1de", fontName="Helvetica-Bold", fontSize=11,
+        ParagraphStyle("TOCH1de", fontName=_FB, fontSize=11,
                        leading=18, leftIndent=0, spaceAfter=2),
-        ParagraphStyle("TOCH2de", fontName="Helvetica", fontSize=9,
+        ParagraphStyle("TOCH2de", fontName=_FN, fontSize=9,
                        leading=15, leftIndent=16, spaceAfter=1),
-        ParagraphStyle("TOCH3de", fontName="Helvetica-Oblique", fontSize=8,
+        ParagraphStyle("TOCH3de", fontName=_FI, fontSize=8,
                        leading=13, leftIndent=28, spaceAfter=1),
     ]
     story.append(toc)
@@ -1189,11 +1192,11 @@ def content_en(st, images: dict[str, Path] | None = None):
     story.append(H1("Contents", st))
     toc = TableOfContents()
     toc.levelStyles = [
-        ParagraphStyle("TOCH1en", fontName="Helvetica-Bold", fontSize=11,
+        ParagraphStyle("TOCH1en", fontName=_FB, fontSize=11,
                        leading=18, leftIndent=0, spaceAfter=2),
-        ParagraphStyle("TOCH2en", fontName="Helvetica", fontSize=9,
+        ParagraphStyle("TOCH2en", fontName=_FN, fontSize=9,
                        leading=15, leftIndent=16, spaceAfter=1),
-        ParagraphStyle("TOCH3en", fontName="Helvetica-Oblique", fontSize=8,
+        ParagraphStyle("TOCH3en", fontName=_FI, fontSize=8,
                        leading=13, leftIndent=28, spaceAfter=1),
     ]
     story.append(toc)
@@ -1945,11 +1948,11 @@ def content_ro(st, images=None):
     story.append(H1("Cuprins", st))
     toc = TableOfContents()
     toc.levelStyles = [
-        ParagraphStyle("TOCH1ro", fontName="Helvetica-Bold", fontSize=11,
+        ParagraphStyle("TOCH1ro", fontName=_FB, fontSize=11,
                        leading=18, leftIndent=0, spaceAfter=2),
-        ParagraphStyle("TOCH2ro", fontName="Helvetica", fontSize=9,
+        ParagraphStyle("TOCH2ro", fontName=_FN, fontSize=9,
                        leading=15, leftIndent=16, spaceAfter=1),
-        ParagraphStyle("TOCH3ro", fontName="Helvetica-Oblique", fontSize=8,
+        ParagraphStyle("TOCH3ro", fontName=_FI, fontSize=8,
                        leading=13, leftIndent=28, spaceAfter=1),
     ]
     story.append(toc)
@@ -2697,11 +2700,11 @@ def content_pt(st, images=None):
     story.append(H1("Conteudo", st))
     toc = TableOfContents()
     toc.levelStyles = [
-        ParagraphStyle("TOCH1pt", fontName="Helvetica-Bold", fontSize=11,
+        ParagraphStyle("TOCH1pt", fontName=_FB, fontSize=11,
                        leading=18, leftIndent=0, spaceAfter=2),
-        ParagraphStyle("TOCH2pt", fontName="Helvetica", fontSize=9,
+        ParagraphStyle("TOCH2pt", fontName=_FN, fontSize=9,
                        leading=15, leftIndent=16, spaceAfter=1),
-        ParagraphStyle("TOCH3pt", fontName="Helvetica-Oblique", fontSize=8,
+        ParagraphStyle("TOCH3pt", fontName=_FI, fontSize=8,
                        leading=13, leftIndent=28, spaceAfter=1),
     ]
     story.append(toc)
@@ -3459,11 +3462,11 @@ def content_fr(st, images=None):
     story.append(H1("Table des matieres", st))
     toc = TableOfContents()
     toc.levelStyles = [
-        ParagraphStyle("TOCH1fr", fontName="Helvetica-Bold", fontSize=11,
+        ParagraphStyle("TOCH1fr", fontName=_FB, fontSize=11,
                        leading=18, leftIndent=0, spaceAfter=2),
-        ParagraphStyle("TOCH2fr", fontName="Helvetica", fontSize=9,
+        ParagraphStyle("TOCH2fr", fontName=_FN, fontSize=9,
                        leading=15, leftIndent=16, spaceAfter=1),
-        ParagraphStyle("TOCH3fr", fontName="Helvetica-Oblique", fontSize=8,
+        ParagraphStyle("TOCH3fr", fontName=_FI, fontSize=8,
                        leading=13, leftIndent=28, spaceAfter=1),
     ]
     story.append(toc)
