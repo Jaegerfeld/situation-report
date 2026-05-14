@@ -17,6 +17,9 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
+
+from _font_config import setup as _setup_fonts
+_FN, _FB, _FI, _FBI = _setup_fonts()  # normal, bold, italic, bold_italic
 from version import __version__ as _VERSION
 
 from reportlab.lib import colors
@@ -50,11 +53,11 @@ C_WHITE  = colors.white
 C_HINT   = colors.HexColor("#7f8c8d")
 _TBL_HDR_STYLE = ParagraphStyle(
     "TblHdr_getdata",
-    fontName="Helvetica-Bold", fontSize=9, textColor=C_WHITE, leading=12,
+    fontName=_FB, fontSize=9, textColor=C_WHITE, leading=12,
 )
 _TBL_CELL_STYLE = ParagraphStyle(
     "TblCell_getdata",
-    fontName="Helvetica", fontSize=9, leading=12,
+    fontName=_FN, fontSize=9, leading=12,
 )
 
 
@@ -108,22 +111,22 @@ def make_styles() -> dict:
         return ParagraphStyle(name, **kw)
 
     return dict(
-        h1=s("GD_H1", fontName="Helvetica-Bold", fontSize=18, textColor=C_BLUE,
+        h1=s("GD_H1", fontName=_FB, fontSize=18, textColor=C_BLUE,
               spaceBefore=24, spaceAfter=8, keepWithNext=1),
-        h2=s("GD_H2", fontName="Helvetica-Bold", fontSize=13, textColor=C_ACCENT,
+        h2=s("GD_H2", fontName=_FB, fontSize=13, textColor=C_ACCENT,
               spaceBefore=14, spaceAfter=5, keepWithNext=1),
-        h3=s("GD_H3", fontName="Helvetica-BoldOblique", fontSize=11, textColor=C_BLUE,
+        h3=s("GD_H3", fontName=_FBI, fontSize=11, textColor=C_BLUE,
               spaceBefore=10, spaceAfter=4, keepWithNext=1),
-        body=s("GD_Body", fontName="Helvetica", fontSize=10, leading=15,
+        body=s("GD_Body", fontName=_FN, fontSize=10, leading=15,
                alignment=TA_JUSTIFY, spaceAfter=6),
-        bullet=s("GD_Bullet", fontName="Helvetica", fontSize=10, leading=14,
+        bullet=s("GD_Bullet", fontName=_FN, fontSize=10, leading=14,
                  leftIndent=16, spaceAfter=3, bulletIndent=4),
         code=s("GD_Code", fontName="Courier", fontSize=9, leading=13,
                leftIndent=12, spaceBefore=4, spaceAfter=4,
                backColor=colors.HexColor("#f4f4f4"), textColor=C_BLUE),
-        hint=s("GD_Hint", fontName="Helvetica-Oblique", fontSize=9, textColor=C_HINT,
+        hint=s("GD_Hint", fontName=_FI, fontSize=9, textColor=C_HINT,
                leading=13, leftIndent=12, spaceAfter=4),
-        caption=s("GD_Caption", fontName="Helvetica-Oblique", fontSize=8,
+        caption=s("GD_Caption", fontName=_FI, fontSize=8,
                   textColor=C_HINT, leading=11, alignment=TA_CENTER, spaceAfter=8),
     )
 
@@ -160,12 +163,12 @@ class _GDDoc(BaseDocTemplate):
         w, h = A4
         canvas.setFillColor(C_BLUE)
         canvas.rect(0, h - 1.1 * cm, w, 1.1 * cm, fill=1, stroke=0)
-        canvas.setFont("Helvetica-Bold", 9)
+        canvas.setFont(_FB, 9)
         canvas.setFillColor(C_WHITE)
         canvas.drawString(2.2 * cm, h - 0.7 * cm, self._header_text)
         canvas.drawRightString(w - 2.2 * cm, h - 0.7 * cm, "situation-report")
         canvas.setFillColor(C_HINT)
-        canvas.setFont("Helvetica", 8)
+        canvas.setFont(_FN, 8)
         canvas.drawCentredString(w / 2, 1.0 * cm, _PAGE_LABEL[self._lang] % doc.page)
         canvas.setStrokeColor(C_MID)
         canvas.line(2.2 * cm, 1.4 * cm, w - 2.2 * cm, 1.4 * cm)
@@ -180,19 +183,19 @@ def _build_cover(canvas, doc, lang: str = "de"):
     canvas.setFillColor(C_ACCENT)
     canvas.rect(0, h * 0.35, w, h * 0.32, fill=1, stroke=0)
     canvas.setFillColor(C_WHITE)
-    canvas.setFont("Helvetica-Bold", 28)
+    canvas.setFont(_FB, 28)
     canvas.drawCentredString(w / 2, h * 0.62, "SituationReport")
-    canvas.setFont("Helvetica-Bold", 20)
+    canvas.setFont(_FB, 20)
     canvas.drawCentredString(w / 2, h * 0.57, "get_data")
-    canvas.setFont("Helvetica-Bold", 16)
+    canvas.setFont(_FB, 16)
     canvas.drawCentredString(w / 2, h * 0.515, _COVER_SUBTITLE[lang])
-    canvas.setFont("Helvetica", 11)
+    canvas.setFont(_FN, 11)
     canvas.setFillColor(C_LIGHT)
     canvas.drawCentredString(w / 2, h * 0.47, _COVER_TAGLINE[lang])
     canvas.setStrokeColor(C_LIGHT)
     canvas.setLineWidth(0.5)
     canvas.line(w * 0.2, h * 0.44, w * 0.8, h * 0.44)
-    canvas.setFont("Helvetica", 9)
+    canvas.setFont(_FN, 9)
     canvas.setFillColor(C_MID)
     canvas.drawCentredString(w / 2, h * 0.12,
                              "situation-report -- github.com/Jaegerfeld/situation-report")
