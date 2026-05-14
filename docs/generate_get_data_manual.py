@@ -48,6 +48,15 @@ C_LIGHT  = colors.HexColor("#ecf0f1")
 C_MID    = colors.HexColor("#bdc3c7")
 C_WHITE  = colors.white
 C_HINT   = colors.HexColor("#7f8c8d")
+_TBL_HDR_STYLE = ParagraphStyle(
+    "TblHdr_getdata",
+    fontName="Helvetica-Bold", fontSize=9, textColor=C_WHITE, leading=12,
+)
+_TBL_CELL_STYLE = ParagraphStyle(
+    "TblCell_getdata",
+    fontName="Helvetica", fontSize=9, leading=12,
+)
+
 
 _HEADER = {
     "de": "get_data  --  Benutzerhandbuch",
@@ -222,15 +231,16 @@ def box(text: str, st: dict, bg: str = "#eaf4fb") -> Table:
     return t
 
 
-def tbl(headers: list, rows: list, col_widths: list | None = None) -> Table:
-    data = [headers] + rows
+def tbl(headers, rows, col_widths=None):
+    def _w(val, sty):
+        return Paragraph(str(val), sty) if not isinstance(val, Paragraph) else val
+    data = (
+        [[_w(h, _TBL_HDR_STYLE) for h in headers]]
+        + [[_w(c, _TBL_CELL_STYLE) for c in row] for row in rows]
+    )
     t = Table(data, colWidths=col_widths, repeatRows=1)
     t.setStyle(TableStyle([
         ("BACKGROUND",     (0, 0), (-1, 0),  C_BLUE),
-        ("TEXTCOLOR",      (0, 0), (-1, 0),  C_WHITE),
-        ("FONTNAME",       (0, 0), (-1, 0),  "Helvetica-Bold"),
-        ("FONTSIZE",       (0, 0), (-1, -1), 9),
-        ("FONTNAME",       (0, 1), (-1, -1), "Helvetica"),
         ("ROWBACKGROUNDS", (0, 1), (-1, -1), [C_WHITE, C_LIGHT]),
         ("GRID",           (0, 0), (-1, -1), 0.3, C_MID),
         ("VALIGN",         (0, 0), (-1, -1), "TOP"),

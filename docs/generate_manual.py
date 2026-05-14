@@ -52,6 +52,15 @@ C_LIGHT  = colors.HexColor("#ecf0f1")
 C_MID    = colors.HexColor("#bdc3c7")
 C_WHITE  = colors.white
 C_HINT   = colors.HexColor("#7f8c8d")
+_TBL_HDR_STYLE = ParagraphStyle(
+    "TblHdr_manual",
+    fontName="Helvetica-Bold", fontSize=9, textColor=C_WHITE, leading=12,
+)
+_TBL_CELL_STYLE = ParagraphStyle(
+    "TblCell_manual",
+    fontName="Helvetica", fontSize=9, leading=12,
+)
+
 
 OUTPUT_DE = Path(__file__).parent / "build_reports_Benutzerhandbuch.pdf"
 OUTPUT_EN = Path(__file__).parent / "build_reports_UserManual.pdf"
@@ -362,22 +371,22 @@ def box(text, st, bg="#eaf4fb"):
 
 
 def tbl(headers, rows, col_widths=None):
-    """Return a styled data table with a dark header row and alternating row colours."""
-    data = [headers] + rows
+    def _w(val, sty):
+        return Paragraph(str(val), sty) if not isinstance(val, Paragraph) else val
+    data = (
+        [[_w(h, _TBL_HDR_STYLE) for h in headers]]
+        + [[_w(c, _TBL_CELL_STYLE) for c in row] for row in rows]
+    )
     t = Table(data, colWidths=col_widths, repeatRows=1)
     t.setStyle(TableStyle([
-        ("BACKGROUND",    (0,0), (-1,0),  C_BLUE),
-        ("TEXTCOLOR",     (0,0), (-1,0),  C_WHITE),
-        ("FONTNAME",      (0,0), (-1,0),  "Helvetica-Bold"),
-        ("FONTSIZE",      (0,0), (-1,-1), 9),
-        ("FONTNAME",      (0,1), (-1,-1), "Helvetica"),
-        ("ROWBACKGROUNDS",(0,1), (-1,-1), [C_WHITE, C_LIGHT]),
-        ("GRID",          (0,0), (-1,-1), 0.3, C_MID),
-        ("VALIGN",        (0,0), (-1,-1), "TOP"),
-        ("TOPPADDING",    (0,0), (-1,-1), 5),
-        ("BOTTOMPADDING", (0,0), (-1,-1), 5),
-        ("LEFTPADDING",   (0,0), (-1,-1), 6),
-        ("RIGHTPADDING",  (0,0), (-1,-1), 6),
+        ("BACKGROUND",     (0, 0), (-1, 0),  C_BLUE),
+        ("ROWBACKGROUNDS", (0, 1), (-1, -1), [C_WHITE, C_LIGHT]),
+        ("GRID",           (0, 0), (-1, -1), 0.3, C_MID),
+        ("VALIGN",         (0, 0), (-1, -1), "TOP"),
+        ("TOPPADDING",     (0, 0), (-1, -1), 5),
+        ("BOTTOMPADDING",  (0, 0), (-1, -1), 5),
+        ("LEFTPADDING",    (0, 0), (-1, -1), 6),
+        ("RIGHTPADDING",   (0, 0), (-1, -1), 6),
     ]))
     return t
 

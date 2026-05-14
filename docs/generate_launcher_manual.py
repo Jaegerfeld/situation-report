@@ -191,20 +191,42 @@ def _build_cover(canvas, doc, lang: str = LANG_DE):
 # ---------------------------------------------------------------------------
 
 _TABLE_STYLE = TableStyle([
-    ("BACKGROUND", (0, 0), (-1, 0), C_BLUE),
-    ("TEXTCOLOR",  (0, 0), (-1, 0), C_WHITE),
-    ("FONTNAME",   (0, 0), (-1, 0), "Helvetica-Bold"),
-    ("FONTSIZE",   (0, 0), (-1, 0), 10),
-    ("ALIGN",      (0, 0), (-1, 0), "LEFT"),
+    ("BACKGROUND",     (0, 0), (-1, 0), C_BLUE),
+    ("ALIGN",          (0, 0), (-1, 0), "LEFT"),
     ("ROWBACKGROUNDS", (0, 1), (-1, -1), [C_WHITE, C_LIGHT]),
-    ("FONTNAME",   (0, 1), (-1, -1), "Helvetica"),
-    ("FONTSIZE",   (0, 1), (-1, -1), 9),
-    ("VALIGN",     (0, 0), (-1, -1), "TOP"),
-    ("GRID",       (0, 0), (-1, -1), 0.4, C_MID),
-    ("TOPPADDING", (0, 0), (-1, -1), 5),
-    ("BOTTOMPADDING", (0, 0), (-1, -1), 5),
-    ("LEFTPADDING",   (0, 0), (-1, -1), 8),
+    ("VALIGN",         (0, 0), (-1, -1), "TOP"),
+    ("GRID",           (0, 0), (-1, -1), 0.4, C_MID),
+    ("TOPPADDING",     (0, 0), (-1, -1), 5),
+    ("BOTTOMPADDING",  (0, 0), (-1, -1), 5),
+    ("LEFTPADDING",    (0, 0), (-1, -1), 8),
 ])
+
+_TBL_HDR_STYLE = ParagraphStyle(
+    "TblHdr_launcher",
+    fontName="Helvetica-Bold", fontSize=10, textColor=C_WHITE, leading=13,
+)
+_TBL_CELL_STYLE = ParagraphStyle(
+    "TblCell_launcher",
+    fontName="Helvetica", fontSize=9, leading=13,
+)
+
+
+def _is_emoji_cell(val) -> bool:
+    return isinstance(val, str) and len(val) <= 2 and not val.isascii()
+
+
+def tbl(data: list, col_widths=None):
+    def _w(val, sty):
+        if isinstance(val, Paragraph) or _is_emoji_cell(val):
+            return val
+        return Paragraph(str(val), sty)
+    wrapped = (
+        [[_w(c, _TBL_HDR_STYLE) for c in data[0]]]
+        + [[_w(c, _TBL_CELL_STYLE) for c in row] for row in data[1:]]
+    )
+    t = Table(wrapped, colWidths=col_widths)
+    t.setStyle(_TABLE_STYLE)
+    return t
 
 
 # ---------------------------------------------------------------------------
@@ -240,15 +262,14 @@ def _build_story_de(st: dict) -> list:
         Paragraph("2. Starten", st["h1"]),
         HRFlowable(width=w, thickness=1, color=C_ACCENT, spaceAfter=8),
         Paragraph("Aus dem portablen Paket (kein Python erforderlich):", st["h2"]),
-        Table(
+        tbl(
             [
                 ["Betriebssystem", "Startdatei"],
                 ["Windows",       "SituationReport.bat  (Doppelklick)"],
                 ["macOS",         "SituationReport.command  (Rechtsklick → Öffnen)"],
                 ["Linux",         "./SituationReport.sh"],
             ],
-            colWidths=[4*cm, w - 4*cm],
-            style=_TABLE_STYLE,
+            col_widths=[4*cm, w - 4*cm],
         ),
         Spacer(1, 0.3*cm),
         Paragraph("Aus dem Quellcode:", st["h2"]),
@@ -273,7 +294,7 @@ def _build_story_de(st: dict) -> list:
         # ---- 4. Module ----
         Paragraph("4. Module", st["h1"]),
         HRFlowable(width=w, thickness=1, color=C_ACCENT, spaceAfter=8),
-        Table(
+        tbl(
             [
                 ["Icon", "Modul", "Beschreibung", "Status"],
                 ["📊", "Build Reports",      "Flow-Metriken und Reports erstellen", "verfügbar"],
@@ -282,8 +303,7 @@ def _build_story_de(st: dict) -> list:
                 ["🎲", "Simulate",           "Prognosen und Simulationen",          "geplant"],
                 ["🧪", "Testdata Generator", "Synthetische Testdaten erstellen",    "geplant"],
             ],
-            colWidths=[1.2*cm, 3.8*cm, 7.5*cm, 3*cm],
-            style=_TABLE_STYLE,
+            col_widths=[1.2*cm, 3.8*cm, 7.5*cm, 3*cm],
         ),
         Spacer(1, 0.5*cm),
 
@@ -343,15 +363,14 @@ def _build_story_en(st: dict) -> list:
         Paragraph("2. Starting", st["h1"]),
         HRFlowable(width=w, thickness=1, color=C_ACCENT, spaceAfter=8),
         Paragraph("From the portable package (no Python required):", st["h2"]),
-        Table(
+        tbl(
             [
                 ["Operating system", "Start file"],
                 ["Windows",  "SituationReport.bat  (double-click)"],
                 ["macOS",    "SituationReport.command  (right-click → Open)"],
                 ["Linux",    "./SituationReport.sh"],
             ],
-            colWidths=[4*cm, w - 4*cm],
-            style=_TABLE_STYLE,
+            col_widths=[4*cm, w - 4*cm],
         ),
         Spacer(1, 0.3*cm),
         Paragraph("From source code:", st["h2"]),
@@ -373,7 +392,7 @@ def _build_story_en(st: dict) -> list:
 
         Paragraph("4. Modules", st["h1"]),
         HRFlowable(width=w, thickness=1, color=C_ACCENT, spaceAfter=8),
-        Table(
+        tbl(
             [
                 ["Icon", "Module", "Description", "Status"],
                 ["📊", "Build Reports",      "Create flow metrics and reports",    "available"],
@@ -382,8 +401,7 @@ def _build_story_en(st: dict) -> list:
                 ["🎲", "Simulate",           "Forecasts and simulations",          "planned"],
                 ["🧪", "Testdata Generator", "Generate synthetic test data",       "planned"],
             ],
-            colWidths=[1.2*cm, 3.8*cm, 7.5*cm, 3*cm],
-            style=_TABLE_STYLE,
+            col_widths=[1.2*cm, 3.8*cm, 7.5*cm, 3*cm],
         ),
         Spacer(1, 0.5*cm),
 
@@ -441,15 +459,14 @@ def _build_story_ro(st: dict) -> list:
         Paragraph("2. Pornire", st["h1"]),
         HRFlowable(width=w, thickness=1, color=C_ACCENT, spaceAfter=8),
         Paragraph("Din pachetul portabil (fara Python necesar):", st["h2"]),
-        Table(
+        tbl(
             [
                 ["Sistem de operare", "Fisier de pornire"],
                 ["Windows",  "SituationReport.bat  (dublu-clic)"],
                 ["macOS",    "SituationReport.command  (clic-dreapta → Deschide)"],
                 ["Linux",    "./SituationReport.sh"],
             ],
-            colWidths=[4*cm, w - 4*cm],
-            style=_TABLE_STYLE,
+            col_widths=[4*cm, w - 4*cm],
         ),
         Spacer(1, 0.3*cm),
         Paragraph("Din codul sursa:", st["h2"]),
@@ -472,7 +489,7 @@ def _build_story_ro(st: dict) -> list:
 
         Paragraph("4. Module", st["h1"]),
         HRFlowable(width=w, thickness=1, color=C_ACCENT, spaceAfter=8),
-        Table(
+        tbl(
             [
                 ["Pictograma", "Modul", "Descriere", "Stare"],
                 ["📊", "Build Reports",      "Creare metrici de flux si rapoarte",  "disponibil"],
@@ -481,8 +498,7 @@ def _build_story_ro(st: dict) -> list:
                 ["🎲", "Simulate",           "Prognoze si simulari",                "planificat"],
                 ["🧪", "Testdata Generator", "Generare date de test sintetice",     "planificat"],
             ],
-            colWidths=[1.2*cm, 3.8*cm, 7.5*cm, 3*cm],
-            style=_TABLE_STYLE,
+            col_widths=[1.2*cm, 3.8*cm, 7.5*cm, 3*cm],
         ),
         Spacer(1, 0.5*cm),
 
@@ -541,15 +557,14 @@ def _build_story_pt(st: dict) -> list:
         Paragraph("2. Iniciar", st["h1"]),
         HRFlowable(width=w, thickness=1, color=C_ACCENT, spaceAfter=8),
         Paragraph("Do pacote portavel (sem Python necessario):", st["h2"]),
-        Table(
+        tbl(
             [
                 ["Sistema operativo", "Ficheiro de inicio"],
                 ["Windows",  "SituationReport.bat  (duplo clique)"],
                 ["macOS",    "SituationReport.command  (clique direito → Abrir)"],
                 ["Linux",    "./SituationReport.sh"],
             ],
-            colWidths=[4*cm, w - 4*cm],
-            style=_TABLE_STYLE,
+            col_widths=[4*cm, w - 4*cm],
         ),
         Spacer(1, 0.3*cm),
         Paragraph("Do codigo fonte:", st["h2"]),
@@ -572,7 +587,7 @@ def _build_story_pt(st: dict) -> list:
 
         Paragraph("4. Modulos", st["h1"]),
         HRFlowable(width=w, thickness=1, color=C_ACCENT, spaceAfter=8),
-        Table(
+        tbl(
             [
                 ["Icone", "Modulo", "Descricao", "Estado"],
                 ["📊", "Build Reports",      "Criar metricas de fluxo e relatorios", "disponivel"],
@@ -581,8 +596,7 @@ def _build_story_pt(st: dict) -> list:
                 ["🎲", "Simulate",           "Previsoes e simulacoes",                "planeado"],
                 ["🧪", "Testdata Generator", "Gerar dados de teste sinteticos",       "planeado"],
             ],
-            colWidths=[1.2*cm, 3.8*cm, 7.5*cm, 3*cm],
-            style=_TABLE_STYLE,
+            col_widths=[1.2*cm, 3.8*cm, 7.5*cm, 3*cm],
         ),
         Spacer(1, 0.5*cm),
 
@@ -641,15 +655,14 @@ def _build_story_fr(st: dict) -> list:
         Paragraph("2. Demarrage", st["h1"]),
         HRFlowable(width=w, thickness=1, color=C_ACCENT, spaceAfter=8),
         Paragraph("Depuis le package portable (sans Python requis) :", st["h2"]),
-        Table(
+        tbl(
             [
                 ["Systeme d'exploitation", "Fichier de demarrage"],
                 ["Windows",  "SituationReport.bat  (double-clic)"],
                 ["macOS",    "SituationReport.command  (clic droit → Ouvrir)"],
                 ["Linux",    "./SituationReport.sh"],
             ],
-            colWidths=[4*cm, w - 4*cm],
-            style=_TABLE_STYLE,
+            col_widths=[4*cm, w - 4*cm],
         ),
         Spacer(1, 0.3*cm),
         Paragraph("Depuis le code source :", st["h2"]),
@@ -672,7 +685,7 @@ def _build_story_fr(st: dict) -> list:
 
         Paragraph("4. Modules", st["h1"]),
         HRFlowable(width=w, thickness=1, color=C_ACCENT, spaceAfter=8),
-        Table(
+        tbl(
             [
                 ["Icone", "Module", "Description", "Statut"],
                 ["📊", "Build Reports",      "Creer des metriques de flux et rapports", "disponible"],
@@ -681,8 +694,7 @@ def _build_story_fr(st: dict) -> list:
                 ["🎲", "Simulate",           "Previsions et simulations",                "planifie"],
                 ["🧪", "Testdata Generator", "Generer des donnees de test synthetiques", "planifie"],
             ],
-            colWidths=[1.2*cm, 3.8*cm, 7.5*cm, 3*cm],
-            style=_TABLE_STYLE,
+            col_widths=[1.2*cm, 3.8*cm, 7.5*cm, 3*cm],
         ),
         Spacer(1, 0.5*cm),
 

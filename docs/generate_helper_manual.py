@@ -124,20 +124,36 @@ class NextPageTemplate(ActionFlowable):
 
 
 _TABLE_STYLE = TableStyle([
-    ("BACKGROUND", (0, 0), (-1, 0), C_BLUE),
-    ("TEXTCOLOR",  (0, 0), (-1, 0), C_WHITE),
-    ("FONTNAME",   (0, 0), (-1, 0), "Helvetica-Bold"),
-    ("FONTSIZE",   (0, 0), (-1, 0), 10),
-    ("ALIGN",      (0, 0), (-1, 0), "LEFT"),
+    ("BACKGROUND",     (0, 0), (-1, 0), C_BLUE),
+    ("ALIGN",          (0, 0), (-1, 0), "LEFT"),
     ("ROWBACKGROUNDS", (0, 1), (-1, -1), [C_WHITE, C_LIGHT]),
-    ("FONTNAME",   (0, 1), (-1, -1), "Helvetica"),
-    ("FONTSIZE",   (0, 1), (-1, -1), 9),
-    ("VALIGN",     (0, 0), (-1, -1), "TOP"),
-    ("GRID",       (0, 0), (-1, -1), 0.4, C_MID),
-    ("TOPPADDING", (0, 0), (-1, -1), 5),
-    ("BOTTOMPADDING", (0, 0), (-1, -1), 5),
-    ("LEFTPADDING",   (0, 0), (-1, -1), 8),
+    ("VALIGN",         (0, 0), (-1, -1), "TOP"),
+    ("GRID",           (0, 0), (-1, -1), 0.4, C_MID),
+    ("TOPPADDING",     (0, 0), (-1, -1), 5),
+    ("BOTTOMPADDING",  (0, 0), (-1, -1), 5),
+    ("LEFTPADDING",    (0, 0), (-1, -1), 8),
 ])
+
+_TBL_HDR_STYLE = ParagraphStyle(
+    "TblHdr_helper",
+    fontName="Helvetica-Bold", fontSize=10, textColor=C_WHITE, leading=13,
+)
+_TBL_CELL_STYLE = ParagraphStyle(
+    "TblCell_helper",
+    fontName="Helvetica", fontSize=9, leading=13,
+)
+
+
+def tbl(data: list, col_widths=None):
+    def _w(val, sty):
+        return Paragraph(str(val), sty) if not isinstance(val, Paragraph) else val
+    wrapped = (
+        [[_w(c, _TBL_HDR_STYLE) for c in data[0]]]
+        + [[_w(c, _TBL_CELL_STYLE) for c in row] for row in data[1:]]
+    )
+    t = Table(wrapped, colWidths=col_widths)
+    t.setStyle(_TABLE_STYLE)
+    return t
 
 
 class _HelperDoc(BaseDocTemplate):
@@ -218,7 +234,7 @@ def _SP(n=6):      return Spacer(1, n)
 
 
 def _box(text, st, bg="#eaf4fb"):
-    t = Table([[Paragraph(text, st["body"])]], colWidths=[16*cm])
+    t = tbl([[Paragraph(text, st["body"])]], col_widths=[16*cm])
     t.setStyle(TableStyle([
         ("BACKGROUND",    (0, 0), (-1, -1), colors.HexColor(bg)),
         ("BOX",           (0, 0), (-1, -1), 0.5, C_ACCENT),
@@ -257,15 +273,14 @@ def content_de(st: dict) -> list:
         HRFlowable(width=w, thickness=1, color=C_ACCENT, spaceAfter=8),
         _H2("2.1  Als GUI (grafische Oberflaeche)", st),
         _P("Im entpackten Ordner die passende Startdatei doppelklicken:", st),
-        Table(
+        tbl(
             [
                 ["Betriebssystem", "Startdatei"],
                 ["Windows",  "Helper.bat  (Doppelklick)"],
                 ["macOS",    "Helper.command  (Rechtsklick → Oeffnen)"],
                 ["Linux",    "./Helper.sh"],
             ],
-            colWidths=[4*cm, w - 4*cm],
-            style=_TABLE_STYLE,
+            col_widths=[4*cm, w - 4*cm],
         ),
         _SP(6),
         _H2("2.2  Aus dem Quellcode", st),
@@ -326,15 +341,14 @@ def content_de(st: dict) -> list:
             "helper kann auch ohne GUI direkt auf der Kommandozeile aufgerufen werden:", st),
         _CD("python -m helper datei1.json datei2.json --output merged.json", st),
         _SP(4),
-        Table(
+        tbl(
             [
                 ["Parameter", "Beschreibung"],
                 ["FILE …",        "Mindestens eine Eingabe-JSON-Datei (Pflicht)"],
                 ["--output FILE", "Pfad der Ausgabedatei (Pflicht)"],
                 ["--no-dedup",    "Deduplizierung deaktivieren (alle Issues behalten)"],
             ],
-            colWidths=[4.5*cm, w - 4.5*cm],
-            style=_TABLE_STYLE,
+            col_widths=[4.5*cm, w - 4.5*cm],
         ),
         _SP(8),
 
@@ -344,7 +358,7 @@ def content_de(st: dict) -> list:
             "Die Ausgabedatei ist eine valide Jira-REST-API-JSON-Datei im Format der "
             "Jira Cloud API v2 / v3. Der Envelope wird automatisch korrekt gesetzt:", st),
         _SP(4),
-        Table(
+        tbl(
             [
                 ["Feld", "Wert"],
                 ["expand",     "Aus der ersten Eingabedatei uebernommen"],
@@ -353,8 +367,7 @@ def content_de(st: dict) -> list:
                 ["total",      "Anzahl der zusammengefuehrten Issues"],
                 ["issues",     "Alle Issues aus allen Eingabedateien (nach Dedup)"],
             ],
-            colWidths=[3.5*cm, w - 3.5*cm],
-            style=_TABLE_STYLE,
+            col_widths=[3.5*cm, w - 3.5*cm],
         ),
         _SP(4),
         _box(
@@ -403,7 +416,7 @@ def content_de(st: dict) -> list:
         PageBreak(),
         _H1("7. Glossar", st),
         HRFlowable(width=w, thickness=1, color=C_ACCENT, spaceAfter=8),
-        Table(
+        tbl(
             [
                 ["Begriff", "Erklaerung"],
                 ["Deduplizierung", "Entfernen von doppelten Issues anhand der numerischen Issue-ID."],
@@ -414,8 +427,7 @@ def content_de(st: dict) -> list:
                 ["Paginierung",    "Aufteilen grosser API-Ergebnisse auf mehrere Abfragen (Seiten) aufgrund von API-Limits."],
                 ["transform_data", "SituationReport-Modul, das Jira-JSON-Daten in eine XLSX-Datei (IssueTimes) umwandelt."],
             ],
-            colWidths=[4*cm, 12*cm],
-            style=_TABLE_STYLE,
+            col_widths=[4*cm, 12*cm],
         ),
     ]
     return story
@@ -446,15 +458,14 @@ def content_en(st: dict) -> list:
         HRFlowable(width=w, thickness=1, color=C_ACCENT, spaceAfter=8),
         _H2("2.1  As GUI (graphical interface)", st),
         _P("Double-click the appropriate launcher in the extracted folder:", st),
-        Table(
+        tbl(
             [
                 ["Operating system", "Start file"],
                 ["Windows",  "Helper.bat  (double-click)"],
                 ["macOS",    "Helper.command  (right-click -> Open)"],
                 ["Linux",    "./Helper.sh"],
             ],
-            colWidths=[4*cm, w - 4*cm],
-            style=_TABLE_STYLE,
+            col_widths=[4*cm, w - 4*cm],
         ),
         _SP(6),
         _H2("2.2  From source code", st),
@@ -511,15 +522,14 @@ def content_en(st: dict) -> list:
             "helper can also be called directly from the command line without a GUI:", st),
         _CD("python -m helper file1.json file2.json --output merged.json", st),
         _SP(4),
-        Table(
+        tbl(
             [
                 ["Parameter", "Description"],
                 ["FILE …",        "At least one input JSON file (required)"],
                 ["--output FILE", "Output file path (required)"],
                 ["--no-dedup",    "Disable deduplication (keep all issues including duplicates)"],
             ],
-            colWidths=[4.5*cm, w - 4.5*cm],
-            style=_TABLE_STYLE,
+            col_widths=[4.5*cm, w - 4.5*cm],
         ),
         _SP(8),
 
@@ -529,7 +539,7 @@ def content_en(st: dict) -> list:
             "The output file is a valid Jira REST API JSON in the format of Jira Cloud "
             "API v2 / v3. The envelope is set automatically:", st),
         _SP(4),
-        Table(
+        tbl(
             [
                 ["Field", "Value"],
                 ["expand",     "Taken from the first input file"],
@@ -538,8 +548,7 @@ def content_en(st: dict) -> list:
                 ["total",      "Number of merged issues"],
                 ["issues",     "All issues from all input files (after dedup)"],
             ],
-            colWidths=[3.5*cm, w - 3.5*cm],
-            style=_TABLE_STYLE,
+            col_widths=[3.5*cm, w - 3.5*cm],
         ),
         _SP(4),
         _box(
@@ -588,7 +597,7 @@ def content_en(st: dict) -> list:
         PageBreak(),
         _H1("7. Glossary", st),
         HRFlowable(width=w, thickness=1, color=C_ACCENT, spaceAfter=8),
-        Table(
+        tbl(
             [
                 ["Term", "Explanation"],
                 ["Deduplication", "Removing duplicate issues based on the numeric issue ID."],
@@ -599,8 +608,7 @@ def content_en(st: dict) -> list:
                 ["Pagination",    "Splitting large API results across multiple requests (pages) due to API limits."],
                 ["transform_data","SituationReport module that converts Jira JSON data into an XLSX file (IssueTimes)."],
             ],
-            colWidths=[4*cm, 12*cm],
-            style=_TABLE_STYLE,
+            col_widths=[4*cm, 12*cm],
         ),
     ]
     return story
@@ -632,15 +640,14 @@ def content_ro(st: dict) -> list:
         HRFlowable(width=w, thickness=1, color=C_ACCENT, spaceAfter=8),
         _H2("2.1  Ca GUI (interfata grafica)", st),
         _P("Faceti dublu-clic pe fisierul de pornire corespunzator din folderul extras:", st),
-        Table(
+        tbl(
             [
                 ["Sistem de operare", "Fisier de pornire"],
                 ["Windows",  "Helper.bat  (dublu-clic)"],
                 ["macOS",    "Helper.command  (clic dreapta -> Deschidere)"],
                 ["Linux",    "./Helper.sh"],
             ],
-            colWidths=[4*cm, w - 4*cm],
-            style=_TABLE_STYLE,
+            col_widths=[4*cm, w - 4*cm],
         ),
         _SP(6),
         _H2("2.2  Din codul sursa", st),
@@ -699,15 +706,14 @@ def content_ro(st: dict) -> list:
             "helper poate fi apelat si direct din linia de comanda fara GUI:", st),
         _CD("python -m helper fisier1.json fisier2.json --output combinat.json", st),
         _SP(4),
-        Table(
+        tbl(
             [
                 ["Parametru", "Descriere"],
                 ["FISIER …",      "Cel putin un fisier JSON de intrare (obligatoriu)"],
                 ["--output FILE", "Calea fisierului de iesire (obligatoriu)"],
                 ["--no-dedup",    "Dezactivare deduplicare (pastreaza toate problemele inclusiv duplicatele)"],
             ],
-            colWidths=[4.5*cm, w - 4.5*cm],
-            style=_TABLE_STYLE,
+            col_widths=[4.5*cm, w - 4.5*cm],
         ),
         _SP(8),
 
@@ -717,7 +723,7 @@ def content_ro(st: dict) -> list:
             "Fisierul de iesire este un JSON valid Jira REST API in formatul Jira Cloud "
             "API v2 / v3. Envelope-ul este setat automat corect:", st),
         _SP(4),
-        Table(
+        tbl(
             [
                 ["Camp", "Valoare"],
                 ["expand",     "Preluat din primul fisier de intrare"],
@@ -726,8 +732,7 @@ def content_ro(st: dict) -> list:
                 ["total",      "Numarul de probleme combinate"],
                 ["issues",     "Toate problemele din toate fisierele de intrare (dupa dedup)"],
             ],
-            colWidths=[3.5*cm, w - 3.5*cm],
-            style=_TABLE_STYLE,
+            col_widths=[3.5*cm, w - 3.5*cm],
         ),
         _SP(4),
         _box(
@@ -776,7 +781,7 @@ def content_ro(st: dict) -> list:
         PageBreak(),
         _H1("7. Glosar", st),
         HRFlowable(width=w, thickness=1, color=C_ACCENT, spaceAfter=8),
-        Table(
+        tbl(
             [
                 ["Termen", "Explicatie"],
                 ["Deduplicare",   "Eliminarea problemelor duplicate pe baza ID-ului numeric."],
@@ -787,8 +792,7 @@ def content_ro(st: dict) -> list:
                 ["Paginare",      "Impartirea rezultatelor mari ale API in mai multe cereri (pagini) din cauza limitelor API."],
                 ["transform_data","Modul SituationReport care converteste datele Jira JSON intr-un fisier XLSX (IssueTimes)."],
             ],
-            colWidths=[4*cm, 12*cm],
-            style=_TABLE_STYLE,
+            col_widths=[4*cm, 12*cm],
         ),
     ]
     return story
@@ -820,15 +824,14 @@ def content_pt(st: dict) -> list:
         HRFlowable(width=w, thickness=1, color=C_ACCENT, spaceAfter=8),
         _H2("2.1  Como GUI (interface grafica)", st),
         _P("Faca duplo clique no ficheiro de inicio adequado na pasta extraida:", st),
-        Table(
+        tbl(
             [
                 ["Sistema operativo", "Ficheiro de inicio"],
                 ["Windows",  "Helper.bat  (duplo clique)"],
                 ["macOS",    "Helper.command  (clique direito -> Abrir)"],
                 ["Linux",    "./Helper.sh"],
             ],
-            colWidths=[4*cm, w - 4*cm],
-            style=_TABLE_STYLE,
+            col_widths=[4*cm, w - 4*cm],
         ),
         _SP(6),
         _H2("2.2  A partir do codigo fonte", st),
@@ -888,15 +891,14 @@ def content_pt(st: dict) -> list:
             "sem GUI:", st),
         _CD("python -m helper ficheiro1.json ficheiro2.json --output combinado.json", st),
         _SP(4),
-        Table(
+        tbl(
             [
                 ["Parametro", "Descricao"],
                 ["FICHEIRO …",    "Pelo menos um ficheiro JSON de entrada (obrigatorio)"],
                 ["--output FILE", "Caminho do ficheiro de saida (obrigatorio)"],
                 ["--no-dedup",    "Desativar desduplicacao (manter todos os issues incluindo duplicados)"],
             ],
-            colWidths=[4.5*cm, w - 4.5*cm],
-            style=_TABLE_STYLE,
+            col_widths=[4.5*cm, w - 4.5*cm],
         ),
         _SP(8),
 
@@ -906,7 +908,7 @@ def content_pt(st: dict) -> list:
             "O ficheiro de saida e um JSON Jira REST API valido no formato da Jira Cloud "
             "API v2 / v3. O envelope e definido automaticamente:", st),
         _SP(4),
-        Table(
+        tbl(
             [
                 ["Campo", "Valor"],
                 ["expand",     "Retirado do primeiro ficheiro de entrada"],
@@ -915,8 +917,7 @@ def content_pt(st: dict) -> list:
                 ["total",      "Numero de issues combinados"],
                 ["issues",     "Todos os issues de todos os ficheiros de entrada (apos dedup)"],
             ],
-            colWidths=[3.5*cm, w - 3.5*cm],
-            style=_TABLE_STYLE,
+            col_widths=[3.5*cm, w - 3.5*cm],
         ),
         _SP(4),
         _box(
@@ -965,7 +966,7 @@ def content_pt(st: dict) -> list:
         PageBreak(),
         _H1("7. Glossario", st),
         HRFlowable(width=w, thickness=1, color=C_ACCENT, spaceAfter=8),
-        Table(
+        tbl(
             [
                 ["Termo", "Explicacao"],
                 ["Desduplicacao",  "Remocao de issues duplicados com base no ID numerico do issue."],
@@ -976,8 +977,7 @@ def content_pt(st: dict) -> list:
                 ["Paginacao",      "Divisao de grandes resultados de API em multiplos pedidos (paginas) devido a limites da API."],
                 ["transform_data", "Modulo SituationReport que converte dados Jira JSON num ficheiro XLSX (IssueTimes)."],
             ],
-            colWidths=[4*cm, 12*cm],
-            style=_TABLE_STYLE,
+            col_widths=[4*cm, 12*cm],
         ),
     ]
     return story
@@ -1009,15 +1009,14 @@ def content_fr(st: dict) -> list:
         HRFlowable(width=w, thickness=1, color=C_ACCENT, spaceAfter=8),
         _H2("2.1  Comme GUI (interface graphique)", st),
         _P("Double-cliquez sur le fichier de demarrage approprie dans le dossier extrait :", st),
-        Table(
+        tbl(
             [
                 ["Systeme d'exploitation", "Fichier de demarrage"],
                 ["Windows",  "Helper.bat  (double-clic)"],
                 ["macOS",    "Helper.command  (clic droit -> Ouvrir)"],
                 ["Linux",    "./Helper.sh"],
             ],
-            colWidths=[4*cm, w - 4*cm],
-            style=_TABLE_STYLE,
+            col_widths=[4*cm, w - 4*cm],
         ),
         _SP(6),
         _H2("2.2  Depuis le code source", st),
@@ -1080,15 +1079,14 @@ def content_fr(st: dict) -> list:
             "sans GUI :", st),
         _CD("python -m helper fichier1.json fichier2.json --output fusionne.json", st),
         _SP(4),
-        Table(
+        tbl(
             [
                 ["Parametre", "Description"],
                 ["FICHIER …",     "Au moins un fichier JSON d'entree (obligatoire)"],
                 ["--output FILE", "Chemin du fichier de sortie (obligatoire)"],
                 ["--no-dedup",    "Desactiver la deduplication (conserver tous les issues y compris les doublons)"],
             ],
-            colWidths=[4.5*cm, w - 4.5*cm],
-            style=_TABLE_STYLE,
+            col_widths=[4.5*cm, w - 4.5*cm],
         ),
         _SP(8),
 
@@ -1098,7 +1096,7 @@ def content_fr(st: dict) -> list:
             "Le fichier de sortie est un JSON Jira REST API valide au format Jira Cloud "
             "API v2 / v3. L'enveloppe est definie automatiquement :", st),
         _SP(4),
-        Table(
+        tbl(
             [
                 ["Champ", "Valeur"],
                 ["expand",     "Recupere depuis le premier fichier d'entree"],
@@ -1107,8 +1105,7 @@ def content_fr(st: dict) -> list:
                 ["total",      "Nombre d'issues fusionnes"],
                 ["issues",     "Tous les issues de tous les fichiers d'entree (apres dedup)"],
             ],
-            colWidths=[3.5*cm, w - 3.5*cm],
-            style=_TABLE_STYLE,
+            col_widths=[3.5*cm, w - 3.5*cm],
         ),
         _SP(4),
         _box(
@@ -1157,7 +1154,7 @@ def content_fr(st: dict) -> list:
         PageBreak(),
         _H1("7. Glossaire", st),
         HRFlowable(width=w, thickness=1, color=C_ACCENT, spaceAfter=8),
-        Table(
+        tbl(
             [
                 ["Terme", "Explication"],
                 ["Deduplication",  "Suppression des issues en double basee sur l'ID numerique."],
@@ -1168,8 +1165,7 @@ def content_fr(st: dict) -> list:
                 ["Pagination",     "Division des grands resultats d'API en plusieurs requetes (pages) en raison des limites de l'API."],
                 ["transform_data", "Module SituationReport qui convertit les donnees Jira JSON en fichier XLSX (IssueTimes)."],
             ],
-            colWidths=[4*cm, 12*cm],
-            style=_TABLE_STYLE,
+            col_widths=[4*cm, 12*cm],
         ),
     ]
     return story
