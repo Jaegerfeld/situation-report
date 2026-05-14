@@ -6,6 +6,16 @@ eignen sich für Entwicklung, Tests und Demonstrationen ohne echte Jira-Daten.
 
 **Status:** verfügbar (Alpha)
 
+## Handbücher
+
+| Sprache | Download |
+|---------|----------|
+| Deutsch (DE) | [Benutzerhandbuch](../testdata_generator_Benutzerhandbuch.pdf) |
+| English (EN) | [User Manual](../testdata_generator_UserManual.pdf) |
+| Română (RO) | [Manual de Utilizator](../testdata_generator_ManualUtilizator.pdf) |
+| Português (PT) | [Manual do Utilizador](../testdata_generator_ManualUtilizador.pdf) |
+| Français (FR) | [Manuel d'utilisation](../testdata_generator_ManuelUtilisateur.pdf) |
+
 ---
 
 ## Oberfläche

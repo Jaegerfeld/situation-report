@@ -12,6 +12,16 @@ Or via the start script in the portable package:
 - **macOS:** `SituationReport.command`
 - **Linux:** `SituationReport.sh`
 
+## Manuals
+
+| Language | Download |
+|----------|----------|
+| Deutsch (DE) | [Benutzerhandbuch](../launcher_Benutzerhandbuch.pdf) |
+| English (EN) | [User Manual](../launcher_UserManual.pdf) |
+| Română (RO) | [Manual de Utilizator](../launcher_ManualUtilizator.pdf) |
+| Português (PT) | [Manual do Utilizador](../launcher_ManualUtilizador.pdf) |
+| Français (FR) | [Manuel d'utilisation](../launcher_ManuelUtilisateur.pdf) |
+
 ## Interface
 
 ![Launcher GUI screenshot](../assets/Launcher-GUI.png)
