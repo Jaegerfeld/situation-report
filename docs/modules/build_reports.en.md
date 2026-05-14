@@ -9,8 +9,11 @@ Calculates flow metrics from the XLSX files produced by `transform_data` and pre
 | Status | available |
 | GUI entry point | `build_reports_gui.pyw` |
 | CLI entry point | `python -m build_reports` |
-| User Manual (DE) | [build_reports_Benutzerhandbuch.pdf](../build_reports_Benutzerhandbuch.pdf) |
+| Benutzerhandbuch (DE) | [build_reports_Benutzerhandbuch.pdf](../build_reports_Benutzerhandbuch.pdf) |
 | User Manual (EN) | [build_reports_UserManual.pdf](../build_reports_UserManual.pdf) |
+| Manual de Utilizator (RO) | [build_reports_ManualUtilizator.pdf](../build_reports_ManualUtilizator.pdf) |
+| Manual do Utilizador (PT) | [build_reports_ManualUtilizador.pdf](../build_reports_ManualUtilizador.pdf) |
+| Manuel d'utilisation (FR) | [build_reports_ManuelUtilisateur.pdf](../build_reports_ManuelUtilisateur.pdf) |
 
 ## Metrics
 

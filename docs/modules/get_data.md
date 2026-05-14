@@ -4,6 +4,16 @@ Datenabruf aus Jira via REST API.
 
 **Status:** geplant
 
+## Handbücher
+
+| Sprache | Download |
+|---------|----------|
+| Deutsch (DE) | [Benutzerhandbuch](../get_data_Benutzerhandbuch.pdf) |
+| English (EN) | [User Manual](../get_data_UserManual.pdf) |
+| Română (RO) | [Manual de Utilizator](../get_data_ManualUtilizator.pdf) |
+| Português (PT) | [Manual do Utilizador](../get_data_ManualUtilizador.pdf) |
+| Français (FR) | [Manuel d'utilisation](../get_data_ManuelUtilisateur.pdf) |
+
 ---
 
 ## Workaround (bis zur Verfügbarkeit)

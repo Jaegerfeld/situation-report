@@ -13,6 +13,16 @@ Or via the start script in the portable package:
 - **macOS:** `Helper.command`
 - **Linux:** `Helper.sh`
 
+## Manuals
+
+| Language | Download |
+|----------|----------|
+| Deutsch (DE) | [Benutzerhandbuch](../helper_Benutzerhandbuch.pdf) |
+| English (EN) | [User Manual](../helper_UserManual.pdf) |
+| Română (RO) | [Manual de Utilizator](../helper_ManualUtilizator.pdf) |
+| Português (PT) | [Manual do Utilizador](../helper_ManualUtilizador.pdf) |
+| Français (FR) | [Manuel d'utilisation](../helper_ManuelUtilisateur.pdf) |
+
 ---
 
 ## JSON Merger

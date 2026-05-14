@@ -11,6 +11,9 @@ Berechnet Flow-Metriken aus den von `transform_data` erzeugten XLSX-Dateien und 
 | Einstiegspunkt CLI | `python -m build_reports` |
 | Benutzerhandbuch (DE) | [build_reports_Benutzerhandbuch.pdf](../build_reports_Benutzerhandbuch.pdf) |
 | User Manual (EN) | [build_reports_UserManual.pdf](../build_reports_UserManual.pdf) |
+| Manual de Utilizator (RO) | [build_reports_ManualUtilizator.pdf](../build_reports_ManualUtilizator.pdf) |
+| Manual do Utilizador (PT) | [build_reports_ManualUtilizador.pdf](../build_reports_ManualUtilizador.pdf) |
+| Manuel d'utilisation (FR) | [build_reports_ManuelUtilisateur.pdf](../build_reports_ManuelUtilisateur.pdf) |
 
 ## Metriken
 
