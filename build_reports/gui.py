@@ -41,7 +41,7 @@ from openpyxl import load_workbook
 from tkcalendar import Calendar
 
 from .cli import run_reports
-from .export import write_zero_day_excel
+from .export import _build_combined_html, write_zero_day_excel
 from .metrics import all_metrics
 from .metrics.flow_load import FlowLoadMetric
 from .metrics.flow_time import CT_METHOD_A, CT_METHOD_B, FlowTimeMetric
@@ -813,57 +813,6 @@ def _split_csv(value: str) -> list[str]:
         List of non-empty strings.
     """
     return [item.strip() for item in value.split(",") if item.strip()]
-
-
-def _build_combined_html(
-    figures: list,
-    section_breaks: "dict[int, str] | None" = None,
-) -> str:
-    """
-    Combine multiple plotly Figure objects into a single self-contained HTML string.
-
-    The first figure includes the full Plotly.js CDN bundle; subsequent figures
-    reuse the already-loaded library to keep file size reasonable.
-
-    An optional ``section_breaks`` dict maps figure index → heading text. When
-    a heading is present for index ``i``, an ``<h2>`` element is inserted before
-    that figure's div — useful for labelling metric groups in the browser view.
-
-    Args:
-        figures:        List of plotly Figure objects to embed.
-        section_breaks: Optional dict mapping figure index to a heading string.
-
-    Returns:
-        Complete HTML document as a string.
-    """
-    breaks = section_breaks or {}
-    parts = []
-    for i, fig in enumerate(figures):
-        if i in breaks:
-            parts.append(
-                f'<h2 class="metric-heading">{breaks[i]}</h2>'
-            )
-        parts.append(
-            fig.to_html(
-                include_plotlyjs="cdn" if i == 0 else False,
-                full_html=False,
-                config={"responsive": True},
-            )
-        )
-    body = "\n".join(parts)
-    return (
-        "<!DOCTYPE html><html><head>"
-        "<meta charset='utf-8'>"
-        "<style>"
-        "body{margin:16px;font-family:sans-serif;background:#fff;}"
-        "div.plotly-graph-div{margin-bottom:32px;}"
-        "h2.metric-heading{"
-        "font-size:1.5rem;font-weight:700;margin:32px 0 4px 0;"
-        "padding-bottom:4px;border-bottom:2px solid #d0d0d0;}"
-        "</style>"
-        "</head>"
-        f"<body>{body}</body></html>"
-    )
 
 
 # ---------------------------------------------------------------------------

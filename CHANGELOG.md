@@ -9,6 +9,20 @@ Das Format orientiert sich an [Keep a Changelog](https://keepachangelog.com/de/1
 
 ---
 
+## [0.12.0] – 2026-05-17
+
+### Added
+- `testdata_generator`: Button **„Report erstellen"** in der GUI. Nach
+  erfolgreicher Generierung wird der Button aktiv; ein Klick führt
+  `transform_data` und `build_reports` in-process aus und öffnet einen
+  kombinierten Report (eine HTML-Seite, alle Metriken) im Browser. Der Report
+  deckt den **gesamten generierten Zeitraum** ab (kein Datumsfilter).
+- `build_reports.cli.render_combined_html(...)`: liefert alle Metriken als
+  einzelne, in sich geschlossene HTML-Seite (Wiederverwendung von
+  `_build_combined_html`, jetzt in `build_reports/export.py`).
+
+---
+
 ## [0.11.0] – 2026-05-16
 
 ### Added

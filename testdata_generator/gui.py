@@ -128,6 +128,10 @@ _T: dict[str, dict[str, str]] = {
         "btn_browse_wf":      "Durchsuchen…",
         "btn_browse_out":     "Durchsuchen…",
         "btn_run":            "Generieren",
+        "btn_report":         "Report erstellen",
+        "log_report_started": "--- Report wird erstellt (transform + build_reports) ---",
+        "log_report_done":    "--- Report im Browser geöffnet ---",
+        "log_report_error":   "FEHLER beim Report: {}",
         "err_no_workflow":    "FEHLER: Keine Workflow-Datei ausgewählt.",
         "err_no_output":      "FEHLER: Keine Ausgabedatei angegeben.",
         "err_issues":         "FEHLER: Anzahl Issues muss eine positive Ganzzahl sein.",
@@ -183,6 +187,10 @@ _T: dict[str, dict[str, str]] = {
         "btn_browse_wf":      "Browse…",
         "btn_browse_out":     "Browse…",
         "btn_run":            "Generate",
+        "btn_report":         "Create Report",
+        "log_report_started": "--- Building report (transform + build_reports) ---",
+        "log_report_done":    "--- Report opened in browser ---",
+        "log_report_error":   "ERROR building report: {}",
         "err_no_workflow":    "ERROR: No workflow file selected.",
         "err_no_output":      "ERROR: No output file specified.",
         "err_issues":         "ERROR: Issue count must be a positive integer.",
@@ -214,6 +222,59 @@ _TEMPLATE_FIELDS = (
 )
 
 
+def _build_report_html_file(
+    json_path: Path,
+    workflow_path: Path,
+    log=print,
+) -> str:
+    """
+    Run transform_data + build_reports on a generated JSON file and write the
+    combined report to a temporary HTML file covering the full date range.
+
+    Imports transform_data/build_reports lazily so the testdata_generator GUI
+    starts without pulling those modules until a report is actually requested.
+
+    Args:
+        json_path:     Path to the generated Jira JSON file.
+        workflow_path: Workflow .txt file (same one used for generation).
+        log:           Progress callback.
+
+    Returns:
+        Path to the written temporary .html file, or "" if no figures were
+        produced.
+    """
+    import tempfile
+
+    from build_reports.cli import render_combined_html
+    from transform_data.transform import run_transform
+
+    out_dir = json_path.parent
+    prefix = json_path.stem
+
+    run_transform(
+        json_path, workflow_path,
+        output_dir=out_dir, prefix=prefix, log=log,
+    )
+
+    html = render_combined_html(
+        issue_times=out_dir / f"{prefix}_IssueTimes.xlsx",
+        cfd=out_dir / f"{prefix}_CFD.xlsx",
+        workflow=workflow_path,
+        transitions=out_dir / f"{prefix}_Transitions.xlsx",
+        from_date=None,
+        to_date=None,
+        log=log,
+    )
+    if not html:
+        return ""
+
+    with tempfile.NamedTemporaryFile(
+        mode="w", suffix=".html", delete=False, encoding="utf-8"
+    ) as f:
+        f.write(html)
+        return f.name
+
+
 def _build_template_section(values: dict[str, str]) -> dict:
     """Assemble the testdata_generator section for the shared project template."""
     return {key: str(values.get(key, "")) for key in _TEMPLATE_FIELDS}
@@ -230,6 +291,7 @@ class _App:
     def __init__(self, root: tk.Tk) -> None:
         self._root = root
         self._running = False
+        self._last_report: dict[str, Path] | None = None
 
         self._var_workflow    = tk.StringVar()
         self._var_output      = tk.StringVar()
@@ -356,9 +418,16 @@ class _App:
             frame, 16, "lbl_pi_weeks", self._var_pi_weeks, 4, 26
         )
 
-        # ── Run + Progress ────────────────────────────────────────────────────
-        self._btn_run = ttk.Button(frame, text="Generate", command=self._run)
-        self._btn_run.grid(row=17, column=0, columnspan=3, pady=(10, 4))
+        # ── Run + Report + Progress ───────────────────────────────────────────
+        btn_frame = ttk.Frame(frame)
+        btn_frame.grid(row=17, column=0, columnspan=3, pady=(10, 4))
+        self._btn_run = ttk.Button(btn_frame, text="Generate", command=self._run)
+        self._btn_run.pack(side="left", padx=(0, 6))
+        self._btn_report = ttk.Button(
+            btn_frame, text="Create Report", command=self._make_report,
+            state="disabled",
+        )
+        self._btn_report.pack(side="left")
 
         self._progress = ttk.Progressbar(frame, mode="indeterminate")
         self._progress.grid(row=18, column=0, columnspan=3, sticky="ew")
@@ -434,6 +503,7 @@ class _App:
         for key, lbl in self._labels.items():
             lbl.configure(text=self._t(key))
         self._btn_run.configure(text=self._t("btn_run"))
+        self._btn_report.configure(text=self._t("btn_report"))
         self._log_frame.configure(text=self._t("lbl_log"))
         lang = self._lang_var.get()
         for rb, (val, lbl_de, lbl_en) in zip(self._pattern_rbs, _PATTERN_LABELS):
@@ -729,6 +799,8 @@ class _App:
 
         self._running = True
         self._btn_run.configure(state="disabled")
+        self._btn_report.configure(state="disabled")
+        self._last_report = None
         self._log_msg(self._t("log_started"))
 
         _progress_timer: list = []
@@ -760,7 +832,14 @@ class _App:
                     pattern_strength=pattern_strength,
                     log=self._log_msg,
                 )
+                self._last_report = {
+                    "json": Path(output_str),
+                    "workflow": Path(workflow_str),
+                }
                 self._root.after(0, lambda: self._log_msg(self._t("log_done")))
+                self._root.after(
+                    0, lambda: self._btn_report.configure(state="normal")
+                )
             except Exception as exc:
                 self._root.after(0, lambda: self._log_msg(self._t("log_error").format(exc)))
             finally:
@@ -775,6 +854,57 @@ class _App:
         self._btn_run.configure(state="normal")
         self._progress.stop()
         self._progress.grid_remove()
+
+    def _reset_after_report(self) -> None:
+        self._running = False
+        self._btn_run.configure(state="normal")
+        self._btn_report.configure(state="normal")
+        self._progress.stop()
+        self._progress.grid_remove()
+
+    def _make_report(self) -> None:
+        """Run transform_data + build_reports on the last generated file and
+        open a single combined HTML report covering the full date range."""
+        if self._running or self._last_report is None:
+            return
+        ctx = self._last_report
+
+        self._running = True
+        self._btn_run.configure(state="disabled")
+        self._btn_report.configure(state="disabled")
+        self._log_msg(self._t("log_report_started"))
+
+        _timer: list = []
+
+        def show_progress() -> None:
+            self._progress.grid()
+            self._progress.start(10)
+
+        _timer.append(self._root.after(3000, show_progress))
+
+        def _do() -> None:
+            try:
+                tmp_path = _build_report_html_file(
+                    ctx["json"], ctx["workflow"], log=self._log_msg
+                )
+                if not tmp_path:
+                    self._root.after(0, lambda: self._log_msg(
+                        self._t("log_report_error").format("no figures")))
+                    return
+
+                webbrowser.open(f"file:///{tmp_path.replace(chr(92), '/')}")
+                self._root.after(
+                    0, lambda: self._log_msg(self._t("log_report_done"))
+                )
+            except Exception as exc:
+                self._root.after(0, lambda: self._log_msg(
+                    self._t("log_report_error").format(exc)))
+            finally:
+                for t in _timer:
+                    self._root.after_cancel(t)
+                self._root.after(0, self._reset_after_report)
+
+        threading.Thread(target=_do, daemon=True).start()
 
 
 def main() -> None:
