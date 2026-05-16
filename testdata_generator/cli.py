@@ -101,6 +101,7 @@ def run_generate(
     std_cycle_days: float | None = None,
     pattern: str = PATTERN_NONE,
     pi_duration_weeks: int = 12,
+    pattern_strength: float = 0.5,
     log: Callable[[str], None] = print,
 ) -> None:
     """
@@ -125,6 +126,7 @@ def run_generate(
         std_cycle_days:    Std deviation of cycle time. None = 30 % of mean.
         pattern:           Flow pattern to simulate (none/triangle/flat_triangle/cluster/batch).
         pi_duration_weeks: PI cycle duration in weeks (cluster/batch patterns only).
+        pattern_strength:  Pattern intensity 0.0–1.0 (0=subtle, 0.5=default, 1.0=strong).
         log:               Callable for progress messages.
     """
     effective_from = from_date or date(2025, 1, 1)
@@ -156,6 +158,7 @@ def run_generate(
         std_cycle_days=std_cycle_days,
         pattern=pattern,
         pi_duration_weeks=pi_duration_weeks,
+        pattern_strength=pattern_strength,
     )
 
     log(f"Generating {issue_count} issues for project '{project_key}'…")
@@ -221,6 +224,9 @@ def main() -> None:
                              "triangle/flat_triangle require --mean-cycle-days.")
     parser.add_argument("--pi-duration-weeks", type=int, default=12,
                         help="PI cycle duration in weeks for cluster/batch patterns (default: 12).")
+    parser.add_argument("--pattern-strength", type=int, default=50,
+                        choices=range(0, 101), metavar="0-100",
+                        help="Pattern intensity 0–100 (0=subtle, 50=default, 100=strong).")
 
     args = parser.parse_args()
 
@@ -257,6 +263,7 @@ def main() -> None:
         std_cycle_days=args.std_cycle_days,
         pattern=args.pattern,
         pi_duration_weeks=args.pi_duration_weeks,
+        pattern_strength=args.pattern_strength / 100.0,
     )
 
 

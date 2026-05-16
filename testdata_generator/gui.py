@@ -110,8 +110,9 @@ _T: dict[str, dict[str, str]] = {
         "lbl_seed":           "Seed (leer = zufällig)",
         "lbl_mean_cycle":     "Ø Cycle Time (Tage, leer=auto)",
         "lbl_std_cycle":      "Std.-Abw. (Tage, leer=auto)",
-        "lbl_pattern":        "Muster",
-        "lbl_pi_weeks":       "PI-Dauer (Wochen)",
+        "lbl_pattern":          "Muster",
+        "lbl_pattern_strength": "Musterstärke (0–100)",
+        "lbl_pi_weeks":         "PI-Dauer (Wochen)",
         "lbl_log":            "Log",
         "btn_browse_wf":      "Durchsuchen…",
         "btn_browse_out":     "Durchsuchen…",
@@ -126,8 +127,9 @@ _T: dict[str, dict[str, str]] = {
         "err_issue_types":    "FEHLER: Issue-Typen müssen im Format 'Typ:Gewicht' angegeben sein, z.B. Feature:0.6 Bug:0.3.",
         "err_mean_cycle":     "FEHLER: Ø Cycle Time muss eine positive Zahl sein.",
         "err_std_cycle":      "FEHLER: Std.-Abw. muss eine positive Zahl sein.",
-        "err_pattern_no_mean":"FEHLER: Muster erfordert eine Angabe für Ø Cycle Time.",
-        "err_pi_weeks":       "FEHLER: PI-Dauer muss eine positive Ganzzahl sein.",
+        "err_pattern_no_mean":   "FEHLER: Muster erfordert eine Angabe für Ø Cycle Time.",
+        "err_pattern_strength":  "FEHLER: Musterstärke muss eine ganze Zahl zwischen 0 und 100 sein.",
+        "err_pi_weeks":          "FEHLER: PI-Dauer muss eine positive Ganzzahl sein.",
         "log_started":        "--- Generierung gestartet ---",
         "log_done":           "--- Fertig ---",
         "log_error":          "FEHLER: {}",
@@ -154,8 +156,9 @@ _T: dict[str, dict[str, str]] = {
         "lbl_seed":           "Seed (empty = random)",
         "lbl_mean_cycle":     "Avg Cycle Time (days, empty=auto)",
         "lbl_std_cycle":      "Std Dev (days, empty=auto)",
-        "lbl_pattern":        "Pattern",
-        "lbl_pi_weeks":       "PI Duration (weeks)",
+        "lbl_pattern":          "Pattern",
+        "lbl_pattern_strength": "Pattern Strength (0–100)",
+        "lbl_pi_weeks":         "PI Duration (weeks)",
         "lbl_log":            "Log",
         "btn_browse_wf":      "Browse…",
         "btn_browse_out":     "Browse…",
@@ -170,8 +173,9 @@ _T: dict[str, dict[str, str]] = {
         "err_issue_types":    "ERROR: Issue types must be in 'Type:weight' format, e.g. Feature:0.6 Bug:0.3.",
         "err_mean_cycle":     "ERROR: Avg cycle time must be a positive number.",
         "err_std_cycle":      "ERROR: Std dev must be a positive number.",
-        "err_pattern_no_mean":"ERROR: Pattern requires an average cycle time to be set.",
-        "err_pi_weeks":       "ERROR: PI duration must be a positive integer.",
+        "err_pattern_no_mean":   "ERROR: Pattern requires an average cycle time to be set.",
+        "err_pattern_strength":  "ERROR: Pattern strength must be an integer between 0 and 100.",
+        "err_pi_weeks":          "ERROR: PI duration must be a positive integer.",
         "log_started":        "--- Generation started ---",
         "log_done":           "--- Done ---",
         "log_error":          "ERROR: {}",
@@ -203,8 +207,9 @@ class _App:
         self._var_seed        = tk.StringVar()
         self._var_mean_cycle  = tk.StringVar(value="")
         self._var_std_cycle   = tk.StringVar(value="")
-        self._var_pattern     = tk.StringVar(value=PATTERN_NONE)
-        self._var_pi_weeks    = tk.StringVar(value="12")
+        self._var_pattern          = tk.StringVar(value=PATTERN_NONE)
+        self._var_pattern_strength = tk.StringVar(value="50")
+        self._var_pi_weeks         = tk.StringVar(value="12")
         self._lang_var        = tk.StringVar(value=_load_lang_pref())
         self._flag_imgs: dict[str, tk.PhotoImage] = {}
         self._create_flag_imgs()
@@ -298,19 +303,24 @@ class _App:
             rb.pack(side="left", padx=(0, 8))
             self._pattern_rbs.append(rb)
 
+        # ── Pattern Strength row ──────────────────────────────────────────────
+        self._strength_scale, self._strength_entry = self._slider_row(
+            frame, 15, "lbl_pattern_strength", self._var_pattern_strength, 0, 100
+        )
+        self._strength_scale.configure(state="disabled")
+        self._strength_entry.configure(state="disabled")
+
         # ── PI Duration row ───────────────────────────────────────────────────
         self._pi_scale, self._pi_entry = self._slider_row(
-            frame, 15, "lbl_pi_weeks", self._var_pi_weeks, 4, 26
+            frame, 16, "lbl_pi_weeks", self._var_pi_weeks, 4, 26
         )
-        self._pi_scale.configure(state="disabled")
-        self._pi_entry.configure(state="disabled")
 
         # ── Run + Progress ────────────────────────────────────────────────────
         self._btn_run = ttk.Button(frame, text="Generate", command=self._run)
-        self._btn_run.grid(row=16, column=0, columnspan=3, pady=(10, 4))
+        self._btn_run.grid(row=17, column=0, columnspan=3, pady=(10, 4))
 
         self._progress = ttk.Progressbar(frame, mode="indeterminate")
-        self._progress.grid(row=17, column=0, columnspan=3, sticky="ew")
+        self._progress.grid(row=18, column=0, columnspan=3, sticky="ew")
         self._progress.grid_remove()
 
     def _slider_row(
@@ -390,10 +400,10 @@ class _App:
         self._build_menu()
 
     def _on_pattern_change(self) -> None:
-        enabled = self._var_pattern.get() in (PATTERN_CLUSTER, PATTERN_BATCH)
-        state = "normal" if enabled else "disabled"
-        self._pi_scale.configure(state=state)
-        self._pi_entry.configure(state=state)
+        pattern = self._var_pattern.get()
+        strength_state = "normal" if pattern != PATTERN_NONE else "disabled"
+        self._strength_scale.configure(state=strength_state)
+        self._strength_entry.configure(state=strength_state)
 
     def _open_manual(self) -> None:
         webbrowser.open(_MANUAL_URLS.get(self._lang_var.get(), _MANUAL_URLS[LANG_EN]))
@@ -584,15 +594,24 @@ class _App:
             self._log_msg(self._t("err_pattern_no_mean"))
             return
 
-        pi_duration_weeks = 12
-        if pattern in (PATTERN_CLUSTER, PATTERN_BATCH):
+        pattern_strength = 0.5
+        if pattern != PATTERN_NONE:
             try:
-                pi_duration_weeks = int(self._var_pi_weeks.get())
-                if pi_duration_weeks <= 0:
+                raw_strength = int(self._var_pattern_strength.get())
+                if not (0 <= raw_strength <= 100):
                     raise ValueError
+                pattern_strength = raw_strength / 100.0
             except ValueError:
-                self._log_msg(self._t("err_pi_weeks"))
+                self._log_msg(self._t("err_pattern_strength"))
                 return
+
+        try:
+            pi_duration_weeks = int(self._var_pi_weeks.get())
+            if pi_duration_weeks <= 0:
+                raise ValueError
+        except ValueError:
+            self._log_msg(self._t("err_pi_weeks"))
+            return
 
         self._running = True
         self._btn_run.configure(state="disabled")
@@ -624,6 +643,7 @@ class _App:
                     std_cycle_days=std_cycle_days,
                     pattern=pattern,
                     pi_duration_weeks=pi_duration_weeks,
+                    pattern_strength=pattern_strength,
                     log=self._log_msg,
                 )
                 self._root.after(0, lambda: self._log_msg(self._t("log_done")))
