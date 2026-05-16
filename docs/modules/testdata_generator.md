@@ -113,6 +113,14 @@ Die generierte JSON-Datei enthält Jira-Changelog-Historien mit Status-Übergän
 entlang des definierten Workflows. `transform_data` verarbeitet sie zu
 `IssueTimes.xlsx`, `CFD.xlsx` und `Transitions.xlsx`.
 
+### Direkt-Report (GUI)
+
+Nach erfolgreicher Generierung wird in der GUI der Button **„Report erstellen"**
+aktiv. Ein Klick führt `transform_data` und `build_reports` direkt aus und
+öffnet einen kombinierten Report (eine HTML-Seite mit allen Metriken) im
+Browser. Der Report deckt den **gesamten generierten Zeitraum** ab — ohne
+Datumsfilter.
+
 ## Architektur
 
 ```

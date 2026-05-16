@@ -23,14 +23,19 @@ from pathlib import Path
 
 import plotly.io as pio
 
-from .export import export_pdf, write_report_excel, write_zero_day_excel
+from .export import (
+    _build_combined_html,
+    export_pdf,
+    write_report_excel,
+    write_zero_day_excel,
+)
 from .filters import FilterConfig, apply_filters
 from .loader import load_report_data
 from .metrics import all_metrics, get_metric
 from .metrics.flow_load import FlowLoadMetric
 from .metrics.flow_time import CT_METHOD_A, CT_METHOD_B, FlowTimeMetric
 from .metrics.flow_velocity import FlowVelocityMetric
-from .terminology import GLOBAL, SAFE
+from .terminology import GLOBAL, SAFE, term
 
 
 def _parse_date(value: str) -> date:
@@ -191,6 +196,98 @@ def run_reports(
 
     if not output_pdf and not open_browser:
         log("No output specified — use --pdf or --browser to view results.")
+
+
+def render_combined_html(
+    issue_times: Path,
+    cfd: Path | None = None,
+    workflow: Path | None = None,
+    transitions: Path | None = None,
+    metrics: list[str] | None = None,
+    from_date: date | None = None,
+    to_date: date | None = None,
+    projects: list[str] | None = None,
+    issuetypes: list[str] | None = None,
+    excluded_statuses: list[str] | None = None,
+    excluded_resolutions: list[str] | None = None,
+    exclude_zero_day: bool = False,
+    zero_day_threshold_minutes: int = 5,
+    terminology: str = SAFE,
+    ct_method: str = CT_METHOD_A,
+    target_ct: int = 90,
+    pi_config: Path | None = None,
+    log: Callable[[str], None] = print,
+) -> str:
+    """
+    Run the build_reports pipeline and return all metrics as a single HTML page.
+
+    Same load → filter → compute → render path as run_reports(), but instead
+    of opening one browser tab per figure it returns one self-contained HTML
+    document (via export._build_combined_html), with an <h2> heading per
+    metric group. Pass from_date=None and to_date=None for the full data
+    range (otherwise the caller's date filter applies).
+
+    Args mirror run_reports(); see that function for details.
+
+    Returns:
+        Complete HTML document as a string. Empty string if no figures were
+        produced.
+    """
+    log(f"Loading data from {issue_times.name} ...")
+    data = load_report_data(issue_times, cfd, workflow, transitions)
+    log(f"  {len(data.issues)} issues, {len(data.cfd)} CFD days, "
+        f"{len(data.stages)} stages loaded.")
+
+    cfg = FilterConfig(
+        from_date=from_date,
+        to_date=to_date,
+        projects=projects or [],
+        issuetypes=issuetypes or [],
+        excluded_statuses=excluded_statuses or [],
+        excluded_resolutions=excluded_resolutions or [],
+        exclude_zero_day=exclude_zero_day,
+        zero_day_threshold_minutes=zero_day_threshold_minutes,
+    )
+    data = apply_filters(data, cfg)
+    log(f"  After filters: {len(data.issues)} issues, {len(data.cfd)} CFD days.")
+
+    if metrics:
+        plugins = []
+        for mid in metrics:
+            try:
+                plugins.append(get_metric(mid))
+            except KeyError:
+                log(f"WARNING: Unknown metric '{mid}' — skipped.")
+    else:
+        plugins = all_metrics()
+
+    for plugin in plugins:
+        if isinstance(plugin, FlowTimeMetric):
+            plugin.ct_method = ct_method
+            plugin.target_ct = target_ct
+        if isinstance(plugin, FlowLoadMetric):
+            plugin.target_ct = target_ct
+        if isinstance(plugin, FlowVelocityMetric):
+            plugin.pi_config_path = str(pi_config) if pi_config else ""
+
+    all_figures: list = []
+    section_breaks: dict[int, str] = {}
+    for plugin in plugins:
+        log(f"Computing {plugin.metric_id} ...")
+        result = plugin.run(data, terminology)
+        for w in result.warnings:
+            log(f"  WARNING: {w}")
+        figures = plugin.run_render(result, terminology)
+        if figures:
+            section_breaks[len(all_figures)] = term(plugin.metric_id, terminology)
+        log(f"  → {len(figures)} figure(s)")
+        all_figures.extend(figures)
+
+    if not all_figures:
+        log("No figures produced — nothing to render.")
+        return ""
+
+    return _build_combined_html(all_figures, section_breaks)
 
 
 def main() -> None:
