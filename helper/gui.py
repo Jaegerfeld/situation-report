@@ -29,6 +29,8 @@ try:
 except ImportError:
     _VERSION = "?"
 
+import project_template
+
 from .cli import run_merge
 
 LANG_DE = "de"
@@ -79,6 +81,15 @@ _T: dict[str, dict[str, str]] = {
         "title":           f"helper – JSON Merger  {_VERSION}",
         "menu_help":       "Hilfe",
         "menu_manual":     "Manual",
+        "menu_template":   "Templates",
+        "menu_tpl_save":   "Speichern…",
+        "menu_tpl_load":   "Laden…",
+        "dlg_tpl_save":    "Template speichern",
+        "dlg_tpl_load":    "Template laden",
+        "log_tpl_saved":   "Template gespeichert: {}",
+        "log_tpl_loaded":  "Template geladen: {}",
+        "log_tpl_error":   "Fehler beim Template: {}",
+        "log_tpl_missing": "Hinweis: Datei aus Template nicht gefunden: {}",
         "tip_language":    "Sprache wechseln",
         "lbl_inputs":      "Eingabedateien",
         "btn_add":         "Hinzufügen…",
@@ -100,6 +111,15 @@ _T: dict[str, dict[str, str]] = {
         "title":           f"helper – JSON Merger  {_VERSION}",
         "menu_help":       "Help",
         "menu_manual":     "Manual",
+        "menu_template":   "Templates",
+        "menu_tpl_save":   "Save…",
+        "menu_tpl_load":   "Load…",
+        "dlg_tpl_save":    "Save Template",
+        "dlg_tpl_load":    "Load Template",
+        "log_tpl_saved":   "Template saved: {}",
+        "log_tpl_loaded":  "Template loaded: {}",
+        "log_tpl_error":   "Template error: {}",
+        "log_tpl_missing": "Note: file from template not found: {}",
         "tip_language":    "Change language",
         "lbl_inputs":      "Input files",
         "btn_add":         "Add…",
@@ -118,6 +138,24 @@ _T: dict[str, dict[str, str]] = {
         "dlg_output":      "Select output file",
     },
 }
+
+
+def _build_template_section(
+    inputs: list[str], output: str, dedup: bool
+) -> dict:
+    """Assemble the helper section for the shared project template."""
+    return {"inputs": list(inputs), "output": output, "dedup": bool(dedup)}
+
+
+def _parse_template_section(data: dict) -> dict:
+    """Normalise a helper template section; missing keys → sensible defaults."""
+    raw_inputs = data.get("inputs", [])
+    inputs = [str(p) for p in raw_inputs] if isinstance(raw_inputs, list) else []
+    return {
+        "inputs": inputs,
+        "output": str(data.get("output", "")),
+        "dedup": bool(data.get("dedup", True)),
+    }
 
 
 class _App:
@@ -146,6 +184,11 @@ class _App:
     def _build_menu(self) -> None:
         """Build (or rebuild) the top menu bar with Help → Manual."""
         menubar = tk.Menu(self._root)
+
+        tpl_menu = tk.Menu(menubar, tearoff=False)
+        menubar.add_cascade(label=self._t("menu_template"), menu=tpl_menu)
+        tpl_menu.add_command(label=self._t("menu_tpl_save"), command=self._save_template)
+        tpl_menu.add_command(label=self._t("menu_tpl_load"), command=self._load_template)
 
         help_menu = tk.Menu(menubar, tearoff=False)
         menubar.add_cascade(label=self._t("menu_help"), menu=help_menu)
@@ -337,6 +380,61 @@ class _App:
         )
         if path:
             self._var_output.set(path)
+
+    def _save_template(self) -> None:
+        """Write the current input list/output/dedup as this module's template section."""
+        path = filedialog.asksaveasfilename(
+            title=self._t("dlg_tpl_save"),
+            defaultextension=".json",
+            filetypes=[("JSON files", "*.json"), ("All files", "*.*")],
+        )
+        if not path:
+            return
+        try:
+            section = _build_template_section(
+                inputs=list(self._listbox.get(0, "end")),
+                output=self._var_output.get(),
+                dedup=self._var_dedup.get(),
+            )
+            project_template.save_template(
+                Path(path),
+                project_template.MODULE_HELPER,
+                section,
+                language=self._lang_var.get(),
+            )
+            self._log_msg(self._t("log_tpl_saved").format(Path(path).name))
+        except Exception as exc:
+            self._log_msg(self._t("log_tpl_error").format(exc))
+
+    def _load_template(self) -> None:
+        """Load this module's section from a project-template file into the UI."""
+        path = filedialog.askopenfilename(
+            title=self._t("dlg_tpl_load"),
+            filetypes=[("JSON files", "*.json"), ("All files", "*.*")],
+        )
+        if not path:
+            return
+        try:
+            envelope = project_template.load_template(Path(path))
+            section = _parse_template_section(
+                project_template.get_section(
+                    envelope, project_template.MODULE_HELPER
+                )
+            )
+        except Exception as exc:
+            self._log_msg(self._t("log_tpl_error").format(exc))
+            return
+
+        self._listbox.delete(0, "end")
+        for p in section["inputs"]:
+            self._listbox.insert("end", p)
+            if p and not Path(p).is_file():
+                self._log_msg(self._t("log_tpl_missing").format(p))
+        self._var_output.set(section["output"])
+        self._var_dedup.set(section["dedup"])
+
+        self._lang_var.set(envelope.get("language", self._lang_var.get()))
+        self._log_msg(self._t("log_tpl_loaded").format(Path(path).name))
 
     def _log_msg(self, msg: str) -> None:
         """Append a line to the log area (thread-safe via after())."""

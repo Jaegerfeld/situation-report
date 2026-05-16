@@ -35,6 +35,8 @@ try:
 except ImportError:
     _VERSION = "?"
 
+import project_template
+
 from openpyxl import load_workbook
 from tkcalendar import Calendar
 
@@ -1681,8 +1683,11 @@ class BuildReportsApp(tk.Tk):
                 metrics={mid: var.get() for mid, var in self._metric_vars.items()},
                 language=self._lang_var.get(),
             )
-            Path(path).write_text(
-                json.dumps(tpl, indent=2, ensure_ascii=False), encoding="utf-8"
+            project_template.save_template(
+                Path(path),
+                project_template.MODULE_BUILD_REPORTS,
+                tpl,
+                language=self._lang_var.get(),
             )
             self._log(self._tr("log_tpl_saved").format(Path(path).name))
         except Exception as exc:
@@ -1705,8 +1710,16 @@ class BuildReportsApp(tk.Tk):
         if not path:
             return
         try:
-            raw = json.loads(Path(path).read_text(encoding="utf-8"))
-            state = _parse_template_dict(raw)
+            envelope = project_template.load_template(Path(path))
+            section = project_template.get_section(
+                envelope, project_template.MODULE_BUILD_REPORTS
+            )
+            if not section:
+                raise ValueError(
+                    "Template contains no build_reports section."
+                )
+            section.setdefault("language", envelope.get("language", LANG_DE))
+            state = _parse_template_dict(section)
         except Exception as exc:
             self._log(self._tr("log_tpl_error").format(exc))
             messagebox.showerror(self._tr("menu_template"), str(exc))

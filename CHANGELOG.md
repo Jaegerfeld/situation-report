@@ -9,6 +9,22 @@ Das Format orientiert sich an [Keep a Changelog](https://keepachangelog.com/de/1
 
 ---
 
+## [0.11.0] – 2026-05-16
+
+### Added
+- Gemeinsames **Projekt-Template** für alle GUI-Module (`build_reports`,
+  `transform_data`, `testdata_generator`, `helper`). Eine einzige JSON-Datei
+  hält je einen Abschnitt pro Modul, sodass die Pipeline-Konfiguration
+  (Workflow, Pfade, Projekt, Zeitraum) einmal gespeichert und in jedem
+  Modul-GUI über das Menü **Templates → Speichern/Laden** wiederverwendet
+  werden kann. Beim Speichern aus einem Modul bleiben die Abschnitte der
+  anderen Module erhalten.
+- Schema v5 (`project_template.py`). Ältere `build_reports`-Templates
+  (Schema v4, flache Struktur) werden weiterhin gelesen und transparent als
+  `build_reports`-Abschnitt interpretiert.
+
+---
+
 ## [0.9.9] – 2026-05-13
 
 ### Added
