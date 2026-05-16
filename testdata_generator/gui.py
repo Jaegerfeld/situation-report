@@ -31,6 +31,8 @@ try:
 except ImportError:
     _VERSION = "?"
 
+import project_template
+
 from .cli import run_generate
 from .generator import (
     PATTERN_BATCH,
@@ -96,6 +98,15 @@ _T: dict[str, dict[str, str]] = {
         "title":              f"testdata_generator {_VERSION}",
         "menu_help":          "Hilfe",
         "menu_manual":        "Manual",
+        "menu_template":      "Templates",
+        "menu_tpl_save":      "Speichern…",
+        "menu_tpl_load":      "Laden…",
+        "dlg_tpl_save":       "Template speichern",
+        "dlg_tpl_load":       "Template laden",
+        "log_tpl_saved":      "Template gespeichert: {}",
+        "log_tpl_loaded":     "Template geladen: {}",
+        "log_tpl_error":      "Fehler beim Template: {}",
+        "log_tpl_missing":    "Hinweis: Datei aus Template nicht gefunden: {}",
         "tip_language":       "Sprache wechseln",
         "lbl_workflow":       "Workflow-Datei",
         "lbl_output":         "Ausgabedatei (JSON)",
@@ -142,6 +153,15 @@ _T: dict[str, dict[str, str]] = {
         "title":              f"testdata_generator {_VERSION}",
         "menu_help":          "Help",
         "menu_manual":        "Manual",
+        "menu_template":      "Templates",
+        "menu_tpl_save":      "Save…",
+        "menu_tpl_load":      "Load…",
+        "dlg_tpl_save":       "Save Template",
+        "dlg_tpl_load":       "Load Template",
+        "log_tpl_saved":      "Template saved: {}",
+        "log_tpl_loaded":     "Template loaded: {}",
+        "log_tpl_error":      "Template error: {}",
+        "log_tpl_missing":    "Note: file from template not found: {}",
         "tip_language":       "Change language",
         "lbl_workflow":       "Workflow File",
         "lbl_output":         "Output File (JSON)",
@@ -187,6 +207,23 @@ _T: dict[str, dict[str, str]] = {
 }
 
 
+_TEMPLATE_FIELDS = (
+    "workflow", "output", "project", "issues", "from_date", "to_date",
+    "issue_types", "completion", "todo", "backflow", "seed",
+    "mean_cycle", "std_cycle", "pattern", "pattern_strength", "pi_weeks",
+)
+
+
+def _build_template_section(values: dict[str, str]) -> dict:
+    """Assemble the testdata_generator section for the shared project template."""
+    return {key: str(values.get(key, "")) for key in _TEMPLATE_FIELDS}
+
+
+def _parse_template_section(data: dict) -> dict:
+    """Normalise a testdata_generator template section; missing keys → empty string."""
+    return {key: str(data.get(key, "")) for key in _TEMPLATE_FIELDS}
+
+
 class _App:
     """Main application window for testdata_generator GUI."""
 
@@ -225,6 +262,10 @@ class _App:
 
     def _build_menu(self) -> None:
         menubar = tk.Menu(self._root)
+        tpl_menu = tk.Menu(menubar, tearoff=False)
+        menubar.add_cascade(label=self._t("menu_template"), menu=tpl_menu)
+        tpl_menu.add_command(label=self._t("menu_tpl_save"), command=self._save_template)
+        tpl_menu.add_command(label=self._t("menu_tpl_load"), command=self._load_template)
         help_menu = tk.Menu(menubar, tearoff=False)
         menubar.add_cascade(label=self._t("menu_help"), menu=help_menu)
         help_menu.add_command(label=self._t("menu_manual"), command=self._open_manual)
@@ -478,6 +519,79 @@ class _App:
         )
         if path:
             self._var_output.set(path)
+
+    def _template_vars(self) -> dict[str, tk.StringVar]:
+        """Map project-template field names to their StringVars."""
+        return {
+            "workflow": self._var_workflow,
+            "output": self._var_output,
+            "project": self._var_project,
+            "issues": self._var_issues,
+            "from_date": self._var_from_date,
+            "to_date": self._var_to_date,
+            "issue_types": self._var_issue_types,
+            "completion": self._var_completion,
+            "todo": self._var_todo,
+            "backflow": self._var_backflow,
+            "seed": self._var_seed,
+            "mean_cycle": self._var_mean_cycle,
+            "std_cycle": self._var_std_cycle,
+            "pattern": self._var_pattern,
+            "pattern_strength": self._var_pattern_strength,
+            "pi_weeks": self._var_pi_weeks,
+        }
+
+    def _save_template(self) -> None:
+        """Write the current parameters as this module's project-template section."""
+        path = filedialog.asksaveasfilename(
+            title=self._t("dlg_tpl_save"),
+            defaultextension=".json",
+            filetypes=[("JSON files", "*.json"), ("All files", "*.*")],
+        )
+        if not path:
+            return
+        try:
+            section = _build_template_section(
+                {k: v.get() for k, v in self._template_vars().items()}
+            )
+            project_template.save_template(
+                Path(path),
+                project_template.MODULE_TESTDATA_GENERATOR,
+                section,
+                language=self._lang_var.get(),
+            )
+            self._log_msg(self._t("log_tpl_saved").format(Path(path).name))
+        except Exception as exc:
+            self._log_msg(self._t("log_tpl_error").format(exc))
+
+    def _load_template(self) -> None:
+        """Load this module's section from a project-template file into the UI."""
+        path = filedialog.askopenfilename(
+            title=self._t("dlg_tpl_load"),
+            filetypes=[("JSON files", "*.json"), ("All files", "*.*")],
+        )
+        if not path:
+            return
+        try:
+            envelope = project_template.load_template(Path(path))
+            section = _parse_template_section(
+                project_template.get_section(
+                    envelope, project_template.MODULE_TESTDATA_GENERATOR
+                )
+            )
+        except Exception as exc:
+            self._log_msg(self._t("log_tpl_error").format(exc))
+            return
+
+        for key, var in self._template_vars().items():
+            var.set(section[key])
+        self._on_pattern_change()
+
+        if section["workflow"] and not Path(section["workflow"]).is_file():
+            self._log_msg(self._t("log_tpl_missing").format(section["workflow"]))
+
+        self._lang_var.set(envelope.get("language", self._lang_var.get()))
+        self._log_msg(self._t("log_tpl_loaded").format(Path(path).name))
 
     def _log_msg(self, msg: str) -> None:
         self._log_widget.configure(state="normal")

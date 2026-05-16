@@ -29,6 +29,8 @@ try:
 except ImportError:
     _VERSION = "?"
 
+import project_template
+
 from .transform import run_transform
 
 # ---------------------------------------------------------------------------
@@ -55,6 +57,15 @@ _T: dict[str, dict[str, str]] = {
         "menu_lang_fr":     "Français",
         "menu_help":        "Hilfe",
         "menu_manual":      "Manual",
+        "menu_template":    "Templates",
+        "menu_tpl_save":    "Speichern…",
+        "menu_tpl_load":    "Laden…",
+        "dlg_tpl_save":     "Template speichern",
+        "dlg_tpl_load":     "Template laden",
+        "log_tpl_saved":    "Template gespeichert: {}",
+        "log_tpl_loaded":   "Template geladen: {}",
+        "log_tpl_error":    "Fehler beim Template: {}",
+        "log_tpl_missing":  "Hinweis: Datei aus Template nicht gefunden: {}",
         "lbl_json":         "JSON-Datei",
         "lbl_workflow":     "Workflow-Datei",
         "lbl_output_dir":   "Ausgabeordner",
@@ -84,6 +95,15 @@ _T: dict[str, dict[str, str]] = {
         "menu_lang_fr":     "Français",
         "menu_help":        "Help",
         "menu_manual":      "Manual",
+        "menu_template":    "Templates",
+        "menu_tpl_save":    "Save…",
+        "menu_tpl_load":    "Load…",
+        "dlg_tpl_save":     "Save Template",
+        "dlg_tpl_load":     "Load Template",
+        "log_tpl_saved":    "Template saved: {}",
+        "log_tpl_loaded":   "Template loaded: {}",
+        "log_tpl_error":    "Template error: {}",
+        "log_tpl_missing":  "Note: file from template not found: {}",
         "lbl_json":         "JSON File",
         "lbl_workflow":     "Workflow File",
         "lbl_output_dir":   "Output Folder",
@@ -113,6 +133,15 @@ _T: dict[str, dict[str, str]] = {
         "menu_lang_fr":     "Français",
         "menu_help":        "Ajutor",
         "menu_manual":      "Manual",
+        "menu_template":    "Şabloane",
+        "menu_tpl_save":    "Salvare…",
+        "menu_tpl_load":    "Încărcare…",
+        "dlg_tpl_save":     "Salvare şablon",
+        "dlg_tpl_load":     "Încărcare şablon",
+        "log_tpl_saved":    "Şablon salvat: {}",
+        "log_tpl_loaded":   "Şablon încărcat: {}",
+        "log_tpl_error":    "Eroare şablon: {}",
+        "log_tpl_missing":  "Notă: fişier din şablon negăsit: {}",
         "lbl_json":         "Fişier JSON",
         "lbl_workflow":     "Fişier Workflow",
         "lbl_output_dir":   "Folder de ieşire",
@@ -142,6 +171,15 @@ _T: dict[str, dict[str, str]] = {
         "menu_lang_fr":     "Français",
         "menu_help":        "Ajuda",
         "menu_manual":      "Manual",
+        "menu_template":    "Modelos",
+        "menu_tpl_save":    "Guardar…",
+        "menu_tpl_load":    "Carregar…",
+        "dlg_tpl_save":     "Guardar modelo",
+        "dlg_tpl_load":     "Carregar modelo",
+        "log_tpl_saved":    "Modelo guardado: {}",
+        "log_tpl_loaded":   "Modelo carregado: {}",
+        "log_tpl_error":    "Erro no modelo: {}",
+        "log_tpl_missing":  "Nota: ficheiro do modelo não encontrado: {}",
         "lbl_json":         "Ficheiro JSON",
         "lbl_workflow":     "Ficheiro Workflow",
         "lbl_output_dir":   "Pasta de saída",
@@ -171,6 +209,15 @@ _T: dict[str, dict[str, str]] = {
         "menu_lang_fr":     "Français",
         "menu_help":        "Aide",
         "menu_manual":      "Manuel",
+        "menu_template":    "Modèles",
+        "menu_tpl_save":    "Enregistrer…",
+        "menu_tpl_load":    "Charger…",
+        "dlg_tpl_save":     "Enregistrer le modèle",
+        "dlg_tpl_load":     "Charger le modèle",
+        "log_tpl_saved":    "Modèle enregistré : {}",
+        "log_tpl_loaded":   "Modèle chargé : {}",
+        "log_tpl_error":    "Erreur de modèle : {}",
+        "log_tpl_missing":  "Note : fichier du modèle introuvable : {}",
         "lbl_json":         "Fichier JSON",
         "lbl_workflow":     "Fichier Workflow",
         "lbl_output_dir":   "Dossier de sortie",
@@ -224,6 +271,28 @@ def _save_lang_pref(lang: str) -> None:
     prefs["lang"] = lang
     with open(_PREFS_PATH, "w") as f:
         json.dump(prefs, f, indent=2)
+
+
+def _build_template_section(
+    json_file: str, workflow_file: str, output_dir: str, prefix: str
+) -> dict:
+    """Assemble the transform_data section for the shared project template."""
+    return {
+        "json_file": json_file,
+        "workflow_file": workflow_file,
+        "output_dir": output_dir,
+        "prefix": prefix,
+    }
+
+
+def _parse_template_section(data: dict) -> dict:
+    """Normalise a transform_data template section; missing keys → empty string."""
+    return {
+        "json_file": str(data.get("json_file", "")),
+        "workflow_file": str(data.get("workflow_file", "")),
+        "output_dir": str(data.get("output_dir", "")),
+        "prefix": str(data.get("prefix", "")),
+    }
 
 
 class TransformApp(tk.Tk):
@@ -282,6 +351,11 @@ class TransformApp(tk.Tk):
     def _build_menubar(self) -> None:
         """Build (or rebuild) the top menu bar with Help → Manual."""
         menubar = tk.Menu(self)
+
+        tpl_menu = tk.Menu(menubar, tearoff=0)
+        menubar.add_cascade(label=self._tr("menu_template"), menu=tpl_menu)
+        tpl_menu.add_command(label=self._tr("menu_tpl_save"), command=self._save_template)
+        tpl_menu.add_command(label=self._tr("menu_tpl_load"), command=self._load_template)
 
         help_menu = tk.Menu(menubar, tearoff=0)
         menubar.add_cascade(label=self._tr("menu_help"), menu=help_menu)
@@ -458,6 +532,69 @@ class TransformApp(tk.Tk):
         path = filedialog.askdirectory(title=self._tr("dlg_output_dir"))
         if path:
             self._output_dir_var.set(path)
+
+    # -------------------------------------------------------------------------
+    # Project template
+    # -------------------------------------------------------------------------
+
+    def _save_template(self) -> None:
+        """Write the current paths/prefix as this module's project-template section."""
+        path = filedialog.asksaveasfilename(
+            title=self._tr("dlg_tpl_save"),
+            defaultextension=".json",
+            filetypes=[("JSON", "*.json"), ("*", "*.*")],
+        )
+        if not path:
+            return
+        try:
+            section = _build_template_section(
+                json_file=self._json_var.get(),
+                workflow_file=self._workflow_var.get(),
+                output_dir=self._output_dir_var.get(),
+                prefix=self._prefix_var.get(),
+            )
+            project_template.save_template(
+                Path(path),
+                project_template.MODULE_TRANSFORM_DATA,
+                section,
+                language=self._lang_var.get(),
+            )
+            self._log(self._tr("log_tpl_saved").format(Path(path).name))
+        except Exception as exc:
+            self._log(self._tr("log_tpl_error").format(exc))
+
+    def _load_template(self) -> None:
+        """Load this module's section from a project-template file into the UI."""
+        path = filedialog.askopenfilename(
+            title=self._tr("dlg_tpl_load"),
+            filetypes=[("JSON", "*.json"), ("*", "*.*")],
+        )
+        if not path:
+            return
+        try:
+            envelope = project_template.load_template(Path(path))
+            section = _parse_template_section(
+                project_template.get_section(
+                    envelope, project_template.MODULE_TRANSFORM_DATA
+                )
+            )
+        except Exception as exc:
+            self._log(self._tr("log_tpl_error").format(exc))
+            return
+
+        self._json_var.set(section["json_file"])
+        self._workflow_var.set(section["workflow_file"])
+        self._output_dir_var.set(section["output_dir"])
+        self._prefix_var.set(section["prefix"])
+        self._auto_prefix = section["prefix"]
+
+        for key in ("json_file", "workflow_file"):
+            p = section[key]
+            if p and not Path(p).is_file():
+                self._log(self._tr("log_tpl_missing").format(p))
+
+        self._lang_var.set(envelope.get("language", self._lang_var.get()))
+        self._log(self._tr("log_tpl_loaded").format(Path(path).name))
 
     # -------------------------------------------------------------------------
     # Run
