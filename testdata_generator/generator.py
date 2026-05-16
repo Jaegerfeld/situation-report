@@ -71,6 +71,7 @@ class GeneratorConfig:
     std_cycle_days: float | None = None
     pattern: str = PATTERN_NONE
     pi_duration_weeks: int = 12
+    pattern_strength: float = 0.5
 
 
 def _fmt_dt(dt: datetime) -> str:
@@ -157,13 +158,33 @@ def _sample_pi_close_dt(
     rng: random.Random, pi_ends: list[date], config: GeneratorConfig
 ) -> datetime:
     """
-    Sample a closed datetime concentrated in the last 2 weeks of a random PI.
-    Uses Beta(2, 0.5) to skew deliveries toward the PI end date.
+    Sample a closed datetime concentrated near a PI end date.
+
+    pattern_strength controls how tightly deliveries cluster:
+    - 0.0: very loose (90-day window, nearly uniform)
+    - 0.5: current default (14-day window, Beta(2, 0.5))
+    - 1.0: very tight (5-day window, Beta(2, 0.1))
     """
+    s = config.pattern_strength
     pi_end = rng.choice(pi_ends)
-    u = rng.betavariate(2.0, 0.5)
-    offset_days = int(u * 14)
-    close_date = pi_end - timedelta(days=14 - offset_days)
+
+    # Window: two-piece linear → 90 days at s=0, 14 at s=0.5, 5 at s=1
+    if s <= 0.5:
+        window = round(90 + (14 - 90) * (s / 0.5))
+    else:
+        window = round(14 + (5 - 14) * ((s - 0.5) / 0.5))
+    window = max(2, window)
+
+    # Beta b-param: high = spread, low = concentrated near PI end
+    # 5.0 at s=0, 0.5 at s=0.5, 0.1 at s=1
+    if s <= 0.5:
+        beta_b = 5.0 + (0.5 - 5.0) * (s / 0.5)
+    else:
+        beta_b = 0.5 + (0.1 - 0.5) * ((s - 0.5) / 0.5)
+
+    u = rng.betavariate(2.0, max(0.05, beta_b))
+    offset_days = int(u * window)
+    close_date = pi_end - timedelta(days=window - offset_days)
     close_date = max(config.from_date + timedelta(days=1), min(close_date, config.to_date))
     return datetime(
         close_date.year, close_date.month, close_date.day,
@@ -341,13 +362,18 @@ def generate(workflow: WorkflowSpec, config: GeneratorConfig) -> dict:
                 mean = config.mean_cycle_days
                 std = config.std_cycle_days if config.std_cycle_days is not None else mean * 0.3
 
+                s = config.pattern_strength
+
                 if config.pattern == PATTERN_TRIANGLE:
-                    mult = 1.0 + 3.0 * t
+                    # range_factor: 0.3 at s=0 (subtle), 3.0 at s=0.5 (current), 6.0 at s=1
+                    range_factor = max(0.3, 6.0 * s)
+                    mult = 1.0 + range_factor * t
                     ct_days = _sample_ct_days(rng, mean * mult, std * mult)
                     target_ct_hours = ct_days * 24
 
                 elif config.pattern == PATTERN_FLAT_TRIANGLE:
-                    mult = 1.0 + 3.0 * math.tanh(2.5 * t)
+                    range_factor = max(0.3, 6.0 * s)
+                    mult = 1.0 + range_factor * math.tanh(2.5 * t)
                     ct_days = _sample_ct_days(rng, mean * mult, std * mult)
                     target_ct_hours = ct_days * 24
 
@@ -357,7 +383,14 @@ def generate(workflow: WorkflowSpec, config: GeneratorConfig) -> dict:
                     target_closed_dt = _sample_pi_close_dt(rng, pi_ends, config)
 
                 elif config.pattern == PATTERN_BATCH:
-                    ct_days = rng.uniform(mean * 0.1, mean * 3.0)
+                    # lo/hi factors: narrow at s=0, current(0.1/3.0) at s=0.5, wider at s=1
+                    if s <= 0.5:
+                        lo = 0.7 + (0.1 - 0.7) * (s / 0.5)
+                        hi = 1.3 + (3.0 - 1.3) * (s / 0.5)
+                    else:
+                        lo = 0.1 + (0.02 - 0.1) * ((s - 0.5) / 0.5)
+                        hi = 3.0 + (5.0 - 3.0) * ((s - 0.5) / 0.5)
+                    ct_days = rng.uniform(mean * lo, mean * hi)
                     target_ct_hours = max(24.0, ct_days * 24)
                     target_closed_dt = _sample_pi_close_dt(rng, pi_ends, config)
 
