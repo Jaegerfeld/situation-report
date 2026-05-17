@@ -1,204 +1,195 @@
-# SituationReport – Übersicht für Einsteiger
+# SituationReport – Overview for Beginners
 
-**Version 0.9.9** | Erstellt: 03.05.2026 | Aktualisiert: 13.05.2026
+**Version 0.13.0** | Created: 2026-05-03 | Updated: 2026-05-17
 
-Dieses Dokument fasst alle Bestandteile von SituationReport zusammen und erklärt sie
-in einfacher Sprache. Technische Details aus den Original-Dokumentationen wurden
-vereinfacht oder weggelassen.
+This document summarises all parts of SituationReport and explains them in
+plain language. Technical details from the original documentation have been
+simplified or omitted.
 
-> **📖 Hinweis zu Erklärungen:**
-> Abschnitte, die mit diesem Symbol beginnen, sind zusätzliche Erklärungen
-> für Nicht-Techniker und gehören nicht zur Original-Dokumentation.
-
----
-
-## Was ist SituationReport?
-
-SituationReport ist eine Werkzeugsammlung, die Daten aus dem Projektmanagement-Tool
-**Jira** auswertet und daraus übersichtliche Berichte und Diagramme erstellt.
-Die Software läuft lokal auf dem eigenen Computer — es werden keine Daten in
-eine Cloud hochgeladen.
-
-> **📖 Erklärung:**
-> Jira ist ein weit verbreitetes Werkzeug, in dem Teams ihre Aufgaben (sogenannte
-> „Issues" oder „Tickets") verwalten. Jede Aufgabe durchläuft dabei verschiedene
-> Stationen, zum Beispiel: Backlog → In Bearbeitung → In Review → Fertig.
-> SituationReport liest diese Daten aus und berechnet daraus, wie schnell und
-> gleichmäßig ein Team arbeitet.
-
-Das Projekt wurde als Experiment im Bereich KI-unterstützter Software-Entwicklung
-erstellt. Mehr als 98 % des Codes wurden von Claude (Anthropic) geschrieben.
+> **📖 Note on explanations:**
+> Sections that start with this symbol are additional explanations for
+> non-technical readers and are not part of the original documentation.
 
 ---
 
-## Wie die Werkzeuge zusammenarbeiten
+## What is SituationReport?
 
-Der typische Ablauf sieht so aus:
+SituationReport is a toolsuite that analyses data from the project management
+tool **Jira** and turns it into clear reports and charts. The software runs
+locally on your own computer — no data is uploaded to any cloud.
+
+> **📖 Explanation:**
+> Jira is a widely used tool in which teams manage their tasks (called
+> "issues" or "tickets"). Each task moves through several stages, for
+> example: Backlog → In Progress → In Review → Done. SituationReport reads
+> this data and computes how fast and how evenly a team works.
+
+The project was created as an experiment in AI-assisted software development.
+More than 98% of the code was written by Claude (Anthropic).
+
+---
+
+## How the tools work together
+
+The typical workflow looks like this:
 
 ```
-[Jira-Export]  →  (Helper)  →  Transform Data  →  Build Reports
+[Jira export]  →  (Helper)  →  Transform Data  →  Build Reports
                    optional
-                 (mehrere
-                  Dateien)
+                 (multiple
+                  files)
 ```
 
-1. **Jira-Export:** Aus Jira werden die Daten als Datei exportiert.
-2. **Helper** *(optional)*: Falls mehrere Export-Dateien vorhanden sind,
-   werden sie mit dem Helper-Werkzeug zu einer einzigen zusammengefügt.
-3. **Transform Data:** Die Rohdaten werden aufbereitet und in strukturierte
-   Tabellen umgewandelt.
-4. **Build Reports:** Aus den Tabellen werden Diagramme und Berichte erstellt.
+1. **Jira export:** The data is exported from Jira as a file.
+2. **Helper** *(optional)*: If there are multiple export files, they are
+   merged into a single one with the Helper tool.
+3. **Transform Data:** The raw data is processed and turned into structured
+   tables.
+4. **Build Reports:** Charts and reports are generated from the tables.
 
-> **📖 Erklärung:**
-> Man kann sich den Ablauf vorstellen wie einen Trichter: Zunächst kommen die
-> Rohdaten aus Jira (unstrukturiert, groß), dann werden sie sortiert und
-> zusammengefasst (Transform Data), und am Ende erhält man fertige Berichte
-> mit Grafiken (Build Reports).
+> **📖 Explanation:**
+> Think of the workflow as a funnel: first the raw data comes out of Jira
+> (unstructured, large), then it is sorted and summarised (Transform Data),
+> and at the end you get finished reports with charts (Build Reports).
 
-Für den Alltag gibt es außerdem zwei Hilfswerkzeuge:
+There are also two helper tools for everyday use:
 
-- **Testdata Generator:** Erzeugt künstliche Testdaten, um die Software
-  auszuprobieren, ohne echte Projektdaten zu benötigen.
-- **Launcher:** Das Startfenster, von dem aus alle Werkzeuge geöffnet werden.
+- **Testdata Generator:** Generates synthetic test data so you can try out
+  the software without needing real project data.
+- **Launcher:** The start window from which all tools are opened.
 
 ---
 
-## Installation und Start
+## Installation and start
 
 ### Download
 
-Alle verfügbaren Versionen sind auf der
-[GitHub-Releases-Seite](https://github.com/Jaegerfeld/situation-report/releases)
-verfügbar. Es gibt stabile Versionen (z. B. `v0.9.0`) und Entwicklungs-Builds
-(`dev-latest`). Für den normalen Einsatz empfiehlt sich immer die **neueste
-stabile Version**.
+All available versions are on the
+[GitHub Releases page](https://github.com/Jaegerfeld/situation-report/releases).
+There are stable versions (e.g. `v0.13.0`) and development builds
+(`dev-latest`). For regular use, always pick the **latest stable version**.
 
-> **📖 Erklärung:**
-> Ein „Release" ist eine veröffentlichte, getestete Version der Software.
-> „Dev Build" bedeutet: der aktuellste Entwicklungsstand, der noch nicht
-> vollständig getestet wurde und daher neue, möglicherweise fehlerhafte
-> Funktionen enthalten kann.
+> **📖 Explanation:**
+> A "release" is a published, tested version of the software. "Dev build"
+> means the latest development state, which has not been fully tested and
+> may therefore contain new, possibly broken functionality.
 
 ### Windows
 
-1. `SituationReport-Windows.zip` herunterladen
-2. Zip-Datei entpacken (Rechtsklick → *Alle extrahieren*)
-3. `SituationReport.bat` doppelklicken → das Startfenster öffnet sich
+1. Download `SituationReport-Windows.zip`
+2. Extract the zip (right-click → *Extract All*)
+3. Double-click `SituationReport.bat` → the start window opens
 
-> **📖 Erklärung:**
-> Beim ersten Start erscheint möglicherweise eine Sicherheitsmeldung von
-> Windows SmartScreen. Das ist normal, weil die Software nicht von Microsoft
-> zertifiziert ist. Auf **Weitere Informationen → Trotzdem ausführen**
-> klicken. Das Windows-Paket enthält Python und Chrome bereits eingebaut —
-> es muss nichts separat installiert werden.
+> **📖 Explanation:**
+> On the first launch, Windows SmartScreen may show a security warning.
+> This is normal because the software is not certified by Microsoft. Click
+> **More info → Run anyway**. The Windows package already bundles Python and
+> Chrome — nothing needs to be installed separately.
 
 ### macOS
 
-1. `SituationReport-macOS-ARM.zip` herunterladen und entpacken
-2. *Rechtsklick* auf `SituationReport.command` → *Öffnen* → im Dialog
-   erneut *Öffnen* bestätigen (einmalig nötig)
-3. Beim ersten Start wird automatisch eine Python-Umgebung eingerichtet
-   (~1 Minute, Internetverbindung erforderlich)
+1. Download and extract `SituationReport-macOS-ARM.zip`
+2. *Right-click* `SituationReport.command` → *Open* → confirm *Open* again
+   in the dialog (needed once)
+3. On the first launch a Python environment is set up automatically
+   (~1 minute, internet connection required)
 
 ### Linux
 
-1. `SituationReport-Linux.zip` herunterladen und entpacken
-2. Im Terminal: `./SituationReport.sh`
-3. Beim ersten Start wird automatisch eine Python-Umgebung eingerichtet
-   (~1 Minute, Internetverbindung erforderlich)
+1. Download and extract `SituationReport-Linux.zip`
+2. In the terminal: `./SituationReport.sh`
+3. On the first launch a Python environment is set up automatically
+   (~1 minute, internet connection required)
 
 ---
 
-## Der Launcher: Das Startfenster
+## The Launcher: the start window
 
-Der Launcher ist das zentrale Startfenster von SituationReport. Er zeigt alle
-verfügbaren und geplanten Werkzeuge als Kacheln an.
+The launcher is the central start window of SituationReport. It shows all
+available and planned tools as tiles.
 
 ```
 ┌──────────────────────────────────────────┐
-│  SituationReport  v0.9.0  BETA     ?  🌐 │
+│  SituationReport  v0.13.0  BETA    ?  🌐 │
 ├──────────────────────────────────────────┤
 │  ┌──────────────┐ ┌──────────────┐       │
 │  │  🔄  BETA    │ │  📊  BETA    │       │
 │  │Transform Data│ │ Build Reports│       │
-│  │  [Starten]   │ │  [Starten]   │       │
+│  │  [Launch]    │ │  [Launch]    │       │
 │  └──────────────┘ └──────────────┘       │
 │  ┌──────────────┐ ┌──────────────┐       │
 │  │  📥          │ │  🎲          │       │
 │  │  Get Data    │ │   Simulate   │       │
-│  │(bald verf.)  │ │(bald verf.)  │       │
+│  │(coming soon) │ │(coming soon) │       │
 │  └──────────────┘ └──────────────┘       │
 │  ┌──────────────┐ ┌──────────────┐       │
-│  │  🧪  ALPHA   │ │  🔧  ALPHA   │       │
+│  │  🧪  BETA    │ │  🔧  ALPHA   │       │
 │  │Testdata Gen. │ │   Helper     │       │
-│  │  [Starten]   │ │  [Starten]   │       │
+│  │  [Launch]    │ │  [Launch]    │       │
 │  └──────────────┘ └──────────────┘       │
 └──────────────────────────────────────────┘
 ```
 
-**Was die Kacheln zeigen:**
+**What the tiles show:**
 
-| Kachel | Status | Bedeutung |
-|--------|--------|-----------|
-| Transform Data | BETA | Verfügbar, stabil |
-| Build Reports | BETA | Verfügbar, stabil |
-| Get Data | *(bald verfügbar)* | Noch nicht fertig |
-| Simulate | *(bald verfügbar)* | Noch nicht fertig |
-| Testdata Generator | ALPHA | Verfügbar, experimentell |
-| Helper | ALPHA | Verfügbar, experimentell |
+| Tile | Status | Meaning |
+|------|--------|---------|
+| Transform Data | BETA | Available, stable |
+| Build Reports | BETA | Available, stable |
+| Get Data | *(coming soon)* | Not finished yet |
+| Simulate | *(coming soon)* | Not finished yet |
+| Testdata Generator | BETA | Available, stable |
+| Helper | ALPHA | Available, experimental |
 
-> **📖 Erklärung zu den Reifegraden:**
-> - **BETA** (orange): Das Werkzeug ist fertig und für den produktiven Einsatz
->   geeignet. Kleine Fehler können noch vorkommen.
-> - **ALPHA** (rot): Das Werkzeug funktioniert grundsätzlich, ist aber noch
->   neu und kann sich noch verändern.
-> - **Kein Badge / „bald verfügbar"**: Das Werkzeug ist noch in Planung und
->   noch nicht nutzbar.
+> **📖 Explanation of maturity levels:**
+> - **BETA** (orange): The tool is finished and suitable for production use.
+>   Minor bugs may still occur.
+> - **ALPHA** (red): The tool basically works but is still new and may
+>   still change.
+> - **No badge / "coming soon"**: The tool is still being planned and is
+>   not usable yet.
 
-Ein Klick auf **Starten** öffnet das gewählte Werkzeug in einem eigenen
-Fenster. Der Launcher bleibt dabei offen.
+Clicking **Launch** opens the selected tool in its own window. The launcher
+stays open.
 
-**Weitere Funktionen des Launchers:**
+**Other launcher features:**
 
-- **? (Fragezeichen):** Öffnet das Benutzerhandbuch im Browser
-- **🌐 (Flagge):** Wechselt die Sprache (Deutsch → Englisch → Rumänisch →
-  Portugiesisch → Französisch → Deutsch …)
-- **Gelbes Update-Banner:** Erscheint automatisch, wenn eine neuere Version
-  auf GitHub verfügbar ist, mit einem Link zum Herunterladen
+- **? (question mark):** Opens the user manual in the browser
+- **🌐 (flag):** Switches the language (English → German → Romanian →
+  Portuguese → French → English …)
+- **Yellow update banner:** Appears automatically when a newer version is
+  available on GitHub, with a download link
 
 ---
 
-## Transform Data: Daten aufbereiten
+## Transform Data: preparing the data
 
-Transform Data liest einen Jira-Export und eine Workflow-Beschreibung und
-erzeugt daraus drei strukturierte Tabellen (Excel-Dateien), die von
-Build Reports weiterverarbeitet werden.
+Transform Data reads a Jira export and a workflow description and produces
+three structured tables (Excel files) that Build Reports processes further.
 
-> **📖 Erklärung:**
-> Jira speichert alle Informationen über eine Aufgabe (wann sie erstellt
-> wurde, durch welche Stationen sie gegangen ist, wie lange sie wo war)
-> intern als Liste von Ereignissen. Transform Data liest diese Ereignisliste
-> und berechnet daraus: Wie viel Zeit hat die Aufgabe in jeder Station
-> verbracht? Das Ergebnis sind saubere Tabellen, die man sich direkt in
-> Excel anschauen oder mit Build Reports auswerten kann.
+> **📖 Explanation:**
+> Jira stores all information about a task (when it was created, which
+> stages it went through, how long it stayed where) internally as a list of
+> events. Transform Data reads this event list and computes: how much time
+> did the task spend in each stage? The result is clean tables you can look
+> at directly in Excel or analyse with Build Reports.
 
-### Was wird benötigt?
+### What is needed?
 
-1. **Jira-JSON-Export:** Eine Datei mit den Aufgabendaten aus Jira
-2. **Workflow-Datei:** Eine einfache Textdatei, die beschreibt, welche
-   Stationen (Status) es in diesem Projekt gibt
+1. **Jira JSON export:** A file with the task data from Jira
+2. **Workflow file:** A simple text file describing which stages (statuses)
+   exist in this project
 
-> **📖 Erklärung zur Workflow-Datei:**
-> Die Workflow-Datei ist notwendig, weil Jira-Projekte sehr unterschiedlich
-> aufgebaut sein können. Ein Projekt hat vielleicht die Stationen
-> „Backlog → In Analyse → In Entwicklung → Fertig", ein anderes ganz
-> andere Namen. Die Workflow-Datei sagt dem Programm, wie die Stationen
-> in diesem konkreten Projekt heißen und in welcher Reihenfolge sie kommen.
-> Außerdem wird darin festgelegt, welche Station den Start der aktiven
-> Arbeit markiert (`<First>`) und welche Station das Ende markiert
-> (`<Closed>`).
+> **📖 Explanation of the workflow file:**
+> The workflow file is needed because Jira projects can be set up very
+> differently. One project might have the stages
+> "Backlog → In Analysis → In Development → Done", another completely
+> different names. The workflow file tells the program what the stages are
+> called in this specific project and in what order they occur. It also
+> defines which stage marks the start of active work (`<First>`) and which
+> stage marks the end (`<Closed>`).
 
-Beispiel einer Workflow-Datei:
+Example of a workflow file:
 ```
 Funnel
 Analysis:In Analysis
@@ -208,410 +199,406 @@ Done:Canceled
 <Closed>Done
 ```
 
-### Was wird erzeugt?
+### What is produced?
 
-| Datei | Inhalt |
-|-------|--------|
-| `*_IssueTimes.xlsx` | Eine Zeile pro Aufgabe mit der Zeit (in Minuten) in jeder Station |
-| `*_Transitions.xlsx` | Eine Zeile pro Statuswechsel pro Aufgabe, chronologisch |
-| `*_CFD.xlsx` | Tägliche Eintrittszählungen je Station (Grundlage für das CFD-Diagramm) |
+| File | Contents |
+|------|----------|
+| `*_IssueTimes.xlsx` | One row per task with the time (in minutes) in each stage |
+| `*_Transitions.xlsx` | One row per status change per task, chronological |
+| `*_CFD.xlsx` | Daily entry counts per stage (basis for the CFD chart) |
 
-> **📖 Erklärung zu den Ausgabedateien:**
-> - **IssueTimes** ist die wichtigste Datei. Sie zeigt für jede Aufgabe
->   genau, wann sie erstellt wurde, wann die Arbeit daran begann, wann
->   sie abgeschlossen wurde — und wie viel Zeit sie in jeder Station
->   verbracht hat.
-> - **Transitions** ist das vollständige Protokoll aller Statuswechsel.
->   Nützlich, wenn man genau nachvollziehen möchte, wann was passiert ist.
-> - **CFD** enthält die Daten für das Cumulative Flow Diagram — eine
->   spezielle Art von Diagramm, die zeigt, wie viele Aufgaben im Laufe
->   der Zeit durch das System geflossen sind.
+> **📖 Explanation of the output files:**
+> - **IssueTimes** is the most important file. For each task it shows
+>   exactly when it was created, when work on it started, when it was
+>   completed — and how much time it spent in each stage.
+> - **Transitions** is the full log of all status changes. Useful when you
+>   want to trace exactly when something happened.
+> - **CFD** contains the data for the Cumulative Flow Diagram — a special
+>   kind of chart that shows how many tasks flowed through the system over
+>   time.
 
-### Besonderheiten
+### Special cases
 
-- **Nicht gemappte Status:** Falls ein Jira-Status in der Workflow-Datei
-  nicht vorkommt, wird eine Warnung ausgegeben. Die Zeit in diesem Status
-  wird der letzten bekannten Station zugerechnet.
-- **Übersprungene Stationen:** Falls eine Aufgabe eine Station übersprungen
-  hat, erkennt Transform Data das automatisch und behandelt es korrekt.
+- **Unmapped statuses:** If a Jira status does not appear in the workflow
+  file, a warning is issued. The time spent in that status is attributed to
+  the last known stage.
+- **Skipped stages:** If a task skipped a stage, Transform Data detects this
+  automatically and handles it correctly.
 
-> **📖 Erklärung:**
-> In der Praxis passiert es manchmal, dass eine Aufgabe eine Station
-> übersprungen hat (zum Beispiel direkt von „In Analyse" nach „Fertig"
-> gewechselt ist, ohne „In Entwicklung" zu durchlaufen). Transform Data
-> erkennt solche Fälle und berechnet trotzdem sinnvolle Werte.
+> **📖 Explanation:**
+> In practice it sometimes happens that a task skipped a stage (for example
+> moving directly from "In Analysis" to "Done" without going through
+> "In Development"). Transform Data recognises such cases and still computes
+> meaningful values.
 
 ---
 
-## Build Reports: Berichte erstellen
+## Build Reports: creating reports
 
-Build Reports liest die von Transform Data erzeugten Tabellen und erstellt
-daraus interaktive Diagramme und Berichte. Die Diagramme können im Browser
-angezeigt oder als PDF exportiert werden.
+Build Reports reads the tables produced by Transform Data and creates
+interactive charts and reports from them. The charts can be shown in the
+browser or exported as PDF.
 
-> **📖 Erklärung:**
-> Build Reports ist das „Auswertungs-Werkzeug". Es beantwortet Fragen wie:
-> Wie lange dauert es im Durchschnitt, bis eine Aufgabe fertig ist?
-> Wie viele Aufgaben werden pro Woche abgeschlossen? Wie viele Aufgaben
-> sind gerade gleichzeitig in Bearbeitung? Die Antworten werden als
-> Diagramme dargestellt.
+> **📖 Explanation:**
+> Build Reports is the "analysis tool". It answers questions like: how long
+> does it take on average until a task is finished? How many tasks are
+> completed per week? How many tasks are currently in progress at the same
+> time? The answers are presented as charts.
 
-### Filter und Einstellungen
+### Filters and settings
 
-Bevor die Berichte erstellt werden, kann man die Daten einschränken:
+Before the reports are created, you can restrict the data:
 
-| Einstellung | Bedeutung |
-|-------------|-----------|
-| Von / Bis | Nur Aufgaben berücksichtigen, die in diesem Zeitraum abgeschlossen wurden |
-| Projekte | Nur bestimmte Jira-Projekte auswerten |
-| Issuetypen | Nur bestimmte Aufgabentypen (z. B. nur „Feature", nicht „Bug") |
-| Status-Ausschluss | Aufgaben mit bestimmten Status komplett ignorieren (z. B. „Canceled") |
-| Zero-Day-Ausschluss | Aufgaben ignorieren, die zu schnell durch alle Stationen gingen (vermutlich Testaufgaben oder Fehler) |
+| Setting | Meaning |
+|---------|---------|
+| From / To | Only consider tasks that were completed in this period |
+| Projects | Only analyse certain Jira projects |
+| Issue types | Only certain task types (e.g. only "Feature", not "Bug") |
+| Status exclusion | Completely ignore tasks with certain statuses (e.g. "Canceled") |
+| Zero-day exclusion | Ignore tasks that went through all stages too quickly (probably test tasks or errors) |
 
-> **📖 Erklärung zu Zero-Day-Issues:**
-> Manchmal gibt es Aufgaben, die innerhalb von Sekunden durch alle Stationen
-> bewegt wurden — zum Beispiel weil jemand eine Aufgabe nur zu Testzwecken
-> erstellt und sofort wieder geschlossen hat. Diese „Null-Tage-Aufgaben"
-> würden die Statistiken verzerren und können daher herausgefiltert werden.
+> **📖 Explanation of zero-day issues:**
+> Sometimes there are tasks that were moved through all stages within
+> seconds — for example because someone created a task only for testing and
+> immediately closed it again. These "zero-day tasks" would distort the
+> statistics and can therefore be filtered out.
 
-Konfigurationen können als **Template** gespeichert und später wieder
-geladen werden — nützlich, wenn man regelmäßig immer denselben Bericht
-erstellt.
+Configurations can be saved as a **template** and loaded again later —
+useful when you regularly create the same report. Since v0.11.0 there is a
+**shared project template** for all GUI modules: a single file holds one
+section per module, so the pipeline configuration (workflow, paths, project,
+date range) only has to be set once and can be reused everywhere.
 
-### Die Metriken (Diagramme)
+### The metrics (charts)
 
-#### Flow Time / Cycle Time — Wie lange dauert eine Aufgabe?
+#### Flow Time / Cycle Time — how long does a task take?
 
-> **📖 Erklärung:**
-> Diese Metrik beantwortet die Frage: „Wie lange dauert es von dem Moment,
-> wo wir anfangen, an einer Aufgabe zu arbeiten, bis sie fertig ist?"
-> Das ist eine der wichtigsten Kennzahlen für ein Team — sie zeigt, ob der
-> Prozess schnell oder langsam ist und ob er vorhersagbar ist.
+> **📖 Explanation:**
+> This metric answers the question: "How long does it take from the moment
+> we start working on a task until it is finished?" This is one of the most
+> important figures for a team — it shows whether the process is fast or
+> slow and whether it is predictable.
 
-**Zwei Diagramme:**
+**Two charts:**
 
-- **Boxplot:** Zeigt die Verteilung aller Durchlaufzeiten. Wie breit die Box
-  ist, zeigt, wie unterschiedlich (unvorhersagbar) die Zeiten sind.
-  Im Kopf stehen Kennzahlen: Minimum, Maximum, Durchschnitt, Median,
-  und der Anteil der Aufgaben, die in 90 Tagen oder weniger abgeschlossen
-  wurden.
+- **Boxplot:** Shows the distribution of all lead times. How wide the box
+  is shows how varied (unpredictable) the times are. The header shows key
+  figures: minimum, maximum, average, median, and the share of tasks
+  completed in 90 days or less.
 
-  > **📖 Erklärung zum Boxplot:**
-  > Ein Boxplot ist eine kompakte Darstellung einer Verteilung. Die Box
-  > umschließt die mittleren 50 % der Werte. Die Linie in der Mitte ist
-  > der Median (der mittlere Wert). Die „Antennen" zeigen den Bereich,
-  > in dem die meisten Werte liegen. Je schmaler die Box und je kürzer
-  > die Antennen, desto vorhersagbarer ist der Prozess.
+  > **📖 Explanation of the boxplot:**
+  > A boxplot is a compact representation of a distribution. The box
+  > encloses the middle 50% of the values. The line in the middle is the
+  > median (the middle value). The "whiskers" show the range in which most
+  > values lie. The narrower the box and the shorter the whiskers, the more
+  > predictable the process.
 
-- **Scatterplot:** Zeigt jeden einzelnen Abschluss als Punkt auf einer
-  Zeitachse. Farbkodierung: rote Punkte = besonders langsam, orange =
-  überdurchschnittlich langsam, blau = normal.
-  Eine Trendlinie (blau) zeigt, ob die Zeiten über die Zeit besser oder
-  schlechter werden.
+- **Scatter plot:** Shows every single completion as a dot on a time axis.
+  Colour coding: red dots = particularly slow, orange = above-average slow,
+  blue = normal. A trend line (blue) shows whether times are improving or
+  worsening over time.
 
-  > **📖 Erklärung zu den Referenzlinien:**
-  > Im Scatterplot gibt es drei horizontale Linien:
-  > - **Median (rot):** 50 % der Aufgaben waren schneller, 50 % langsamer.
-  > - **P85 (hellgrün):** 85 % der Aufgaben waren schneller als dieser Wert.
-  > - **P95 (cyan):** 95 % der Aufgaben waren schneller.
-  > Diese Linien helfen bei der Vorhersage: „Wenn wir heute mit einer
-  > Aufgabe anfangen, wann wird sie mit 85 % Wahrscheinlichkeit fertig sein?"
+  > **📖 Explanation of the reference lines:**
+  > The scatter plot has three horizontal lines:
+  > - **Median (red):** 50% of the tasks were faster, 50% slower.
+  > - **P85 (light green):** 85% of the tasks were faster than this value.
+  > - **P95 (cyan):** 95% of the tasks were faster.
+  > These lines help with forecasting: "If we start a task today, when will
+  > it be finished with 85% probability?"
 
-#### Flow Velocity / Throughput — Wie viele Aufgaben werden fertig?
+#### Flow Velocity / Throughput — how many tasks get done?
 
-> **📖 Erklärung:**
-> Diese Metrik beantwortet die Frage: „Wie viele Aufgaben schließt das Team
-> pro Woche oder Monat ab?" Ein stabiler, hoher Durchsatz ist ein Zeichen
-> für einen gut laufenden Prozess.
+> **📖 Explanation:**
+> This metric answers the question: "How many tasks does the team complete
+> per week or month?" A stable, high throughput is a sign of a well-running
+> process.
 
-**Drei Diagramme:**
+**Three charts:**
 
-- **Tagesfrequenz:** Wie viele Aufgaben werden typischerweise an einem
-  einzigen Tag abgeschlossen? (Die meisten Teams schließen mehrere Aufgaben
-  an manchen Tagen ab, an anderen gar keine.)
-- **Wochenverlauf:** Linienchart mit den wöchentlichen Abschlüssen —
-  zeigt Trends und Schwankungen über Zeit.
-- **PI-Verlauf:** Balkendiagramm der Abschlüsse pro Planning Interval
-  (SAFe-Begriff für einen größeren Planungszyklus).
+- **Daily frequency:** How many tasks are typically completed on a single
+  day? (Most teams complete several tasks on some days, none on others.)
+- **Weekly trend:** Line chart of the weekly completions — shows trends and
+  fluctuations over time.
+- **PI trend:** Bar chart of completions per Planning Interval (SAFe term
+  for a larger planning cycle).
 
-  > **📖 Erklärung zu PI:**
-  > In SAFe (Scaled Agile Framework) werden Quartale in „Program Increments"
-  > (PIs) eingeteilt — typischerweise jeweils 8–12 Wochen mit mehreren
-  > Sprints. Der PI-Verlauf zeigt, wie produktiv das Team in jedem PI war.
+  > **📖 Explanation of PI:**
+  > In SAFe (Scaled Agile Framework), quarters are divided into "Program
+  > Increments" (PIs) — typically 8–12 weeks each with several sprints. The
+  > PI trend shows how productive the team was in each PI.
 
-#### Flow Load / WIP — Wie viele Aufgaben sind gerade in Bearbeitung?
+#### Flow Load / WIP — how many tasks are in progress right now?
 
-> **📖 Erklärung:**
-> WIP steht für „Work in Progress" — Aufgaben, die begonnen, aber noch
-> nicht fertig sind. Zu viele gleichzeitig in Bearbeitung befindliche
-> Aufgaben verlangsamen den Prozess (jeder ist beschäftigt, aber nichts
-> kommt voran). Diese Metrik zeigt den aktuellen Stand.
+> **📖 Explanation:**
+> WIP stands for "Work in Progress" — tasks that have been started but are
+> not yet finished. Too many tasks in progress at the same time slow down
+> the process (everyone is busy, but nothing moves forward). This metric
+> shows the current state.
 
-**Ein Diagramm:** Gruppierter Boxplot aller laufenden Aufgaben, aufgeteilt
-nach Station. Das Alter jeder Aufgabe (Tage seit Bearbeitungsbeginn) ist
-sichtbar. Referenzlinien aus den historischen Abschlussdaten geben einen
-Kontext: Aufgaben, die länger als der Median oder das 85. Perzentil laufen,
-sind möglicherweise blockiert.
+**One chart:** Grouped boxplot of all running tasks, split by stage. The age
+of each task (days since work started) is visible. Reference lines from the
+historical completion data provide context: tasks running longer than the
+median or the 85th percentile may be blocked.
 
-> **📖 Erklärung:**
-> Der Flow Load zeigt quasi eine „Momentaufnahme" des Systems: Welche
-> Aufgaben stecken gerade wo? Und wie lange sind sie schon dort? Aufgaben,
-> die sehr lang in einer Station bleiben, können auf ein Problem hinweisen —
-> zum Beispiel einen Engpass oder eine Blockade.
+> **📖 Explanation:**
+> Flow Load shows a "snapshot" of the system: which tasks are currently
+> where? And how long have they been there? Tasks that stay in a stage very
+> long can indicate a problem — for example a bottleneck or a blockage.
 
-#### Cumulative Flow Diagram (CFD) — Wie fließt die Arbeit?
+#### Cumulative Flow Diagram (CFD) — how does the work flow?
 
-> **📖 Erklärung:**
-> Das CFD ist eine der aussagekräftigsten Visualisierungen im agilen
-> Projektmanagement. Es zeigt für jeden Tag, wie viele Aufgaben insgesamt
-> in jede Station eingetreten sind. An der Form des Diagramms kann man
-> ablesen: Läuft das System gleichmäßig? Stauen sich Aufgaben in einer
-> bestimmten Station? Wird genug abgeschlossen?
+> **📖 Explanation:**
+> The CFD is one of the most informative visualisations in agile project
+> management. For each day it shows how many tasks in total entered each
+> stage. From the shape of the chart you can read: is the system running
+> evenly? Are tasks piling up in a certain stage? Is enough being completed?
 
-**Ein Diagramm:** Gestapeltes Flächendiagramm. Die Breite zwischen der
-oberen und unteren Trendlinie zeigt die durchschnittliche Durchlaufzeit
-(je breiter, desto länger). Eine schrumpfende Breite bedeutet: das Team
-wird schneller. Eine wachsende Breite bedeutet: der Prozess verlangsamt sich.
+**One chart:** Stacked area chart. The width between the upper and lower
+trend line shows the average lead time (the wider, the longer). A shrinking
+width means: the team is getting faster. A growing width means: the process
+is slowing down.
 
-#### Flow Distribution — Was arbeitet das Team?
+#### Flow Distribution — what is the team working on?
 
-> **📖 Erklärung:**
-> Diese Metrik zeigt die Zusammensetzung der Arbeit. Wie viel Prozent sind
-> neue Features? Wie viel sind Bugs? Welche Station beschäftigt das Team
-> am meisten? Wo verbringen Aufgaben die meiste Zeit?
+> **📖 Explanation:**
+> This metric shows the composition of the work. What percentage are new
+> features? How much are bugs? Which stage occupies the team the most? Where
+> do tasks spend the most time?
 
-**Drei Diagramme:**
+**Three charts:**
 
-- **By Issue Type:** Kreisdiagramm — welche Anteile haben die verschiedenen
-  Aufgabentypen (Feature, Bug, Enabler …)?
-- **Stage Prominence:** Kreisdiagramm — in welcher Station verbringen
-  Aufgaben die meiste Zeit? Das zeigt, wo der eigentliche Schwerpunkt
-  der Arbeit liegt.
-- **Avg Cycle Time by Type:** Balkendiagramm — dauern Features länger als
-  Bugs? Diese Ansicht zeigt die durchschnittliche Durchlaufzeit pro
-  Aufgabentyp.
+- **By Issue Type:** Pie chart — what shares do the different task types
+  (Feature, Bug, Enabler …) have?
+- **Stage Prominence:** Pie chart — in which stage do tasks spend the most
+  time? This shows where the actual focus of the work lies.
+- **Avg Cycle Time by Type:** Bar chart — do features take longer than
+  bugs? This view shows the average lead time per task type.
 
-### Terminologie
+### Terminology
 
-Build Reports unterstützt zwei verschiedene Bezeichnungssysteme:
+Build Reports supports two different naming systems:
 
-| SAFe-Bezeichnung | Allgemeine Bezeichnung |
-|-----------------|----------------------|
+| SAFe term | General term |
+|-----------|--------------|
 | Flow Time | Cycle Time |
 | Flow Velocity | Throughput |
 | Flow Load | WIP (Work in Progress) |
 
-> **📖 Erklärung:**
-> Je nach Kontext des Teams oder Unternehmens werden diese Konzepte
-> unterschiedlich bezeichnet. In SAFe (einem verbreiteten agilen
-> Framework) heißt es „Flow Time", in anderen Kontexten „Cycle Time".
-> Gemeint ist dasselbe. Die Umschaltung beeinflusst nur die Beschriftungen
-> in den Diagrammen.
+> **📖 Explanation:**
+> Depending on the team's or company's context, these concepts are named
+> differently. In SAFe (a common agile framework) it is called "Flow Time",
+> in other contexts "Cycle Time". The same thing is meant. Switching only
+> affects the labels in the charts.
 
 ### Export
 
-- **Browser:** Alle Diagramme werden in einer HTML-Datei im Browser geöffnet.
-  Dort sind sie interaktiv (Zoom, Tooltip beim Hovern, Legende ein-/ausblenden).
-- **PDF:** Alle Diagramme werden zu einem mehrseitigen PDF zusammengefasst.
-  Gleichzeitig wird automatisch eine Excel-Datei mit allen ausgewerteten
-  Aufgaben erstellt.
+- **Browser:** All charts are opened in an HTML file in the browser. There
+  they are interactive (zoom, tooltip on hover, toggle legend).
+- **PDF:** All charts are combined into a multi-page PDF. At the same time
+  an Excel file with all analysed tasks is created automatically.
 
 ---
 
-## Helper: Dateien zusammenführen
+## Helper: merging files
 
-Das Helper-Modul enthält aktuell ein Werkzeug: den **JSON Merger**.
+The Helper module currently contains one tool: the **JSON Merger**.
 
-> **📖 Erklärung — das Problem:**
-> Jira kann bei einem Export maximal 1.000 Aufgaben auf einmal ausgeben.
-> Hat ein Projekt mehr als 1.000 Aufgaben, muss man mehrere Exporte
-> durchführen — und erhält dann mehrere Dateien. Transform Data erwartet
-> aber eine einzige Datei. Der Helper löst dieses Problem: Er nimmt
-> alle Export-Dateien und fügt sie zu einer einzigen zusammen.
+> **📖 Explanation — the problem:**
+> Jira can export a maximum of 1,000 tasks at a time. If a project has more
+> than 1,000 tasks, you have to perform several exports — and end up with
+> several files. Transform Data, however, expects a single file. The Helper
+> solves this problem: it takes all export files and merges them into one.
 
-### Was der JSON Merger macht
+### What the JSON Merger does
 
-1. Alle angegebenen Jira-JSON-Dateien werden eingelesen
-2. Die Aufgaben aus allen Dateien werden kombiniert
-3. Doppelt vorhandene Aufgaben (nach Aufgaben-ID) werden automatisch
-   entfernt (Deduplizierung)
-4. Das Ergebnis ist eine einzige Datei, die direkt von Transform Data
-   verarbeitet werden kann
+1. All specified Jira JSON files are read
+2. The tasks from all files are combined
+3. Duplicate tasks (by task ID) are removed automatically (deduplication)
+4. The result is a single file that can be processed directly by Transform
+   Data
 
-> **📖 Erklärung zur Deduplizierung:**
-> Wenn man mehrere Jira-Exporte mit überlappenden Zeiträumen durchführt,
-> kann es vorkommen, dass dieselbe Aufgabe in mehreren Dateien vorkommt.
-> Der Helper erkennt das und entfernt die Duplikate automatisch. Im Log
-> wird für jedes erkannte Duplikat eine Meldung angezeigt.
+> **📖 Explanation of deduplication:**
+> When you run several Jira exports with overlapping time ranges, the same
+> task may appear in multiple files. The Helper detects this and removes
+> the duplicates automatically. A message is shown in the log for each
+> detected duplicate.
 
-### Benutzeroberfläche
+### User interface
 
 ```
-Eingabedateien
+Input files
 ┌─────────────────────────────────┐
-│ /pfad/zu/export_0.json          │
-│ /pfad/zu/export_1000.json       │
-│ /pfad/zu/export_2000.json       │
+│ /path/to/export_0.json          │
+│ /path/to/export_1000.json       │
+│ /path/to/export_2000.json       │
 └─────────────────────────────────┘
-[Hinzufügen…]  [Entfernen]
+[Add…]  [Remove]
 
-Ausgabedatei (JSON)
-[/pfad/zu/merged.json    ] [Suchen…]
+Output file (JSON)
+[/path/to/merged.json    ] [Browse…]
 
-☑ Duplikate entfernen
+☑ Remove duplicates
 
-         [Zusammenführen]
+         [Merge]
 ```
 
 ---
 
-## Testdata Generator: Testdaten erstellen
+## Testdata Generator: creating test data
 
-Der Testdata Generator erzeugt künstliche Jira-Daten, die dem echten
-Jira-Format entsprechen. Die erzeugten Dateien können direkt mit
-Transform Data und Build Reports verarbeitet werden.
+The Testdata Generator produces synthetic Jira data that matches the real
+Jira format. The generated files can be processed directly with Transform
+Data and Build Reports.
 
-> **📖 Erklärung — wofür ist das nützlich?**
-> Man kann SituationReport ausprobieren, ohne echte Projektdaten zu
-> benötigen. Auch für Schulungen, Demonstrationen oder das Testen neuer
-> Funktionen ist der Testdata Generator nützlich. Die generierten Daten
-> sehen realistisch aus: Es gibt Aufgaben, die schnell fertig wurden,
-> andere die sehr lange dauerten, manche die noch offen sind — genauso
-> wie in einem echten Projekt.
+> **📖 Explanation — what is this useful for?**
+> You can try out SituationReport without needing real project data. The
+> Testdata Generator is also useful for training, demonstrations or testing
+> new functionality. The generated data looks realistic: there are tasks
+> that finished quickly, others that took very long, some that are still
+> open — just like in a real project.
 
-### Konfigurierbare Parameter
+### Configurable parameters
 
-| Parameter | Bedeutung |
-|-----------|-----------|
-| Workflow-Datei | Welche Stationen sollen die Aufgaben durchlaufen? |
-| Projekt-Key | Wie sollen die Aufgaben-IDs heißen (z. B. „DEMO-1", „DEMO-2"…)? |
-| Anzahl Aufgaben | Wie viele Aufgaben sollen erzeugt werden? |
-| Datum-Bereich | Zwischen welchen Daten sollen die Aufgaben entstanden sein? |
-| Aufgabentypen | Welcher Anteil soll Feature, Bug, Enabler usw. sein? |
-| Abschlussrate | Welcher Prozentsatz der Aufgaben soll bereits abgeschlossen sein? |
-| Rückschritt-Wahrscheinlichkeit | Wie oft soll eine Aufgabe zurück zu einer früheren Station springen? |
-| Seed | Eine Zahl, mit der immer exakt dieselben Daten erzeugt werden (für reproduzierbare Tests) |
-| Mittlere Cycle-Time | Durchschnittliche Durchlaufzeit in Tagen (lognormalverteilt) |
-| Standardabweichung | Streuung der Cycle-Time |
-| Flow-Muster | Welches Antipattern soll simuliert werden? (Triangle, Flat Triangle, Cluster, Batch) |
-| PI-Zyklus-Länge | Länge eines Program Increments in Wochen (für Cluster/Batch-Muster) |
+| Parameter | Meaning |
+|-----------|---------|
+| Workflow file | Which stages should the tasks go through? |
+| Project key | What should the task IDs be called (e.g. "DEMO-1", "DEMO-2"…)? |
+| Number of tasks | How many tasks should be generated? |
+| Date range | Between which dates should the tasks have been created? |
+| Issue types | What share should be Feature, Bug, Enabler etc.? |
+| Completion rate | What percentage of tasks should already be completed? |
+| Backflow probability | How often should a task jump back to an earlier stage? |
+| Seed | A number that always produces exactly the same data (for reproducible tests) |
+| Mean cycle time | Average lead time in days (lognormally distributed) |
+| Standard deviation | Spread of the cycle time |
+| Flow pattern | Which anti-pattern should be simulated? (Triangle, Flat Triangle, Cluster, Batch) |
+| PI cycle length | Length of a Program Increment in weeks (for cluster/batch patterns) |
 
-> **📖 Erklärung zum Seed:**
-> Normalerweise sind die erzeugten Daten zufällig. Mit einem Seed
-> (einer beliebigen Zahl, z. B. „42") wird die Zufälligkeit festgelegt:
-> Wer denselben Seed verwendet, erhält immer exakt dieselben Daten.
-> Das ist nützlich, wenn man sicherstellen möchte, dass ein Test immer
-> mit den gleichen Daten läuft.
+> **📖 Explanation of the seed:**
+> Normally the generated data is random. With a seed (any number, e.g.
+> "42") the randomness is fixed: whoever uses the same seed always gets
+> exactly the same data. This is useful when you want to make sure that a
+> test always runs with the same data.
 
-### Flow-Antipattern-Muster (neu in v0.9.9)
+### Flow anti-pattern shapes (new in v0.9.9)
 
-Der Testdata Generator kann typische Probleme aus dem agilen Prozess-Monitoring simulieren:
+The Testdata Generator can simulate typical problems from agile process
+monitoring:
 
-| Muster | Was es zeigt | Wofür nützlich |
-|--------|-------------|----------------|
-| **Triangle** | Cycle-Time steigt kontinuierlich über die Zeit — das Team wird immer langsamer | Erkennen von schleichender Prozessverschlechterung |
-| **Flat Triangle** | Wie Triangle, aber der Anstieg verflacht am Ende | Zeigt einen Prozess, der sich stabilisiert aber auf hohem Niveau |
-| **Cluster of Dots** | Viele Lieferungen häufen sich kurz vor dem PI-Ende — in normaler Zeit | Zeigt Deadline-getriebenes Verhalten, Batching am PI-Ende |
-| **Batch Transfers** | Wie Cluster, aber mit sehr unterschiedlicher Cycle-Time | Zeigt, dass kurze und sehr lange Aufgaben gemeinsam am PI-Ende ausgeliefert werden |
+| Pattern | What it shows | What it is useful for |
+|---------|---------------|-----------------------|
+| **Triangle** | Cycle time rises continuously over time — the team gets slower and slower | Detecting gradual process degradation |
+| **Flat Triangle** | Like Triangle, but the increase flattens towards the end | Shows a process that stabilises but at a high level |
+| **Cluster of Dots** | Many deliveries cluster just before the PI end — in normal time | Shows deadline-driven behaviour, batching at the PI end |
+| **Batch Transfers** | Like Cluster, but with very different cycle times | Shows that short and very long tasks are delivered together at the PI end |
 
-> **📖 Erklärung zu Flow-Antipatterns:**
-> Daniel Vacanti und Prateek Singh haben typische Muster beschrieben, die
-> auf Probleme im agilen Prozess hinweisen. Das Triangle-Muster bedeutet:
-> Mit der Zeit dauert jede Aufgabe länger — ein Zeichen, dass der Prozess
-> überlastet wird. Das Cluster-Muster bedeutet: Das Team liefert nicht
-> gleichmäßig, sondern sammelt Aufgaben und schiebt sie kurz vor dem
-> PI-Ende durch — was zu unnötigem Stress und schlechterer Qualität führt.
+> **📖 Explanation of flow anti-patterns:**
+> Daniel Vacanti and Prateek Singh described typical patterns that indicate
+> problems in the agile process. The Triangle pattern means: over time
+> every task takes longer — a sign that the process is being overloaded.
+> The Cluster pattern means: the team does not deliver evenly but collects
+> tasks and pushes them through just before the PI end — which leads to
+> unnecessary stress and lower quality.
 
----
+### Direct report (new in v0.12.0)
 
-## Geplante Module (noch nicht verfügbar)
-
-### Get Data — Direkter Jira-Abruf
-
-Dieses Modul ist noch in Planung. Es soll Daten direkt über die Jira-REST-API
-abrufen — ohne manuellen Export.
-
-> **📖 Erklärung:**
-> Aktuell muss man Daten manuell aus Jira exportieren (als Datei
-> herunterladen). Wenn Get Data fertig ist, kann SituationReport die
-> Daten selbst aus Jira laden — man gibt nur ein, welches Projekt man
-> auswerten möchte, und das Programm holt sich die Daten automatisch.
-
-**Workaround bis zur Fertigstellung:** Jira-Daten manuell exportieren,
-bei Bedarf mit dem Helper zusammenführen, dann mit Transform Data
-verarbeiten.
-
-### Simulate — Prognosen und Vorhersagen
-
-Dieses Modul ist noch in Planung. Es soll auf Basis historischer Daten
-Vorhersagen ermöglichen — zum Beispiel: „Wann werden wir mit dieser
-Menge an Aufgaben voraussichtlich fertig sein?"
-
-> **📖 Erklärung:**
-> Mit historischen Daten (wie lange hat das Team bisher gebraucht?) kann
-> man mit statistischen Methoden Vorhersagen treffen. Zum Beispiel:
-> „Wir haben noch 20 Aufgaben offen. Wenn wir historisch 3 pro Woche
-> abschließen, sind wir in 7 Wochen fertig — mit 85 % Wahrscheinlichkeit
-> sogar in 9 Wochen." Diese Vorhersagen sind ehrlicher als klassische
-> Schätzungen, weil sie auf echten Messdaten beruhen.
+After a successful generation, the **"Create Report"** button becomes
+active in the GUI. One click runs Transform Data and Build Reports directly
+and opens a combined report (a single HTML page with all metrics) in the
+browser, covering the entire generated date range — no date filter needed.
 
 ---
 
-## Versionshistorie (Zusammenfassung)
+## Planned modules (not available yet)
 
-| Version | Datum | Wichtigste Neuerungen |
-|---------|-------|----------------------|
-| **0.9.9** | 13.05.2026 | Testdata Generator: Flow-Antipattern (Triangle, Flat Triangle, Cluster, Batch), lognormale Cycle-Time |
-| 0.9.8 | 09.05.2026 | Pixel-Flaggen-Buttons in allen GUIs |
-| 0.9.0 | 03.05.2026 | Helper-Modul (JSON Merger) |
-| 0.8.5 | 02.05.2026 | Testdata Generator, BETA-Badge für stabile Module |
-| 0.8.4 | 30.04.2026 | Handbücher auf Rumänisch, Portugiesisch, Französisch |
-| 0.8.3 | 30.04.2026 | Scrollbares Formular in Build Reports |
-| 0.8.1 | 30.04.2026 | Automatische Update-Benachrichtigung im Launcher |
-| 0.8.0 | 30.04.2026 | Launcher-GUI, Doppelklick-Startskripte |
-| 0.7.0 | 30.04.2026 | Process Flow Metrik, CI/CD Release-Workflow |
-| 0.5.0 | 26.04.2026 | Process Flow Diagramm |
-| 0.4.0 | 26.04.2026 | Zweisprachige GUIs (DE/EN) |
-| 0.2.0 | 25.04.2026 | Erste offizielle SemVer-Version |
+### Get Data — direct Jira retrieval
 
-> **📖 Erklärung zur Versionsnummer:**
-> SituationReport verwendet semantische Versionierung: `MAJOR.MINOR.PATCH`.
-> - **PATCH** (letzte Zahl): kleiner Bugfix
-> - **MINOR** (mittlere Zahl): neue Funktion, rückwärtskompatibel
-> - **MAJOR** (erste Zahl): grundlegende Änderung, Kompatibilität nicht garantiert
-> Version 1.0.0 wird vergeben, wenn das Projekt als vollständig stabil gilt.
+This module is still being planned. It is intended to fetch data directly
+via the Jira REST API — without a manual export.
+
+> **📖 Explanation:**
+> Currently you have to export data manually from Jira (download it as a
+> file). Once Get Data is finished, SituationReport can fetch the data from
+> Jira itself — you only enter which project you want to analyse and the
+> program retrieves the data automatically.
+
+**Workaround until it is finished:** Export Jira data manually, merge with
+the Helper if needed, then process with Transform Data.
+
+### Simulate — forecasts and predictions
+
+This module is still being planned. Based on historical data it is intended
+to enable forecasts — for example: "When will we likely be finished with
+this amount of tasks?"
+
+> **📖 Explanation:**
+> With historical data (how long has the team needed so far?) you can make
+> predictions using statistical methods. For example: "We still have 20
+> tasks open. If we historically complete 3 per week, we will be done in 7
+> weeks — with 85% probability even within 9 weeks." These forecasts are
+> more honest than classic estimates because they are based on real
+> measurement data.
 
 ---
 
-## Technische Hinweise
+## Version history (summary)
 
-> **📖 Erklärung:**
-> Dieser Abschnitt richtet sich an Personen mit technischem Hintergrund,
-> die mehr über den Aufbau der Software wissen möchten.
+| Version | Date | Key changes |
+|---------|------|-------------|
+| **0.13.0** | 2026-05-17 | English as the default language (docs site, changelog, GUI default) |
+| 0.12.1 | 2026-05-17 | Testdata Generator promoted from Alpha to Beta |
+| 0.12.0 | 2026-05-17 | Testdata Generator: direct combined report in the browser |
+| 0.11.0 | 2026-05-16 | Shared project template for all GUI modules |
+| 0.9.9 | 2026-05-13 | Testdata Generator: flow anti-patterns (Triangle, Flat Triangle, Cluster, Batch), lognormal cycle time |
+| 0.9.8 | 2026-05-09 | Pixel flag buttons in all GUIs |
+| 0.9.0 | 2026-05-03 | Helper module (JSON Merger) |
+| 0.8.5 | 2026-05-02 | Testdata Generator, BETA badge for stable modules |
+| 0.8.4 | 2026-04-30 | Manuals in Romanian, Portuguese, French |
+| 0.8.3 | 2026-04-30 | Scrollable form in Build Reports |
+| 0.8.1 | 2026-04-30 | Automatic update notification in the launcher |
+| 0.8.0 | 2026-04-30 | Launcher GUI, double-click start scripts |
+| 0.7.0 | 2026-04-30 | Process Flow metric, CI/CD release workflow |
+| 0.5.0 | 2026-04-26 | Process Flow chart |
+| 0.4.0 | 2026-04-26 | Bilingual GUIs (DE/EN) |
+| 0.2.0 | 2026-04-25 | First official SemVer version |
 
-SituationReport ist als **Monorepo** aufgebaut: Alle Module befinden sich
-in einem einzigen Code-Repository, können aber unabhängig voneinander
-verwendet werden.
+> **📖 Explanation of the version number:**
+> SituationReport uses semantic versioning: `MAJOR.MINOR.PATCH`.
+> - **PATCH** (last number): small bug fix
+> - **MINOR** (middle number): new feature, backwards-compatible
+> - **MAJOR** (first number): fundamental change, compatibility not guaranteed
+> Version 1.0.0 will be assigned when the project is considered fully stable.
+
+---
+
+## Technical notes
+
+> **📖 Explanation:**
+> This section is aimed at people with a technical background who want to
+> know more about how the software is structured.
+
+SituationReport is built as a **monorepo**: all modules live in a single
+code repository but can be used independently of each other.
 
 ```
 situation-report/
-├── launcher/           → Startfenster
-├── transform_data/     → Datenaufbereitung
-├── build_reports/      → Berichts-Generierung
-├── testdata_generator/ → Testdaten-Erzeugung
-├── helper/             → Hilfswerkzeuge
-├── get_data/           → (geplant)
-└── simulate/           → (geplant)
+├── launcher/           → start window
+├── transform_data/     → data preparation
+├── build_reports/      → report generation
+├── testdata_generator/ → test-data generation
+├── helper/             → helper tools
+├── get_data/           → (planned)
+└── simulate/           → (planned)
 ```
 
-- **Sprache:** Python
-- **GUI-Framework:** tkinter
-- **Diagramme:** Plotly
-- **Tests:** pytest (ca. 650+ Tests, Stand v0.9.9)
-- **CI/CD:** GitHub Actions (automatische Builds für Windows, macOS, Linux)
-- **Lizenz:** BSD-3-Clause
+- **Language:** Python
+- **GUI framework:** tkinter
+- **Charts:** Plotly
+- **Tests:** pytest (approx. 750+ tests, as of v0.13.0)
+- **CI/CD:** GitHub Actions (automatic builds for Windows, macOS, Linux)
+- **License:** BSD-3-Clause
 
 ---
 
-*Dieses Dokument wurde automatisch aus den Quell-Dokumentationen des
-Projekts erstellt und für Nicht-Techniker aufbereitet (03.05.2026).*
+*This document was created from the project's source documentation and
+adapted for non-technical readers (updated 2026-05-17).*
