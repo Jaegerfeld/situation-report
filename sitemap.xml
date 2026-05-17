@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
+    <url>
+        <loc>https://jaegerfeld.github.io/situation-report/</loc>
+        <lastmod>2026-05-17</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://jaegerfeld.github.io/situation-report/"/>
+        <xhtml:link rel="alternate" hreflang="de" href="https://jaegerfeld.github.io/situation-report/de/"/>
+    </url>
+    <url>
+        <loc>https://jaegerfeld.github.io/situation-report/architecture/</loc>
+        <lastmod>2026-05-17</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://jaegerfeld.github.io/situation-report/architecture/"/>
+        <xhtml:link rel="alternate" hreflang="de" href="https://jaegerfeld.github.io/situation-report/de/architecture/"/>
+    </url>
+    <url>
+        <loc>https://jaegerfeld.github.io/situation-report/development/</loc>
+        <lastmod>2026-05-17</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://jaegerfeld.github.io/situation-report/development/"/>
+        <xhtml:link rel="alternate" hreflang="de" href="https://jaegerfeld.github.io/situation-report/de/development/"/>
+    </url>
+    <url>
+        <loc>https://jaegerfeld.github.io/situation-report/releases/</loc>
+        <lastmod>2026-05-17</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://jaegerfeld.github.io/situation-report/releases/"/>
+        <xhtml:link rel="alternate" hreflang="de" href="https://jaegerfeld.github.io/situation-report/de/releases/"/>
+    </url>
+    <url>
+        <loc>https://jaegerfeld.github.io/situation-report/modules/</loc>
+        <lastmod>2026-05-17</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://jaegerfeld.github.io/situation-report/modules/"/>
+        <xhtml:link rel="alternate" hreflang="de" href="https://jaegerfeld.github.io/situation-report/de/modules/"/>
+    </url>
+    <url>
+        <loc>https://jaegerfeld.github.io/situation-report/modules/build_reports/</loc>
+        <lastmod>2026-05-17</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://jaegerfeld.github.io/situation-report/modules/build_reports/"/>
+        <xhtml:link rel="alternate" hreflang="de" href="https://jaegerfeld.github.io/situation-report/de/modules/build_reports/"/>
+    </url>
+    <url>
+        <loc>https://jaegerfeld.github.io/situation-report/modules/get_data/</loc>
+        <lastmod>2026-05-17</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://jaegerfeld.github.io/situation-report/modules/get_data/"/>
+        <xhtml:link rel="alternate" hreflang="de" href="https://jaegerfeld.github.io/situation-report/de/modules/get_data/"/>
+    </url>
+    <url>
+        <loc>https://jaegerfeld.github.io/situation-report/modules/helper/</loc>
+        <lastmod>2026-05-17</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://jaegerfeld.github.io/situation-report/modules/helper/"/>
+        <xhtml:link rel="alternate" hreflang="de" href="https://jaegerfeld.github.io/situation-report/de/modules/helper/"/>
+    </url>
+    <url>
+        <loc>https://jaegerfeld.github.io/situation-report/modules/launcher/</loc>
+        <lastmod>2026-05-17</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://jaegerfeld.github.io/situation-report/modules/launcher/"/>
+        <xhtml:link rel="alternate" hreflang="de" href="https://jaegerfeld.github.io/situation-report/de/modules/launcher/"/>
+    </url>
+    <url>
+        <loc>https://jaegerfeld.github.io/situation-report/modules/simulate/</loc>
+        <lastmod>2026-05-17</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://jaegerfeld.github.io/situation-report/modules/simulate/"/>
+        <xhtml:link rel="alternate" hreflang="de" href="https://jaegerfeld.github.io/situation-report/de/modules/simulate/"/>
+    </url>
+    <url>
+        <loc>https://jaegerfeld.github.io/situation-report/modules/testdata_generator/</loc>
+        <lastmod>2026-05-17</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://jaegerfeld.github.io/situation-report/modules/testdata_generator/"/>
+        <xhtml:link rel="alternate" hreflang="de" href="https://jaegerfeld.github.io/situation-report/de/modules/testdata_generator/"/>
+    </url>
+    <url>
+        <loc>https://jaegerfeld.github.io/situation-report/modules/transform_data/</loc>
+        <lastmod>2026-05-17</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://jaegerfeld.github.io/situation-report/modules/transform_data/"/>
+        <xhtml:link rel="alternate" hreflang="de" href="https://jaegerfeld.github.io/situation-report/de/modules/transform_data/"/>
+    </url>
+    <url>
+        <loc>https://jaegerfeld.github.io/situation-report/de/</loc>
+        <lastmod>2026-05-17</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="de" href="https://jaegerfeld.github.io/situation-report/de/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://jaegerfeld.github.io/situation-report/"/>
+    </url>
+    <url>
+        <loc>https://jaegerfeld.github.io/situation-report/de/architecture/</loc>
+        <lastmod>2026-05-17</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="de" href="https://jaegerfeld.github.io/situation-report/de/architecture/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://jaegerfeld.github.io/situation-report/architecture/"/>
+    </url>
+    <url>
+        <loc>https://jaegerfeld.github.io/situation-report/de/development/</loc>
+        <lastmod>2026-05-17</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="de" href="https://jaegerfeld.github.io/situation-report/de/development/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://jaegerfeld.github.io/situation-report/development/"/>
+    </url>
+    <url>
+        <loc>https://jaegerfeld.github.io/situation-report/de/releases/</loc>
+        <lastmod>2026-05-17</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="de" href="https://jaegerfeld.github.io/situation-report/de/releases/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://jaegerfeld.github.io/situation-report/releases/"/>
+    </url>
+    <url>
+        <loc>https://jaegerfeld.github.io/situation-report/de/modules/</loc>
+        <lastmod>2026-05-17</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="de" href="https://jaegerfeld.github.io/situation-report/de/modules/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://jaegerfeld.github.io/situation-report/modules/"/>
+    </url>
+    <url>
+        <loc>https://jaegerfeld.github.io/situation-report/de/modules/build_reports/</loc>
+        <lastmod>2026-05-17</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="de" href="https://jaegerfeld.github.io/situation-report/de/modules/build_reports/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://jaegerfeld.github.io/situation-report/modules/build_reports/"/>
+    </url>
+    <url>
+        <loc>https://jaegerfeld.github.io/situation-report/de/modules/get_data/</loc>
+        <lastmod>2026-05-17</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="de" href="https://jaegerfeld.github.io/situation-report/de/modules/get_data/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://jaegerfeld.github.io/situation-report/modules/get_data/"/>
+    </url>
+    <url>
+        <loc>https://jaegerfeld.github.io/situation-report/de/modules/helper/</loc>
+        <lastmod>2026-05-17</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="de" href="https://jaegerfeld.github.io/situation-report/de/modules/helper/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://jaegerfeld.github.io/situation-report/modules/helper/"/>
+    </url>
+    <url>
+        <loc>https://jaegerfeld.github.io/situation-report/de/modules/launcher/</loc>
+        <lastmod>2026-05-17</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="de" href="https://jaegerfeld.github.io/situation-report/de/modules/launcher/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://jaegerfeld.github.io/situation-report/modules/launcher/"/>
+    </url>
+    <url>
+        <loc>https://jaegerfeld.github.io/situation-report/de/modules/simulate/</loc>
+        <lastmod>2026-05-17</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="de" href="https://jaegerfeld.github.io/situation-report/de/modules/simulate/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://jaegerfeld.github.io/situation-report/modules/simulate/"/>
+    </url>
+    <url>
+        <loc>https://jaegerfeld.github.io/situation-report/de/modules/testdata_generator/</loc>
+        <lastmod>2026-05-17</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="de" href="https://jaegerfeld.github.io/situation-report/de/modules/testdata_generator/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://jaegerfeld.github.io/situation-report/modules/testdata_generator/"/>
+    </url>
+    <url>
+        <loc>https://jaegerfeld.github.io/situation-report/de/modules/transform_data/</loc>
+        <lastmod>2026-05-17</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="de" href="https://jaegerfeld.github.io/situation-report/de/modules/transform_data/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://jaegerfeld.github.io/situation-report/modules/transform_data/"/>
+    </url>
+</urlset>
