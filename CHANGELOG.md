@@ -1,7 +1,7 @@
 # Changelog
 
-Alle wesentlichen Änderungen an diesem Projekt werden in dieser Datei dokumentiert.
-Das Format orientiert sich an [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
+All notable changes to this project are documented in this file.
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
@@ -12,324 +12,337 @@ Das Format orientiert sich an [Keep a Changelog](https://keepachangelog.com/de/1
 ## [0.12.0] – 2026-05-17
 
 ### Added
-- `testdata_generator`: Button **„Report erstellen"** in der GUI. Nach
-  erfolgreicher Generierung wird der Button aktiv; ein Klick führt
-  `transform_data` und `build_reports` in-process aus und öffnet einen
-  kombinierten Report (eine HTML-Seite, alle Metriken) im Browser. Der Report
-  deckt den **gesamten generierten Zeitraum** ab (kein Datumsfilter).
-- `build_reports.cli.render_combined_html(...)`: liefert alle Metriken als
-  einzelne, in sich geschlossene HTML-Seite (Wiederverwendung von
-  `_build_combined_html`, jetzt in `build_reports/export.py`).
+- `testdata_generator`: **"Create Report"** button in the GUI. After a
+  successful generation the button becomes active; clicking it runs
+  `transform_data` and `build_reports` in-process and opens a combined
+  report (a single HTML page, all metrics) in the browser. The report
+  covers the **entire generated date range** (no date filter).
+- `build_reports.cli.render_combined_html(...)`: returns all metrics as a
+  single, self-contained HTML page (reuses `_build_combined_html`, now in
+  `build_reports/export.py`).
 
 ---
 
 ## [0.11.0] – 2026-05-16
 
 ### Added
-- Gemeinsames **Projekt-Template** für alle GUI-Module (`build_reports`,
-  `transform_data`, `testdata_generator`, `helper`). Eine einzige JSON-Datei
-  hält je einen Abschnitt pro Modul, sodass die Pipeline-Konfiguration
-  (Workflow, Pfade, Projekt, Zeitraum) einmal gespeichert und in jedem
-  Modul-GUI über das Menü **Templates → Speichern/Laden** wiederverwendet
-  werden kann. Beim Speichern aus einem Modul bleiben die Abschnitte der
-  anderen Module erhalten.
-- Schema v5 (`project_template.py`). Ältere `build_reports`-Templates
-  (Schema v4, flache Struktur) werden weiterhin gelesen und transparent als
-  `build_reports`-Abschnitt interpretiert.
+- Shared **project template** for all GUI modules (`build_reports`,
+  `transform_data`, `testdata_generator`, `helper`). A single JSON file
+  holds one section per module, so the pipeline configuration (workflow,
+  paths, project, date range) can be saved once and reused in every module
+  GUI via the **Templates → Save/Load** menu. Saving from one module
+  preserves the other modules' sections.
+- Schema v5 (`project_template.py`). Older `build_reports` templates
+  (schema v4, flat structure) are still read and transparently interpreted
+  as the `build_reports` section.
 
 ---
 
 ## [0.9.9] – 2026-05-13
 
 ### Added
-- `testdata_generator`: Vier Flow-Antipattern-Muster aus Vacanti/Singh simulierbar:
-  **Triangle** (Cycle-Time steigt linear über Zeit), **Flat Triangle** (Anstieg
-  verflacht via tanh), **Cluster of Dots** (Lieferungen häufen sich in den letzten
-  2 Wochen jedes PI, Beta-Verteilung), **Batch Transfers** (PI-Clustering mit stark
-  variierender Cycle-Time). Muster wählbar per Radiobuttons in der GUI oder
-  `--pattern` auf der Kommandozeile.
-- `testdata_generator`: Lognormale Cycle-Time-Steuerung über Mittelwert und
-  Standardabweichung (`--mean-cycle-days`, `--std-cycle-days`; GUI: Eingabefelder
-  + Schieberegler). Ersetzt das bisherige min/max-Dwell-Verhalten wenn angegeben.
-- `testdata_generator`: PI-Zyklus-Länge konfigurierbar (`--pi-duration-weeks`,
-  Standard 12 Wochen) für Cluster- und Batch-Muster.
+- `testdata_generator`: Four flow anti-pattern shapes from Vacanti/Singh can
+  be simulated: **Triangle** (cycle time increases linearly over time),
+  **Flat Triangle** (the increase flattens via tanh), **Cluster of Dots**
+  (deliveries cluster in the last 2 weeks of each PI, Beta distribution),
+  **Batch Transfers** (PI clustering with highly variable cycle time).
+  Shape selectable via radio buttons in the GUI or `--pattern` on the
+  command line.
+- `testdata_generator`: Lognormal cycle-time control via mean and standard
+  deviation (`--mean-cycle-days`, `--std-cycle-days`; GUI: input fields +
+  sliders). Replaces the previous min/max dwell behaviour when specified.
+- `testdata_generator`: PI cycle length configurable
+  (`--pi-duration-weeks`, default 12 weeks) for cluster and batch shapes.
 
 ### Fixed
-- `testdata_generator`: Im Muster-Modus wurden alle Issues als abgeschlossen
-  generiert (0 offene Issues). Ursache: `completion_rate` wurde intern doppelt
-  gewürfelt. Fix: Abschluss wird in `generate()` vorab ausgewürfelt und als
-  `_prerolled_incomplete`-Flag an `_simulate_issue` übergeben.
-- `transform_data`, `build_reports`: `openpyxl` schrieb Excel-Dateien über
-  temporäre Datei + Umbenennung — bei aktiven OneDrive-Synchronisierungssperren
-  schlug dies mit `[Errno 22] Invalid argument` fehl. Fix: BytesIO-Buffer +
-  `path.write_bytes()` umgeht den problematischen Rename-Schritt.
+- `testdata_generator`: In shape mode all issues were generated as completed
+  (0 open issues). Cause: `completion_rate` was rolled twice internally.
+  Fix: completion is pre-rolled in `generate()` and passed to
+  `_simulate_issue` as the `_prerolled_incomplete` flag.
+- `transform_data`, `build_reports`: `openpyxl` wrote Excel files via a
+  temporary file + rename — with active OneDrive sync locks this failed
+  with `[Errno 22] Invalid argument`. Fix: a BytesIO buffer +
+  `path.write_bytes()` bypasses the problematic rename step.
 
 ---
 
 ## [0.9.8] – 2026-05-09
 
 ### Changed
-- `transform_data`, `testdata_generator`, `helper`: Emoji-Flaggen-Kaskade im Menü
-  durch pixel-gezeichnete `PhotoImage`-Flaggen-Buttons ersetzt (32×20 px, inline,
-  keine externen Dateien). Windows rendert Regional-Indicator-Emoji nicht als
-  Flaggen — sie erschienen als Länderkürzel ("DE", "EN"). Neues Verhalten:
-  Klick auf die Flagge oben rechts im Formular zykliert durch DE/EN/RO/PT/FR.
-  Entspricht jetzt dem `build_reports`-Standard.
+- `transform_data`, `testdata_generator`, `helper`: Replaced the emoji-flag
+  cascade in the menu with pixel-drawn `PhotoImage` flag buttons (32×20 px,
+  inline, no external files). Windows does not render regional-indicator
+  emoji as flags — they appeared as country codes ("DE", "EN"). New
+  behaviour: clicking the flag at the top right of the form cycles through
+  DE/EN/RO/PT/FR. Now matches the `build_reports` standard.
 
 ---
 
 ## [0.9.7] – 2026-05-09
 
 ### Changed
-- `testdata_generator`, `helper`: GUI-Sprachauswahl und Handbuch-Aufruf vereinheitlicht.
-  Beide Module folgen jetzt dem `build_reports`/`transform_data`-Standard:
-  5 Sprachen (DE/EN/RO/PT/FR), persistierte Sprachauswahl (`prefs.json`),
-  `Hilfe → Manual`-Menüeintrag, Flaggen-Kaskade als Sprachumschalter.
-  `helper` hat erstmals einen Manual-Menüeintrag (URL folgt mit PDF-Erstellung).
+- `testdata_generator`, `helper`: Unified GUI language selection and manual
+  access. Both modules now follow the `build_reports`/`transform_data`
+  standard: 5 languages (DE/EN/RO/PT/FR), persisted language selection
+  (`prefs.json`), `Help → Manual` menu entry, flag cascade as language
+  switcher. `helper` has a manual menu entry for the first time (URL to
+  follow once the PDF is created).
 
 ---
 
 ## [0.9.6] – 2026-05-08
 
 ### Changed
-- `get_data`: Benutzerhandbuch Abschnitte 1.3 und 1.5 auf aktuelle Jira Cloud API v3
-  aktualisiert. Die neue API (`POST /rest/api/3/search/jql`) verwendet cursor-basierte
-  Paginierung mit `nextPageToken` statt `startAt`. Beide Varianten werden erklärt:
-  v3 (neu, empfohlen) und v2 (Legacy, weiterhin unterstützt). `startAt` ist im
-  neuen v3-Endpunkt nicht mehr verfügbar.
+- `get_data`: User manual sections 1.3 and 1.5 updated to the current Jira
+  Cloud API v3. The new API (`POST /rest/api/3/search/jql`) uses
+  cursor-based pagination with `nextPageToken` instead of `startAt`. Both
+  variants are explained: v3 (new, recommended) and v2 (legacy, still
+  supported). `startAt` is no longer available in the new v3 endpoint.
 
 ---
 
 ## [0.9.5] – 2026-05-08
 
 ### Added
-- `get_data`: Neues Benutzerhandbuch (DE + EN) — beschreibt den manuellen Export
-  echter Jira-Daten über die REST API: API-Token erstellen, curl-Abfragen,
-  benötigte Felder, Paginierung bei mehr als 1.000 Issues, Workflow-Datei ableiten.
-- `launcher`: „Handbuch öffnen"-Button im Get-Data-Workaround-Dialog — öffnet das
-  neue get_data-Benutzerhandbuch direkt im Browser (DE/EN sprachabhängig).
+- `get_data`: New user manual (DE + EN) — describes the manual export of
+  real Jira data via the REST API: creating an API token, curl queries,
+  required fields, pagination beyond 1,000 issues, deriving the workflow
+  file.
+- `launcher`: "Open manual" button in the Get-Data workaround dialog —
+  opens the new get_data user manual directly in the browser (DE/EN
+  depending on language).
 
 ### Changed
-- `testdata_generator`: Kapitel 6 (Jira Cloud Export) aus dem Benutzerhandbuch
-  ausgelagert — der Inhalt gehört inhaltlich zu `get_data`. Das Handbuch hat
-  jetzt 7 Kapitel; Querverweise zeigen auf das neue Get-Data-Handbuch.
-- `modules/get_data`: Modul-Dokumentation mit Workaround-Schritten und Links
-  zum neuen Benutzerhandbuch aktualisiert.
+- `testdata_generator`: Chapter 6 (Jira Cloud export) removed from the user
+  manual — the content belongs to `get_data`. The manual now has 7
+  chapters; cross-references point to the new Get-Data manual.
+- `modules/get_data`: Module documentation updated with workaround steps and
+  links to the new user manual.
 
 ---
 
 ## [0.9.4] – 2026-05-07
 
 ### Fixed
-- `build_reports`: Flow Time Methode B berechnete Cycle Time fälschlicherweise zu hoch,
-  wenn `closed_stage` nicht die letzte Stage im Workflow ist (z. B. ART-Workflows mit
-  „Completed" als Closed-Stage und „Done" als letzter Stage). Ursache: der Carry-forward
-  der Closed-Stage (Zeit seit Eintritt in Closed bis heute) wurde in die Stage-Minuten-Summe
-  eingerechnet und erzeugte eine Gerade von links-oben nach rechts-unten im Scatter-Plot.
-  Fix: `_cycle_days_method_b` summiert jetzt nur Stages bis ausschließlich der Closed-Stage.
-- `testdata_generator`: Completed Issues wurden gleichmäßig über `[from_date, to_date]`
-  erstellt; späte Erstellungsdaten führten dazu, dass Issues nach `to_date` abschlossen
-  und im Scatter-Plot gefilter wurden (Right-Censoring-Artefakt). Fix: Erstellungsdatum
-  für Completed Issues auf `[from_date, latest_start]` beschränkt, wobei `latest_start`
-  genug Puffer für die maximale Cycle-Time lässt.
+- `build_reports`: Flow Time method B computed cycle time incorrectly too
+  high when `closed_stage` is not the last stage in the workflow (e.g. ART
+  workflows with "Completed" as the closed stage and "Done" as the last
+  stage). Cause: the carry-forward of the closed stage (time since entering
+  Closed until today) was included in the stage-minutes sum and produced a
+  straight line from top-left to bottom-right in the scatter plot. Fix:
+  `_cycle_days_method_b` now sums only stages up to but excluding the
+  closed stage.
+- `testdata_generator`: Completed issues were created uniformly across
+  `[from_date, to_date]`; late creation dates caused issues to close after
+  `to_date` and be filtered from the scatter plot (right-censoring
+  artefact). Fix: creation date for completed issues restricted to
+  `[from_date, latest_start]`, where `latest_start` leaves enough buffer
+  for the maximum cycle time.
 
 ---
 
 ## [0.9.3] – 2026-05-04
 
 ### Added
-- `testdata_generator`: Benutzerhandbücher (DE + EN) als PDF — 8 Kapitel inkl.
-  vollständigem Jira-Cloud-Export-Guide (API-Token, curl, Paginierung, JSON-Merger)
-  und ART_A-Durchlaufbeispiel. `generate_testdata_generator_manual.py` als
-  ReportLab-Skript für Reproduzierbarkeit.
-- `testdata_generator` GUI: Menüeintrag „Benutzerhandbuch öffnen" (DE/EN)
+- `testdata_generator`: User manuals (DE + EN) as PDF — 8 chapters
+  including a complete Jira Cloud export guide (API token, curl,
+  pagination, JSON merger) and an ART_A walkthrough example.
+  `generate_testdata_generator_manual.py` as a ReportLab script for
+  reproducibility.
+- `testdata_generator` GUI: "Open user manual" menu entry (DE/EN)
 
 ### Fixed
-- CI: Coverage-Badge wird jetzt automatisch per PR aktualisiert statt direkt
-  auf main zu pushen (branch protection umgeht direkten Push).
-  `coverage.yml` erstellt einen temporären Branch + Auto-Merge-PR.
+- CI: The coverage badge is now updated automatically via PR instead of
+  pushing directly to main (branch protection blocks direct push).
+  `coverage.yml` creates a temporary branch + auto-merge PR.
 
 ### Changed
-- Alle Handbücher (launcher 5×, transform_data 2×, build_reports 2×) auf
-  Version 0.9.3 neu generiert.
+- All manuals (launcher 5×, transform_data 2×, build_reports 2×)
+  regenerated for version 0.9.3.
 
 ---
 
 ## [0.9.2] – 2026-05-03
 
 ### Added
-- `launcher`: Get-Data-Karte zeigt jetzt einen **Anleitung**-Button statt nur
-  "(bald verfügbar)". Öffnet einen Dialog mit 3-Schritt-Workaround:
-  Jira-JSON exportieren → Helper → Transform Data. Alle 5 Sprachen.
+- `launcher`: The Get-Data card now shows a **How to** button instead of
+  just "(coming soon)". Opens a dialog with the 3-step workaround: export
+  Jira JSON → Helper → Transform Data. All 5 languages.
 
 ---
 
 ## [0.9.1] – 2026-05-03
 
 ### Fixed
-- Windows: BAT-Startdateien zeigen jetzt eine klare deutsche Fehlermeldung mit
-  3-Schritt-Lösung, wenn das eingebettete `python.exe` von Windows Defender
-  blockiert wird (Mark-of-the-Web bei ZIP-Downloads aus dem Internet).
-  Vorher erschien die kryptische Microsoft-Store-Python-Meldung.
-- `release.yml`: Synchronisiert mit `dev-build.yml` — `helper` und
-  `testdata_generator` nun auch in offiziellen Releases enthalten;
+- Windows: BAT start files now show a clear German error message with a
+  3-step solution when the embedded `python.exe` is blocked by Windows
+  Defender (Mark-of-the-Web on ZIP downloads from the internet). Previously
+  the cryptic Microsoft Store Python message appeared.
+- `release.yml`: Synced with `dev-build.yml` — `helper` and
+  `testdata_generator` are now also included in official releases;
   `TestdataGenerator.bat`, `Helper.bat`, `TestdataGenerator.sh/.command`,
-  `Helper.sh/.command` werden jetzt generiert.
+  `Helper.sh/.command` are now generated.
 
 ---
 
 ## [0.9.0] – 2026-05-03
 
 ### Added
-- `helper`: Neues Modul mit JSON-Merger-Tool — fügt mehrere Jira-REST-API-JSON-Dateien
-  zu einer einzigen zusammen. Deduplizierung nach Issue-ID (konfigurierbar).
-  Ausgabe direkt mit `transform_data` verarbeitbar. GUI + CLI + Doppelklick-Starter.
+- `helper`: New module with a JSON merger tool — merges multiple Jira REST
+  API JSON files into a single one. Deduplication by issue ID
+  (configurable). Output can be processed directly by `transform_data`.
+  GUI + CLI + double-click starter.
 
 ### Fixed
-- `helper`: Fehlende `_browse_output`-Methode ergänzt — Dateidialog zum Wählen der
-  Ausgabedatei war nicht aufrufbar (`AttributeError`).
+- `helper`: Added the missing `_browse_output` method — the file dialog for
+  choosing the output file could not be invoked (`AttributeError`).
 
 ### Changed
-- Docs: Feature-Übersicht und Prozess-PPTX auf v0.9.0 aktualisiert
+- Docs: Feature overview and process PPTX updated to v0.9.0
 
 ---
 
 ## [0.8.5] – 2026-05-02
 
 ### Added
-- `testdata_generator`: Neues Modul — erzeugt synthetische Jira-Issue-JSON-Dateien
-  im Jira-REST-API-Format. Konfigurierbar über GUI oder CLI (Workflow-Datei,
-  Projekt-Key, Issue-Anzahl, Datum-Bereich, Completion-Rate, Backflow-Prob., Seed).
-  Ausgabe ist direkt mit `transform_data` verarbeitbar.
+- `testdata_generator`: New module — generates synthetic Jira issue JSON
+  files in Jira REST API format. Configurable via GUI or CLI (workflow
+  file, project key, issue count, date range, completion rate, backflow
+  probability, seed). Output can be processed directly by `transform_data`.
 
 ### Changed
-- `launcher`: Globales App-Badge von **ALPHA** (rot) auf **BETA** (orange) angehoben,
-  da Kernmodule `build_reports` und `transform_data` Beta-Reife erreicht haben.
-- `launcher`: Jede Modulkarte zeigt jetzt ein eigenes Reifegrad-Badge:
-  `transform_data` und `build_reports` → **BETA** (orange),
-  `testdata_generator` → **ALPHA** (rot); geplante Module ohne Badge.
+- `launcher`: Global app badge raised from **ALPHA** (red) to **BETA**
+  (orange), since the core modules `build_reports` and `transform_data`
+  have reached beta maturity.
+- `launcher`: Each module card now shows its own maturity badge:
+  `transform_data` and `build_reports` → **BETA** (orange),
+  `testdata_generator` → **ALPHA** (red); planned modules without a badge.
 
 ### Fixed
-- `flow_load`: WIP-Zählung auf aktuelle Stage-Position umgestellt — `open_count`
-  stimmt jetzt mit Boxplot-Annotationen und IssueTimes überein (PR #62)
+- `flow_load`: WIP count switched to the current stage position —
+  `open_count` now matches boxplot annotations and IssueTimes (PR #62)
 
 ---
 
 ## [0.8.4] – 2026-04-30
 
 ### Added
-- `launcher`: Benutzerhandbücher in Rumänisch (RO), Portugiesisch (PT) und
-  Französisch (FR) — sprachspezifische PDF-URLs im Launcher (PR #55)
+- `launcher`: User manuals in Romanian (RO), Portuguese (PT) and French
+  (FR) — language-specific PDF URLs in the launcher (PR #55)
 
 ### Fixed
-- `build_reports`: Templates konnten nicht mehr geladen werden — globaler
-  MouseWheel-Handler durch Hover-basiertes Binding ersetzt;
-  alle Dateidialoge mit `parent=self` versehen (PR #56)
-- `flow_load`: Stage-Filter von `!= GROUP_DONE` auf explizite Allowlist
-  `in (GROUP_TODO, GROUP_IN_PROGRESS)` umgestellt; Kommentare ergänzt (PR #61)
+- `build_reports`: Templates could no longer be loaded — replaced the
+  global MouseWheel handler with hover-based binding; added `parent=self`
+  to all file dialogs (PR #56)
+- `flow_load`: Stage filter changed from `!= GROUP_DONE` to an explicit
+  allowlist `in (GROUP_TODO, GROUP_IN_PROGRESS)`; comments added (PR #61)
 
 ### Changed
-- Docs: Feature-Übersicht und Prozess-PPTX auf v0.8.4 aktualisiert (PR #58)
+- Docs: Feature overview and process PPTX updated to v0.8.4 (PR #58)
 
 ---
 
 ## [0.8.3] – 2026-04-30
 
 ### Fixed
-- `build_reports`: Scrollbares Formular damit der Log-Bereich auf FullHD
-  immer sichtbar bleibt (PR #53)
+- `build_reports`: Scrollable form so the log area stays visible on FullHD
+  (PR #53)
 
 ---
 
 ## [0.8.2] – 2026-04-30
 
 ### Fixed
-- Initiale Fensterhöhe wird auf Bildschirmgröße begrenzt (FullHD-Fix) (PR #52)
+- Initial window height capped to the screen size (FullHD fix) (PR #52)
 
 ---
 
 ## [0.8.1] – 2026-04-30
 
 ### Added
-- `launcher`: Hintergrund-Update-Check mit Benachrichtigungs-Banner (PR #51)
+- `launcher`: Background update check with a notification banner (PR #51)
 
 ---
 
 ## [0.8.0] – 2026-04-30
 
 ### Added
-- `launcher`: Zentrale Launcher-GUI (`python -m launcher`) zum Starten aller
-  Module mit Sprachauswahl, ALPHA-Badge und Handbuch-Button (PR #48)
-- Double-Click-Startskripte (`SituationReport.bat/.sh/.command`) im Projektstamm (PR #49)
+- `launcher`: Central launcher GUI (`python -m launcher`) to start all
+  modules with language selection, ALPHA badge and manual button (PR #48)
+- Double-click start scripts (`SituationReport.bat/.sh/.command`) in the
+  project root (PR #49)
 
 ### Fixed
-- Reihenfolge Transform Data / Build Reports im Launcher korrigiert (PR #50)
+- Corrected the order of Transform Data / Build Reports in the launcher
+  (PR #50)
 
 ---
 
 ## [0.7.0] – 2026-04-30
 
 ### Added
-- `build_reports`: Process Flow: Time Metrik — gerichteter Graph mit
-  durchschnittlicher Verweildauer je Übergang (PR #32)
-- CI/CD: GitHub-Actions Release-Workflow mit portablem Python-Paket für
-  Windows, macOS (ARM) und Linux; Flag-Sprachumschalter (PR #34)
-- Sprachen RO, PT, FR in allen GUIs (PR #43)
+- `build_reports`: Process Flow: Time metric — directed graph with average
+  dwell time per transition (PR #32)
+- CI/CD: GitHub Actions release workflow with a portable Python package for
+  Windows, macOS (ARM) and Linux; flag language switcher (PR #34)
+- Languages RO, PT, FR in all GUIs (PR #43)
 
 ### Fixed
-- Flow Load: To-Do-Issues und Done-Stages aus Boxplot ausgeblendet (PR #46)
-- CI: Portables Windows-Paket auf vollständige CI-Python-Kopie umgestellt (PR #41)
-- CI: macOS-Builds (PyInstaller-Fehler, Chrome-Ausschluss) (PR #35 – #37)
-- Startskripte umbenannt: `SituationReport.*` → `BuildReports.*` (PR #42)
+- Flow Load: To-Do issues and Done stages hidden from the boxplot (PR #46)
+- CI: Portable Windows package switched to a full CI Python copy (PR #41)
+- CI: macOS builds (PyInstaller error, Chrome exclusion) (PR #35 – #37)
+- Start scripts renamed: `SituationReport.*` → `BuildReports.*` (PR #42)
 
 ---
 
 ## [0.5.1] – 2026-04-26
 
 ### Fixed
-- `process_flow`: Created-Knoten in ersten Workflow-Stage zusammengeführt;
-  Label-Überlauf behoben (PR #31)
+- `process_flow`: Created node merged into the first workflow stage; label
+  overflow fixed (PR #31)
 
 ---
 
 ## [0.5.0] – 2026-04-26
 
 ### Added
-- `build_reports`: Process Flow Metrik — gerichteter Graph der Statusübergänge
-  mit Transitions-Datei-Picker in der GUI (PR #29, #30)
-- Coverage-Badge und pytest-cov eingerichtet (PR #27)
+- `build_reports`: Process Flow metric — directed graph of status
+  transitions with a transitions-file picker in the GUI (PR #29, #30)
+- Coverage badge and pytest-cov set up (PR #27)
 
 ---
 
 ## [0.4.1] – 2026-04-26
 
 ### Fixed
-- Versionsnummer in allen Manuals auf 0.4.1 korrigiert (PR #10)
+- Version number corrected to 0.4.1 in all manuals (PR #10)
 
 ---
 
 ## [0.4.0] – 2026-04-26
 
 ### Added
-- DE/EN-Sprachauswahl in GUIs mit persistierter Präferenz (Flag-Menü)
-- Zweisprachige PDF-Manuals (DE + EN)
-- EN-Docs, Feature-Übersichts-PPTX und Prozess-Capability-Map
+- DE/EN language selection in GUIs with persisted preference (flag menu)
+- Bilingual PDF manuals (DE + EN)
+- EN docs, feature-overview PPTX and process capability map
 
 ### Changed
-- Pre-Commit-Hook aktualisiert automatisch die Versionsnummer im README-Badge
+- Pre-commit hook now automatically updates the version number in the
+  README badge
 
 ---
 
 ## [0.2.0] – 2026-04-25
 
 ### Added
-- SemVer-Versionierung eingeführt (Start mit v0.2.0)
-- `build_reports`: Flow Distribution (3 Diagramme + Stage Prominence)
-- `build_reports`: Zero-Day-Issues ausschließen (konfigurierbarer Schwellwert)
-- `build_reports`: Konfigurierbare Target Cycle Time für Flow Time
-- `build_reports`: Kollisionsfreie Referenzlinien-Annotationen (Label Repulsion)
-- `build_reports`: Issue-Anzahl pro Stage im Flow Load Diagramm
-- `build_reports`: Legende für Flow Load Referenzlinien
-- `build_reports`: CFD-Trendlinien an visuellen Stage-Grenzen
-- `build_reports`: Button „Als PDF speichern" → „Reports exportieren"
-- Hilfe-Menü mit Manual-Link in `build_reports` und `transform_data`
+- SemVer versioning introduced (starting with v0.2.0)
+- `build_reports`: Flow Distribution (3 charts + Stage Prominence)
+- `build_reports`: Exclude zero-day issues (configurable threshold)
+- `build_reports`: Configurable target cycle time for Flow Time
+- `build_reports`: Collision-free reference-line annotations (label
+  repulsion)
+- `build_reports`: Issue count per stage in the Flow Load chart
+- `build_reports`: Legend for Flow Load reference lines
+- `build_reports`: CFD trend lines at visual stage boundaries
+- `build_reports`: "Save as PDF" button → "Export reports"
+- Help menu with manual link in `build_reports` and `transform_data`
