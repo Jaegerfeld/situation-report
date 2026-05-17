@@ -35,7 +35,7 @@ MODULE_TRANSFORM_DATA = "transform_data"
 MODULE_TESTDATA_GENERATOR = "testdata_generator"
 MODULE_HELPER = "helper"
 
-DEFAULT_LANGUAGE = "de"
+DEFAULT_LANGUAGE = "en"
 
 
 def _normalise(data: Any) -> dict[str, Any]:

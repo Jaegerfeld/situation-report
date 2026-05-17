@@ -1,63 +1,63 @@
 # build_reports
 
-Berechnet Flow-Metriken aus den von `transform_data` erzeugten XLSX-Dateien und stellt die Ergebnisse als interaktive Plotly-Diagramme im Browser oder als PDF-Export bereit.
+Calculates flow metrics from the XLSX files produced by `transform_data` and presents the results as interactive Plotly charts in the browser or as a PDF export.
 
-## Überblick
+## Overview
 
-| Eigenschaft | Wert |
-|-------------|------|
-| Status | verfügbar |
-| Einstiegspunkt GUI | `build_reports_gui.pyw` |
-| Einstiegspunkt CLI | `python -m build_reports` |
+| Property | Value |
+|----------|-------|
+| Status | available |
+| GUI entry point | `build_reports_gui.pyw` |
+| CLI entry point | `python -m build_reports` |
 | Benutzerhandbuch (DE) | [build_reports_Benutzerhandbuch.pdf](../build_reports_Benutzerhandbuch.pdf) |
 | User Manual (EN) | [build_reports_UserManual.pdf](../build_reports_UserManual.pdf) |
 | Manual de Utilizator (RO) | [build_reports_ManualUtilizator.pdf](../build_reports_ManualUtilizator.pdf) |
 | Manual do Utilizador (PT) | [build_reports_ManualUtilizador.pdf](../build_reports_ManualUtilizador.pdf) |
 | Manuel d'utilisation (FR) | [build_reports_ManuelUtilisateur.pdf](../build_reports_ManuelUtilisateur.pdf) |
 
-## Metriken
+## Metrics
 
-| Metrik (SAFe) | Metrik (Global) | Beschreibung | Pflichtdatei |
-|---------------|-----------------|--------------|-------------|
-| Flow Time | Cycle Time | Durchlaufzeit von Start bis Abschluss | IssueTimes.xlsx |
-| Flow Velocity | Throughput | Abgeschlossene Issues pro Zeitraum | IssueTimes.xlsx |
-| Flow Load | WIP | Issues aktuell in einer In-Progress-Stage, nach Stage und Alter | IssueTimes.xlsx |
-| Cumulative Flow Diagram | Cumulative Flow Diagram | Kumulierte Stage-Eintritte über die Zeit | CFD.xlsx |
-| Flow Distribution | Flow Distribution | Verteilung nach Typ, Stage-Dominanz und Ø Durchlaufzeit | IssueTimes.xlsx |
-| Process Flow: Transitions | Process Flow: Transitions | Gerichteter Graph aller Statusübergänge (Anzahl) | Transitions.xlsx |
-| Process Flow: Time | Process Flow: Time | Gerichteter Graph mit Knotenbreite und Kantenbreite nach medianer Verweildauer | Transitions.xlsx |
+| Metric (SAFe) | Metric (Global) | Description | Required file |
+|---------------|-----------------|-------------|--------------|
+| Flow Time | Cycle Time | Cycle time from start to completion | IssueTimes.xlsx |
+| Flow Velocity | Throughput | Issues completed per time period | IssueTimes.xlsx |
+| Flow Load | WIP | Issues currently in an In Progress stage, grouped by stage and age | IssueTimes.xlsx |
+| Cumulative Flow Diagram | Cumulative Flow Diagram | Cumulative stage entries over time | CFD.xlsx |
+| Flow Distribution | Flow Distribution | Distribution by type, stage dominance and avg cycle time | IssueTimes.xlsx |
+| Process Flow: Transitions | Process Flow: Transitions | Directed graph of all status transitions (count) | Transitions.xlsx |
+| Process Flow: Time | Process Flow: Time | Directed graph with node and edge width based on median dwell time | Transitions.xlsx |
 
-## Eingabedateien
+## Input files
 
-| Datei | Pflicht | Beschreibung |
-|-------|---------|-------------|
-| `IssueTimes.xlsx` | ✅ | Alle Issues mit Zeitangaben je Stage |
-| `CFD.xlsx` | optional | Tägliche Stage-Eintritte für das CFD |
-| `Workflow.txt` | optional | `<First>` / `<Closed>`-Marker für CFD-Trendlinien |
-| `pi_config_example.json` | optional | Eigene PI-Intervalle für Flow Velocity |
-| `Transitions.xlsx` | optional | Statusübergänge je Issue für Process Flow |
+| File | Required | Description |
+|------|----------|-------------|
+| `IssueTimes.xlsx` | ✅ | All issues with time data per stage |
+| `CFD.xlsx` | optional | Daily stage entries for the CFD |
+| `Workflow.txt` | optional | `<First>` / `<Closed>` markers for CFD trend lines |
+| `pi_config_example.json` | optional | Custom PI intervals for Flow Velocity |
+| `Transitions.xlsx` | optional | Status transitions per issue for Process Flow |
 
-## Architektur
+## Architecture
 
 ```
 build_reports/
-├── metrics/             # Plugin-Registry + einzelne Metrik-Module
-│   ├── base.py          # MetricPlugin / MetricResult Basisklassen
+├── metrics/             # Plugin registry + individual metric modules
+│   ├── base.py          # MetricPlugin / MetricResult base classes
 │   ├── flow_time.py
 │   ├── flow_velocity.py
 │   ├── flow_load.py
 │   ├── cfd.py
 │   ├── flow_distribution.py
 │   └── process_flow.py
-├── loader.py            # Laden aller XLSX-Dateien → ReportData
+├── loader.py            # Load all XLSX files → ReportData
 ├── filters.py           # FilterConfig + apply_filters()
 ├── cli.py               # run_reports() + argparse CLI
 ├── gui.py               # tkinter GUI
-├── export.py            # PDF- und Excel-Export
-└── terminology.py       # SAFe / Global Terminologie-Umschaltung
+├── export.py            # PDF and Excel export
+└── terminology.py       # SAFe / Global terminology switching
 ```
 
-Das Plugin-System registriert Metriken automatisch beim Import:
+The plugin system registers metrics automatically on import:
 
 ```python
 from build_reports.metrics import get_metric, all_metrics
@@ -66,7 +66,7 @@ result = plugin.compute(data, terminology="SAFe")
 figs = plugin.render(result, "SAFe")
 ```
 
-## Schnellstart CLI
+## Quick start CLI
 
 ```bash
 python -m build_reports IssueTimes.xlsx --pdf report.pdf
@@ -76,10 +76,10 @@ python -m build_reports IssueTimes.xlsx --metrics flow_time process_flow process
 
 ## Templates
 
-Die GUI unterstützt das Speichern und Laden aller Einstellungen als JSON-Template (Menü → Templates). Templates sind versioniert (`"version": 4`) und abwärtskompatibel.
+The GUI supports saving and loading all settings as a JSON template (menu → Templates). Templates are versioned (`"version": 4`) and backwards-compatible.
 
-## Hinweis: Flow Time Methode B und Workflow-Aufbau
+## Note: Flow Time Method B and workflow structure
 
-Methode B summiert die Stage-Minuten **bis ausschließlich der `<Closed>`-Stage**. Stages, die nach der Closed-Stage im Workflow definiert sind (z. B. „Monitoring", „Done"), werden ebenfalls nicht eingerechnet. Die Closed-Stage selbst enthält für abgeschlossene Issues einen Carry-forward-Wert (`reference_dt − closed_date`), der die gemessene Cycle Time verzerren würde — er wird daher ausgeschlossen.
+Method B sums stage minutes **up to, but not including, the `<Closed>` stage**. Stages defined after the closed stage in the workflow (e.g. "Monitoring", "Done") are also excluded. The closed stage itself carries a carry-forward value (`reference_dt − closed_date`) for completed issues that would distort the measured cycle time — it is therefore excluded.
 
-Methode A (Kalendertage `First Date → Closed Date`) ist davon nicht betroffen und empfiehlt sich als Vergleich.
+Method A (calendar days `First Date → Closed Date`) is not affected and is recommended as a comparison.

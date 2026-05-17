@@ -990,7 +990,7 @@ def _parse_template_dict(data: dict) -> dict:
         "terminology": str(data.get("terminology", SAFE)),
         "ct_method": str(data.get("ct_method", CT_METHOD_A)),
         "metrics": dict(data.get("metrics", {})),
-        "language": str(data.get("language", LANG_DE)),
+        "language": str(data.get("language", LANG_EN)),
     }
 
 
@@ -1452,7 +1452,7 @@ class BuildReportsApp(tk.Tk):
             cb.grid(row=row, column=0, columnspan=2, sticky="w", padx=16, pady=1)
             self._metric_checkbuttons.append((cb, plugin.metric_id))
             tip_key = f"tip_metric_{plugin.metric_id}"
-            if tip_key in _T[LANG_DE]:
+            if tip_key in _T[LANG_EN]:
                 self._tips.append((_ToolTip(cb, self._tr(tip_key)), tip_key))
             row += 1
 
@@ -1667,7 +1667,7 @@ class BuildReportsApp(tk.Tk):
                 raise ValueError(
                     "Template contains no build_reports section."
                 )
-            section.setdefault("language", envelope.get("language", LANG_DE))
+            section.setdefault("language", envelope.get("language", LANG_EN))
             state = _parse_template_dict(section)
         except Exception as exc:
             self._log(self._tr("log_tpl_error").format(exc))

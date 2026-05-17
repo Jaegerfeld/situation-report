@@ -9,6 +9,23 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [0.13.0] – 2026-05-17
+
+### Changed
+- English is now the **default language** of the project. The mkdocs site
+  serves English at the default URLs (unsuffixed `*.md` files), with German
+  available as the secondary language (`*.de.md`); nav labels are English
+  with German `nav_translations`. The GUI default/fallback language is now
+  English (`project_template.DEFAULT_LANGUAGE`, `build_reports` template
+  fallbacks). The multilingual selector (DE/EN/RO/PT/FR) is unchanged.
+- `SituationReport_Übersicht.md` → `SituationReport_Overview.md`, translated
+  to English and brought up to date.
+- PDF manual generators default to English (`lang` parameter) for
+  consistency; generated output is unchanged (the build iterates all
+  languages).
+
+---
+
 ## [0.12.1] – 2026-05-17
 
 ### Changed

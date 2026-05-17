@@ -1,30 +1,30 @@
 # launcher
 
-Der `launcher` ist der zentrale Einstiegspunkt für SituationReport. Er zeigt alle verfügbaren und geplanten Module als Karten-Grid und ermöglicht den direkten Start per Klick.
+The `launcher` is the central entry point for SituationReport. It displays all available and planned modules as a card grid and allows launching them with a single click.
 
 **Start:**
 ```bash
 python -m launcher
 ```
 
-Oder über die Startdatei im portablen Paket:
+Or via the start script in the portable package:
 - **Windows:** `SituationReport.bat`
 - **macOS:** `SituationReport.command`
 - **Linux:** `SituationReport.sh`
 
-## Handbücher
+## Manuals
 
-| Sprache | Download |
-|---------|----------|
+| Language | Download |
+|----------|----------|
 | Deutsch (DE) | [Benutzerhandbuch](../launcher_Benutzerhandbuch.pdf) |
 | English (EN) | [User Manual](../launcher_UserManual.pdf) |
 | Română (RO) | [Manual de Utilizator](../launcher_ManualUtilizator.pdf) |
 | Português (PT) | [Manual do Utilizador](../launcher_ManualUtilizador.pdf) |
 | Français (FR) | [Manuel d'utilisation](../launcher_ManuelUtilisateur.pdf) |
 
-## Oberfläche
+## Interface
 
-![Screenshot der Launcher-GUI](../assets/Launcher-GUI.png)
+![Launcher GUI screenshot](../assets/Launcher-GUI.png)
 
 ```
 ┌──────────────────────────────────────────┐
@@ -34,66 +34,66 @@ Oder über die Startdatei im portablen Paket:
 │  │  🔄          │ │  📊          │       │
 │  │Transform Data│ │ Build Reports│       │
 │  │   [BETA]     │ │   [BETA]     │       │
-│  │Jira aufberei.│ │Flow-Metriken │       │
-│  │  [Starten]   │ │  [Starten]   │       │
+│  │Prepare data  │ │Flow metrics  │       │
+│  │  [Launch]    │ │  [Launch]    │       │
 │  └──────────────┘ └──────────────┘       │
 │  ┌──────────────┐ ┌──────────────┐       │
 │  │  📥          │ │  🎲          │       │
 │  │  Get Data    │ │   Simulate   │       │
-│  │ (bald verf.) │ │ (bald verf.) │       │
-│  │  [Anleitung] │ │              │       │
+│  │(coming soon) │ │(coming soon) │       │
+│  │  [How to]    │ │              │       │
 │  └──────────────┘ └──────────────┘       │
 │  ┌──────────────┐ ┌──────────────┐       │
 │  │  🧪          │ │  🔧          │       │
 │  │Testdata Gen. │ │   Helper     │       │
 │  │  [BETA]      │ │   [ALPHA]    │       │
-│  │  [Starten]   │ │  [Starten]   │       │
+│  │  [Launch]    │ │  [Launch]    │       │
 │  └──────────────┘ └──────────────┘       │
 └──────────────────────────────────────────┘
 ```
 
-## Module
+## Modules
 
-| Modul | Status | Reifegrad | Beschreibung |
-|-------|--------|-----------|-------------|
-| `transform_data` | verfügbar | BETA | Jira-Rohdaten aufbereiten |
-| `build_reports` | verfügbar | BETA | Flow-Metriken und Reports |
-| `get_data` | geplant | — | Daten aus Jira laden |
-| `simulate` | geplant | — | Prognosen und Simulationen |
-| `testdata_generator` | verfügbar | BETA | Synthetische Testdaten erstellen |
-| `helper` | verfügbar | ALPHA | JSON-Dateien zusammenführen |
+| Module | Status | Maturity | Description |
+|--------|--------|----------|-------------|
+| `transform_data` | available | BETA | Prepare raw Jira data |
+| `build_reports` | available | BETA | Flow metrics and reports |
+| `get_data` | planned | — | Fetch data from Jira |
+| `simulate` | planned | — | Forecasts and simulations |
+| `testdata_generator` | available | BETA | Generate synthetic test data |
+| `helper` | available | ALPHA | Merge JSON files |
 
-## Verhalten
+## Behaviour
 
-- Ein Klick auf **Starten** öffnet das Modul als **eigenständigen Prozess** in einem separaten Fenster.
-- Der Launcher bleibt offen — mehrere Module können gleichzeitig geöffnet sein.
-- Geplante Module sind sichtbar, aber nicht klickbar.
-- **Get Data** zeigt einen **Anleitung**-Button: Öffnet einen Dialog mit dem manuellen 3-Schritt-Workaround (Jira-JSON exportieren → Helper → Transform Data), bis das Modul verfügbar ist.
+- Clicking **Launch** opens the module as an **independent process** in a separate window.
+- The launcher stays open — multiple modules can run simultaneously.
+- Planned modules are visible but not clickable.
+- **Get Data** shows a **How to** button: opens a dialog with the manual 3-step workaround (export Jira JSON → Helper → Transform Data) until the module is available.
 
-## Reifegrad-Kennzeichnung
+## Maturity indicators
 
-Der Launcher zeigt zwei Arten von Reifegrad-Badges:
+The launcher shows two levels of maturity badges:
 
-- **App-Badge in der Titelleiste:** Orangefarbenes **BETA**-Badge signalisiert den aktuellen Reifegrad des Gesamtprojekts.
-- **Modul-Badges auf den Karten:** Jedes verfügbare Modul trägt ein eigenes Badge neben dem Modulnamen:
-  - **BETA** (orange) – `transform_data`, `build_reports`, `testdata_generator`: stabile Kernfunktionen, produktionsreif
-  - **ALPHA** (rot) – `helper`: neu, experimentell, API kann sich noch ändern
+- **App badge in the title bar:** An orange **BETA** badge indicates the current maturity of the overall project.
+- **Module badges on each card:** Every available module carries its own badge next to the module name:
+  - **BETA** (orange) – `transform_data`, `build_reports`, `testdata_generator`: stable core functionality, production-ready
+  - **ALPHA** (red) – `helper`: new, experimental, API may still change
 
-## Update-Prüfung
+## Update check
 
-Beim Start prüft der Launcher im Hintergrund, ob auf GitHub eine neuere Version verfügbar ist. Ist das der Fall, erscheint ein gelbes Banner oberhalb des Modul-Grids:
+On startup, the launcher checks in the background whether a newer version is available on GitHub. If so, a yellow banner appears above the module grid:
 
 ```
-Update verfügbar: v0.9.8   [Herunterladen]
+Update available: v0.9.8   [Download]
 ```
 
-Ein Klick auf **Herunterladen** öffnet die GitHub-Release-Seite im Browser. Die Prüfung läuft ohne Netz-Anforderung — bei fehlendem Internet erscheint kein Fehler.
+Clicking **Download** opens the GitHub releases page in the browser. The check runs silently — no error is shown when there is no internet connection.
 
-## Sprache
+## Language
 
-Die Sprache wird über den Flag-Button oben rechts umgeschaltet (DE → EN → RO → PT → FR → DE …).
-Die Einstellung wird in `~/.situation_report/prefs.json` gespeichert und gilt für alle Module gemeinsam.
+The language is switched via the flag button in the top right (DE → EN → RO → PT → FR → DE …).
+The setting is saved in `~/.situation_report/prefs.json` and applies to all modules.
 
-## Benutzerhandbuch
+## User manual
 
-Der **?**-Button in der Titelleiste öffnet das Benutzerhandbuch als PDF im Browser (sprachabhängig: Deutsch oder Englisch).
+The **?** button in the title bar opens the user manual as a PDF in the browser (language-dependent: German or English).
