@@ -137,7 +137,7 @@ def make_styles() -> dict:
 
 class _GDDoc(BaseDocTemplate):
 
-    def __init__(self, filename: str, lang: str = "de", **kw):
+    def __init__(self, filename: str, lang: str = "en", **kw):
         super().__init__(filename, pagesize=A4, **kw)
         self._lang = lang
         self._header_text = _HEADER[lang]
@@ -175,7 +175,7 @@ class _GDDoc(BaseDocTemplate):
         canvas.restoreState()
 
 
-def _build_cover(canvas, doc, lang: str = "de"):
+def _build_cover(canvas, doc, lang: str = "en"):
     w, h = A4
     canvas.saveState()
     canvas.setFillColor(C_BLUE)

@@ -1,15 +1,15 @@
 # testdata_generator
 
-Erzeugt synthetische Jira-Issue-JSON-Dateien im Jira-REST-API-Format.
-Die generierten Dateien sind direkt mit `transform_data` verarbeitbar und
-eignen sich für Entwicklung, Tests und Demonstrationen ohne echte Jira-Daten.
+Generates synthetic Jira issue JSON files in Jira REST API format.
+The generated files can be processed directly by `transform_data` and are
+suitable for development, testing, and demonstrations without real Jira data.
 
-**Status:** verfügbar (Beta)
+**Status:** available (Beta)
 
-## Handbücher
+## Manuals
 
-| Sprache | Download |
-|---------|----------|
+| Language | Download |
+|----------|----------|
 | Deutsch (DE) | [Benutzerhandbuch](../testdata_generator_Benutzerhandbuch.pdf) |
 | English (EN) | [User Manual](../testdata_generator_UserManual.pdf) |
 | Română (RO) | [Manual de Utilizator](../testdata_generator_ManualUtilizator.pdf) |
@@ -18,9 +18,9 @@ eignen sich für Entwicklung, Tests und Demonstrationen ohne echte Jira-Daten.
 
 ---
 
-## Oberfläche
+## Interface
 
-![Screenshot des Testdata Generator](../assets/Testdata-Generator-GUI.png)
+![Testdata Generator GUI screenshot](../assets/Testdata-Generator-GUI.png)
 
 ## Start
 
@@ -30,13 +30,13 @@ eignen sich für Entwicklung, Tests und Demonstrationen ohne echte Jira-Daten.
 python -m testdata_generator
 ```
 
-Oder über die Startdatei im portablen Paket:
+Or via the start script in the portable package:
 
 - **Windows:** `TestdataGenerator.bat`
 - **macOS:** `TestdataGenerator.command`
 - **Linux:** `TestdataGenerator.sh`
 
-### Kommandozeile
+### Command line
 
 ```bash
 python -m testdata_generator \
@@ -47,40 +47,40 @@ python -m testdata_generator \
     --output ART_A_generated.json
 ```
 
-## Parameter
+## Parameters
 
-| Parameter | Standard | Beschreibung |
+| Parameter | Default | Description |
 |-----------|---------|-------------|
-| `--workflow FILE` | (Pflicht) | Workflow-Definitionsdatei |
-| `--output FILE.json` | `<project>_generated.json` | Ausgabedatei |
-| `--project KEY` | `TEST` | Jira-Projekt-Key |
-| `--issues N` | `100` | Anzahl zu generierender Issues |
-| `--from-date YYYY-MM-DD` | `2025-01-01` | Frühestes Erstellungsdatum |
-| `--to-date YYYY-MM-DD` | `2025-12-31` | Spätestes Übergangsdatum |
-| `--issue-types TYPE:W …` | `Feature:0.6 Bug:0.3 Enabler:0.1` | Issue-Typen mit Gewichtung |
-| `--completion-rate FLOAT` | `0.7` | Anteil abgeschlossener Issues (0–1) |
-| `--todo-rate FLOAT` | `0.15` | Anteil offener Issues in To-Do-Stages (0–1) |
-| `--backflow-prob FLOAT` | `0.1` | Wahrscheinlichkeit für Rückschritte (0–1) |
-| `--seed INT` | (zufällig) | Seed für reproduzierbare Ausgabe |
-| `--mean-cycle-days FLOAT` | (keiner) | Mittlere Cycle-Time in Tagen (lognormal) |
-| `--std-cycle-days FLOAT` | (30 % des Mittelwerts) | Standardabweichung der Cycle-Time |
-| `--pattern MUSTER` | `none` | Flow-Antipattern: `none` / `triangle` / `flat_triangle` / `cluster` / `batch` |
-| `--pi-duration-weeks INT` | `12` | PI-Zyklus-Länge in Wochen (für `cluster`/`batch`) |
+| `--workflow FILE` | (required) | Workflow definition file |
+| `--output FILE.json` | `<project>_generated.json` | Output file |
+| `--project KEY` | `TEST` | Jira project key |
+| `--issues N` | `100` | Number of issues to generate |
+| `--from-date YYYY-MM-DD` | `2025-01-01` | Earliest creation date |
+| `--to-date YYYY-MM-DD` | `2025-12-31` | Latest transition date |
+| `--issue-types TYPE:W …` | `Feature:0.6 Bug:0.3 Enabler:0.1` | Issue types with weights |
+| `--completion-rate FLOAT` | `0.7` | Fraction of closed issues (0–1) |
+| `--todo-rate FLOAT` | `0.15` | Fraction of open issues in To Do stages (0–1) |
+| `--backflow-prob FLOAT` | `0.1` | Probability of backward transitions (0–1) |
+| `--seed INT` | (random) | Seed for reproducible output |
+| `--mean-cycle-days FLOAT` | (none) | Target mean cycle time in days (lognormal) |
+| `--std-cycle-days FLOAT` | (30 % of mean) | Standard deviation of cycle time |
+| `--pattern PATTERN` | `none` | Flow anti-pattern: `none` / `triangle` / `flat_triangle` / `cluster` / `batch` |
+| `--pi-duration-weeks INT` | `12` | PI cycle length in weeks (for `cluster`/`batch`) |
 
-## Flow-Muster
+## Flow Patterns
 
-Mit `--mean-cycle-days` und `--pattern` lassen sich typische Flow-Antipatterns simulieren:
+Use `--mean-cycle-days` together with `--pattern` to simulate typical flow anti-patterns:
 
-| Muster | Beschreibung |
-|--------|-------------|
-| `none` | Zufällige Cycle-Time ohne Muster (Standard) |
-| `triangle` | Cycle-Time steigt linear über die Zeit — Dreieck im Scatterplot |
-| `flat_triangle` | Wie `triangle`, aber der Anstieg flacht am Ende ab (tanh) |
-| `cluster` | Lieferungen häufen sich in den letzten 2 Wochen jedes PI (Beta-Verteilung) |
-| `batch` | PI-Clustering mit stark variierender Cycle-Time (0,1× bis 3× Mittelwert) |
+| Pattern | Description |
+|---------|-------------|
+| `none` | Random cycle time without shape (default) |
+| `triangle` | Cycle time increases linearly over time — triangle shape in the scatter plot |
+| `flat_triangle` | Like `triangle`, but the increase flattens toward the end (tanh) |
+| `cluster` | Deliveries cluster in the last 2 weeks of each PI (Beta distribution) |
+| `batch` | PI clustering with highly variable cycle time (0.1× to 3× mean) |
 
 ```bash
-# Triangle-Muster mit mittlerer Cycle-Time von 30 Tagen
+# Triangle pattern with mean cycle time of 30 days
 python -m testdata_generator \
     --workflow workflow.txt \
     --pattern triangle \
@@ -89,9 +89,9 @@ python -m testdata_generator \
     --output triangle.json
 ```
 
-## Workflow-Datei
+## Workflow file
 
-Dasselbe Format wie in `transform_data`:
+Same format as in `transform_data`:
 
 ```
 CanonicalStageName:Alias1:Alias2
@@ -99,36 +99,35 @@ CanonicalStageName:Alias1:Alias2
 <Closed>StageName
 ```
 
-## Ausgabe und Weiterverarbeitung
+## Output and further processing
 
 ```bash
-# Generieren
+# Generate
 python -m testdata_generator --workflow workflow.txt --project ART_TEST --seed 1
 
-# Direkt mit transform_data verarbeiten
+# Process directly with transform_data
 python -m transform_data ART_TEST_generated.json workflow.txt
 ```
 
-Die generierte JSON-Datei enthält Jira-Changelog-Historien mit Status-Übergängen
-entlang des definierten Workflows. `transform_data` verarbeitet sie zu
-`IssueTimes.xlsx`, `CFD.xlsx` und `Transitions.xlsx`.
+The generated JSON file contains Jira changelog histories with status transitions
+along the defined workflow. `transform_data` processes them into
+`IssueTimes.xlsx`, `CFD.xlsx`, and `Transitions.xlsx`.
 
-### Direkt-Report (GUI)
+### Direct report (GUI)
 
-Nach erfolgreicher Generierung wird in der GUI der Button **„Report erstellen"**
-aktiv. Ein Klick führt `transform_data` und `build_reports` direkt aus und
-öffnet einen kombinierten Report (eine HTML-Seite mit allen Metriken) im
-Browser. Der Report deckt den **gesamten generierten Zeitraum** ab — ohne
-Datumsfilter.
+After a successful generation the **"Create Report"** button becomes active in
+the GUI. Clicking it runs `transform_data` and `build_reports` directly and
+opens a combined report (a single HTML page with all metrics) in the browser.
+The report covers the **entire generated date range** — no date filter.
 
-## Architektur
+## Architecture
 
 ```
 testdata_generator/
-├── __main__.py          Dispatcher: GUI ohne Argumente, CLI mit Argumenten
+├── __main__.py          Dispatcher: GUI without arguments, CLI with arguments
 ├── cli.py               run_generate() + argparse CLI
-├── generator.py         Kernlogik: Issue-Simulation
-└── workflow_parser.py   Re-Export von transform_data.workflow
+├── generator.py         Core logic: issue simulation
+└── workflow_parser.py   Re-export from transform_data.workflow
 ```
 
 ## Tests
@@ -137,6 +136,6 @@ testdata_generator/
 python -m pytest tests/testdata_generator/
 ```
 
-## Hinweis: Zufällige Cycle-Time-Verteilung
+## Note: Random cycle time distribution
 
-Der Generator stellt sicher, dass abgeschlossene Issues **vor** dem konfigurierten `to-date` abschließen. Das Erstellungsdatum wird dazu aus einem eingeschränkten Fenster `[from-date, latest_start]` gesampelt, wobei `latest_start` genug Puffer für die maximale Cycle-Time lässt. Dadurch entsteht im Flow Time Scatter-Plot eine gleichmäßig verteilte, zufällige Punktwolke statt einer absteigenden Geraden (Right-Censoring-Artefakt).
+The generator ensures that completed issues close **before** the configured `to-date`. The creation date is sampled from a restricted window `[from-date, latest_start]` where `latest_start` leaves enough buffer for the maximum cycle time. This produces an evenly distributed, random point cloud in the Flow Time scatter plot rather than a descending diagonal (right-censoring artefact).

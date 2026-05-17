@@ -1,6 +1,6 @@
-# Entwicklung
+# Development
 
-## Voraussetzungen
+## Prerequisites
 
 - Python >= 3.11
 - Git
@@ -16,31 +16,31 @@ python -m venv .venv
 pip install -e ".[docs]"
 ```
 
-## Dokumentation lokal vorschauen
+## Preview documentation locally
 
 ```bash
 mkdocs serve
 ```
 
-Die Dokumentation ist dann unter [http://127.0.0.1:8000](http://127.0.0.1:8000) erreichbar.
+The documentation is then available at [http://127.0.0.1:8000](http://127.0.0.1:8000).
 
-## Branch-Konvention
+## Branch convention
 
-Neue Arbeiten an einem Modul erfolgen auf einem eigenen Branch:
+New work on a module is done on a dedicated branch:
 
 ```
-dev/<modulname>
+dev/<module_name>
 ```
 
-Nach Abschluss wird ein Pull Request auf `main` erstellt. Der fertige Stand wird mit einem Tag versehen, der dem Modulnamen entspricht (z. B. `transform_data`).
+After completion, a pull request is opened against `main`. The finished state is tagged with the module name (e.g. `transform_data`).
 
-## Technologie-Stack
+## Technology stack
 
-| Bereich | Technologie |
-|---------|------------|
-| Sprache | Python >= 3.11 |
-| Paketmanagement | pip / pyproject.toml |
-| Versionskontrolle | Git / GitHub |
-| Dokumentation | MkDocs + Material Theme |
-| Datenquelle | Jira REST API |
-| Ausgabeformat | XLSX (openpyxl) |
+| Area | Technology |
+|------|------------|
+| Language | Python >= 3.11 |
+| Package management | pip / pyproject.toml |
+| Version control | Git / GitHub |
+| Documentation | MkDocs + Material Theme |
+| Data source | Jira REST API |
+| Output format | XLSX (openpyxl) |

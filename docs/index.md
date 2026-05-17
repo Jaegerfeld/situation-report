@@ -1,27 +1,28 @@
 # SituationReport
 
-Toolsuite zur Abfrage von Jira-Issuedaten sowie zur Aufbereitung für Metriken und Reports.
+Toolsuite for retrieving Jira issue data and preparing it for metrics and reports.
 
-## Module
+## Modules
 
-| Modul | Beschreibung | Status |
-|-------|-------------|--------|
-| [`transform_data`](modules/transform_data.md) | Transformation von Jira-Rohdaten in Stage-Time-Metriken | verfügbar |
-| [`get_data`](modules/get_data.md) | Datenabruf aus Jira via REST API | geplant |
-| [`build_reports`](modules/build_reports.md) | Erzeugung von Metriken und Reports | verfügbar |
-| [`testdata_generator`](modules/testdata_generator.md) | Generierung synthetischer Testdaten | verfügbar (Beta) |
-| [`simulate`](modules/simulate.md) | Simulationen und Vorhersagemodelle | geplant |
-| [`helper`](modules/helper.md) | Hilfswerkzeuge (JSON Merger u.a.) | verfügbar (Alpha) |
+| Module | Description | Status |
+|--------|-------------|--------|
+| [`transform_data`](modules/transform_data.md) | Transform raw Jira data into stage-time metrics | available |
+| [`get_data`](modules/get_data.md) | Retrieve data from Jira via REST API | planned |
+| [`build_reports`](modules/build_reports.md) | Generate metrics and reports | available |
+| [`testdata_generator`](modules/testdata_generator.md) | Generate synthetic test data | available (Beta) |
+| [`simulate`](modules/simulate.md) | Simulations and prediction models | planned |
+| [`helper`](modules/helper.md) | Helper tools (JSON Merger etc.) | available (Alpha) |
 
 ## Setup
 
 ```bash
 python -m venv .venv
-.venv\Scripts\activate
+.venv\Scripts\activate       # Windows
+# source .venv/bin/activate  # Linux/macOS
 pip install -e .
 ```
 
-Für die Dokumentation lokal vorschauen:
+To preview the documentation locally:
 
 ```bash
 pip install -e ".[docs]"

@@ -1,78 +1,78 @@
-# Architektur
+# Architecture
 
-SituationReport folgt dem **C4-Modell** (Simon Brown): Kontext → Module → Komponenten.
-Die Diagramme zeigen drei Detailstufen — von der Vogelperspektive bis auf Dateiebene.
+SituationReport follows the **C4 model** (Simon Brown): Context → Containers → Components.
+The diagrams show three levels of detail — from the bird's-eye view down to individual files.
 
 ---
 
-## Level 1 — System-Kontext
+## Level 1 — System Context
 
-Wer benutzt das System und mit welchen externen Systemen interagiert es?
+Who uses the system and what external systems does it interact with?
 
 ```mermaid
 C4Context
-    title System-Kontext: SituationReport
+    title System Context: SituationReport
 
-    Person(user, "Agile Coach / PI Manager", "Analysiert Jira-Daten und erzeugt Flow-Metriken")
+    Person(user, "Agile Coach / PI Manager", "Analyses Jira data and generates flow metrics")
 
-    System(sr, "SituationReport", "Toolsuite zur Transformation von Jira-Rohdaten in Flow-Metriken und Reports")
+    System(sr, "SituationReport", "Toolsuite for transforming Jira raw data into flow metrics and reports")
 
-    System_Ext(jira, "Jira", "Issue-Tracking-System (Atlassian)")
+    System_Ext(jira, "Jira", "Issue tracking system (Atlassian)")
 
-    Rel(user, sr, "startet", "GUI / CLI")
-    Rel(sr, jira, "liest Rohdaten", "REST API / JSON-Export")
-    Rel(sr, user, "liefert", "HTML-Report / PDF / XLSX")
+    Rel(user, sr, "starts", "GUI / CLI")
+    Rel(sr, jira, "reads raw data", "REST API / JSON export")
+    Rel(sr, user, "delivers", "HTML report / PDF / XLSX")
 ```
 
 ---
 
-## Level 2 — Module (Container)
+## Level 2 — Containers (Modules)
 
-Welche Module gibt es, welche Technologien nutzen sie und wie fließen Daten?
+What modules exist, what technologies do they use, and how does data flow?
 
 ```mermaid
 C4Container
-    title Module: SituationReport
+    title Containers: SituationReport
 
     Person(user, "Agile Coach / PI Manager")
 
-    System_Ext(jira, "Jira", "Issue-Tracking-System")
+    System_Ext(jira, "Jira", "Issue tracking system")
 
     System_Boundary(sr, "SituationReport") {
-        Container(get_data, "get_data", "Python", "Ruft Jira-Issues via REST API ab (geplant)")
-        Container(helper, "helper", "Python · tkinter", "Führt mehrere paginierte Jira-JSON-Dateien zu einer zusammen")
-        Container(transform_data, "transform_data", "Python · tkinter", "Liest JSON-Export + Workflow-Definition, berechnet Stage-Zeiten, schreibt XLSX-Dateien")
-        Container(build_reports, "build_reports", "Python · tkinter · Plotly", "Liest XLSX, filtert Issues, berechnet Flow-Metriken, exportiert HTML/PDF")
-        Container(testdata_generator, "testdata_generator", "Python · tkinter", "Erzeugt synthetische Jira-JSON-Exporte für Tests und Demos")
-        Container(simulate, "simulate", "Python", "Simulationen und Vorhersagemodelle (geplant)")
+        Container(get_data, "get_data", "Python", "Fetches Jira issues via REST API (planned)")
+        Container(helper, "helper", "Python · tkinter", "Merges multiple paginated Jira JSON files into one")
+        Container(transform_data, "transform_data", "Python · tkinter", "Reads JSON export + workflow definition, computes stage times, writes XLSX files")
+        Container(build_reports, "build_reports", "Python · tkinter · Plotly", "Reads XLSX, filters issues, computes flow metrics, exports HTML/PDF")
+        Container(testdata_generator, "testdata_generator", "Python · tkinter", "Generates synthetic Jira JSON exports for testing and demos")
+        Container(simulate, "simulate", "Python", "Simulations and forecasting models (planned)")
     }
 
-    Rel(user, get_data, "startet", "CLI")
-    Rel(user, helper, "startet", "GUI / CLI")
-    Rel(user, transform_data, "startet", "GUI / CLI")
-    Rel(user, build_reports, "startet", "GUI / CLI")
-    Rel(user, testdata_generator, "startet", "GUI / CLI")
-    Rel(get_data, jira, "liest", "REST API")
-    Rel(get_data, transform_data, "liefert", "JSON (.json)")
-    Rel(jira, helper, "Seiten-Exporte", "JSON (manuell)")
-    Rel(helper, transform_data, "liefert", "merged.json")
-    Rel(testdata_generator, transform_data, "liefert", "JSON (.json)")
-    Rel(transform_data, build_reports, "liefert", "IssueTimes.xlsx · CFD.xlsx")
+    Rel(user, get_data, "starts", "CLI")
+    Rel(user, helper, "starts", "GUI / CLI")
+    Rel(user, transform_data, "starts", "GUI / CLI")
+    Rel(user, build_reports, "starts", "GUI / CLI")
+    Rel(user, testdata_generator, "starts", "GUI / CLI")
+    Rel(get_data, jira, "reads", "REST API")
+    Rel(get_data, transform_data, "delivers", "JSON (.json)")
+    Rel(jira, helper, "page exports", "JSON (manual)")
+    Rel(helper, transform_data, "delivers", "merged.json")
+    Rel(testdata_generator, transform_data, "delivers", "JSON (.json)")
+    Rel(transform_data, build_reports, "delivers", "IssueTimes.xlsx · CFD.xlsx")
 ```
 
-### Datenfluss
+### Data flow
 
 ```mermaid
 flowchart LR
     jira(["☁️ Jira"])
     tdg["testdata_generator"]
-    gd["get_data\n(geplant)"]
+    gd["get_data\n(planned)"]
     hlp["helper\nJSON Merger"]
     td["transform_data"]
     br["build_reports"]
     out(["📄 HTML / PDF\n📊 Excel"])
 
-    jira -- "JSON\nmehrere Seiten" --> hlp
+    jira -- "JSON\nmultiple pages" --> hlp
     gd -. "JSON" .-> td
     gd -- REST --> jira
     hlp -- "merged.json" --> td
@@ -83,89 +83,89 @@ flowchart LR
 
 ---
 
-## Level 3 — Komponenten: transform_data
+## Level 3 — Components: transform_data
 
 ```mermaid
 C4Component
-    title Komponenten: transform_data
+    title Components: transform_data
 
-    Person(user, "Benutzer")
-    System_Ext(jira_json, "JSON-Export", "Jira-Rohdaten")
-    System_Ext(xlsx_out, "XLSX-Dateien", "Transitions · IssueTimes · CFD")
+    Person(user, "User")
+    System_Ext(jira_json, "JSON export", "Jira raw data")
+    System_Ext(xlsx_out, "XLSX files", "Transitions · IssueTimes · CFD")
 
     Container_Boundary(td, "transform_data") {
-        Component(main, "__main__ / transform", "Python", "Entry Point: erkennt GUI- vs. CLI-Aufruf und delegiert")
-        Component(gui, "gui", "tkinter", "Datei-Dialoge, Log-Bereich, Ladebalken; startet Verarbeitung im Hintergrund-Thread")
-        Component(workflow, "workflow", "Python", "Liest Workflow-Definitionsdatei, validiert Marker und Stage-Namen, baut status_to_stage-Mapping")
-        Component(processor, "processor", "Python", "Verarbeitet JSON-Export: Carry-forward, Stage-Zeiten, Meilenstein-Daten (First / InProgress / Closed)")
-        Component(writers, "writers", "openpyxl", "Schreibt Transitions.xlsx, IssueTimes.xlsx, CFD.xlsx")
+        Component(main, "__main__ / transform", "Python", "Entry point: detects GUI vs. CLI call and delegates")
+        Component(gui, "gui", "tkinter", "File dialogs, log area, progress bar; runs processing in background thread")
+        Component(workflow, "workflow", "Python", "Reads workflow definition file, validates markers and stage names, builds status_to_stage mapping")
+        Component(processor, "processor", "Python", "Processes JSON export: carry-forward, stage times, milestone dates (First / InProgress / Closed)")
+        Component(writers, "writers", "openpyxl", "Writes Transitions.xlsx, IssueTimes.xlsx, CFD.xlsx")
     }
 
-    Rel(user, main, "startet")
-    Rel(main, gui, "öffnet (kein Argument)")
-    Rel(main, processor, "ruft auf (CLI)")
-    Rel(gui, workflow, "liest Workflow-Datei")
-    Rel(gui, processor, "startet in Thread")
-    Rel(processor, workflow, "nutzt Mapping und Stage-Reihenfolge")
-    Rel(processor, jira_json, "liest")
-    Rel(processor, writers, "übergibt IssueRecords")
-    Rel(writers, xlsx_out, "schreibt")
+    Rel(user, main, "starts")
+    Rel(main, gui, "opens (no argument)")
+    Rel(main, processor, "calls (CLI)")
+    Rel(gui, workflow, "reads workflow file")
+    Rel(gui, processor, "starts in thread")
+    Rel(processor, workflow, "uses mapping and stage order")
+    Rel(processor, jira_json, "reads")
+    Rel(processor, writers, "passes IssueRecords")
+    Rel(writers, xlsx_out, "writes")
 ```
 
-| Datei | Verantwortung |
-|-------|--------------|
-| `__main__.py` / `transform.py` | Entry Point; erkennt GUI- vs. CLI-Modus |
-| `gui.py` | tkinter-Oberfläche; Background-Thread; Ladebalken nach 3 s |
-| `workflow.py` | Workflow-Definitionsdatei lesen, validieren, Mapping aufbauen |
-| `processor.py` | Jira-JSON verarbeiten; Stage-Zeiten, Carry-forward, Meilenstein-Fallbacks |
-| `writers.py` | XLSX-Ausgabe (Transitions, IssueTimes, CFD) |
+| File | Responsibility |
+|------|---------------|
+| `__main__.py` / `transform.py` | Entry point; detects GUI vs. CLI mode |
+| `gui.py` | tkinter UI; background thread; progress bar after 3 s |
+| `workflow.py` | Read, validate, and map workflow definition file |
+| `processor.py` | Process Jira JSON; stage times, carry-forward, milestone fallbacks |
+| `writers.py` | XLSX output (Transitions, IssueTimes, CFD) |
 
 ---
 
-## Level 3 — Komponenten: build_reports
+## Level 3 — Components: build_reports
 
 ```mermaid
 C4Component
-    title Komponenten: build_reports
+    title Components: build_reports
 
-    Person(user, "Benutzer")
-    System_Ext(xlsx_in, "XLSX-Eingabe", "IssueTimes · CFD (von transform_data)")
-    System_Ext(report_out, "Report-Ausgabe", "HTML · PDF")
+    Person(user, "User")
+    System_Ext(xlsx_in, "XLSX input", "IssueTimes · CFD (from transform_data)")
+    System_Ext(report_out, "Report output", "HTML · PDF")
 
     Container_Boundary(br, "build_reports") {
-        Component(main, "__main__ / cli", "Python · argparse", "Entry Point: CLI-Argumente parsen, run_reports() aufrufen")
-        Component(gui, "gui", "tkinter", "Filter-UI, Template-Verwaltung, Ausschlüsse, Ladebalken, Browser- und PDF-Export")
-        Component(loader, "loader", "openpyxl", "Liest IssueTimes- und CFD-XLSX in typisierte Datenstrukturen (ReportData)")
-        Component(filters, "filters", "Python", "FilterConfig: Zeitraum, Projekte, Issuetype, Ausschlüsse nach Status/Resolution")
-        Component(metrics, "metrics/", "Plotly", "Plugin-System mit 5 Metriken: Flow Time, CFD, Flow Load, Flow Velocity, Flow Distribution")
-        Component(export, "export", "Plotly · WeasyPrint", "Rendert HTML-Report und PDF aus MetricResults")
-        Component(stage_groups, "stage_groups", "Python", "Stage-Gruppen für aggregierte Auswertungen")
-        Component(pi_config, "pi_config", "Python", "PI-Konfiguration: Zeiträume und Sprint-Längen")
-        Component(terminology, "terminology", "Python", "Terminologie-Mapping: benutzerdefinierte Stage-Labels")
+        Component(main, "__main__ / cli", "Python · argparse", "Entry point: parse CLI args, call run_reports()")
+        Component(gui, "gui", "tkinter", "Filter UI, template management, exclusions, progress bar, browser and PDF export")
+        Component(loader, "loader", "openpyxl", "Reads IssueTimes and CFD XLSX into typed data structures (ReportData)")
+        Component(filters, "filters", "Python", "FilterConfig: date range, projects, issue type, exclusions by status/resolution")
+        Component(metrics, "metrics/", "Plotly", "Plugin system with 5 metrics: Flow Time, CFD, Flow Load, Flow Velocity, Flow Distribution")
+        Component(export, "export", "Plotly · WeasyPrint", "Renders HTML report and PDF from MetricResults")
+        Component(stage_groups, "stage_groups", "Python", "Stage group definitions for aggregated analyses")
+        Component(pi_config, "pi_config", "Python", "PI configuration: time ranges and sprint lengths")
+        Component(terminology, "terminology", "Python", "Terminology mapping: custom stage labels")
     }
 
-    Rel(user, main, "startet (CLI)")
-    Rel(user, gui, "startet (GUI)")
-    Rel(main, loader, "lädt Daten")
-    Rel(main, filters, "konfiguriert FilterConfig")
-    Rel(gui, loader, "lädt Daten")
-    Rel(gui, filters, "konfiguriert FilterConfig")
-    Rel(gui, export, "startet Export")
-    Rel(loader, xlsx_in, "liest")
-    Rel(filters, metrics, "liefert gefilterte ReportData")
-    Rel(metrics, export, "liefert MetricResults (Figures)")
-    Rel(export, report_out, "schreibt")
+    Rel(user, main, "starts (CLI)")
+    Rel(user, gui, "starts (GUI)")
+    Rel(main, loader, "loads data")
+    Rel(main, filters, "configures FilterConfig")
+    Rel(gui, loader, "loads data")
+    Rel(gui, filters, "configures FilterConfig")
+    Rel(gui, export, "triggers export")
+    Rel(loader, xlsx_in, "reads")
+    Rel(filters, metrics, "delivers filtered ReportData")
+    Rel(metrics, export, "delivers MetricResults (figures)")
+    Rel(export, report_out, "writes")
 ```
 
-| Datei / Verzeichnis | Verantwortung |
-|--------------------|--------------|
-| `__main__.py` / `cli.py` | Entry Point; argparse; `run_reports()` |
-| `gui.py` | tkinter-Oberfläche; Templates; Ausschlüsse; Ladebalken; Browser-/PDF-Export |
-| `loader.py` | XLSX einlesen → `ReportData` (typisierte Dataclasses) |
-| `filters.py` | `FilterConfig`; `apply_filters()`; Ausschluss-Logik |
-| `metrics/base.py` | Abstrakte `MetricPlugin`-Klasse + `MetricResult`-Container |
-| `metrics/*.py` | Konkrete Metriken: `flow_time`, `cfd`, `flow_load`, `flow_velocity`, `flow_distribution` |
-| `export.py` | HTML-Rendering; PDF-Export via WeasyPrint |
-| `stage_groups.py` | Stage-Gruppen-Definition |
-| `pi_config.py` | PI-Zeiträume, Sprint-Längen |
-| `terminology.py` | Benutzerdefinierte Terminologie |
+| File / Directory | Responsibility |
+|-----------------|---------------|
+| `__main__.py` / `cli.py` | Entry point; argparse; `run_reports()` |
+| `gui.py` | tkinter UI; templates; exclusions; progress bar; browser/PDF export |
+| `loader.py` | Read XLSX → `ReportData` (typed dataclasses) |
+| `filters.py` | `FilterConfig`; `apply_filters()`; exclusion logic |
+| `metrics/base.py` | Abstract `MetricPlugin` class + `MetricResult` container |
+| `metrics/*.py` | Concrete metrics: `flow_time`, `cfd`, `flow_load`, `flow_velocity`, `flow_distribution` |
+| `export.py` | HTML rendering; PDF export via WeasyPrint |
+| `stage_groups.py` | Stage group definitions |
+| `pi_config.py` | PI time ranges, sprint lengths |
+| `terminology.py` | Custom terminology |

@@ -1,22 +1,22 @@
 # helper
 
-Das Modul `helper` enthält Hilfswerkzeuge für die SituationReport-Toolsuite.
-Aktuell verfügbar: **JSON Merger** — fügt mehrere Jira-REST-API-JSON-Dateien zusammen.
+The `helper` module contains utility tools for the SituationReport toolsuite.
+Currently available: **JSON Merger** — combines multiple Jira REST API JSON files into one.
 
 **Start:**
 ```bash
 python -m helper
 ```
 
-Oder über die Startdatei im portablen Paket:
+Or via the start script in the portable package:
 - **Windows:** `Helper.bat`
 - **macOS:** `Helper.command`
 - **Linux:** `Helper.sh`
 
-## Handbücher
+## Manuals
 
-| Sprache | Download |
-|---------|----------|
+| Language | Download |
+|----------|----------|
 | Deutsch (DE) | [Benutzerhandbuch](../helper_Benutzerhandbuch.pdf) |
 | English (EN) | [User Manual](../helper_UserManual.pdf) |
 | Română (RO) | [Manual de Utilizator](../helper_ManualUtilizator.pdf) |
@@ -29,41 +29,40 @@ Oder über die Startdatei im portablen Paket:
 
 ### Problem
 
-Jira-REST-API-Abfragen liefern maximal 1000 Issues pro Request. Bei größeren
-Projekten müssen mehrere paginierte Abfragen durchgeführt werden, die jeweils
-eine eigene JSON-Datei erzeugen. Vor der Verarbeitung mit `transform_data`
-müssen diese Dateien zu einer einzigen zusammengeführt werden.
+Jira REST API queries return at most 1000 issues per request. For larger projects,
+multiple paginated requests are needed, each producing a separate JSON file.
+Before processing with `transform_data`, these files must be merged into one.
 
-### GUI-Oberfläche
+### GUI
 
-![Screenshot der Helper-GUI](../assets/Helper-GUI.png)
+![Helper GUI screenshot](../assets/Helper-GUI.png)
 
 ```
 ┌──────────────────────────────────────────────────┐
 │  helper – JSON Merger  v0.9.8                    │
 ├──────────────────────────────────────────────────┤
-│  Eingabedateien                                  │
+│  Input files                                     │
 │  ┌────────────────────────────────────────────┐  │
-│  │ /pfad/zu/projekt_0.json                    │  │
-│  │ /pfad/zu/projekt_1000.json                 │  │
-│  │ /pfad/zu/projekt_2000.json                 │  │
+│  │ /path/to/project_0.json                    │  │
+│  │ /path/to/project_1000.json                 │  │
+│  │ /path/to/project_2000.json                 │  │
 │  └────────────────────────────────────────────┘  │
-│  [Hinzufügen…]  [Entfernen]                      │
+│  [Add…]  [Remove]                                │
 │                                                  │
-│  Ausgabedatei (JSON)                             │
-│  [/pfad/zu/merged.json              ] [Suchen…]  │
+│  Output file (JSON)                              │
+│  [/path/to/merged.json              ] [Browse…]  │
 │                                                  │
-│  ☑ Duplikate entfernen (nach Issue-ID)           │
+│  ☑ Remove duplicates (by issue id)               │
 │                                                  │
-│               [Zusammenführen]                   │
+│                  [Merge]                         │
 │  ┌────────────────────────────────────────────┐  │
 │  │ Log                                        │  │
-│  │ Reading: projekt_0.json                    │  │
+│  │ Reading: project_0.json                    │  │
 │  │   533 issues found.                        │  │
-│  │ Reading: projekt_1000.json                 │  │
+│  │ Reading: project_1000.json                 │  │
 │  │   412 issues found.                        │  │
 │  │ Merged 2 file(s) → 945 issues → merged.json│  │
-│  │ --- Fertig ---                             │  │
+│  │ --- Done ---                               │  │
 │  └────────────────────────────────────────────┘  │
 └──────────────────────────────────────────────────┘
 ```
@@ -75,26 +74,25 @@ python -m helper file1.json file2.json file3.json --output merged.json
 python -m helper file1.json file2.json --output merged.json --no-dedup
 ```
 
-| Argument | Beschreibung |
+| Argument | Description |
 |----------|-------------|
-| `inputs` (positional) | Eine oder mehrere Eingabe-JSON-Dateien |
-| `--output FILE` | Ausgabedatei (Pflicht) |
-| `--no-dedup` | Deduplizierung deaktivieren |
+| `inputs` (positional) | One or more input JSON files |
+| `--output FILE` | Output file path (required) |
+| `--no-dedup` | Disable deduplication |
 
-### Deduplizierung
+### Deduplication
 
-Standardmäßig werden Issues mit identischer `id` nur einmal in die Ausgabe
-übernommen. Das ist wichtig, wenn sich Jira-Abfragen zeitlich überschneiden
-und dieselben Issues mehrfach liefern. Im Log erscheint für jedes Duplikat
-eine Warnung.
+By default, issues with the same `id` field appear only once in the output.
+This is important when Jira queries overlap in time and return the same issues
+more than once. A warning is logged for each duplicate found.
 
-Mit `--no-dedup` bleiben alle Issues erhalten — nützlich wenn die id-Felder
-keine Jira-IDs sondern generierte Werte sind.
+Use `--no-dedup` to keep all issues — useful if the id fields are generated
+values rather than real Jira IDs.
 
-### Ausgabeformat
+### Output format
 
-Die erzeugte Datei entspricht dem Jira-REST-API-Format und ist direkt mit
-`transform_data` verarbeitbar:
+The output file matches the Jira REST API format and can be processed directly
+by `transform_data`:
 
 ```json
 {
@@ -109,24 +107,24 @@ Die erzeugte Datei entspricht dem Jira-REST-API-Format und ist direkt mit
 ### Workflow
 
 ```bash
-# 1. JSON-Dateien zusammenführen
+# 1. Merge JSON files
 python -m helper page1.json page2.json --output merged.json
 
-# 2. Mit transform_data verarbeiten
+# 2. Process with transform_data
 python -m transform_data merged.json --workflow workflow.txt
 ```
 
 ---
 
-## Architektur
+## Architecture
 
 ```
 helper/
-├── __init__.py        leer
-├── __main__.py        Dispatcher (GUI / CLI)
-├── merger.py          Kernlogik: merge_json_files()
+├── __init__.py        empty
+├── __main__.py        dispatcher (GUI / CLI)
+├── merger.py          core logic: merge_json_files()
 ├── cli.py             run_merge() + argparse CLI
-└── gui.py             tkinter-GUI
+└── gui.py             tkinter GUI
 ```
 
 ---
@@ -137,5 +135,5 @@ helper/
 python -m pytest tests/helper/ -v
 ```
 
-- **Unit-Tests** (`tests/helper/unit/`): Merge-Logik, Deduplizierung, Envelope-Felder, Edge Cases
-- **Acceptance-Tests** (`tests/helper/acceptance/`): End-to-End mit `transform_data`
+- **Unit tests** (`tests/helper/unit/`): merge logic, deduplication, envelope fields, edge cases
+- **Acceptance tests** (`tests/helper/acceptance/`): end-to-end with `transform_data`

@@ -243,7 +243,7 @@ _PAGE_LABEL = {
 class ManualDoc(BaseDocTemplate):
     """BaseDocTemplate with cover and normal page templates, language-aware headers."""
 
-    def __init__(self, filename, lang: str = LANG_DE, **kw):
+    def __init__(self, filename, lang: str = LANG_EN, **kw):
         super().__init__(filename, pagesize=A4, **kw)
         self._lang = lang
         margin = 2.2 * cm
@@ -308,7 +308,7 @@ _COVER_AUDIENCE = {
 }
 
 
-def build_cover(canvas, doc, lang: str = LANG_DE):
+def build_cover(canvas, doc, lang: str = LANG_EN):
     """Draw the cover page with a blue/accent two-tone background and title block."""
     w, h = A4
     canvas.saveState()

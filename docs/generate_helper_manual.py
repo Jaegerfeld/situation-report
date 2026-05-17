@@ -161,7 +161,7 @@ def tbl(data: list, col_widths=None):
 
 class _HelperDoc(BaseDocTemplate):
 
-    def __init__(self, filename: str, lang: str = LANG_DE, **kw):
+    def __init__(self, filename: str, lang: str = LANG_EN, **kw):
         super().__init__(filename, pagesize=A4, **kw)
         self._lang = lang
         margin = 2.2 * cm
@@ -194,7 +194,7 @@ class _HelperDoc(BaseDocTemplate):
         canvas.restoreState()
 
 
-def _build_cover(canvas, doc, lang: str = LANG_DE):
+def _build_cover(canvas, doc, lang: str = LANG_EN):
     w, h = A4
     canvas.saveState()
     canvas.setFillColor(C_BLUE)

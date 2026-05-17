@@ -1,13 +1,13 @@
 # get_data
 
-Datenabruf aus Jira via REST API.
+Retrieve data from Jira via REST API.
 
-**Status:** geplant
+**Status:** planned
 
-## Handbücher
+## Manuals
 
-| Sprache | Download |
-|---------|----------|
+| Language | Download |
+|----------|----------|
 | Deutsch (DE) | [Benutzerhandbuch](../get_data_Benutzerhandbuch.pdf) |
 | English (EN) | [User Manual](../get_data_UserManual.pdf) |
 | Română (RO) | [Manual de Utilizator](../get_data_ManualUtilizator.pdf) |
@@ -16,32 +16,32 @@ Datenabruf aus Jira via REST API.
 
 ---
 
-## Workaround (bis zur Verfügbarkeit)
+## Workaround (until the module is available)
 
-Solange `get_data` noch nicht verfügbar ist, können Jira-Daten manuell beschafft werden.
-Der Launcher zeigt dazu einen **Anleitung**-Button auf der Get-Data-Karte.
+Until `get_data` is available, Jira data can be fetched manually.
+The Launcher shows a **How to** button on the Get Data card for this purpose.
 
-### Schritt 1 — Jira-JSON exportieren
+### Step 1 — Export Jira JSON
 
-Issues über die **Jira REST API** als JSON exportieren:
+Export issues via the **Jira REST API**:
 
 ```
-https://<jira-host>/rest/api/2/search?jql=project=MEINPROJEKT&expand=changelog&maxResults=1000
+https://<jira-host>/rest/api/2/search?jql=project=MYPROJECT&expand=changelog&maxResults=1000
 ```
 
-!!! info "Paginierung"
-    Jira liefert maximal **1.000 Issues pro Abfrage**. Bei größeren Projekten entstehen mehrere Seiten — dann weiter mit Schritt 2.
+!!! info "Pagination"
+    Jira returns at most **1,000 issues per request**. For larger projects, multiple pages are needed — proceed to Step 2.
 
-### Schritt 2 — Dateien zusammenführen (nur bei mehreren Dateien)
+### Step 2 — Merge files (only if you have more than one)
 
-`helper` starten → alle JSON-Dateien in einer Listbox auswählen → **Zusammenführen**.
+Launch `helper` → add all JSON files to the list → click **Merge**.
 
-Ergebnis: eine einzige `merged.json`, direkt von `transform_data` verarbeitbar.
+Result: a single `merged.json` file, ready for `transform_data`.
 
 → [helper](helper.md)
 
-### Schritt 3 — Daten aufbereiten
+### Step 3 — Transform data
 
-`transform_data` starten → zusammengeführte (oder einzelne) JSON-Datei laden → Workflow-Datei angeben → Verarbeiten.
+Launch `transform_data` → load the merged (or single) JSON file → specify a workflow file → process.
 
 → [transform_data](transform_data.md)

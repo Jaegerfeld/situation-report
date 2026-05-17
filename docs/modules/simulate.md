@@ -1,5 +1,5 @@
 # simulate
 
-Simulationen und Vorhersagemodelle auf Basis der Flow-Metriken.
+Simulations and prediction models based on flow metrics.
 
-**Status:** geplant
+**Status:** planned

@@ -10,13 +10,19 @@ plugins:
   - i18n:
       docs_structure: suffix
       languages:
-        - locale: de
-          default: true
-          name: Deutsch
-          build: true
         - locale: en
+          default: true
           name: English
           build: true
+        - locale: de
+          name: Deutsch
+          build: true
+          nav_translations:
+            Home: Start
+            Modules: Module
+            Overview: Übersicht
+            Architecture: Architektur
+            Development: Entwicklung
 
 theme:
   name: material
@@ -26,13 +32,13 @@ theme:
       accent: indigo
       toggle:
         icon: material/brightness-7
-        name: Dunkelmodus
+        name: Switch to dark mode
     - scheme: slate
       primary: indigo
       accent: indigo
       toggle:
         icon: material/brightness-4
-        name: Hellmodus
+        name: Switch to light mode
   features:
     - navigation.tabs
     - navigation.sections
@@ -56,9 +62,9 @@ markdown_extensions:
       permalink: true
 
 nav:
-  - Start: index.md
-  - Module:
-    - Übersicht: modules/index.md
+  - Home: index.md
+  - Modules:
+    - Overview: modules/index.md
     - launcher: modules/launcher.md
     - transform_data: modules/transform_data.md
     - build_reports: modules/build_reports.md
@@ -66,6 +72,6 @@ nav:
     - testdata_generator: modules/testdata_generator.md
     - get_data: modules/get_data.md
     - simulate: modules/simulate.md
-  - Architektur: architecture.md
-  - Entwicklung: development.md
+  - Architecture: architecture.md
+  - Development: development.md
   - Releases: releases.md

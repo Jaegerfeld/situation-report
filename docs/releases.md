@@ -1,22 +1,22 @@
 # Releases & Installation
 
-SituationReport wird als portables Paket ausgeliefert – alle Quelldateien, Skripte und Konfigurationsmöglichkeiten sind enthalten.
-Herunterladen, entpacken und starten.
+SituationReport is distributed as a portable package – all source files, scripts, and configuration options are included.
+Download, unzip, and run.
 
 ---
 
 ## Download
 
-Alle verfügbaren Releases sind auf der [GitHub-Releases-Seite](https://github.com/Jaegerfeld/situation-report/releases) zu finden.
+All available releases are on the [GitHub Releases page](https://github.com/Jaegerfeld/situation-report/releases).
 
-| Release-Typ | Beschreibung | Wann verfügbar |
-|-------------|-------------|----------------|
-| **Stabile Version** (z. B. `v0.6.0`) | Getesteter, produktionsreifer Stand | Nach jedem Versions-Tag |
-| **Dev Build** (`dev-latest`) | Aktuellster Entwicklungsstand von `main` | Nach jedem Merge auf `main` |
+| Release type | Description | When available |
+|--------------|-------------|----------------|
+| **Stable release** (e.g. `v0.6.0`) | Tested, production-ready build | After each version tag |
+| **Dev Build** (`dev-latest`) | Latest development state of `main` | After each merge to `main` |
 
-!!! tip "Welche Version nehmen?"
-    Für den normalen Einsatz immer die **neueste stabile Version** verwenden.
-    Dev Builds sind für das Testen neuer Features gedacht und können unfertige Funktionen enthalten.
+!!! tip "Which version should I use?"
+    For regular use, always pick the **latest stable release**.
+    Dev Builds are intended for testing new features and may contain incomplete functionality.
 
 ---
 
@@ -24,126 +24,126 @@ Alle verfügbaren Releases sind auf der [GitHub-Releases-Seite](https://github.c
 
 ### Windows
 
-1. `SituationReport-Windows.zip` herunterladen
-2. Zip-Datei entpacken (Rechtsklick → *Alle extrahieren*)
-3. Im entpackten Ordner:
-   - `SituationReport.bat` doppelklicken → Launcher (alle Module)
-   - `BuildReports.bat` doppelklicken → Build Reports GUI
-   - `TransformData.bat` doppelklicken → Transform Data GUI
-   - `TestdataGenerator.bat` doppelklicken → Testdata Generator GUI
-   - `Helper.bat` doppelklicken → Helper (JSON Merger) GUI
+1. Download `SituationReport-Windows.zip`
+2. Extract the zip (right-click → *Extract All*)
+3. In the extracted folder:
+   - Double-click `SituationReport.bat` → Launcher (all modules)
+   - Double-click `BuildReports.bat` → Build Reports GUI
+   - Double-click `TransformData.bat` → Transform Data GUI
+   - Double-click `TestdataGenerator.bat` → Testdata Generator GUI
+   - Double-click `Helper.bat` → Helper (JSON Merger) GUI
 
 !!! note "Windows SmartScreen"
-    Beim ersten Start erscheint möglicherweise ein SmartScreen-Hinweis, da die enthaltenen Dateien nicht signiert sind.
-    Auf **Weitere Informationen** → **Trotzdem ausführen** klicken.
+    On the first launch, SmartScreen may show a warning because the included files are not signed.
+    Click **More info** → **Run anyway**.
 
-!!! info "Enthält Python und Chrome"
-    Das Windows-Paket enthält Python 3.11 und Chrome (für PDF-Export) – kein Internet oder separate Installation notwendig.
+!!! info "Includes Python and Chrome"
+    The Windows package includes Python 3.11 and Chrome (for PDF export) – no internet or separate installation required.
 
 ---
 
 ### macOS (Apple Silicon)
 
-1. `SituationReport-macOS-ARM.zip` herunterladen
-2. Zip-Datei entpacken
-3. Rechtsklick auf `SituationReport.command` → *Öffnen* → im Dialog erneut *Öffnen* bestätigen (einmalig, für weitere Launcher gilt das gleiche Vorgehen)
+1. Download `SituationReport-macOS-ARM.zip`
+2. Extract the zip
+3. Right-click `SituationReport.command` → *Open* → confirm *Open* in the dialog (once; apply the same for other launchers)
 
 !!! note "macOS Gatekeeper"
-    Da die Skripte nicht notarisiert sind, blockiert macOS den ersten Start per Doppelklick.
-    Der Rechtsklick-Weg umgeht diesen Schutz einmalig.
+    Because the scripts are not notarized, macOS blocks a direct double-click on the first launch.
+    The right-click approach bypasses this protection once.
 
-!!! warning "Einmalige Einrichtung (erster Start)"
-    Beim ersten Start wird automatisch eine Python-Umgebung eingerichtet (~1 Minute).
-    **Internet erforderlich.** Danach funktioniert die App offline.
+!!! warning "One-time setup (first launch)"
+    On the first launch, a Python environment is set up automatically (~1 minute).
+    **Internet required.** After that, the app works offline.
 
 ---
 
 ### Linux (x64)
 
-1. `SituationReport-Linux.zip` herunterladen
-2. Zip-Datei entpacken
-3. Voraussetzung prüfen:
+1. Download `SituationReport-Linux.zip`
+2. Extract the zip
+3. Check prerequisites:
    ```bash
-   python3 --version           # 3.11 oder neuer
-   python3 -c "import tkinter" # muss ohne Fehler laufen
+   python3 --version           # 3.11 or newer
+   python3 -c "import tkinter" # must run without error
    ```
-   Falls tkinter fehlt: `sudo apt install python3-tk` (Ubuntu/Debian) oder `sudo dnf install python3-tkinter` (Fedora)
-4. Im entpackten Ordner starten:
+   If tkinter is missing: `sudo apt install python3-tk` (Ubuntu/Debian) or `sudo dnf install python3-tkinter` (Fedora)
+4. Run from the extracted folder:
    ```bash
-   ./SituationReport.sh        # Launcher (alle Module)
+   ./SituationReport.sh        # Launcher (all modules)
    ./BuildReports.sh           # Build Reports GUI
    ./TransformData.sh          # Transform Data GUI
    ./TestdataGenerator.sh      # Testdata Generator GUI
    ./Helper.sh                 # Helper (JSON Merger) GUI
    ```
 
-!!! warning "Einmalige Einrichtung (erster Start)"
-    Beim ersten Start wird automatisch eine Python-Umgebung eingerichtet (~1 Minute).
-    **Internet erforderlich.** Danach funktioniert die App offline.
+!!! warning "One-time setup (first launch)"
+    On the first launch, a Python environment is set up automatically (~1 minute).
+    **Internet required.** After that, the app works offline.
 
 ---
 
-## Paketinhalt
+## Package contents
 
-Das Paket enthält das gesamte Repository – Quelldateien, Konfigurationen und Beispiele:
+The package contains the full repository – source files, configurations, and examples:
 
-| Datei / Ordner | Inhalt |
-|----------------|--------|
-| `build_reports/` | Metriken, GUI, CLI und Plugin-Mechanismus |
-| `transform_data/` | Datenaufbereitung (Jira-Export → XLSX) |
-| `get_data/` | Datenzugriff |
-| `simulate/` | Simulation und Testdaten-Generierung |
-| `testdata_generator/` | Beispiel-Workflows und Testdaten |
-| `build_reports/pi_config_example.json` | Vorlage für PI-Konfiguration |
-| `SituationReport.bat/.command/.sh` | Launcher (alle Module) |
-| `BuildReports.bat/.command/.sh` | Starter für Build Reports |
-| `TransformData.bat/.command/.sh` | Starter für Transform Data |
-| `TestdataGenerator.bat/.command/.sh` | Starter für Testdata Generator |
-| `Helper.bat/.command/.sh` | Starter für Helper (JSON Merger) |
+| File / Folder | Contents |
+|---------------|----------|
+| `build_reports/` | Metrics, GUI, CLI, and plugin mechanism |
+| `transform_data/` | Data transformation (Jira export → XLSX) |
+| `get_data/` | Data access |
+| `simulate/` | Simulation and test-data generation |
+| `testdata_generator/` | Example workflows and test data |
+| `build_reports/pi_config_example.json` | Template for PI configuration |
+| `SituationReport.bat/.command/.sh` | Launcher (all modules) |
+| `BuildReports.bat/.command/.sh` | Launcher for Build Reports |
+| `TransformData.bat/.command/.sh` | Launcher for Transform Data |
+| `TestdataGenerator.bat/.command/.sh` | Launcher for Testdata Generator |
+| `Helper.bat/.command/.sh` | Launcher for Helper (JSON Merger) |
 
 ---
 
-## Release-Prozess (für Entwickler)
+## Release process (for developers)
 
-### Stabiles Release veröffentlichen
+### Publishing a stable release
 
-Ein stabiles Release wird durch einen **Version-Tag** auf `main` ausgelöst:
+A stable release is triggered by pushing a **version tag** on `main`:
 
 ```bash
-# Version in version.py aktualisieren, committen und pushen
+# Update version in version.py, commit and push, then:
 git tag v0.6.0
 git push origin v0.6.0
 ```
 
-GitHub Actions baut daraufhin automatisch alle drei Plattformen und veröffentlicht das Release mit den ZIP-Dateien als Anhang.
+GitHub Actions will automatically build all three platforms and publish the release with the ZIP files attached.
 
-Namensschema: `vMAJOR.MINOR.PATCH` gemäß [SemVer](https://semver.org/lang/de/).
+Tag naming follows `vMAJOR.MINOR.PATCH` per [SemVer](https://semver.org/).
 
-| Versionssprung | Wann |
-|----------------|------|
-| `PATCH` (`v0.5.0` → `v0.5.1`) | Bugfix |
-| `MINOR` (`v0.5.1` → `v0.6.0`) | Neues Feature |
-| `MAJOR` (`v0.6.0` → `v1.0.0`) | Brechende Änderung (neues Dateiformat o. Ä.) |
+| Version bump | When |
+|--------------|------|
+| `PATCH` (`v0.5.0` → `v0.5.1`) | Bug fix |
+| `MINOR` (`v0.5.1` → `v0.6.0`) | New feature |
+| `MAJOR` (`v0.6.0` → `v1.0.0`) | Breaking change (new file format, etc.) |
 
 ### Dev Build
 
-Der Dev Build wird **automatisch** nach jedem Merge auf `main` ausgelöst – kein manuelles Eingreifen notwendig.
-Das bestehende `dev-latest`-Release auf GitHub wird dabei überschrieben.
+The Dev Build is triggered **automatically** after every merge to `main` – no manual action needed.
+The existing `dev-latest` release on GitHub is replaced each time.
 
 ---
 
-## GitHub Actions Workflows
+## GitHub Actions workflows
 
-| Workflow | Datei | Trigger |
-|----------|-------|---------|
-| Build & Release | `.github/workflows/release.yml` | Push eines `v*`-Tags |
-| Dev Build | `.github/workflows/dev-build.yml` | Merge auf `main` |
-| Deploy Docs | `.github/workflows/docs.yml` | Änderungen in `docs/` oder `mkdocs.yml` |
+| Workflow | File | Trigger |
+|----------|------|---------|
+| Build & Release | `.github/workflows/release.yml` | Push of a `v*` tag |
+| Dev Build | `.github/workflows/dev-build.yml` | Merge to `main` |
+| Deploy Docs | `.github/workflows/docs.yml` | Changes in `docs/` or `mkdocs.yml` |
 
-### Unterstützte Plattformen
+### Supported platforms
 
-| Plattform | Runner | Ausgabe | Python |
-|-----------|--------|---------|--------|
-| Windows | `windows-latest` | `SituationReport-Windows.zip` | Embeddable 3.11 (im Paket) |
-| macOS (Apple Silicon) | `macos-latest` | `SituationReport-macOS-ARM.zip` | System-Python + venv (beim 1. Start) |
-| Linux x64 | `ubuntu-latest` | `SituationReport-Linux.zip` | System-Python + venv (beim 1. Start) |
+| Platform | Runner | Output | Python |
+|----------|--------|--------|--------|
+| Windows | `windows-latest` | `SituationReport-Windows.zip` | Embeddable 3.11 (bundled) |
+| macOS (Apple Silicon) | `macos-latest` | `SituationReport-macOS-ARM.zip` | System Python + venv (on 1st launch) |
+| Linux x64 | `ubuntu-latest` | `SituationReport-Linux.zip` | System Python + venv (on 1st launch) |

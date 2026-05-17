@@ -104,7 +104,7 @@ _PAGE_LABEL = {
 class _LauncherDoc(BaseDocTemplate):
     """BaseDocTemplate with cover and normal page templates."""
 
-    def __init__(self, filename: str, lang: str = LANG_DE, **kw):
+    def __init__(self, filename: str, lang: str = LANG_EN, **kw):
         super().__init__(filename, pagesize=A4, **kw)
         self._lang = lang
         margin = 2.2 * cm
@@ -138,7 +138,7 @@ class _LauncherDoc(BaseDocTemplate):
         canvas.restoreState()
 
 
-def _build_cover(canvas, doc, lang: str = LANG_DE):
+def _build_cover(canvas, doc, lang: str = LANG_EN):
     """Draw the cover page."""
     w, h = A4
     subtitle = {
