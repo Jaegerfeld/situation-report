@@ -3,7 +3,7 @@
 # Repository:     https://github.com/Jaegerfeld/situation-report
 # KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
 # Erstellt:       30.04.2026
-# Geändert:       30.04.2026
+# Geändert:       17.05.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
@@ -99,6 +99,21 @@ class TestModuleRegistry:
         """All module_ids in the registry are unique."""
         ids = [e.module_id for e in _MODULES]
         assert len(ids) == len(set(ids))
+
+    def test_testdata_generator_is_beta(self):
+        """testdata_generator has reached Beta maturity."""
+        entry = next(e for e in _MODULES if e.module_id == "testdata_generator")
+        assert entry.maturity == "beta"
+
+    def test_helper_is_alpha(self):
+        """helper remains the only Alpha module."""
+        entry = next(e for e in _MODULES if e.module_id == "helper")
+        assert entry.maturity == "alpha"
+
+    def test_only_helper_is_alpha(self):
+        """No available module other than helper is still Alpha."""
+        alpha = {e.module_id for e in _MODULES if e.maturity == "alpha"}
+        assert alpha == {"helper"}
 
     def test_every_module_has_translation_keys(self):
         """Every module_id has name and desc keys in every language dict."""

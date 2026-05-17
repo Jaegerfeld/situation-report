@@ -46,7 +46,7 @@ Or via the start script in the portable package:
 │  ┌──────────────┐ ┌──────────────┐       │
 │  │  🧪          │ │  🔧          │       │
 │  │Testdata Gen. │ │   Helper     │       │
-│  │  [ALPHA]     │ │   [ALPHA]    │       │
+│  │  [BETA]      │ │   [ALPHA]    │       │
 │  │  [Launch]    │ │  [Launch]    │       │
 │  └──────────────┘ └──────────────┘       │
 └──────────────────────────────────────────┘
@@ -60,7 +60,7 @@ Or via the start script in the portable package:
 | `build_reports` | available | BETA | Flow metrics and reports |
 | `get_data` | planned | — | Fetch data from Jira |
 | `simulate` | planned | — | Forecasts and simulations |
-| `testdata_generator` | available | ALPHA | Generate synthetic test data |
+| `testdata_generator` | available | BETA | Generate synthetic test data |
 | `helper` | available | ALPHA | Merge JSON files |
 
 ## Behaviour
@@ -76,8 +76,8 @@ The launcher shows two levels of maturity badges:
 
 - **App badge in the title bar:** An orange **BETA** badge indicates the current maturity of the overall project.
 - **Module badges on each card:** Every available module carries its own badge next to the module name:
-  - **BETA** (orange) – `transform_data`, `build_reports`: stable core functionality, production-ready
-  - **ALPHA** (red) – `testdata_generator`, `helper`: new, experimental, API may still change
+  - **BETA** (orange) – `transform_data`, `build_reports`, `testdata_generator`: stable core functionality, production-ready
+  - **ALPHA** (red) – `helper`: new, experimental, API may still change
 
 ## Update check
 
