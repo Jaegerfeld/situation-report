@@ -4,7 +4,7 @@ Generates synthetic Jira issue JSON files in Jira REST API format.
 The generated files can be processed directly by `transform_data` and are
 suitable for development, testing, and demonstrations without real Jira data.
 
-**Status:** available (Alpha)
+**Status:** available (Beta)
 
 ## Manuals
 

@@ -4,7 +4,7 @@ Erzeugt synthetische Jira-Issue-JSON-Dateien im Jira-REST-API-Format.
 Die generierten Dateien sind direkt mit `transform_data` verarbeitbar und
 eignen sich für Entwicklung, Tests und Demonstrationen ohne echte Jira-Daten.
 
-**Status:** verfügbar (Alpha)
+**Status:** verfügbar (Beta)
 
 ## Handbücher
 
