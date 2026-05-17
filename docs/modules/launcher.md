@@ -46,7 +46,7 @@ Oder über die Startdatei im portablen Paket:
 │  ┌──────────────┐ ┌──────────────┐       │
 │  │  🧪          │ │  🔧          │       │
 │  │Testdata Gen. │ │   Helper     │       │
-│  │  [ALPHA]     │ │   [ALPHA]    │       │
+│  │  [BETA]      │ │   [ALPHA]    │       │
 │  │  [Starten]   │ │  [Starten]   │       │
 │  └──────────────┘ └──────────────┘       │
 └──────────────────────────────────────────┘
@@ -60,7 +60,7 @@ Oder über die Startdatei im portablen Paket:
 | `build_reports` | verfügbar | BETA | Flow-Metriken und Reports |
 | `get_data` | geplant | — | Daten aus Jira laden |
 | `simulate` | geplant | — | Prognosen und Simulationen |
-| `testdata_generator` | verfügbar | ALPHA | Synthetische Testdaten erstellen |
+| `testdata_generator` | verfügbar | BETA | Synthetische Testdaten erstellen |
 | `helper` | verfügbar | ALPHA | JSON-Dateien zusammenführen |
 
 ## Verhalten
@@ -76,8 +76,8 @@ Der Launcher zeigt zwei Arten von Reifegrad-Badges:
 
 - **App-Badge in der Titelleiste:** Orangefarbenes **BETA**-Badge signalisiert den aktuellen Reifegrad des Gesamtprojekts.
 - **Modul-Badges auf den Karten:** Jedes verfügbare Modul trägt ein eigenes Badge neben dem Modulnamen:
-  - **BETA** (orange) – `transform_data`, `build_reports`: stabile Kernfunktionen, produktionsreif
-  - **ALPHA** (rot) – `testdata_generator`, `helper`: neu, experimentell, API kann sich noch ändern
+  - **BETA** (orange) – `transform_data`, `build_reports`, `testdata_generator`: stabile Kernfunktionen, produktionsreif
+  - **ALPHA** (rot) – `helper`: neu, experimentell, API kann sich noch ändern
 
 ## Update-Prüfung
 

@@ -9,6 +9,16 @@ Das Format orientiert sich an [Keep a Changelog](https://keepachangelog.com/de/1
 
 ---
 
+## [0.12.1] – 2026-05-17
+
+### Changed
+- `testdata_generator`: promoted from **Alpha** to **Beta**. The launcher card
+  now shows the orange BETA badge; the module status in the documentation
+  (module page, overview, launcher page) was updated accordingly. `helper`
+  remains the only Alpha module.
+
+---
+
 ## [0.12.0] – 2026-05-17
 
 ### Added
