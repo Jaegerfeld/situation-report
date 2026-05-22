@@ -3,7 +3,7 @@
 # Repository:     https://github.com/Jaegerfeld/situation-report
 # KI-Unterstuetzung: Erstellt mit Unterstuetzung von Claude (Anthropic)
 # Erstellt:       21.04.2026
-# Geaendert:      22.05.2026
+# Geaendert:      23.05.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
@@ -434,8 +434,10 @@ def content_de(st):
         "konfiguriert startet.", st, "#e8f8f0"))
     story.append(H2("5.5  Sprache und Hilfe", st))
     story.append(P(
-        "Im Menue <b>Optionen</b> koennen Sie zwischen Deutsch und Englisch wechseln. "
-        "Unter <b>Hilfe &rarr; Manual</b> oeffnet sich dieses Handbuch im Browser.", st))
+        "Mit der <b>Flaggen-Schaltflaeche</b> oben rechts schalten Sie die Oberflaeche "
+        "zwischen fuenf Sprachen um (Deutsch, Englisch, Rumaenisch, Portugiesisch, "
+        "Franzoesisch). Unter <b>Hilfe &rarr; Manual</b> oeffnet sich dieses Handbuch "
+        "im Browser.", st))
 
     story.append(PageBreak())
     story.append(H1("6  Die Ausgabedateien", st))
@@ -709,7 +711,8 @@ def content_en(st):
         "along too, so build_reports opens fully configured.", st, "#e8f8f0"))
     story.append(H2("5.5  Language and Help", st))
     story.append(P(
-        "Use the <b>Options</b> menu to switch between German and English. "
+        "Use the <b>flag button</b> in the top-right corner to switch the interface "
+        "between five languages (German, English, Romanian, Portuguese, French). "
         "Under <b>Help &rarr; Manual</b>, this manual opens in your browser.", st))
 
     story.append(PageBreak())
@@ -971,7 +974,8 @@ def content_ro(st):
         "configurat.", st, "#e8f8f0"))
     story.append(H2("5.5  Limba si ajutor", st))
     story.append(P(
-        "Utilizati meniul <b>Optiuni</b> pentru a schimba limba. "
+        "Folositi <b>butonul cu steag</b> din dreapta sus pentru a comuta interfata "
+        "intre cinci limbi (germana, engleza, romana, portugheza, franceza). "
         "Sub <b>Ajutor &rarr; Manual</b>, acest manual se deschide in browser.", st))
 
     story.append(PageBreak())
@@ -1235,7 +1239,8 @@ def content_pt(st):
         "build_reports inicie totalmente configurado.", st, "#e8f8f0"))
     story.append(H2("5.5  Idioma e ajuda", st))
     story.append(P(
-        "Use o menu <b>Opcoes</b> para mudar o idioma. "
+        "Use o <b>botao de bandeira</b> no canto superior direito para alternar a "
+        "interface entre cinco idiomas (alemao, ingles, romeno, portugues, frances). "
         "Em <b>Ajuda &rarr; Manual</b>, este manual abre no browser.", st))
 
     story.append(PageBreak())
@@ -1498,7 +1503,8 @@ def content_fr(st):
         "entierement configure.", st, "#e8f8f0"))
     story.append(H2("5.5  Langue et aide", st))
     story.append(P(
-        "Utilisez le menu <b>Options</b> pour changer la langue. "
+        "Utilisez le <b>bouton drapeau</b> en haut a droite pour basculer l'interface "
+        "entre cinq langues (allemand, anglais, roumain, portugais, francais). "
         "Sous <b>Aide &rarr; Manuel</b>, ce manuel s'ouvre dans votre navigateur.", st))
 
     story.append(PageBreak())

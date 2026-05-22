@@ -3,12 +3,12 @@
 # Repository:     https://github.com/Jaegerfeld/situation-report
 # KI-Unterstuetzung: Erstellt mit Unterstuetzung von Claude (Anthropic)
 # Erstellt:       17.04.2026
-# Geaendert:      22.05.2026
+# Geaendert:      23.05.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
 #   Erzeugt das Benutzerhandbuch und das User Manual fuer build_reports als
-#   PDF-Dateien (Deutsch und Englisch). Enthaelt alle Kapitel fuer
+#   PDF-Dateien (5 Sprachen: DE, EN, RO, PT, FR). Enthaelt alle Kapitel fuer
 #   Nicht-Techniker: Einleitung, Dateien, GUI-Bedienung, Metriken-Erklaerungen
 #   mit echten Beispieldiagrammen (aus den ART_A-Testdaten) und Tipps.
 # =============================================================================
@@ -718,8 +718,9 @@ def content_de(st, images: dict[str, Path] | None = None):
         "Die Sprache laesst sich auf zwei Wegen umschalten:", st))
     story.append(BL(
         "<b>Flaggen-Schaltflaeche</b> oben rechts im Fenster - zeigt die aktuelle "
-        "Sprache als Landesflagge. Ein Klick wechselt sofort zwischen Deutsch und "
-        "Englisch.", st))
+        "Sprache als Landesflagge. Ein Klick schaltet zur naechsten der fuenf "
+        "Sprachen weiter (Deutsch, Englisch, Rumaenisch, Portugiesisch, "
+        "Franzoesisch).", st))
     story.append(BL(
         "<b>Menue Optionen → Sprache</b> - alternativ ueber das Menue.", st))
     story.append(P(
@@ -1490,8 +1491,8 @@ def content_en(st, images: dict[str, Path] | None = None):
         "The language can be switched in two ways:", st))
     story.append(BL(
         "<b>Flag button</b> in the top-right corner of the window — shows the current "
-        "language as a national flag. One click toggles instantly between German and "
-        "English.", st))
+        "language as a national flag. One click advances to the next of the five "
+        "languages (German, English, Romanian, Portuguese, French).", st))
     story.append(BL(
         "<b>Options → Language</b> menu — alternatively via the menu.", st))
     story.append(P(
@@ -2254,8 +2255,8 @@ def content_ro(st, images=None):
         "Limba poate fi schimbata in doua moduri:", st))
     story.append(BL(
         "<b>Butonul cu steag</b> din coltul din dreapta sus al ferestrei — afiseaza "
-        "limba curenta ca steag national. Un click comuta instant intre germana si "
-        "engleza.", st))
+        "limba curenta ca steag national. Un click trece la urmatoarea dintre cele "
+        "cinci limbi (germana, engleza, romana, portugheza, franceza).", st))
     story.append(BL(
         "<b>Optiuni → Limba</b> — alternativ prin meniu.", st))
     story.append(P(
@@ -3016,8 +3017,8 @@ def content_pt(st, images=None):
         "O idioma pode ser alterado de duas formas:", st))
     story.append(BL(
         "<b>Botao de bandeira</b> no canto superior direito da janela -- mostra o idioma "
-        "atual como bandeira nacional. Um clique alterna imediatamente entre alemao e "
-        "ingles.", st))
+        "atual como bandeira nacional. Um clique avanca para o proximo dos cinco "
+        "idiomas (alemao, ingles, romeno, portugues, frances).", st))
     story.append(BL(
         "<b>Opcoes → Idioma</b> menu -- alternativamente atraves do menu.", st))
     story.append(P(
@@ -3794,8 +3795,8 @@ def content_fr(st, images=None):
         "La langue peut etre changee de deux facons :", st))
     story.append(BL(
         "<b>Bouton drapeau</b> dans le coin superieur droit de la fenetre -- affiche la "
-        "langue actuelle sous forme de drapeau national. Un clic bascule instantanement "
-        "entre l'allemand et l'anglais.", st))
+        "langue actuelle sous forme de drapeau national. Un clic passe a la langue "
+        "suivante parmi les cinq (allemand, anglais, roumain, portugais, francais).", st))
     story.append(BL(
         "<b>Options -> Langue</b> -- alternativement via le menu.", st))
     story.append(P(

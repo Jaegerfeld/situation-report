@@ -9,6 +9,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [0.14.2] – 2026-05-23
+
+### Fixed
+- The transform_data and build_reports user manuals stated the interface
+  language could only be switched between German and English. The GUIs
+  support five languages — the manuals now list all of them (German,
+  English, Romanian, Portuguese, French).
+
+---
+
 ## [0.14.1] – 2026-05-22
 
 ### Fixed
