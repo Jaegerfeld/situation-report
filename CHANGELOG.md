@@ -9,6 +9,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [0.14.1] – 2026-05-22
+
+### Fixed
+- The portable release package was missing `project_template.py`, so the
+  transform_data, build_reports, helper and testdata_generator GUIs failed to
+  start with `ERROR: ... No module named 'project_template'`. The release and
+  dev-build workflows now bundle this root-level module.
+
+---
+
 ## [0.14.0] – 2026-05-22
 
 ### Added

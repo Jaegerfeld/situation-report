@@ -122,7 +122,7 @@ jobs:
           foreach ($mod in 'build_reports','transform_data','get_data','simulate','testdata_generator','launcher','helper') {
               if (Test-Path $mod) { Copy-Item -Recurse $mod "$BUNDLE\$mod" }
           }
-          foreach ($f in 'version.py','pyproject.toml','README.md','LICENSE') {
+          foreach ($f in 'version.py','project_template.py','pyproject.toml','README.md','LICENSE') {
               if (Test-Path $f) { Copy-Item $f "$BUNDLE\" }
           }
 
@@ -275,7 +275,7 @@ jobs:
           for mod in build_reports transform_data get_data simulate testdata_generator launcher helper; do
             [ -d "$mod" ] && cp -r "$mod" "$BUNDLE/"
           done
-          for f in version.py pyproject.toml README.md LICENSE; do
+          for f in version.py project_template.py pyproject.toml README.md LICENSE; do
             [ -f "$f" ] && cp "$f" "$BUNDLE/"
           done
 
