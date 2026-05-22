@@ -3,7 +3,7 @@
 # Repository:     https://github.com/Jaegerfeld/situation-report
 # KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
 # Erstellt:       26.04.2026
-# Geändert:       26.04.2026
+# Geändert:       22.05.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
@@ -19,7 +19,7 @@ from pathlib import Path
 
 import pytest
 
-from transform_data.transform import run_transform
+from transform_data.transform import TransformResult, run_transform
 
 
 WORKFLOW_FULL = "\n".join([
@@ -80,6 +80,28 @@ class TestRunTransform:
         assert (out / "T_Transitions.xlsx").exists()
         assert (out / "T_IssueTimes.xlsx").exists()
         assert (out / "T_CFD.xlsx").exists()
+
+    def test_returns_transform_result_with_existing_paths(
+        self, json_file, workflow_file, tmp_path
+    ):
+        """run_transform returns a TransformResult whose three paths exist."""
+        out = tmp_path / "out"
+        result = run_transform(json_file, workflow_file, output_dir=out, prefix="T")
+        assert isinstance(result, TransformResult)
+        assert result.transitions == out / "T_Transitions.xlsx"
+        assert result.issue_times == out / "T_IssueTimes.xlsx"
+        assert result.cfd == out / "T_CFD.xlsx"
+        assert result.transitions.is_file()
+        assert result.issue_times.is_file()
+        assert result.cfd.is_file()
+
+    def test_result_paths_follow_prefix_and_output_dir(
+        self, json_file, workflow_file, tmp_path
+    ):
+        """Returned paths reflect a custom prefix and output directory."""
+        out = tmp_path / "reports"
+        result = run_transform(json_file, workflow_file, output_dir=out, prefix="PI23")
+        assert result.cfd == out / "PI23_CFD.xlsx"
 
     def test_default_output_dir_is_json_parent(self, json_file, workflow_file):
         """Without output_dir, files are written next to the JSON file."""

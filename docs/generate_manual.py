@@ -3,7 +3,7 @@
 # Repository:     https://github.com/Jaegerfeld/situation-report
 # KI-Unterstuetzung: Erstellt mit Unterstuetzung von Claude (Anthropic)
 # Erstellt:       17.04.2026
-# Geaendert:      28.04.2026
+# Geaendert:      22.05.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
@@ -731,6 +731,15 @@ def content_de(st, images: dict[str, Path] | None = None):
     # =========================================================================
     # 5. Metriken
     # =========================================================================
+    story.append(H2("4.7  Aus transform_data geoeffnet", st))
+    story.append(P(
+        "build_reports laesst sich direkt aus transform_data starten: Nach einer "
+        "Transformation belegt dort die Schaltflaeche <b>'In build_reports oeffnen'</b> "
+        "die Datei-Felder (IssueTimes, CFD, Transitions, Workflow) hier automatisch "
+        "vor. War in transform_data ein Projekt-Template geladen, werden auch dessen "
+        "build_reports-Einstellungen (PI-Konfiguration, Filter, Metrik-Auswahl) "
+        "mit uebernommen.", st))
+
     story.append(PageBreak())
     story.append(H1("5  Die Metriken im Ueberblick", st))
     story.append(P(
@@ -1494,6 +1503,14 @@ def content_en(st, images: dict[str, Path] | None = None):
     # =========================================================================
     # 5. Metrics
     # =========================================================================
+    story.append(H2("4.7  Opened from transform_data", st))
+    story.append(P(
+        "build_reports can be launched directly from transform_data: after a "
+        "transformation, its <b>'Open in build_reports'</b> button pre-fills the "
+        "file fields (IssueTimes, CFD, Transitions, Workflow) here automatically. "
+        "If a project template was loaded in transform_data, its build_reports "
+        "settings (PI config, filters, metric selection) are carried over too.", st))
+
     story.append(PageBreak())
     story.append(H1("5  Metrics Overview", st))
     story.append(P(
@@ -2250,6 +2267,15 @@ def content_ro(st, images=None):
     # =========================================================================
     # 5. Metrici
     # =========================================================================
+    story.append(H2("4.7  Deschis din transform_data", st))
+    story.append(P(
+        "build_reports poate fi pornit direct din transform_data: dupa o "
+        "transformare, butonul <b>'Deschidere in build_reports'</b> de acolo "
+        "completeaza automat campurile de fisiere (IssueTimes, CFD, Transitions, "
+        "Workflow) de aici. Daca in transform_data a fost incarcat un sablon de "
+        "proiect, se preiau si setarile sale build_reports (configuratie PI, "
+        "filtre, selectie de metrici).", st))
+
     story.append(PageBreak())
     story.append(H1("5  Prezentare generala a metricilor", st))
     story.append(P(
@@ -3003,6 +3029,16 @@ def content_pt(st, images=None):
     # =========================================================================
     # 5. Metricas
     # =========================================================================
+    story.append(H2("4.7  Aberto a partir do transform_data", st))
+    story.append(P(
+        "O build_reports pode ser iniciado diretamente a partir do "
+        "transform_data: apos uma transformacao, o botao "
+        "<b>'Abrir no build_reports'</b> ai preenche automaticamente os campos "
+        "de ficheiros (IssueTimes, CFD, Transitions, Workflow) aqui. Se um modelo "
+        "de projeto estiver carregado no transform_data, as suas definicoes do "
+        "build_reports (configuracao PI, filtros, selecao de metricas) sao "
+        "tambem assumidas.", st))
+
     story.append(PageBreak())
     story.append(H1("5  Visao geral das metricas", st))
     story.append(P(
@@ -3771,6 +3807,15 @@ def content_fr(st, images=None):
     # =========================================================================
     # 5. Metriques
     # =========================================================================
+    story.append(H2("4.7  Ouvert depuis transform_data", st))
+    story.append(P(
+        "build_reports peut etre lance directement depuis transform_data : apres "
+        "une transformation, le bouton <b>'Ouvrir dans build_reports'</b> y "
+        "pre-remplit automatiquement les champs de fichiers (IssueTimes, CFD, "
+        "Transitions, Workflow) ici. Si un modele de projet etait charge dans "
+        "transform_data, ses parametres build_reports (configuration PI, filtres, "
+        "selection de metriques) sont egalement repris.", st))
+
     story.append(PageBreak())
     story.append(H1("5  Apercu des metriques", st))
     story.append(P(

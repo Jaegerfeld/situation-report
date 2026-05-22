@@ -78,6 +78,16 @@ python -m build_reports IssueTimes.xlsx --metrics flow_time process_flow process
 
 The GUI supports saving and loading all settings as a JSON template (menu → Templates). Templates are versioned (`"version": 4`) and backwards-compatible.
 
+## Data hand-over from transform_data
+
+`build_reports` can be launched directly from `transform_data`: after a
+transformation, its **Open in build_reports** button pre-fills the IssueTimes,
+CFD, Transitions and workflow fields here. Internally the data is passed as a
+project template via the `--gui-template <path>` command-line flag, which the
+GUI loads on startup. If a project template was loaded in `transform_data`, its
+build_reports settings (PI config, filters, metric selection) carry over too;
+otherwise the PI config and filters remain empty for you to choose.
+
 ## Note: Flow Time Method B and workflow structure
 
 Method B sums stage minutes **up to, but not including, the `<Closed>` stage**. Stages defined after the closed stage in the workflow (e.g. "Monitoring", "Done") are also excluded. The closed stage itself carries a carry-forward value (`reference_dt − closed_date`) for completed issues that would distort the measured cycle time — it is therefore excluded.

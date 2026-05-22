@@ -3,7 +3,7 @@
 # Repository:     https://github.com/Jaegerfeld/situation-report
 # KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
 # Erstellt:       09.04.2026
-# Geändert:       14.04.2026
+# Geändert:       22.05.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
@@ -29,6 +29,7 @@ Example:
 
 import argparse
 from collections.abc import Callable
+from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -37,18 +38,32 @@ from .processor import process_issues
 from .writers import write_transitions, write_issue_times, write_cfd
 
 
+@dataclass(frozen=True)
+class TransformResult:
+    """Paths of the three XLSX files written by a transformation run."""
+
+    transitions: Path
+    issue_times: Path
+    cfd: Path
+
+
 def run_transform(
     json_file: Path,
     workflow_file: Path,
     output_dir: Path | None = None,
     prefix: str | None = None,
     log: Callable[[str], None] = print,
-) -> None:
+) -> TransformResult:
     """
     Execute the full transformation pipeline.
 
     Called by both the CLI (main) and the GUI. The log parameter accepts
     any callable that takes a single string — defaults to print for CLI use.
+
+    Returns:
+        TransformResult with the paths of the three written XLSX files.
+        Lets callers (e.g. the GUI hand-over to build_reports) reuse the
+        output paths without re-deriving the prefix/output-dir resolution.
     """
     workflow = parse_workflow(workflow_file)
 
@@ -82,6 +97,12 @@ def run_transform(
     log(f"  {transitions_path}")
     log(f"  {issue_times_path}")
     log(f"  {cfd_path}")
+
+    return TransformResult(
+        transitions=transitions_path,
+        issue_times=issue_times_path,
+        cfd=cfd_path,
+    )
 
 
 def main() -> None:

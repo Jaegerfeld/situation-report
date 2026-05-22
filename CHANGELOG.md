@@ -9,6 +9,22 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [0.14.0] – 2026-05-22
+
+### Added
+- Data hand-over from `transform_data` to `build_reports`. After a successful
+  transformation, a new **Open in build_reports** button writes the three
+  generated XLSX files plus the workflow file into a project template and
+  launches `build_reports`, which opens with those file fields pre-filled.
+  When a project template is loaded in `transform_data`, its build_reports
+  settings (PI config, filters, metric selection) are carried over into the
+  hand-over so they reach `build_reports` too. build_reports accepts the new
+  `--gui-template <path>` flag for this purpose. The hand-over is currently
+  one-way (`transform_data` → `build_reports`); other module pairs remain
+  future work.
+
+---
+
 ## [0.13.0] – 2026-05-17
 
 ### Changed
