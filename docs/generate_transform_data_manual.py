@@ -3,7 +3,7 @@
 # Repository:     https://github.com/Jaegerfeld/situation-report
 # KI-Unterstuetzung: Erstellt mit Unterstuetzung von Claude (Anthropic)
 # Erstellt:       21.04.2026
-# Geaendert:      13.05.2026
+# Geaendert:      22.05.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
@@ -420,7 +420,19 @@ def content_de(st):
         "<b>Warnungen im Log beachten:</b> Eine Warnung ueber nicht gemappte Status "
         "bedeutet nicht, dass die Verarbeitung fehlgeschlagen ist. "
         "Die Ausgabedateien werden trotzdem erstellt.", st, "#fff8e1"))
-    story.append(H2("5.4  Sprache und Hilfe", st))
+    story.append(H2("5.4  Uebergabe an build_reports", st))
+    story.append(P(
+        "Nach einer erfolgreichen Transformation ist der Button "
+        "<b>'In build_reports oeffnen'</b> aktiv. Ein Klick startet build_reports "
+        "mit den drei erzeugten Excel-Dateien und der Workflow-Datei bereits "
+        "vorausgefuellt -- die Dateien muessen dort nicht erneut ausgewaehlt werden.", st))
+    story.append(SP(4))
+    story.append(box(
+        "<b>Mit geladenem Template:</b> Ist ein Projekt-Template geladen, werden "
+        "auch dessen build_reports-Einstellungen (PI-Konfiguration, Filter, "
+        "Metrik-Auswahl) mit uebergeben, sodass build_reports vollstaendig "
+        "konfiguriert startet.", st, "#e8f8f0"))
+    story.append(H2("5.5  Sprache und Hilfe", st))
     story.append(P(
         "Im Menue <b>Optionen</b> koennen Sie zwischen Deutsch und Englisch wechseln. "
         "Unter <b>Hilfe &rarr; Manual</b> oeffnet sich dieses Handbuch im Browser.", st))
@@ -684,7 +696,18 @@ def content_en(st):
     story.append(box(
         "<b>Warnings in the log:</b> A warning about unmapped statuses does not mean "
         "the transformation failed -- the output files are still produced.", st, "#fff8e1"))
-    story.append(H2("5.4  Language and Help", st))
+    story.append(H2("5.4  Hand-over to build_reports", st))
+    story.append(P(
+        "After a successful transformation the <b>'Open in build_reports'</b> "
+        "button becomes active. Clicking it launches build_reports with the three "
+        "generated Excel files and the workflow file already filled in -- there is "
+        "no need to select the files again.", st))
+    story.append(SP(4))
+    story.append(box(
+        "<b>With a loaded template:</b> If a project template is loaded, its "
+        "build_reports settings (PI config, filters, metric selection) are passed "
+        "along too, so build_reports opens fully configured.", st, "#e8f8f0"))
+    story.append(H2("5.5  Language and Help", st))
     story.append(P(
         "Use the <b>Options</b> menu to switch between German and English. "
         "Under <b>Help &rarr; Manual</b>, this manual opens in your browser.", st))
@@ -934,7 +957,19 @@ def content_ro(st):
     story.append(box(
         "<b>Atentie la avertismente:</b> Un avertisment despre statusuri nemapate nu "
         "inseamna ca procesarea a esuat -- fisierele de iesire sunt totusi create.", st, "#fff8e1"))
-    story.append(H2("5.4  Limba si ajutor", st))
+    story.append(H2("5.4  Transfer catre build_reports", st))
+    story.append(P(
+        "Dupa o transformare reusita, butonul <b>'Deschidere in build_reports'</b> "
+        "devine activ. Un clic porneste build_reports cu cele trei fisiere Excel "
+        "generate si fisierul workflow deja completate -- fisierele nu trebuie "
+        "selectate din nou.", st))
+    story.append(SP(4))
+    story.append(box(
+        "<b>Cu un sablon incarcat:</b> Daca este incarcat un sablon de proiect, "
+        "se transfera si setarile sale build_reports (configuratie PI, filtre, "
+        "selectie de metrici), astfel incat build_reports porneste complet "
+        "configurat.", st, "#e8f8f0"))
+    story.append(H2("5.5  Limba si ajutor", st))
     story.append(P(
         "Utilizati meniul <b>Optiuni</b> pentru a schimba limba. "
         "Sub <b>Ajutor &rarr; Manual</b>, acest manual se deschide in browser.", st))
@@ -1185,7 +1220,20 @@ def content_pt(st):
     story.append(box(
         "<b>Avisos no registo:</b> Um aviso sobre statusos nao mapeados nao significa "
         "que a transformacao falhou -- os ficheiros de saida sao criados na mesma.", st, "#fff8e1"))
-    story.append(H2("5.4  Idioma e ajuda", st))
+    story.append(H2("5.4  Transferencia para build_reports", st))
+    story.append(P(
+        "Apos uma transformacao bem-sucedida, o botao "
+        "<b>'Abrir no build_reports'</b> fica ativo. Um clique inicia o "
+        "build_reports com os tres ficheiros Excel gerados e o ficheiro de "
+        "workflow ja preenchidos -- nao e necessario selecionar os ficheiros "
+        "novamente.", st))
+    story.append(SP(4))
+    story.append(box(
+        "<b>Com um modelo carregado:</b> Se um modelo de projeto estiver "
+        "carregado, as suas definicoes do build_reports (configuracao PI, "
+        "filtros, selecao de metricas) sao tambem transferidas, para que o "
+        "build_reports inicie totalmente configurado.", st, "#e8f8f0"))
+    story.append(H2("5.5  Idioma e ajuda", st))
     story.append(P(
         "Use o menu <b>Opcoes</b> para mudar o idioma. "
         "Em <b>Ajuda &rarr; Manual</b>, este manual abre no browser.", st))
@@ -1435,7 +1483,20 @@ def content_fr(st):
     story.append(box(
         "<b>Avertissements dans le journal :</b> Un avertissement sur des statuts non mappes "
         "ne signifie pas que la transformation a echoue -- les fichiers de sortie sont quand meme produits.", st, "#fff8e1"))
-    story.append(H2("5.4  Langue et aide", st))
+    story.append(H2("5.4  Transfert vers build_reports", st))
+    story.append(P(
+        "Apres une transformation reussie, le bouton "
+        "<b>'Ouvrir dans build_reports'</b> devient actif. Un clic lance "
+        "build_reports avec les trois fichiers Excel generes et le fichier de "
+        "workflow deja remplis -- il n'est pas necessaire de selectionner a "
+        "nouveau les fichiers.", st))
+    story.append(SP(4))
+    story.append(box(
+        "<b>Avec un modele charge :</b> Si un modele de projet est charge, ses "
+        "parametres build_reports (configuration PI, filtres, selection de "
+        "metriques) sont egalement transmis, afin que build_reports demarre "
+        "entierement configure.", st, "#e8f8f0"))
+    story.append(H2("5.5  Langue et aide", st))
     story.append(P(
         "Utilisez le menu <b>Options</b> pour changer la langue. "
         "Sous <b>Aide &rarr; Manuel</b>, ce manuel s'ouvre dans votre navigateur.", st))

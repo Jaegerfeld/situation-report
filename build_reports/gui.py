@@ -3,7 +3,7 @@
 # Repository:     https://github.com/Jaegerfeld/situation-report
 # KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
 # Erstellt:       16.04.2026
-# Geändert:       28.04.2026
+# Geändert:       22.05.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
@@ -1008,7 +1008,7 @@ class BuildReportsApp(tk.Tk):
     runs in a background thread to keep the UI responsive.
     """
 
-    def __init__(self) -> None:
+    def __init__(self, handover_template: Path | None = None) -> None:
         super().__init__()
         self.resizable(True, True)
         self.minsize(520, 600)
@@ -1062,6 +1062,19 @@ class BuildReportsApp(tk.Tk):
         self._build_ui()
         self._apply_language()  # set initial titles / labels
         self._fit_to_screen()
+
+        # Data hand-over: load a template passed by transform_data, then
+        # consume (delete) it so it is applied exactly once.
+        if handover_template is not None:
+            self.after(0, lambda: self._consume_handover_template(handover_template))
+
+    def _consume_handover_template(self, path: Path) -> None:
+        """Apply a hand-over template once and delete it afterwards."""
+        self._apply_template(path)
+        try:
+            path.unlink(missing_ok=True)
+        except OSError:
+            pass
 
     # -------------------------------------------------------------------------
     # Translation helper
@@ -1645,21 +1658,27 @@ class BuildReportsApp(tk.Tk):
 
     def _load_template(self) -> None:
         """
-        Open a JSON template file and apply its settings to the UI.
-
-        Paths stored in the template are applied directly; if a stored file path
-        no longer exists a warning is logged but loading continues. The language
-        is applied last so all label updates reflect the loaded language.
+        Open a JSON template file (via a file dialog) and apply it to the UI.
         """
         path = filedialog.askopenfilename(
             parent=self,
             title=self._tr("dlg_tpl_load"),
             filetypes=[("JSON-Dateien", "*.json"), ("Alle Dateien", "*.*")],
         )
-        if not path:
-            return
+        if path:
+            self._apply_template(Path(path))
+
+    def _apply_template(self, path: Path) -> None:
+        """
+        Load a JSON template file and apply its settings to the UI.
+
+        Paths stored in the template are applied directly; if a stored file path
+        no longer exists a warning is logged but loading continues. The language
+        is applied last so all label updates reflect the loaded language. This
+        is shared by the Templates → Load menu and the transform_data hand-over.
+        """
         try:
-            envelope = project_template.load_template(Path(path))
+            envelope = project_template.load_template(path)
             section = project_template.get_section(
                 envelope, project_template.MODULE_BUILD_REPORTS
             )
@@ -1709,7 +1728,7 @@ class BuildReportsApp(tk.Tk):
         # Apply language last (triggers _apply_language which rebuilds menu labels)
         self._lang_var.set(state["language"])
 
-        self._log(self._tr("log_tpl_loaded").format(Path(path).name))
+        self._log(self._tr("log_tpl_loaded").format(path.name))
 
     # -------------------------------------------------------------------------
     # Exclusion defaults (global, stored in ~/.situation_report/excl_defaults.json)
@@ -2285,13 +2304,17 @@ class BuildReportsApp(tk.Tk):
         self._progress_bar.grid_remove()
 
 
-def main() -> None:
+def main(handover_template: Path | None = None) -> None:
     """
     Launch the build_reports GUI.
 
-    Entry point called by __main__.py when no CLI arguments are provided.
+    Entry point called by __main__.py for GUI mode.
+
+    Args:
+        handover_template: Optional project-template file to load on startup
+                           (data hand-over from transform_data).
     """
-    BuildReportsApp().mainloop()
+    BuildReportsApp(handover_template=handover_template).mainloop()
 
 
 if __name__ == "__main__":

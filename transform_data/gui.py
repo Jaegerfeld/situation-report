@@ -3,7 +3,7 @@
 # Repository:     https://github.com/Jaegerfeld/situation-report
 # KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
 # Erstellt:       10.04.2026
-# Geändert:       09.05.2026
+# Geändert:       22.05.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
@@ -14,10 +14,15 @@
 #   automatisch vorbelegt. Die Transformation läuft in einem separaten Thread,
 #   sodass die Oberfläche während der Verarbeitung reaktionsfähig bleibt.
 #   Bei Operationen über 3 Sekunden erscheint ein Ladebalken.
-#   Warnungen und Ergebnisse werden im Log-Bereich angezeigt.
+#   Warnungen und Ergebnisse werden im Log-Bereich angezeigt. Nach einem
+#   erfolgreichen Lauf können die erzeugten Dateien per Datenübergabe direkt
+#   in build_reports geöffnet werden.
 # =============================================================================
 
 import json
+import subprocess
+import sys
+import tempfile
 import threading
 import tkinter as tk
 import webbrowser
@@ -31,7 +36,7 @@ except ImportError:
 
 import project_template
 
-from .transform import run_transform
+from .transform import TransformResult, run_transform
 
 # ---------------------------------------------------------------------------
 # Language constants
@@ -73,6 +78,7 @@ _T: dict[str, dict[str, str]] = {
         "lbl_log":          "Log",
         "btn_browse":       "Durchsuchen…",
         "btn_run":          "Ausführen",
+        "btn_open_build_reports": "In build_reports öffnen",
         "dlg_json":         "JSON-Datei wählen",
         "dlg_workflow":     "Workflow-Datei wählen",
         "dlg_output_dir":   "Ausgabeordner wählen",
@@ -83,6 +89,8 @@ _T: dict[str, dict[str, str]] = {
         "log_started":      "--- Transformation gestartet ---",
         "log_done":         "--- Fertig ---",
         "log_error":        "FEHLER: {}",
+        "log_handover":     "build_reports wird mit den transformierten Daten geöffnet…",
+        "log_handover_error": "Fehler bei der Datenübergabe: {}",
     },
     LANG_EN: {
         "window_title":     "transform_data",
@@ -111,6 +119,7 @@ _T: dict[str, dict[str, str]] = {
         "lbl_log":          "Log",
         "btn_browse":       "Browse…",
         "btn_run":          "Run",
+        "btn_open_build_reports": "Open in build_reports",
         "dlg_json":         "Select JSON file",
         "dlg_workflow":     "Select workflow file",
         "dlg_output_dir":   "Select output folder",
@@ -121,6 +130,8 @@ _T: dict[str, dict[str, str]] = {
         "log_started":      "--- Transformation started ---",
         "log_done":         "--- Done ---",
         "log_error":        "ERROR: {}",
+        "log_handover":     "Opening build_reports with the transformed data…",
+        "log_handover_error": "Data hand-over error: {}",
     },
     LANG_RO: {
         "window_title":     "transform_data",
@@ -149,6 +160,7 @@ _T: dict[str, dict[str, str]] = {
         "lbl_log":          "Jurnal",
         "btn_browse":       "Răsfoire…",
         "btn_run":          "Executare",
+        "btn_open_build_reports": "Deschidere în build_reports",
         "dlg_json":         "Selectați fişierul JSON",
         "dlg_workflow":     "Selectați fişierul Workflow",
         "dlg_output_dir":   "Selectați folderul de ieşire",
@@ -159,6 +171,8 @@ _T: dict[str, dict[str, str]] = {
         "log_started":      "--- Transformare pornită ---",
         "log_done":         "--- Finalizat ---",
         "log_error":        "EROARE: {}",
+        "log_handover":     "Se deschide build_reports cu datele transformate…",
+        "log_handover_error": "Eroare la transferul datelor: {}",
     },
     LANG_PT: {
         "window_title":     "transform_data",
@@ -187,6 +201,7 @@ _T: dict[str, dict[str, str]] = {
         "lbl_log":          "Registo",
         "btn_browse":       "Procurar…",
         "btn_run":          "Executar",
+        "btn_open_build_reports": "Abrir no build_reports",
         "dlg_json":         "Selecionar ficheiro JSON",
         "dlg_workflow":     "Selecionar ficheiro Workflow",
         "dlg_output_dir":   "Selecionar pasta de saída",
@@ -197,6 +212,8 @@ _T: dict[str, dict[str, str]] = {
         "log_started":      "--- Transformação iniciada ---",
         "log_done":         "--- Concluído ---",
         "log_error":        "ERRO: {}",
+        "log_handover":     "A abrir o build_reports com os dados transformados…",
+        "log_handover_error": "Erro na transferência de dados: {}",
     },
     LANG_FR: {
         "window_title":     "transform_data",
@@ -225,6 +242,7 @@ _T: dict[str, dict[str, str]] = {
         "lbl_log":          "Journal",
         "btn_browse":       "Parcourir…",
         "btn_run":          "Exécuter",
+        "btn_open_build_reports": "Ouvrir dans build_reports",
         "dlg_json":         "Sélectionner le fichier JSON",
         "dlg_workflow":     "Sélectionner le fichier Workflow",
         "dlg_output_dir":   "Sélectionner le dossier de sortie",
@@ -235,6 +253,8 @@ _T: dict[str, dict[str, str]] = {
         "log_started":      "--- Transformation démarrée ---",
         "log_done":         "--- Terminé ---",
         "log_error":        "ERREUR : {}",
+        "log_handover":     "Ouverture de build_reports avec les données transformées…",
+        "log_handover_error": "Erreur de transfert de données : {}",
     },
 }
 
@@ -295,6 +315,79 @@ def _parse_template_section(data: dict) -> dict:
     }
 
 
+def _build_handover_section(
+    result: TransformResult,
+    workflow_file: str,
+    base_section: dict | None = None,
+) -> dict:
+    """
+    Assemble the build_reports section for a data hand-over template.
+
+    The three transformed XLSX paths and the workflow file are always set to
+    the fresh values. If ``base_section`` is given (the build_reports section
+    of a project template loaded in transform_data), every other key — PI
+    config, filters, metric selection, terminology — is carried over so those
+    settings reach build_reports. Without a base section the PI config stays
+    empty for the user to pick.
+    """
+    section = dict(base_section) if base_section else {}
+    section.update(
+        {
+            "issue_times": str(result.issue_times),
+            "cfd": str(result.cfd),
+            "transitions": str(result.transitions),
+            "workflow": workflow_file,
+        }
+    )
+    section.setdefault("pi_config", "")
+    return section
+
+
+def write_handover_template(
+    path: Path,
+    result: TransformResult,
+    json_file: str,
+    workflow_file: str,
+    output_dir: str,
+    prefix: str,
+    language: str,
+    base_template: Path | None = None,
+) -> None:
+    """
+    Write a project template that hands transformed data to build_reports.
+
+    The file holds both the transform_data section (for round-tripping the
+    source paths) and a pre-filled build_reports section. build_reports loads
+    it via ``--gui-template`` and deletes it afterwards.
+
+    If ``base_template`` points at a readable project template, its
+    build_reports section is used as the basis for the hand-over section so
+    the user's PI config and filters carry over. An unreadable base template
+    is ignored (the hand-over falls back to paths only).
+    """
+    base_section: dict | None = None
+    if base_template is not None:
+        try:
+            envelope = project_template.load_template(base_template)
+            base_section = project_template.get_section(
+                envelope, project_template.MODULE_BUILD_REPORTS
+            )
+        except (OSError, ValueError, json.JSONDecodeError):
+            base_section = None
+
+    project_template.save_template(
+        path,
+        project_template.MODULE_TRANSFORM_DATA,
+        _build_template_section(json_file, workflow_file, output_dir, prefix),
+        language=language,
+    )
+    project_template.save_template(
+        path,
+        project_template.MODULE_BUILD_REPORTS,
+        _build_handover_section(result, workflow_file, base_section),
+    )
+
+
 class TransformApp(tk.Tk):
     def __init__(self) -> None:
         super().__init__()
@@ -309,6 +402,8 @@ class TransformApp(tk.Tk):
         self._prefix_var = tk.StringVar()
         self._auto_prefix: str = ""
         self._progress_after_id: str | None = None
+        self._last_result: TransformResult | None = None
+        self._loaded_template_path: Path | None = None
 
         # widget refs for language updates
         self._lbl_json: tk.Label
@@ -320,6 +415,7 @@ class TransformApp(tk.Tk):
         self._btn_browse_workflow: ttk.Button
         self._btn_browse_output: ttk.Button
         self._run_btn: ttk.Button
+        self._open_br_btn: ttk.Button
 
         self._flag_imgs: dict[str, tk.PhotoImage] = {}
         self._create_flag_imgs()
@@ -470,8 +566,14 @@ class TransformApp(tk.Tk):
         )
         self._flag_btn.grid(row=0, column=3, sticky="ne", rowspan=4, padx=(2, 8))
 
-        self._run_btn = ttk.Button(self, command=self._run)
-        self._run_btn.grid(row=4, column=0, columnspan=3, pady=8)
+        btn_bar = tk.Frame(self)
+        btn_bar.grid(row=4, column=0, columnspan=3, pady=8)
+        self._run_btn = ttk.Button(btn_bar, command=self._run)
+        self._run_btn.pack(side="left", padx=4)
+        self._open_br_btn = ttk.Button(
+            btn_bar, command=self._open_in_build_reports, state="disabled"
+        )
+        self._open_br_btn.pack(side="left", padx=4)
 
         self._progress_bar = ttk.Progressbar(self, mode="indeterminate", length=300)
         self._progress_bar.grid(row=5, column=0, columnspan=3, pady=(0, 4))
@@ -500,6 +602,7 @@ class TransformApp(tk.Tk):
         self._btn_browse_workflow.config(text=self._tr("btn_browse"))
         self._btn_browse_output.config(text=self._tr("btn_browse"))
         self._run_btn.config(text=self._tr("btn_run"))
+        self._open_br_btn.config(text=self._tr("btn_open_build_reports"))
 
     # -------------------------------------------------------------------------
     # File pickers
@@ -559,6 +662,7 @@ class TransformApp(tk.Tk):
                 section,
                 language=self._lang_var.get(),
             )
+            self._loaded_template_path = Path(path)
             self._log(self._tr("log_tpl_saved").format(Path(path).name))
         except Exception as exc:
             self._log(self._tr("log_tpl_error").format(exc))
@@ -594,7 +698,50 @@ class TransformApp(tk.Tk):
                 self._log(self._tr("log_tpl_missing").format(p))
 
         self._lang_var.set(envelope.get("language", self._lang_var.get()))
+        self._loaded_template_path = Path(path)
         self._log(self._tr("log_tpl_loaded").format(Path(path).name))
+
+    # -------------------------------------------------------------------------
+    # Data hand-over to build_reports
+    # -------------------------------------------------------------------------
+
+    def _open_in_build_reports(self) -> None:
+        """
+        Hand the freshly transformed files over to build_reports.
+
+        Writes a temporary project template with a pre-filled build_reports
+        section (the three XLSX files plus the workflow file) and launches
+        build_reports with it, so the user does not have to re-select the
+        files manually. build_reports consumes and deletes the template.
+
+        If a project template is loaded, its build_reports settings (PI
+        config, filters) are merged into the hand-over so they carry over.
+        """
+        if self._last_result is None:
+            return
+        try:
+            with tempfile.NamedTemporaryFile(
+                prefix="situation_report_handover_", suffix=".json", delete=False
+            ) as tf:
+                tmp_path = Path(tf.name)
+
+            write_handover_template(
+                tmp_path,
+                self._last_result,
+                json_file=self._json_var.get(),
+                workflow_file=self._workflow_var.get(),
+                output_dir=self._output_dir_var.get(),
+                prefix=self._prefix_var.get(),
+                language=self._lang_var.get(),
+                base_template=self._loaded_template_path,
+            )
+            subprocess.Popen(
+                [sys.executable, "-m", "build_reports",
+                 "--gui-template", str(tmp_path)]
+            )
+            self._log(self._tr("log_handover"))
+        except Exception as exc:
+            self._log(self._tr("log_handover_error").format(exc))
 
     # -------------------------------------------------------------------------
     # Run
@@ -626,14 +773,16 @@ class TransformApp(tk.Tk):
 
         def worker() -> None:
             try:
-                run_transform(
+                result = run_transform(
                     Path(json_path),
                     Path(workflow_path),
                     output_dir=output_dir,
                     prefix=prefix,
                     log=self._log,
                 )
+                self._last_result = result
                 self._log(self._tr("log_done"))
+                self.after(0, lambda: self._open_br_btn.configure(state="normal"))
             except Exception as exc:
                 self._log(self._tr("log_error").format(exc))
             finally:
@@ -656,6 +805,9 @@ class TransformApp(tk.Tk):
     def _set_running(self, running: bool) -> None:
         self._run_btn.configure(state="disabled" if running else "normal")
         if running:
+            # The hand-over button stays disabled until a run succeeds; the
+            # worker re-enables it on success.
+            self._open_br_btn.configure(state="disabled")
             self._start_progress()
         else:
             self._stop_progress()
