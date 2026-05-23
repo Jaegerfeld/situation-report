@@ -9,6 +9,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [0.14.3] – 2026-05-23
+
+### Fixed
+- The transform_data user manual was missing the workflow marker names
+  `<First>`, `<InProgress>` and `<Closed>` in several tables and sentences
+  (e.g. "Erster Eintritt in die -Stage", "Marker: , , ."). ReportLab
+  silently dropped them because the angle brackets were not escaped. The
+  manual generator now escapes them consistently; all five language editions
+  of the transform_data manual were regenerated.
+
+---
+
 ## [0.14.2] – 2026-05-23
 
 ### Fixed
