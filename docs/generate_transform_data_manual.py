@@ -371,9 +371,9 @@ def content_de(st):
         ["Format", "Bedeutung"],
         [
             ["Stage:Alias1:Alias2", "Stage mit Jira-Statusnamen. Der erste Name ist der kanonische Stage-Name."],
-            ["<First>Stage", "Diese Stage markiert den Beginn der aktiven Bearbeitung (First Date)."],
-            ["<InProgress>Stage", "Diese Stage setzt das Implementation Date."],
-            ["<Closed>Stage", "Diese Stage markiert den Abschluss (Closed Date)."],
+            ["&lt;First&gt;Stage", "Diese Stage markiert den Beginn der aktiven Bearbeitung (First Date)."],
+            ["&lt;InProgress&gt;Stage", "Diese Stage setzt das Implementation Date."],
+            ["&lt;Closed&gt;Stage", "Diese Stage markiert den Abschluss (Closed Date)."],
         ],
         col_widths=[4*cm, 12*cm]))
     story.append(H2("4.2  Reihenfolge der Stages", st))
@@ -453,8 +453,8 @@ def content_de(st):
             ["Issuetype",          "Typ des Issues (z.B. Feature, Bug, Story)"],
             ["Status",             "Aktueller Jira-Status"],
             ["Created Date",       "Erstellungsdatum des Issues in Jira"],
-            ["First Date",         "Erster Eintritt in die <First>-Stage"],
-            ["Implementation Date","Erster Eintritt in die <InProgress>-Stage"],
+            ["First Date",         "Erster Eintritt in die &lt;First&gt;-Stage"],
+            ["Implementation Date","Erster Eintritt in die &lt;InProgress&gt;-Stage"],
             ["Closed Date",        "Zeitpunkt des Abschlusses (leer = noch offen)"],
             ["Stage-Spalten",      "Je eine Spalte pro Stage: Minuten in dieser Stage"],
             ["Resolution",         "Abschlussart aus Jira"],
@@ -517,7 +517,7 @@ def content_de(st):
     story.append(H1("8  Haeufige Fragen und Tipps", st))
     faqs = [
         ("Ein Issue hat kein First Date -- warum?",
-         "Das Issue hat weder die <First>-Stage noch eine Stage danach erreicht. "
+         "Das Issue hat weder die &lt;First&gt;-Stage noch eine Stage danach erreicht. "
          "In build_reports wird es als 'To Do' gezaehlt."),
         ("Ein Issue hat kein Closed Date -- warum?",
          "Moegliche Gruende: (1) Das Issue ist noch offen. (2) Es hat kein First Date. "
@@ -553,7 +553,7 @@ def content_de(st):
             ["Implementation Date", "Datum des Entwicklungsbeginns."],
             ["Issue", "Ein Ticket im Ticketsystem (z.B. eine Jira-Karte)."],
             ["JSON", "Einfaches Textformat fuer strukturierte Daten."],
-            ["Marker", "Zeilen in der Workflow-Datei, die eine Stage als Meilenstein auszeichnen: <First>, <InProgress>, <Closed>."],
+            ["Marker", "Zeilen in der Workflow-Datei, die eine Stage als Meilenstein auszeichnen: &lt;First&gt;, &lt;InProgress&gt;, &lt;Closed&gt;."],
             ["Praefix", "Namens-Vorsatz fuer die Ausgabedateien (z.B. 'ART_A')."],
             ["Stage", "Ein logischer Prozessschritt, dem ein oder mehrere Jira-Status zugeordnet sind."],
             ["Workflow-Datei", "Textdatei, die die Stages und Marker eines Projekts beschreibt."],
@@ -659,9 +659,9 @@ def content_en(st):
         ["Format", "Meaning"],
         [
             ["Stage:Alias1:Alias2", "Stage with Jira status names mapped to it. The first name is the canonical stage name."],
-            ["<First>Stage", "This stage marks the start of active work (First Date)."],
-            ["<InProgress>Stage", "This stage sets the Implementation Date."],
-            ["<Closed>Stage", "This stage marks completion (Closed Date)."],
+            ["&lt;First&gt;Stage", "This stage marks the start of active work (First Date)."],
+            ["&lt;InProgress&gt;Stage", "This stage sets the Implementation Date."],
+            ["&lt;Closed&gt;Stage", "This stage marks completion (Closed Date)."],
         ],
         col_widths=[4*cm, 12*cm]))
     story.append(H2("4.2  Stage order", st))
@@ -727,8 +727,8 @@ def content_en(st):
             ["Issuetype",          "Issue type (e.g. Feature, Bug, Story)"],
             ["Status",             "Current Jira status"],
             ["Created Date",       "Issue creation date in Jira"],
-            ["First Date",         "First entry into the <First> stage"],
-            ["Implementation Date","First entry into the <InProgress> stage"],
+            ["First Date",         "First entry into the &lt;First&gt; stage"],
+            ["Implementation Date","First entry into the &lt;InProgress&gt; stage"],
             ["Closed Date",        "Completion timestamp (empty = still open)"],
             ["Stage columns",      "One column per stage: minutes spent in that stage"],
             ["Resolution",         "Closure type from Jira"],
@@ -788,7 +788,7 @@ def content_en(st):
     story.append(H1("8  Frequently Asked Questions", st))
     faqs = [
         ("An issue has no First Date -- why?",
-         "The issue never reached the <First> stage or any stage after it. In build_reports it is counted as 'To Do'."),
+         "The issue never reached the &lt;First&gt; stage or any stage after it. In build_reports it is counted as 'To Do'."),
         ("An issue has no Closed Date -- why?",
          "Possible reasons: (1) The issue is still open. (2) It has no First Date. (3) It was re-opened after closing."),
         ("The log shows a warning about unmapped statuses.",
@@ -819,7 +819,7 @@ def content_en(st):
             ["Implementation Date", "The date development work started."],
             ["Issue", "A ticket in the issue tracker (e.g. a Jira card)."],
             ["JSON", "A simple text format for structured data."],
-            ["Marker", "Lines in the workflow file that designate a stage as a milestone: <First>, <InProgress>, <Closed>."],
+            ["Marker", "Lines in the workflow file that designate a stage as a milestone: &lt;First&gt;, &lt;InProgress&gt;, &lt;Closed&gt;."],
             ["Prefix", "Name prefix for output files (e.g. 'ART_A')."],
             ["Stage", "A logical process step mapped to one or more Jira statuses."],
             ["Workflow file", "Text file describing the stages and markers of a project."],
@@ -922,9 +922,9 @@ def content_ro(st):
         ["Format", "Semnificatie"],
         [
             ["Etapa:Alias1:Alias2", "Etapa cu statusurile Jira mapate. Primul nume este numele canonic al etapei."],
-            ["<First>Etapa", "Aceasta etapa marcheaza inceputul lucrului activ (First Date)."],
-            ["<InProgress>Etapa", "Aceasta etapa seteaza Implementation Date."],
-            ["<Closed>Etapa", "Aceasta etapa marcheaza finalizarea (Closed Date)."],
+            ["&lt;First&gt;Etapa", "Aceasta etapa marcheaza inceputul lucrului activ (First Date)."],
+            ["&lt;InProgress&gt;Etapa", "Aceasta etapa seteaza Implementation Date."],
+            ["&lt;Closed&gt;Etapa", "Aceasta etapa marcheaza finalizarea (Closed Date)."],
         ],
         col_widths=[4*cm, 12*cm]))
     story.append(H2("4.2  Ordinea etapelor", st))
@@ -990,8 +990,8 @@ def content_ro(st):
             ["Issuetype",          "Tipul issue-ului (ex. Feature, Bug, Story)"],
             ["Status",             "Statusul curent Jira"],
             ["Created Date",       "Data crearii issue-ului in Jira"],
-            ["First Date",         "Prima intrare in etapa <First>"],
-            ["Implementation Date","Prima intrare in etapa <InProgress>"],
+            ["First Date",         "Prima intrare in etapa &lt;First&gt;"],
+            ["Implementation Date","Prima intrare in etapa &lt;InProgress&gt;"],
             ["Closed Date",        "Marca de timp a finalizarii (gol = inca deschis)"],
             ["Coloane etape",      "Cate o coloana per etapa: minute petrecute in acea etapa"],
             ["Resolution",         "Tipul inchiderii din Jira"],
@@ -1053,7 +1053,7 @@ def content_ro(st):
     story.append(H1("8  Intrebari frecvente si sfaturi", st))
     faqs = [
         ("Un issue nu are First Date -- de ce?",
-         "Issue-ul nu a atins niciodata etapa <First> sau vreo etapa ulterioara. In build_reports este numarat ca 'To Do'."),
+         "Issue-ul nu a atins niciodata etapa &lt;First&gt; sau vreo etapa ulterioara. In build_reports este numarat ca 'To Do'."),
         ("Un issue nu are Closed Date -- de ce?",
          "Motive posibile: (1) Issue-ul este inca deschis. (2) Nu are First Date. (3) A fost redeschis dupa inchidere."),
         ("Jurnalul afiseaza un avertisment despre statusuri nemapate.",
@@ -1084,7 +1084,7 @@ def content_ro(st):
             ["Implementation Date", "Data inceperii lucrului de dezvoltare."],
             ["Issue", "Un tichet in sistemul de tickete (ex. un card Jira)."],
             ["JSON", "Format text simplu pentru date structurate."],
-            ["Marker", "Linii in fisierul de flux care desemneaza o etapa ca jalon: <First>, <InProgress>, <Closed>."],
+            ["Marker", "Linii in fisierul de flux care desemneaza o etapa ca jalon: &lt;First&gt;, &lt;InProgress&gt;, &lt;Closed&gt;."],
             ["Prefix", "Prefixul numelui fisierelor de iesire (ex. 'ART_A')."],
             ["Etapa (Stage)", "Un pas logic al procesului mapat la unul sau mai multe statusuri Jira."],
             ["Fisier de flux", "Fisier text care descrie etapele si jalonii unui proiect."],
@@ -1186,9 +1186,9 @@ def content_pt(st):
         ["Formato", "Significado"],
         [
             ["Etapa:Alias1:Alias2", "Etapa com statusos Jira mapeados. O primeiro nome e o nome canonico da etapa."],
-            ["<First>Etapa", "Esta etapa marca o inicio do trabalho ativo (First Date)."],
-            ["<InProgress>Etapa", "Esta etapa define o Implementation Date."],
-            ["<Closed>Etapa", "Esta etapa marca a conclusao (Closed Date)."],
+            ["&lt;First&gt;Etapa", "Esta etapa marca o inicio do trabalho ativo (First Date)."],
+            ["&lt;InProgress&gt;Etapa", "Esta etapa define o Implementation Date."],
+            ["&lt;Closed&gt;Etapa", "Esta etapa marca a conclusao (Closed Date)."],
         ],
         col_widths=[4*cm, 12*cm]))
     story.append(H2("4.2  Ordem das etapas", st))
@@ -1255,8 +1255,8 @@ def content_pt(st):
             ["Issuetype",          "Tipo do issue (ex. Feature, Bug, Story)"],
             ["Status",             "Status atual do Jira"],
             ["Created Date",       "Data de criacao do issue no Jira"],
-            ["First Date",         "Primeira entrada na etapa <First>"],
-            ["Implementation Date","Primeira entrada na etapa <InProgress>"],
+            ["First Date",         "Primeira entrada na etapa &lt;First&gt;"],
+            ["Implementation Date","Primeira entrada na etapa &lt;InProgress&gt;"],
             ["Closed Date",        "Marca de tempo da conclusao (vazio = ainda aberto)"],
             ["Colunas de etapas",  "Uma coluna por etapa: minutos passados nessa etapa"],
             ["Resolution",         "Tipo de fecho do Jira"],
@@ -1316,7 +1316,7 @@ def content_pt(st):
     story.append(H1("8  Perguntas frequentes e dicas", st))
     faqs = [
         ("Um issue nao tem First Date -- porque?",
-         "O issue nunca atingiu a etapa <First> nem qualquer etapa posterior. No build_reports e contado como 'To Do'."),
+         "O issue nunca atingiu a etapa &lt;First&gt; nem qualquer etapa posterior. No build_reports e contado como 'To Do'."),
         ("Um issue nao tem Closed Date -- porque?",
          "Razoes possiveis: (1) O issue ainda esta aberto. (2) Nao tem First Date. (3) Foi reaberto apos o fecho."),
         ("O registo mostra um aviso sobre statusos nao mapeados.",
@@ -1347,7 +1347,7 @@ def content_pt(st):
             ["Implementation Date", "A data em que o trabalho de desenvolvimento comecou."],
             ["Issue", "Um ticket no sistema de tickets (ex. um cartao Jira)."],
             ["JSON", "Formato de texto simples para dados estruturados."],
-            ["Marcador (Marker)", "Linhas no ficheiro de fluxo que designam uma etapa como marco: <First>, <InProgress>, <Closed>."],
+            ["Marcador (Marker)", "Linhas no ficheiro de fluxo que designam uma etapa como marco: &lt;First&gt;, &lt;InProgress&gt;, &lt;Closed&gt;."],
             ["Prefixo", "Prefixo do nome dos ficheiros de saida (ex. 'ART_A')."],
             ["Etapa (Stage)", "Um passo logico do processo mapeado para um ou mais statusos Jira."],
             ["Ficheiro de fluxo", "Ficheiro de texto que descreve as etapas e marcos de um projeto."],
@@ -1450,9 +1450,9 @@ def content_fr(st):
         ["Format", "Signification"],
         [
             ["Etape:Alias1:Alias2", "Etape avec les statuts Jira mappes. Le premier nom est le nom canonique de l'etape."],
-            ["<First>Etape", "Cette etape marque le debut du travail actif (First Date)."],
-            ["<InProgress>Etape", "Cette etape definit l'Implementation Date."],
-            ["<Closed>Etape", "Cette etape marque la cloture (Closed Date)."],
+            ["&lt;First&gt;Etape", "Cette etape marque le debut du travail actif (First Date)."],
+            ["&lt;InProgress&gt;Etape", "Cette etape definit l'Implementation Date."],
+            ["&lt;Closed&gt;Etape", "Cette etape marque la cloture (Closed Date)."],
         ],
         col_widths=[4*cm, 12*cm]))
     story.append(H2("4.2  Ordre des etapes", st))
@@ -1519,8 +1519,8 @@ def content_fr(st):
             ["Issuetype",          "Type de l'issue (ex. Feature, Bug, Story)"],
             ["Status",             "Statut actuel dans Jira"],
             ["Created Date",       "Date de creation de l'issue dans Jira"],
-            ["First Date",         "Premiere entree dans l'etape <First>"],
-            ["Implementation Date","Premiere entree dans l'etape <InProgress>"],
+            ["First Date",         "Premiere entree dans l'etape &lt;First&gt;"],
+            ["Implementation Date","Premiere entree dans l'etape &lt;InProgress&gt;"],
             ["Closed Date",        "Horodatage de cloture (vide = encore ouvert)"],
             ["Colonnes d'etapes",  "Une colonne par etape : minutes passees dans cette etape"],
             ["Resolution",         "Type de cloture depuis Jira"],
@@ -1580,7 +1580,7 @@ def content_fr(st):
     story.append(H1("8  Questions frequentes et conseils", st))
     faqs = [
         ("Un issue n'a pas de First Date -- pourquoi ?",
-         "L'issue n'a jamais atteint l'etape <First> ni aucune etape ulterieure. Dans build_reports, il est compte comme 'To Do'."),
+         "L'issue n'a jamais atteint l'etape &lt;First&gt; ni aucune etape ulterieure. Dans build_reports, il est compte comme 'To Do'."),
         ("Un issue n'a pas de Closed Date -- pourquoi ?",
          "Raisons possibles : (1) L'issue est encore ouvert. (2) Il n'a pas de First Date. (3) Il a ete rouvert apres fermeture."),
         ("Le journal affiche un avertissement sur des statuts non mappes.",
@@ -1611,7 +1611,7 @@ def content_fr(st):
             ["Implementation Date", "La date de debut du travail de developpement."],
             ["Issue", "Un ticket dans le systeme de tickets (ex. une carte Jira)."],
             ["JSON", "Format texte simple pour les donnees structurees."],
-            ["Marqueur (Marker)", "Lignes dans le fichier de flux qui designent une etape comme jalon : <First>, <InProgress>, <Closed>."],
+            ["Marqueur (Marker)", "Lignes dans le fichier de flux qui designent une etape comme jalon : &lt;First&gt;, &lt;InProgress&gt;, &lt;Closed&gt;."],
             ["Prefixe", "Prefixe du nom des fichiers de sortie (ex. 'ART_A')."],
             ["Etape (Stage)", "Une etape logique du processus mappee a un ou plusieurs statuts Jira."],
             ["Fichier de flux", "Fichier texte decrivant les etapes et jalons d'un projet."],
