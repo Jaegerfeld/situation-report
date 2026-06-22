@@ -98,7 +98,8 @@ def mixed_data() -> ReportData:
                    stage_minutes={"Analysis": 0, "Implementation": 0, "Completed": 0},
                    first_date=datetime(2025, 5, 1)),
         ],
-        cfd=[], stages=[], source_prefix="TEST",
+        cfd=[], stages=["Analysis", "Implementation", "Completed"],
+        first_stage="Analysis", closed_stage="Completed", source_prefix="TEST",
     )
 
 
@@ -119,22 +120,39 @@ class TestCompute:
         assert counts["Story"] == 1
 
     def test_by_prominence_counts_longest_active_stage(self, metric, mixed_data):
-        """by_prominence counts all issues by their longest active stage."""
+        """by_prominence counts all issues by their longest active (non-Done) stage."""
         result = metric.compute(mixed_data, SAFE)
         prom = result.chart_data.by_prominence
-        # A-1 (closed): Completed excluded → Implementation(200) wins
-        # A-2 (closed): Completed excluded → Analysis(300) wins
-        # A-3 (open):   all included → Analysis(200) wins
-        # A-4 (open):   all included → Implementation(300) wins
+        # The terminal Done stage "Completed" is excluded for every issue:
+        # A-1: Implementation(200) wins · A-2: Analysis(300) wins
+        # A-3: Analysis(200) wins      · A-4: Implementation(300) wins
         assert prom["Analysis"] == 2
         assert prom["Implementation"] == 2
 
-    def test_by_prominence_excludes_terminal_stage_for_closed_issues(self, metric, mixed_data):
-        """For closed issues the terminal Done stage (issue.status) is excluded from prominence."""
+    def test_by_prominence_excludes_terminal_done_stage(self, metric, mixed_data):
+        """The workflow's terminal Done stage is excluded from prominence for ALL issues."""
         result = metric.compute(mixed_data, SAFE)
         prom = result.chart_data.by_prominence
-        # A-1 and A-2 have Completed=5000/2000; without exclusion "Completed" would dominate
+        # "Completed" (the closed stage) has the largest minutes on A-1/A-2 but must
+        # never appear — it only accumulates time as issues age.
         assert "Completed" not in prom
+
+    def test_by_prominence_excludes_done_stage_for_open_issue(self, metric):
+        """Regression: an OPEN issue resting in the Done stage is not counted as Done.
+
+        The reported bug — the last workflow status (Done) dominated prominence
+        because it keeps ageing — affected open issues too, not only closed ones.
+        """
+        data = ReportData(
+            issues=[_issue("O-1", "Feature", "Done",
+                           stage_minutes={"Analysis": 100, "Done": 9000},
+                           first_date=datetime(2025, 1, 1))],  # open: no closed_date
+            cfd=[], stages=["Analysis", "Done"],
+            first_stage="Analysis", closed_stage="Done", source_prefix="TEST",
+        )
+        prom = metric.compute(data, SAFE).chart_data.by_prominence
+        assert "Done" not in prom
+        assert prom == {"Analysis": 1}
 
     def test_by_prominence_includes_closed_issues(self, metric, mixed_data):
         """Closed issues contribute to prominence via their active stages."""
