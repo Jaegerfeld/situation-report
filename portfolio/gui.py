@@ -65,6 +65,16 @@ _PREFS_PATH = Path.home() / ".situation_report" / "prefs.json"
 
 FRAMEWORKS = [FRAMEWORK_SAFE, FRAMEWORK_LESS, FRAMEWORK_NEXUS]
 
+#: Hosted user-manual PDF per language (GitHub Pages, deployed from docs/).
+_MANUAL_BASE = "https://jaegerfeld.github.io/situation-report/"
+_MANUAL_URLS: dict[str, str] = {
+    LANG_DE: _MANUAL_BASE + "portfolio_Benutzerhandbuch.pdf",
+    LANG_EN: _MANUAL_BASE + "portfolio_UserManual.pdf",
+    LANG_RO: _MANUAL_BASE + "portfolio_ManualUtilizator.pdf",
+    LANG_PT: _MANUAL_BASE + "portfolio_ManualUtilizador.pdf",
+    LANG_FR: _MANUAL_BASE + "portfolio_ManuelUtilisateur.pdf",
+}
+
 
 def _load_lang_pref() -> str:
     """Load the shared language preference, defaulting to English."""
@@ -382,6 +392,10 @@ class SolutionManagerApp(tk.Tk):
     def _tr(self, key: str) -> str:
         return _T.get(self._lang, _T[LANG_EN]).get(key, key)
 
+    def _open_manual(self) -> None:
+        """Open the hosted user manual PDF for the current language in the browser."""
+        webbrowser.open(_MANUAL_URLS.get(self._lang, _MANUAL_URLS[LANG_EN]))
+
     def _col_source_text(self) -> str:
         """Member source-column header, depending on the selected kind."""
         return self._tr("col_source_portfolio" if self._kind.get() == KIND_PORTFOLIO
@@ -407,6 +421,8 @@ class SolutionManagerApp(tk.Tk):
                                 width=10, state="readonly")
         kind_box.grid(row=0, column=5)
         kind_box.bind("<<ComboboxSelected>>", lambda *_: self._on_kind_change())
+        ttk.Button(top, text="?", width=2, command=self._open_manual).grid(
+            row=0, column=6, sticky="e", padx=(12, 0))
 
         tk.Label(top, text=self._tr("lbl_from")).grid(row=1, column=0, sticky="w", pady=(6, 0))
         tk.Entry(top, textvariable=self._from, width=16).grid(
