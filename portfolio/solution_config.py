@@ -37,6 +37,10 @@ FRAMEWORK_SAFE = "SAFe"
 FRAMEWORK_LESS = "LeSS"
 FRAMEWORK_NEXUS = "Nexus"
 
+#: Report terminology (matches build_reports.terminology SAFE/GLOBAL values).
+TERMINOLOGY_SAFE = "SAFe"
+TERMINOLOGY_GLOBAL = "Global"
+
 
 @dataclass
 class Member:
@@ -73,6 +77,7 @@ class SolutionConfig:
     name: str
     kind: str = KIND_SOLUTION
     framework: str = FRAMEWORK_SAFE
+    terminology: str = TERMINOLOGY_SAFE
     members: list[Member] = field(default_factory=list)
     from_date: date | None = None
     to_date: date | None = None
@@ -146,10 +151,14 @@ def parse_solution_config(data: dict[str, Any]) -> SolutionConfig:
         members.append(member)
 
     report = data.get("report", {}) or {}
+    terminology = str(report.get("terminology", TERMINOLOGY_SAFE))
+    if terminology not in (TERMINOLOGY_SAFE, TERMINOLOGY_GLOBAL):
+        terminology = TERMINOLOGY_SAFE
     return SolutionConfig(
         name=name,
         kind=kind,
         framework=str(data.get("framework", FRAMEWORK_SAFE)),
+        terminology=terminology,
         members=members,
         from_date=_parse_date(report.get("from_date")),
         to_date=_parse_date(report.get("to_date")),
@@ -197,7 +206,7 @@ def to_dict(config: SolutionConfig) -> dict[str, Any]:
                 entry[key] = value
         members.append(entry)
 
-    report: dict[str, Any] = {"modes": list(config.modes)}
+    report: dict[str, Any] = {"modes": list(config.modes), "terminology": config.terminology}
     if config.from_date is not None:
         report["from_date"] = config.from_date.isoformat()
     if config.to_date is not None:

@@ -8,6 +8,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- Solutions & Portfolios GUI: brought in line with the other modules — a
+  calendar date picker for the From/To fields, language switching via the flag
+  button, and a Terminology selector (SAFe/Global, stored in the config and
+  applied to the report) replacing the framework dropdown.
 - Process Flow: a toggle to show or hide the edge (transition/time) labels in
   the Process Flow: Transitions and Process Flow: Time diagrams. On by default —
   via the GUI checkbox, the `--hide-edge-labels` CLI flag, or the

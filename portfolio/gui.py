@@ -35,13 +35,13 @@ from .aggregator import (
     render_pooled_html,
 )
 from .solution_config import (
-    FRAMEWORK_LESS,
-    FRAMEWORK_NEXUS,
     FRAMEWORK_SAFE,
     KIND_PORTFOLIO,
     KIND_SOLUTION,
     MODE_COMPARISON,
     MODE_POOLED,
+    TERMINOLOGY_GLOBAL,
+    TERMINOLOGY_SAFE,
     SolutionConfig,
     load_solution_config,
     parse_solution_config,
@@ -49,6 +49,7 @@ from .solution_config import (
 )
 
 KINDS = [KIND_SOLUTION, KIND_PORTFOLIO]
+TERMINOLOGIES = [TERMINOLOGY_SAFE, TERMINOLOGY_GLOBAL]
 
 # ---------------------------------------------------------------------------
 # Language handling (shared preference file with the launcher)
@@ -62,8 +63,6 @@ LANG_FR = "fr"
 
 _LANG_ORDER = [LANG_DE, LANG_EN, LANG_RO, LANG_PT, LANG_FR]
 _PREFS_PATH = Path.home() / ".situation_report" / "prefs.json"
-
-FRAMEWORKS = [FRAMEWORK_SAFE, FRAMEWORK_LESS, FRAMEWORK_NEXUS]
 
 #: Hosted user-manual PDF per language (GitHub Pages, deployed from docs/).
 _MANUAL_BASE = "https://jaegerfeld.github.io/situation-report/"
@@ -86,6 +85,23 @@ def _load_lang_pref() -> str:
         return LANG_EN
 
 
+def _save_lang_pref(lang: str) -> None:
+    """Persist the language preference to the shared preferences file."""
+    try:
+        _PREFS_PATH.parent.mkdir(parents=True, exist_ok=True)
+        prefs: dict = {}
+        try:
+            with open(_PREFS_PATH) as f:
+                prefs = json.load(f)
+        except Exception:
+            pass
+        prefs["lang"] = lang
+        with open(_PREFS_PATH, "w") as f:
+            json.dump(prefs, f, indent=2)
+    except Exception:
+        pass
+
+
 # ---------------------------------------------------------------------------
 # Translations
 # ---------------------------------------------------------------------------
@@ -94,8 +110,10 @@ _T: dict[str, dict[str, str]] = {
     LANG_DE: {
         "window_title": "Solutions & Portfolios",
         "lbl_name": "Name der Solution",
-        "lbl_framework": "Framework",
+        "lbl_terminology": "Terminologie",
         "lbl_lang": "Sprache",
+        "dlg_pick_date": "Datum wählen",
+        "btn_ok": "OK",
         "lbl_from": "Von (JJJJ-MM-TT)",
         "lbl_to": "Bis (JJJJ-MM-TT)",
         "sec_members": "ARTs in dieser Solution",
@@ -131,8 +149,10 @@ _T: dict[str, dict[str, str]] = {
     LANG_EN: {
         "window_title": "Solutions & Portfolios",
         "lbl_name": "Solution name",
-        "lbl_framework": "Framework",
+        "lbl_terminology": "Terminology",
         "lbl_lang": "Language",
+        "dlg_pick_date": "Pick date",
+        "btn_ok": "OK",
         "lbl_from": "From (YYYY-MM-DD)",
         "lbl_to": "To (YYYY-MM-DD)",
         "sec_members": "ARTs in this solution",
@@ -168,8 +188,10 @@ _T: dict[str, dict[str, str]] = {
     LANG_RO: {
         "window_title": "Soluții & Portofolii",
         "lbl_name": "Numele soluției",
-        "lbl_framework": "Framework",
+        "lbl_terminology": "Terminologie",
         "lbl_lang": "Limbă",
+        "dlg_pick_date": "Selectați data",
+        "btn_ok": "OK",
         "lbl_from": "De la (AAAA-LL-ZZ)",
         "lbl_to": "Până la (AAAA-LL-ZZ)",
         "sec_members": "ART-uri în această soluție",
@@ -205,8 +227,10 @@ _T: dict[str, dict[str, str]] = {
     LANG_PT: {
         "window_title": "Soluções & Portefólios",
         "lbl_name": "Nome da solução",
-        "lbl_framework": "Framework",
+        "lbl_terminology": "Terminologia",
         "lbl_lang": "Idioma",
+        "dlg_pick_date": "Selecionar data",
+        "btn_ok": "OK",
         "lbl_from": "De (AAAA-MM-DD)",
         "lbl_to": "Até (AAAA-MM-DD)",
         "sec_members": "ARTs nesta solução",
@@ -242,8 +266,10 @@ _T: dict[str, dict[str, str]] = {
     LANG_FR: {
         "window_title": "Solutions & Portefeuilles",
         "lbl_name": "Nom de la solution",
-        "lbl_framework": "Framework",
+        "lbl_terminology": "Terminologie",
         "lbl_lang": "Langue",
+        "dlg_pick_date": "Choisir la date",
+        "btn_ok": "OK",
         "lbl_from": "De (AAAA-MM-JJ)",
         "lbl_to": "À (AAAA-MM-JJ)",
         "sec_members": "ARTs dans cette solution",
@@ -315,6 +341,7 @@ def build_config_from_fields(
     members: list[tuple[str, str]],
     mode: str,
     kind: str = KIND_SOLUTION,
+    terminology: str = TERMINOLOGY_SAFE,
 ) -> SolutionConfig:
     """
     Build (and validate) a SolutionConfig from raw form field values.
@@ -339,7 +366,7 @@ def build_config_from_fields(
         ValueError: If the resulting configuration is invalid.
     """
     member_dicts = [_member_dict(n, s, kind) for n, s in members if s.strip()]
-    report: dict[str, Any] = {"modes": [mode]}
+    report: dict[str, Any] = {"modes": [mode], "terminology": terminology}
     if from_str.strip():
         report["from_date"] = from_str.strip()
     if to_str.strip():
@@ -377,16 +404,18 @@ class SolutionManagerApp(tk.Tk):
         self.minsize(640, 480)
 
         self._name = tk.StringVar()
-        self._framework = tk.StringVar(value=FRAMEWORK_SAFE)
+        self._terminology = tk.StringVar(value=TERMINOLOGY_SAFE)
         self._kind = tk.StringVar(value=KIND_SOLUTION)
         self._from = tk.StringVar()
         self._to = tk.StringVar()
         self._mode = tk.StringVar(value=MODE_POOLED)
-        self._lang_var = tk.StringVar(value=self._lang)
         self._member_rows: list[dict] = []
         self._col_source_lbl: tk.Label | None = None
+        self._flag_imgs: dict[str, tk.PhotoImage] = {}
+        self._flag_btn: tk.Button | None = None
         self._status = tk.StringVar()
 
+        self._create_flag_imgs()
         self._build_ui()
 
     def _tr(self, key: str) -> str:
@@ -395,6 +424,74 @@ class SolutionManagerApp(tk.Tk):
     def _open_manual(self) -> None:
         """Open the hosted user manual PDF for the current language in the browser."""
         webbrowser.open(_MANUAL_URLS.get(self._lang, _MANUAL_URLS[LANG_EN]))
+
+    def _create_flag_imgs(self) -> None:
+        """Build language-flag PhotoImages by inline pixel drawing (same as the launcher)."""
+        W, H = 32, 20
+        de = tk.PhotoImage(width=W, height=H)
+        for y in range(H):
+            color = ["#000000", "#DD0000", "#FFCC00"][y * 3 // H]
+            de.put("{" + " ".join([color] * W) + "}", to=(0, y))
+        gb = tk.PhotoImage(width=W, height=H)
+        for y in range(H):
+            row: list[str] = []
+            for x in range(W):
+                cx = abs(x - (W - 1) / 2)
+                cy = abs(y - (H - 1) / 2)
+                nx, ny = x / (W - 1), y / (H - 1)
+                if cx < W * 0.13 or cy < H * 0.13:
+                    row.append("#C8102E")
+                elif cx < W * 0.24 or cy < H * 0.24:
+                    row.append("#FFFFFF")
+                elif abs(nx - ny) < 0.16 or abs(nx - (1 - ny)) < 0.16:
+                    row.append("#FFFFFF")
+                else:
+                    row.append("#012169")
+            gb.put("{" + " ".join(row) + "}", to=(0, y))
+        ro = tk.PhotoImage(width=W, height=H)
+        for y in range(H):
+            row = ["#002B7F" if x < W // 3 else "#FCD116" if x < 2 * W // 3 else "#CE1126"
+                   for x in range(W)]
+            ro.put("{" + " ".join(row) + "}", to=(0, y))
+        pt = tk.PhotoImage(width=W, height=H)
+        for y in range(H):
+            row = ["#006600" if x < W * 2 // 5 else "#FF0000" for x in range(W)]
+            pt.put("{" + " ".join(row) + "}", to=(0, y))
+        fr = tk.PhotoImage(width=W, height=H)
+        for y in range(H):
+            row = ["#002395" if x < W // 3 else "#FFFFFF" if x < 2 * W // 3 else "#ED2939"
+                   for x in range(W)]
+            fr.put("{" + " ".join(row) + "}", to=(0, y))
+        self._flag_imgs = {LANG_DE: de, LANG_EN: gb, LANG_RO: ro, LANG_PT: pt, LANG_FR: fr}
+
+    def _toggle_language(self) -> None:
+        """Cycle the UI language through all supported languages and rebuild."""
+        idx = _LANG_ORDER.index(self._lang) if self._lang in _LANG_ORDER else -1
+        self._lang = _LANG_ORDER[(idx + 1) % len(_LANG_ORDER)]
+        _save_lang_pref(self._lang)
+        self._switch_lang()
+
+    def _pick_date(self, var: tk.StringVar) -> None:
+        """Open a modal calendar popup and write the selected ISO date to var."""
+        from tkcalendar import Calendar
+        try:
+            current = date.fromisoformat(var.get().strip())
+        except ValueError:
+            current = date.today()
+        top = tk.Toplevel(self)
+        top.title(self._tr("dlg_pick_date"))
+        top.resizable(False, False)
+        top.grab_set()
+        cal = Calendar(top, selectmode="day", year=current.year, month=current.month,
+                       day=current.day, date_pattern="yyyy-mm-dd")
+        cal.pack(padx=10, pady=10)
+
+        def _confirm() -> None:
+            var.set(cal.get_date())
+            top.destroy()
+
+        ttk.Button(top, text=self._tr("btn_ok"), command=_confirm).pack(pady=(0, 10))
+        self.wait_window(top)
 
     def _col_source_text(self) -> str:
         """Member source-column header, depending on the selected kind."""
@@ -413,28 +510,35 @@ class SolutionManagerApp(tk.Tk):
         tk.Label(top, text=self._tr("lbl_name")).grid(row=0, column=0, sticky="w")
         tk.Entry(top, textvariable=self._name, width=34).grid(
             row=0, column=1, sticky="we", padx=(6, 16))
-        tk.Label(top, text=self._tr("lbl_framework")).grid(row=0, column=2, sticky="w")
-        ttk.Combobox(top, textvariable=self._framework, values=FRAMEWORKS,
+        tk.Label(top, text=self._tr("lbl_terminology")).grid(row=0, column=2, sticky="w")
+        ttk.Combobox(top, textvariable=self._terminology, values=TERMINOLOGIES,
                      width=8, state="readonly").grid(row=0, column=3, padx=(6, 16))
         tk.Label(top, text=self._tr("lbl_kind")).grid(row=0, column=4, sticky="w")
         kind_box = ttk.Combobox(top, textvariable=self._kind, values=KINDS,
                                 width=10, state="readonly")
         kind_box.grid(row=0, column=5)
         kind_box.bind("<<ComboboxSelected>>", lambda *_: self._on_kind_change())
-        ttk.Button(top, text="?", width=2, command=self._open_manual).grid(
-            row=0, column=6, sticky="e", padx=(12, 0))
+
+        right = tk.Frame(top)
+        right.grid(row=0, column=6, rowspan=2, sticky="ne", padx=(12, 0))
+        self._flag_btn = tk.Button(
+            right, image=self._flag_imgs.get(self._lang), relief="flat", bd=0,
+            cursor="hand2", command=self._toggle_language)
+        self._flag_btn.pack(side="right", padx=(4, 0))
+        ttk.Button(right, text="?", width=2, command=self._open_manual).pack(side="right")
 
         tk.Label(top, text=self._tr("lbl_from")).grid(row=1, column=0, sticky="w", pady=(6, 0))
-        tk.Entry(top, textvariable=self._from, width=16).grid(
-            row=1, column=1, sticky="w", padx=(6, 16), pady=(6, 0))
+        from_f = tk.Frame(top)
+        from_f.grid(row=1, column=1, sticky="w", padx=(6, 16), pady=(6, 0))
+        tk.Entry(from_f, textvariable=self._from, width=12).pack(side="left")
+        ttk.Button(from_f, text="📅", width=3,
+                   command=lambda: self._pick_date(self._from)).pack(side="left", padx=(2, 0))
         tk.Label(top, text=self._tr("lbl_to")).grid(row=1, column=2, sticky="w", pady=(6, 0))
-        tk.Entry(top, textvariable=self._to, width=16).grid(
-            row=1, column=3, sticky="w", padx=(6, 16), pady=(6, 0))
-        tk.Label(top, text=self._tr("lbl_lang")).grid(row=1, column=4, sticky="w", pady=(6, 0))
-        lang_box = ttk.Combobox(top, textvariable=self._lang_var, values=_LANG_ORDER,
-                                width=4, state="readonly")
-        lang_box.grid(row=1, column=5, pady=(6, 0))
-        lang_box.bind("<<ComboboxSelected>>", lambda *_: self._switch_lang())
+        to_f = tk.Frame(top)
+        to_f.grid(row=1, column=3, sticky="w", padx=(6, 16), pady=(6, 0))
+        tk.Entry(to_f, textvariable=self._to, width=12).pack(side="left")
+        ttk.Button(to_f, text="📅", width=3,
+                   command=lambda: self._pick_date(self._to)).pack(side="left", padx=(2, 0))
         top.columnconfigure(1, weight=1)
 
         tk.Label(self, text=self._tr("sec_members"),
@@ -471,7 +575,7 @@ class SolutionManagerApp(tk.Tk):
         self._add_member_row()
 
     def _switch_lang(self) -> None:
-        self._lang = self._lang_var.get()
+        # self._lang is already set by the caller (_toggle_language).
         for child in list(self.children.values()):
             child.destroy()
         self.title(self._tr("window_title"))
@@ -528,6 +632,7 @@ class SolutionManagerApp(tk.Tk):
         self._from.set("")
         self._to.set("")
         self._mode.set(MODE_POOLED)
+        self._terminology.set(TERMINOLOGY_SAFE)
         self._kind.set(KIND_SOLUTION)
         self._on_kind_change()
         for entry in list(self._member_rows[1:]):
@@ -548,7 +653,7 @@ class SolutionManagerApp(tk.Tk):
                                  self._tr("msg_load_error").format(error=exc))
             return
         self._name.set(cfg.name)
-        self._framework.set(cfg.framework)
+        self._terminology.set(cfg.terminology)
         self._kind.set(cfg.kind)
         self._on_kind_change()
         self._from.set(cfg.from_date.isoformat() if cfg.from_date else "")
@@ -568,10 +673,10 @@ class SolutionManagerApp(tk.Tk):
     def _build_config(self) -> SolutionConfig | None:
         try:
             return build_config_from_fields(
-                self._name.get(), self._framework.get(),
+                self._name.get(), FRAMEWORK_SAFE,
                 self._from.get(), self._to.get(),
                 self._collect_members(), self._mode.get(),
-                kind=self._kind.get())
+                kind=self._kind.get(), terminology=self._terminology.get())
         except ValueError as exc:
             messagebox.showwarning(self._tr("window_title"),
                                    self._tr("msg_invalid").format(error=exc))
@@ -605,14 +710,16 @@ class SolutionManagerApp(tk.Tk):
         out_path = Path(out)
         is_pdf = out_path.suffix.lower() == ".pdf"
         mode = self._mode.get()
+        terminology = cfg.terminology
 
         def worker() -> None:
             if is_pdf:
-                ok = render_pdf(cfg, out_path, mode=mode, log=lambda *_: None)
+                ok = render_pdf(cfg, out_path, mode=mode, terminology=terminology,
+                                log=lambda *_: None)
             else:
                 render = (render_comparison_html if mode == MODE_COMPARISON
                           else render_pooled_html)
-                html = render(cfg, log=lambda *_: None)
+                html = render(cfg, terminology=terminology, log=lambda *_: None)
                 ok = bool(html)
                 if html:
                     out_path.write_text(html, encoding="utf-8")
