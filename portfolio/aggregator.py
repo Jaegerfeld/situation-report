@@ -65,6 +65,7 @@ from .solution_config import (
     SolutionConfig,
     load_solution_config,
 )
+from .summary import compute_summary, render_summary_html
 
 #: Default metrics for the POOLED mode. Flow Velocity, Flow Time and Flow
 #: Distribution are record-based and pool cleanly regardless of differing ART
@@ -393,7 +394,9 @@ def render_pooled_html(
     if not all_figures:
         log("No figures produced — nothing to render.")
         return ""
-    return _build_combined_html(all_figures, section_breaks)
+    html = _build_combined_html(all_figures, section_breaks)
+    summary = render_summary_html([compute_summary(data, config.name)])
+    return html.replace("<body>", "<body>" + summary, 1)
 
 
 def render_comparison_html(
@@ -450,4 +453,7 @@ def render_comparison_html(
     if not all_figures:
         log("No figures produced — nothing to render.")
         return ""
-    return _build_combined_html(all_figures, section_breaks)
+    html = _build_combined_html(all_figures, section_breaks)
+    summary = render_summary_html(
+        [compute_summary(unit, unit.source_prefix) for unit in members_data])
+    return html.replace("<body>", "<body>" + summary, 1)

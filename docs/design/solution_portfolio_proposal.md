@@ -240,8 +240,11 @@ gemeinsames Stage-Mapping für CFD/Distribution, Management-Summary, PDF-Export.
   First/Closed-Fallback wie im CFD-Metrik (erste/letzte Stage). CFD ist jetzt Default-Metrik in
   beiden Modi (im Comparison-Modus für Solutions nativ je ART, für Portfolios je Solution gepoolt).
   Verifiziert (echte Daten: 2 ARTs / 9 + 8 Stages → kanonisches CFD, Ratio In/Out 6.56 : 1).
-- Offen in Phase 3: Management-Summary (kompakte Übersichtskachel je Solution/Portfolio),
-  PDF-Export.
+- **Management-Summary — ✅ UMGESETZT:** `portfolio/summary.py` rechnet je Übersichtseinheit
+  Items, abgeschlossen sowie Median/85./95.-Perzentil der Cycle Time und rendert eine kompakte
+  Tabelle oben im Report (Pooled: eine Zeile; Comparison: eine Zeile je ART bzw. Solution).
+  Verifiziert (echte Daten: CFD Solution → 861 Items, 384 abgeschlossen, Median 112.9 d).
+- Offen in Phase 3: PDF-Export.
 
 ---
 
