@@ -45,6 +45,10 @@ _REQUIRED_KEYS = {
     "mod_simulate_desc",
     "mod_testdata_generator_name",
     "mod_testdata_generator_desc",
+    "mod_portfolio_name",
+    "mod_portfolio_desc",
+    "sec_solutions",
+    "sec_arts",
 }
 
 
@@ -66,10 +70,10 @@ class TestModuleRegistry:
         for entry in _MODULES:
             assert isinstance(entry.available, bool)
 
-    def test_exactly_four_available_modules(self):
-        """Exactly four modules are marked as available (transform_data, build_reports, testdata_generator, helper)."""
+    def test_exactly_five_available_modules(self):
+        """Five modules are available (transform_data, build_reports, portfolio, testdata_generator, helper)."""
         available = [e for e in _MODULES if e.available]
-        assert len(available) == 4
+        assert len(available) == 5
 
     def test_testdata_generator_is_available(self):
         """testdata_generator is available."""
@@ -91,9 +95,9 @@ class TestModuleRegistry:
         ids = {e.module_id for e in _MODULES if e.available}
         assert "transform_data" in ids
 
-    def test_six_modules_total(self):
-        """The registry contains exactly six module entries."""
-        assert len(_MODULES) == 6
+    def test_seven_modules_total(self):
+        """The registry contains exactly seven module entries."""
+        assert len(_MODULES) == 7
 
     def test_all_module_ids_unique(self):
         """All module_ids in the registry are unique."""
@@ -110,10 +114,21 @@ class TestModuleRegistry:
         entry = next(e for e in _MODULES if e.module_id == "helper")
         assert entry.maturity == "alpha"
 
-    def test_only_helper_is_alpha(self):
-        """No available module other than helper is still Alpha."""
+    def test_alpha_modules(self):
+        """helper and the new portfolio module are the Alpha-maturity modules."""
         alpha = {e.module_id for e in _MODULES if e.maturity == "alpha"}
-        assert alpha == {"helper"}
+        assert alpha == {"helper", "portfolio"}
+
+    def test_portfolio_on_solution_side(self):
+        """The portfolio module is the only one on the left (solution) side of the split UI."""
+        solution = {e.module_id for e in _MODULES if e.section == "solution"}
+        assert solution == {"portfolio"}
+
+    def test_all_other_modules_on_art_side(self):
+        """Every non-portfolio module belongs to the right (ART) side."""
+        art = {e.module_id for e in _MODULES if e.section == "art"}
+        assert "portfolio" not in art
+        assert "build_reports" in art and "transform_data" in art
 
     def test_every_module_has_translation_keys(self):
         """Every module_id has name and desc keys in every language dict."""

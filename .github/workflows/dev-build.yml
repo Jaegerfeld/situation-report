@@ -119,7 +119,7 @@ jobs:
           & "$BUNDLE\python\Scripts\choreo_get_chrome.exe"
 
           # --- Source modules ---
-          foreach ($mod in 'build_reports','transform_data','get_data','simulate','testdata_generator','launcher','helper') {
+          foreach ($mod in 'build_reports','transform_data','get_data','simulate','testdata_generator','launcher','helper','portfolio') {
               if (Test-Path $mod) { Copy-Item -Recurse $mod "$BUNDLE\$mod" }
           }
           foreach ($f in 'version.py','project_template.py','pyproject.toml','README.md','LICENSE') {
@@ -272,7 +272,7 @@ jobs:
           mkdir -p "$BUNDLE"
 
           # Copy source modules
-          for mod in build_reports transform_data get_data simulate testdata_generator launcher helper; do
+          for mod in build_reports transform_data get_data simulate testdata_generator launcher helper portfolio; do
             [ -d "$mod" ] && cp -r "$mod" "$BUNDLE/"
           done
           for f in version.py project_template.py pyproject.toml README.md LICENSE; do

@@ -129,6 +129,10 @@ _T: dict[str, dict[str, str]] = {
         "mod_testdata_generator_desc":    "Synthetische Testdaten erstellen",
         "mod_helper_name":                "Helper",
         "mod_helper_desc":                "JSON-Dateien zusammenführen",
+        "mod_portfolio_name":             "Solutions & Portfolios",
+        "mod_portfolio_desc":             "Aggregierte Reports über mehrere ARTs",
+        "sec_solutions":                  "Large Solutions & Portfolien",
+        "sec_arts":                       "ARTs & Team-Verbünde",
         "dlg_get_data_title":             "Get Data – Workaround",
         "dlg_get_data_body": (
             "Get Data ist noch nicht verfügbar.\n"
@@ -171,6 +175,10 @@ _T: dict[str, dict[str, str]] = {
         "mod_testdata_generator_desc":    "Generate synthetic test data",
         "mod_helper_name":                "Helper",
         "mod_helper_desc":                "Merge JSON files",
+        "mod_portfolio_name":             "Solutions & Portfolios",
+        "mod_portfolio_desc":             "Aggregated reports across multiple ARTs",
+        "sec_solutions":                  "Large Solutions & Portfolios",
+        "sec_arts":                       "ARTs & team groups",
         "dlg_get_data_title":             "Get Data – How to use now",
         "dlg_get_data_body": (
             "Get Data is not yet available.\n"
@@ -212,6 +220,10 @@ _T: dict[str, dict[str, str]] = {
         "mod_testdata_generator_desc":    "Generare date de test sintetice",
         "mod_helper_name":                "Helper",
         "mod_helper_desc":                "Combinare fișiere JSON",
+        "mod_portfolio_name":             "Solutions & Portfolios",
+        "mod_portfolio_desc":             "Rapoarte agregate pe mai multe ART-uri",
+        "sec_solutions":                  "Large Solutions & Portofolii",
+        "sec_arts":                       "ART-uri & grupuri de echipe",
         "dlg_get_data_title":             "Get Data – Alternativă",
         "dlg_get_data_body": (
             "Get Data nu este încă disponibil.\n"
@@ -254,6 +266,10 @@ _T: dict[str, dict[str, str]] = {
         "mod_testdata_generator_desc":    "Gerar dados de teste sintéticos",
         "mod_helper_name":                "Helper",
         "mod_helper_desc":                "Combinar ficheiros JSON",
+        "mod_portfolio_name":             "Solutions & Portfolios",
+        "mod_portfolio_desc":             "Relatórios agregados de vários ARTs",
+        "sec_solutions":                  "Large Solutions & Portefólios",
+        "sec_arts":                       "ARTs & grupos de equipas",
         "dlg_get_data_title":             "Get Data – Como usar agora",
         "dlg_get_data_body": (
             "Get Data ainda não está disponível.\n"
@@ -296,6 +312,10 @@ _T: dict[str, dict[str, str]] = {
         "mod_testdata_generator_desc":    "Générer des données de test synthétiques",
         "mod_helper_name":                "Helper",
         "mod_helper_desc":                "Fusionner des fichiers JSON",
+        "mod_portfolio_name":             "Solutions & Portfolios",
+        "mod_portfolio_desc":             "Rapports agrégés sur plusieurs ARTs",
+        "sec_solutions":                  "Large Solutions & Portefeuilles",
+        "sec_arts":                       "ARTs & groupes d'équipes",
         "dlg_get_data_title":             "Get Data – Alternative",
         "dlg_get_data_body": (
             "Get Data n'est pas encore disponible.\n"
@@ -332,9 +352,13 @@ class _ModuleEntry:
     available: bool
     maturity: Literal["alpha", "beta"] | None = None
     has_info: bool = False
+    # Which side of the split entry UI the card belongs to:
+    # "solution" = left (Large Solutions / Portfolios), "art" = right (ART / team-group tools).
+    section: Literal["solution", "art"] = "art"
 
 
 _MODULES: list[_ModuleEntry] = [
+    _ModuleEntry("portfolio",          "🗂️", True,  "alpha", section="solution"),
     _ModuleEntry("transform_data",     "🔄", True,  "beta"),
     _ModuleEntry("build_reports",      "📊", True,  "beta"),
     _ModuleEntry("get_data",           "📥", False, None,  has_info=True),
@@ -361,6 +385,8 @@ class LauncherApp(tk.Tk):
         self._flag_btn: tk.Button | None = None
         self._manual_btn: tk.Button | None = None
         self._title_lbl: tk.Label | None = None
+        self._left_header: tk.Label | None = None
+        self._right_header: tk.Label | None = None
         self._card_widgets: list[dict] = []
         self._update_bar: tk.Frame | None = None
         self._update_lbl: tk.Label | None = None
@@ -485,19 +511,44 @@ class LauncherApp(tk.Tk):
         self._separator = ttk.Separator(self, orient="horizontal")
         self._separator.pack(fill="x", pady=(0, 12))
 
-        # Card grid (2 columns)
-        grid_frame = tk.Frame(self)
-        grid_frame.pack(fill="both", expand=True)
+        # Split entry layout: left = Large Solutions / Portfolios (new),
+        # right = ART / team-group tools (the existing modules).
+        content = tk.Frame(self)
+        content.pack(fill="both", expand=True)
+
+        left = tk.Frame(content)
+        left.pack(side="left", fill="both", expand=True)
+        ttk.Separator(content, orient="vertical").pack(side="left", fill="y", padx=12)
+        right = tk.Frame(content)
+        right.pack(side="left", fill="both", expand=True)
+
+        self._left_header = tk.Label(left, font=("TkDefaultFont", 11, "bold"), fg=C_ACCENT)
+        self._left_header.pack(anchor="w", pady=(0, 4))
+        left_grid = tk.Frame(left)
+        left_grid.pack(fill="both", expand=True)
+
+        self._right_header = tk.Label(right, font=("TkDefaultFont", 11, "bold"), fg=C_ACCENT)
+        self._right_header.pack(anchor="w", pady=(0, 4))
+        right_grid = tk.Frame(right)
+        right_grid.pack(fill="both", expand=True)
 
         self._card_widgets = []
-        for i, entry in enumerate(_MODULES):
+
+        left_entries = [e for e in _MODULES if e.section == "solution"]
+        for i, entry in enumerate(left_entries):
+            card = self._build_card(left_grid, entry)
+            card["frame"].grid(row=i, column=0, padx=8, pady=8, sticky="nsew")
+            self._card_widgets.append(card)
+        left_grid.columnconfigure(0, weight=1, minsize=180)
+
+        right_entries = [e for e in _MODULES if e.section == "art"]
+        for i, entry in enumerate(right_entries):
             row, col = divmod(i, 2)
-            card = self._build_card(grid_frame, entry)
+            card = self._build_card(right_grid, entry)
             card["frame"].grid(row=row, column=col, padx=8, pady=8, sticky="nsew")
             self._card_widgets.append(card)
-
-        grid_frame.columnconfigure(0, weight=1, minsize=170)
-        grid_frame.columnconfigure(1, weight=1, minsize=170)
+        right_grid.columnconfigure(0, weight=1, minsize=170)
+        right_grid.columnconfigure(1, weight=1, minsize=170)
 
     def _build_card(self, parent: tk.Widget, entry: _ModuleEntry) -> dict:
         """
@@ -568,6 +619,11 @@ class LauncherApp(tk.Tk):
             self._title_lbl.configure(text=self._tr("window_title"))
         if self._flag_btn and self._lang_var.get() in self._flag_imgs:
             self._flag_btn.configure(image=self._flag_imgs[self._lang_var.get()])
+
+        if self._left_header:
+            self._left_header.configure(text=self._tr("sec_solutions"))
+        if self._right_header:
+            self._right_header.configure(text=self._tr("sec_arts"))
 
         for card in self._card_widgets:
             mid = card["module_id"]

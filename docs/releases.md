@@ -90,6 +90,7 @@ The package contains the full repository – source files, configurations, and e
 | File / Folder | Contents |
 |---------------|----------|
 | `build_reports/` | Metrics, GUI, CLI, and plugin mechanism |
+| `portfolio/` | Large-Solution & Portfolio aggregation (GUI, CLI; reachable via the launcher) |
 | `transform_data/` | Data transformation (Jira export → XLSX) |
 | `get_data/` | Data access |
 | `simulate/` | Simulation and test-data generation |

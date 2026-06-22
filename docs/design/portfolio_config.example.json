@@ -1,0 +1,16 @@
+{
+  "schema": 1,
+  "app": "situation_report",
+  "kind": "portfolio",
+  "name": "Tribe Portfolio",
+  "framework": "SAFe",
+  "members": [
+    { "name": "Payments Solution",  "template": "C:/path/to/payments_solution.json" },
+    { "name": "Logistics Solution", "template": "C:/path/to/logistics_solution.json" }
+  ],
+  "report": {
+    "from_date": "2025-01-01",
+    "to_date": "2025-12-31",
+    "modes": ["pooled"]
+  }
+}

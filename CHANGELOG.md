@@ -9,6 +9,28 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [0.15.0] – 2026-06-22
+
+### Added
+- New **portfolio** module ("Solutions & Portfolios") for aggregated flow
+  reports across several ARTs. A *solution* groups configured ARTs (by
+  referencing their build_reports templates or IssueTimes files); a *portfolio*
+  groups saved solution templates (Portfolio ▸ Solutions ▸ ARTs). Two report
+  modes: **pooled** (the group treated as one system) and **comparison**
+  (units side by side — ARTs for a solution, solutions for a portfolio). The
+  report covers Flow Velocity, Flow Time, Flow Distribution and CFD (plus Flow
+  Load in comparison), preceded by a management-summary table (items, completed,
+  open/WIP, cycle-time percentiles and the target-CT share). CFD is pooled
+  across differing ART workflows via a shared canonical stage mapping
+  (To Do / In Progress / Done). Output as self-contained HTML or multi-page PDF.
+- A tkinter manager GUI (`python -m portfolio`) to create/edit solutions and
+  portfolios, plus a matching CLI (`python -m portfolio <config.json>`).
+- The launcher entry screen is now split: **Large Solutions & Portfolios** on
+  the left, the existing ART/team-group tools on the right.
+- A five-language user manual for the new module.
+
+---
+
 ## [0.14.4] – 2026-06-22
 
 ### Fixed
