@@ -34,7 +34,7 @@ def run_solution_report(
     output_pdf: Path | None = None,
     mode: str = MODE_POOLED,
     metrics: list[str] | None = None,
-    terminology: str = SAFE,
+    terminology: str | None = None,
     ct_method: str = CT_METHOD_A,
     target_ct: int = 90,
     pi_config: Path | None = None,
@@ -63,6 +63,10 @@ def run_solution_report(
         when requested, is written as a side effect.
     """
     config = load_solution_config(config_path)
+    # The CLI --terminology overrides the config; otherwise the config's own
+    # terminology is used.
+    if terminology is None:
+        terminology = config.terminology
     log(f"Solution '{config.name}' ({config.kind}, {config.framework}) "
         f"with {len(config.members)} member(s) — mode: {mode}")
 
@@ -110,7 +114,7 @@ def main() -> None:
                         help="Metric IDs to compute. Default depends on --mode "
                              "(pooled adds Flow Distribution; comparison also adds "
                              "the stage-dependent Flow Load).")
-    parser.add_argument("--terminology", choices=[SAFE, GLOBAL], default=SAFE,
+    parser.add_argument("--terminology", choices=[SAFE, GLOBAL], default=None,
                         help=f"Terminology mode (default: {SAFE}).")
     parser.add_argument("--ct-method", choices=[CT_METHOD_A, CT_METHOD_B],
                         default=CT_METHOD_A, dest="ct_method",

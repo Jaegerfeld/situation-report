@@ -136,3 +136,20 @@ class TestSerialisation:
         report = to_dict(cfg)["report"]
         assert report["from_date"] == "2025-01-01"
         assert report["to_date"] == "2025-12-31"
+
+    def test_terminology_defaults_safe(self) -> None:
+        cfg = parse_solution_config(_valid_dict())  # report has no terminology
+        assert cfg.terminology == "SAFe"
+
+    def test_terminology_parsed_and_serialised(self) -> None:
+        d = _valid_dict()
+        d["report"]["terminology"] = "Global"
+        cfg = parse_solution_config(d)
+        assert cfg.terminology == "Global"
+        assert to_dict(cfg)["report"]["terminology"] == "Global"
+        assert parse_solution_config(to_dict(cfg)) == cfg
+
+    def test_invalid_terminology_falls_back_to_safe(self) -> None:
+        d = _valid_dict()
+        d["report"]["terminology"] = "Nonsense"
+        assert parse_solution_config(d).terminology == "SAFe"

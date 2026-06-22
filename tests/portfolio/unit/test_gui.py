@@ -127,6 +127,17 @@ class TestBuildConfigFromFields:
             "X", "SAFe", "", "", [("ART A", "a.json")], MODE_POOLED)
         assert cfg.kind == KIND_SOLUTION
 
+    def test_terminology_flows_through(self) -> None:
+        cfg = build_config_from_fields(
+            "X", "SAFe", "", "", [("ART A", "a.json")], MODE_POOLED,
+            terminology="Global")
+        assert cfg.terminology == "Global"
+
+    def test_terminology_defaults_safe(self) -> None:
+        cfg = build_config_from_fields(
+            "X", "SAFe", "", "", [("ART A", "a.json")], MODE_POOLED)
+        assert cfg.terminology == "SAFe"
+
     def test_no_members_raises(self) -> None:
         with pytest.raises(ValueError):
             build_config_from_fields("X", "SAFe", "", "", [("", "")], MODE_POOLED)
