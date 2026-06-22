@@ -265,6 +265,14 @@ class TestRender:
     def test_metric_id_is_process_flow(self, metric):
         assert metric.metric_id == PROCESS_FLOW
 
+    def test_edge_labels_can_be_hidden(self, metric):
+        """show_edge_labels=False drops the per-edge text annotations (arrows stay)."""
+        metric.show_edge_labels = True
+        on = metric.render(self._result_with_data(metric), SAFE)[0].layout.annotations
+        metric.show_edge_labels = False
+        off = metric.render(self._result_with_data(metric), SAFE)[0].layout.annotations
+        assert len(off) < len(on)
+
 
 # ---------------------------------------------------------------------------
 # label helpers

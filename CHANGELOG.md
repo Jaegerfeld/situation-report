@@ -8,6 +8,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- Process Flow: a toggle to show or hide the edge (transition/time) labels in
+  the Process Flow: Transitions and Process Flow: Time diagrams. On by default —
+  via the GUI checkbox, the `--hide-edge-labels` CLI flag, or the
+  `show_edge_labels` template field.
 - Flow Load: each stage's box can be drawn with a width proportional to the
   number of issues in that stage, so the mass of open work is visible at a
   glance. Optional and on by default — toggle via the GUI checkbox, the

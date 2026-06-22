@@ -46,6 +46,7 @@ from .metrics import all_metrics
 from .metrics.flow_load import FlowLoadMetric
 from .metrics.flow_time import CT_METHOD_A, CT_METHOD_B, FlowTimeMetric
 from .metrics.flow_velocity import FlowVelocityMetric
+from .metrics.process_flow import ProcessFlowMetric, ProcessFlowTimeMetric
 from .terminology import GLOBAL, SAFE, term
 
 # ---------------------------------------------------------------------------
@@ -203,6 +204,8 @@ _T: dict[str, dict[str, str]] = {
         "tip_excl_status":   "Issues mit diesen Jira-Status vollständig aus allen Metriken ausschließen (z.\u202fB. Canceled).",
         "tip_excl_resolution": "Issues mit diesen Resolutions vollständig ausschließen (z.\u202fB. Won\u2019t Do).",
         "chk_proportional_box": "Boxbreite ~ Anzahl Elemente (Flow Load)",
+        "chk_edge_labels":   "Kantenbeschriftungen anzeigen (Process Flow)",
+        "tip_edge_labels":   "Blendet die Übergangs- bzw. Zeit-Beschriftungen an den Kanten der Process-Flow-Diagramme (Transitions und Time) ein oder aus.",
         "tip_proportional_box": "Im Flow-Load-Diagramm wird die Breite jedes Boxplots proportional zur Anzahl der enthaltenen Issues gezeichnet, sodass die Masse der offenen Arbeit auf einen Blick sichtbar ist.",
         "chk_zero_day":      "Zero-Day-Issues ausschließen  (<",
         "lbl_zero_day_min":  "min)",
@@ -322,6 +325,8 @@ _T: dict[str, dict[str, str]] = {
         "tip_excl_status":   "Completely exclude issues with these Jira statuses from all metrics (e.g. Canceled).",
         "tip_excl_resolution": "Completely exclude issues with these resolutions (e.g. Won\u2019t Do).",
         "chk_proportional_box": "Box width ~ number of items (Flow Load)",
+        "chk_edge_labels":   "Show edge labels (Process Flow)",
+        "tip_edge_labels":   "Shows or hides the transition/time labels on the edges of the Process Flow diagrams (Transitions and Time).",
         "tip_proportional_box": "In the Flow Load chart each boxplot is drawn with a width proportional to the number of issues it contains, so the mass of open work is visible at a glance.",
         "chk_zero_day":      "Exclude zero-day issues  (<",
         "lbl_zero_day_min":  "min)",
@@ -442,6 +447,8 @@ _T: dict[str, dict[str, str]] = {
         "tip_excl_status":   "Excludeți complet issue-urile cu aceste statusuri Jira din toate metricile (ex. Anulat).",
         "tip_excl_resolution": "Excludeți complet issue-urile cu aceste rezoluții (ex. Won’t Do).",
         "chk_proportional_box": "Lățimea boxului ~ numărul de elemente (Flow Load)",
+        "chk_edge_labels":   "Afișează etichetele muchiilor (Process Flow)",
+        "tip_edge_labels":   "Afișează sau ascunde etichetele de tranziție/timp de pe muchiile diagramelor Process Flow (Transitions și Time).",
         "tip_proportional_box": "În diagrama Flow Load, fiecare boxplot are lățimea proporțională cu numărul de issue-uri conținute, astfel încât masa muncii deschise este vizibilă dintr-o privire.",
         "chk_zero_day":      "Excludeți issue-urile zero-day  (<",
         "lbl_zero_day_min":  "min)",
@@ -559,6 +566,8 @@ _T: dict[str, dict[str, str]] = {
         "tip_excl_status":   "Excluir completamente issues com estes status Jira de todas as métricas (ex. Cancelado).",
         "tip_excl_resolution": "Excluir completamente issues com estas resoluções (ex. Won’t Do).",
         "chk_proportional_box": "Largura da caixa ~ número de itens (Flow Load)",
+        "chk_edge_labels":   "Mostrar rótulos das arestas (Process Flow)",
+        "tip_edge_labels":   "Mostra ou oculta os rótulos de transição/tempo nas arestas dos diagramas Process Flow (Transitions e Time).",
         "tip_proportional_box": "No gráfico Flow Load, cada boxplot é desenhado com largura proporcional ao número de itens que contém, para a massa de trabalho aberto ser visível de relance.",
         "chk_zero_day":      "Excluir issues zero-day  (<",
         "lbl_zero_day_min":  "min)",
@@ -676,6 +685,8 @@ _T: dict[str, dict[str, str]] = {
         "tip_excl_status":   "Exclure complètement les issues avec ces statuts Jira de toutes les métriques (ex. Annulé).",
         "tip_excl_resolution": "Exclure complètement les issues avec ces résolutions (ex. Won’t Do).",
         "chk_proportional_box": "Largeur des boîtes ~ nombre d'éléments (Flow Load)",
+        "chk_edge_labels":   "Afficher les libellés des arêtes (Process Flow)",
+        "tip_edge_labels":   "Affiche ou masque les libellés de transition/temps sur les arêtes des diagrammes Process Flow (Transitions et Time).",
         "tip_proportional_box": "Dans le diagramme Flow Load, chaque boxplot est dessiné avec une largeur proportionnelle au nombre d'éléments qu'il contient, pour voir d'un coup d'œil où se trouve la masse du travail en cours.",
         "chk_zero_day":      "Exclure les issues zero-day  (<",
         "lbl_zero_day_min":  "min)",
@@ -905,6 +916,7 @@ def _build_template_dict(
     zero_day_threshold_minutes: int = 5,
     target_ct: int = 90,
     proportional_box_width: bool = True,
+    show_edge_labels: bool = True,
 ) -> dict:
     """
     Assemble the template dictionary that is written to JSON.
@@ -952,6 +964,7 @@ def _build_template_dict(
         "zero_day_threshold_minutes": zero_day_threshold_minutes,
         "target_ct": target_ct,
         "proportional_box_width": proportional_box_width,
+        "show_edge_labels": show_edge_labels,
         "terminology": terminology,
         "ct_method": ct_method,
         "metrics": metrics,
@@ -1000,6 +1013,7 @@ def _parse_template_dict(data: dict) -> dict:
         "zero_day_threshold_minutes": int(data.get("zero_day_threshold_minutes", 5)),
         "target_ct": int(data.get("target_ct", 90)),
         "proportional_box_width": bool(data.get("proportional_box_width", True)),
+        "show_edge_labels": bool(data.get("show_edge_labels", True)),
         "terminology": str(data.get("terminology", SAFE)),
         "ct_method": str(data.get("ct_method", CT_METHOD_A)),
         "metrics": dict(data.get("metrics", {})),
@@ -1048,6 +1062,7 @@ class BuildReportsApp(tk.Tk):
         self._zero_day_minutes_var = tk.StringVar(value="5")
         self._target_ct_var = tk.StringVar(value="90")
         self._proportional_box_var = tk.BooleanVar(value=True)
+        self._show_edge_labels_var = tk.BooleanVar(value=True)
         self._available_projects: list[str] = []
         self._available_issuetypes: list[str] = []
         self._available_statuses: list[str] = []
@@ -1537,6 +1552,18 @@ class BuildReportsApp(tk.Tk):
             (_ToolTip(chk_prop, self._tr("tip_proportional_box")), "tip_proportional_box"))
         row += 1
 
+        chk_edge = tk.Checkbutton(
+            f,
+            text=self._tr("chk_edge_labels"),
+            variable=self._show_edge_labels_var,
+            anchor="w",
+        )
+        chk_edge.grid(row=row, column=0, columnspan=3, sticky="w", **pad)
+        self._i18n.append((chk_edge, "chk_edge_labels"))
+        self._tips.append(
+            (_ToolTip(chk_edge, self._tr("tip_edge_labels")), "tip_edge_labels"))
+        row += 1
+
         # --- Action buttons ---
         ttk.Separator(f, orient="horizontal").grid(
             row=row, column=0, columnspan=3, sticky="ew", pady=6
@@ -1667,6 +1694,7 @@ class BuildReportsApp(tk.Tk):
                 zero_day_threshold_minutes=int(self._zero_day_minutes_var.get() or 5),
                 target_ct=int(self._target_ct_var.get() or 90),
                 proportional_box_width=self._proportional_box_var.get(),
+                show_edge_labels=self._show_edge_labels_var.get(),
                 terminology=self._terminology_var.get(),
                 ct_method=self._ct_method_var.get(),
                 metrics={mid: var.get() for mid, var in self._metric_vars.items()},
@@ -1735,6 +1763,7 @@ class BuildReportsApp(tk.Tk):
         self._zero_day_minutes_var.set(str(state["zero_day_threshold_minutes"]))
         self._target_ct_var.set(str(state["target_ct"]))
         self._proportional_box_var.set(state["proportional_box_width"])
+        self._show_edge_labels_var.set(state["show_edge_labels"])
         self._terminology_var.set(state["terminology"])
         self._ct_method_var.set(state["ct_method"])
 
@@ -2095,6 +2124,7 @@ class BuildReportsApp(tk.Tk):
         except ValueError:
             target_ct = 90
         proportional_box_width = self._proportional_box_var.get()
+        show_edge_labels = self._show_edge_labels_var.get()
 
         selected = [mid for mid, var in self._metric_vars.items() if var.get()]
         metrics = selected if selected else None
@@ -2117,6 +2147,7 @@ class BuildReportsApp(tk.Tk):
             ct_method=ct_method,
             target_ct=target_ct,
             proportional_box_width=proportional_box_width,
+            show_edge_labels=show_edge_labels,
             metrics=metrics,
         )
 
@@ -2185,6 +2216,8 @@ class BuildReportsApp(tk.Tk):
                     if isinstance(plugin, FlowVelocityMetric):
                         pi_cfg = inputs.get("pi_config")
                         plugin.pi_config_path = str(pi_cfg) if pi_cfg else ""
+                    if isinstance(plugin, (ProcessFlowMetric, ProcessFlowTimeMetric)):
+                        plugin.show_edge_labels = inputs.get("show_edge_labels", True)
 
                 all_figures = []
                 all_results = []
@@ -2274,6 +2307,7 @@ class BuildReportsApp(tk.Tk):
                     ct_method=inputs["ct_method"],
                     target_ct=inputs.get("target_ct", 90),
                     proportional_box_width=inputs.get("proportional_box_width", True),
+                    show_edge_labels=inputs.get("show_edge_labels", True),
                     pi_config=inputs.get("pi_config"),
                     output_pdf=Path(out_path),
                     log=self._log,

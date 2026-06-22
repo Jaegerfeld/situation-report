@@ -383,6 +383,7 @@ def _add_self_loop(
     *,
     label_text: str | None = None,
     hover_text: str | None = None,
+    show_labels: bool = True,
 ) -> None:
     """
     Draw a small circular arc as a self-loop on a node, positioned outward
@@ -424,17 +425,18 @@ def _add_self_loop(
         showlegend=False,
     ))
 
-    # Label near the loop
-    lx_mid = cx + _LOOP_RADIUS * math.cos(math.pi / 4) + dx * 0.06
-    ly_mid = cy + _LOOP_RADIUS * math.sin(math.pi / 4) + dy * 0.06
-    fig.add_annotation(
-        x=lx_mid, y=ly_mid,
-        text=label_text if label_text is not None else str(edge.count),
-        showarrow=False,
-        font=dict(size=9, color="#333"),
-        bgcolor="rgba(255,255,255,0.8)",
-        borderpad=2,
-    )
+    # Label near the loop (optional)
+    if show_labels:
+        lx_mid = cx + _LOOP_RADIUS * math.cos(math.pi / 4) + dx * 0.06
+        ly_mid = cy + _LOOP_RADIUS * math.sin(math.pi / 4) + dy * 0.06
+        fig.add_annotation(
+            x=lx_mid, y=ly_mid,
+            text=label_text if label_text is not None else str(edge.count),
+            showarrow=False,
+            font=dict(size=9, color="#333"),
+            bgcolor="rgba(255,255,255,0.8)",
+            borderpad=2,
+        )
 
 
 def _add_edge(
@@ -447,6 +449,7 @@ def _add_edge(
     *,
     label_text: str | None = None,
     hover_text: str | None = None,
+    show_labels: bool = True,
 ) -> None:
     """
     Draw a directed edge between two nodes.
@@ -528,17 +531,18 @@ def _add_edge(
         arrowcolor=color,
     )
 
-    # Label at curve midpoint, offset slightly outward
-    label_x = bx[n // 2] + offset_sign * px * 0.06
-    label_y = by[n // 2] + offset_sign * py * 0.06
-    fig.add_annotation(
-        x=label_x, y=label_y,
-        text=label_text if label_text is not None else str(edge.count),
-        showarrow=False,
-        font=dict(size=9, color="#333"),
-        bgcolor="rgba(255,255,255,0.8)",
-        borderpad=2,
-    )
+    # Label at curve midpoint, offset slightly outward (optional)
+    if show_labels:
+        label_x = bx[n // 2] + offset_sign * px * 0.06
+        label_y = by[n // 2] + offset_sign * py * 0.06
+        fig.add_annotation(
+            x=label_x, y=label_y,
+            text=label_text if label_text is not None else str(edge.count),
+            showarrow=False,
+            font=dict(size=9, color="#333"),
+            bgcolor="rgba(255,255,255,0.8)",
+            borderpad=2,
+        )
 
 
 def _add_nodes(
@@ -686,6 +690,8 @@ class ProcessFlowMetric(MetricPlugin):
     """
 
     metric_id = PROCESS_FLOW
+    #: When False, edge (transition) labels are hidden in the diagram.
+    show_edge_labels: bool = True
 
     def compute(self, data: ReportData, terminology: str) -> MetricResult:
         """
@@ -799,9 +805,11 @@ class ProcessFlowMetric(MetricPlugin):
             width = _edge_width(edge, max_count)
             color = _edge_color(edge, fd.workflow_stages)
             if edge.is_self_loop:
-                _add_self_loop(fig, edge.source, pos, edge, width, color)
+                _add_self_loop(fig, edge.source, pos, edge, width, color,
+                               show_labels=self.show_edge_labels)
             else:
-                _add_edge(fig, edge, pos, bidirectional, width, color)
+                _add_edge(fig, edge, pos, bidirectional, width, color,
+                          show_labels=self.show_edge_labels)
 
         # Draw nodes (on top of edges)
         _add_nodes(fig, fd.nodes, pos)
@@ -864,6 +872,8 @@ class ProcessFlowTimeMetric(MetricPlugin):
     """
 
     metric_id = PROCESS_FLOW_TIME
+    #: When False, edge (time) labels are hidden in the diagram.
+    show_edge_labels: bool = True
 
     def compute(self, data: ReportData, terminology: str) -> MetricResult:
         """
@@ -1047,11 +1057,13 @@ class ProcessFlowTimeMetric(MetricPlugin):
                 _add_self_loop(
                     fig, edge.source, pos, edge, width, color,
                     label_text=lbl, hover_text=hover,
+                    show_labels=self.show_edge_labels,
                 )
             else:
                 _add_edge(
                     fig, edge, pos, bidirectional, width, color,
                     label_text=lbl, hover_text=hover,
+                    show_labels=self.show_edge_labels,
                 )
 
         _add_nodes_time(fig, fd.nodes, pos, fd.stats_by_node)

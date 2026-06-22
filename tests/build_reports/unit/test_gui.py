@@ -603,3 +603,13 @@ class TestParseTemplateDict:
     def test_proportional_box_width_defaults_true(self):
         """An older template without the key defaults the flag to True (option on)."""
         assert _parse_template_dict({"version": 1})["proportional_box_width"] is True
+
+    def test_show_edge_labels_roundtrip(self):
+        """The Process Flow edge-labels flag survives a build → parse roundtrip."""
+        tpl = _build_template_dict(**_sample_template(show_edge_labels=False))
+        assert tpl["show_edge_labels"] is False
+        assert _parse_template_dict(tpl)["show_edge_labels"] is False
+
+    def test_show_edge_labels_defaults_true(self):
+        """An older template without the key defaults edge labels to shown."""
+        assert _parse_template_dict({"version": 1})["show_edge_labels"] is True

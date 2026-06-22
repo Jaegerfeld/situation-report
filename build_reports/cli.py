@@ -35,6 +35,7 @@ from .metrics import all_metrics, get_metric
 from .metrics.flow_load import FlowLoadMetric
 from .metrics.flow_time import CT_METHOD_A, CT_METHOD_B, FlowTimeMetric
 from .metrics.flow_velocity import FlowVelocityMetric
+from .metrics.process_flow import ProcessFlowMetric, ProcessFlowTimeMetric
 from .terminology import GLOBAL, SAFE, term
 
 
@@ -77,6 +78,7 @@ def run_reports(
     ct_method: str = CT_METHOD_A,
     target_ct: int = 90,
     proportional_box_width: bool = True,
+    show_edge_labels: bool = True,
     pi_config: Path | None = None,
     output_pdf: Path | None = None,
     open_browser: bool = False,
@@ -154,6 +156,8 @@ def run_reports(
             plugin.proportional_box_width = proportional_box_width
         if isinstance(plugin, FlowVelocityMetric):
             plugin.pi_config_path = str(pi_config) if pi_config else ""
+        if isinstance(plugin, (ProcessFlowMetric, ProcessFlowTimeMetric)):
+            plugin.show_edge_labels = show_edge_labels
 
     all_figures = []
     all_results = []
@@ -218,6 +222,7 @@ def render_combined_html(
     ct_method: str = CT_METHOD_A,
     target_ct: int = 90,
     proportional_box_width: bool = True,
+    show_edge_labels: bool = True,
     pi_config: Path | None = None,
     log: Callable[[str], None] = print,
 ) -> str:
@@ -273,6 +278,8 @@ def render_combined_html(
             plugin.proportional_box_width = proportional_box_width
         if isinstance(plugin, FlowVelocityMetric):
             plugin.pi_config_path = str(pi_config) if pi_config else ""
+        if isinstance(plugin, (ProcessFlowMetric, ProcessFlowTimeMetric)):
+            plugin.show_edge_labels = show_edge_labels
 
     all_figures: list = []
     section_breaks: dict[int, str] = {}
@@ -364,6 +371,10 @@ def main() -> None:
                         dest="proportional_box_width",
                         help="Draw all Flow Load boxes at equal width (default: width "
                              "proportional to the number of issues per stage)")
+    parser.add_argument("--hide-edge-labels", action="store_false",
+                        dest="show_edge_labels",
+                        help="Hide the transition/time labels on Process Flow edges "
+                             "(default: shown)")
     parser.add_argument("--pdf", type=Path, default=None,
                         metavar="FILE",
                         help="Export all figures to this PDF file")
@@ -390,6 +401,7 @@ def main() -> None:
         ct_method=args.ct_method,
         target_ct=args.target_ct,
         proportional_box_width=args.proportional_box_width,
+        show_edge_labels=args.show_edge_labels,
         pi_config=args.pi_config,
         output_pdf=args.pdf,
         open_browser=args.browser,
