@@ -593,3 +593,13 @@ class TestParseTemplateDict:
         parsed = _parse_template_dict(tpl)
         assert parsed["exclude_zero_day"] is True
         assert parsed["zero_day_threshold_minutes"] == 15
+
+    def test_proportional_box_width_roundtrip(self):
+        """The Flow Load proportional-box-width flag survives a build → parse roundtrip."""
+        tpl = _build_template_dict(**_sample_template(proportional_box_width=False))
+        assert tpl["proportional_box_width"] is False
+        assert _parse_template_dict(tpl)["proportional_box_width"] is False
+
+    def test_proportional_box_width_defaults_true(self):
+        """An older template without the key defaults the flag to True (option on)."""
+        assert _parse_template_dict({"version": 1})["proportional_box_width"] is True

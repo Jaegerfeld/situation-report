@@ -99,6 +99,9 @@ class FlowLoadMetric(MetricPlugin):
 
     metric_id = FLOW_LOAD
     target_ct: int = 90
+    #: When True, each stage's box is drawn with a width proportional to the
+    #: number of issues in that stage, so the mass of WIP is visible at a glance.
+    proportional_box_width: bool = True
 
     def compute(self, data: ReportData, terminology: str) -> MetricResult:
         """
@@ -222,16 +225,24 @@ class FlowLoadMetric(MetricPlugin):
 
         fig = go.Figure()
 
+        # Optionally scale each box's width by how many issues it contains, so the
+        # stage holding the mass of WIP is obvious at a glance. A visible minimum
+        # keeps low-count stages readable.
+        max_count = max((len(ld.by_stage[s]) for s in ld.stages_ordered), default=0)
+
         for stage in ld.stages_ordered:
             ages = ld.by_stage[stage]
-            fig.add_trace(go.Box(
+            box_kwargs = dict(
                 y=ages, name=stage,
                 boxpoints="all", jitter=0.3, pointpos=0,
                 marker=dict(color="red", size=4, opacity=0.6),
                 line=dict(color="black"),
                 fillcolor="white",
                 showlegend=False,
-            ))
+            )
+            if self.proportional_box_width and max_count > 0:
+                box_kwargs["width"] = 0.25 + 0.65 * (len(ages) / max_count)
+            fig.add_trace(go.Box(**box_kwargs))
 
         # Legend entries for reference lines (dummy traces)
         # Target CT is always shown; CT Median and P85 only when closed issues exist
