@@ -14,9 +14,9 @@
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import date, datetime
 
-from build_reports.loader import IssueRecord, ReportData
+from build_reports.loader import CfdRecord, IssueRecord, ReportData
 
 from portfolio import aggregator
 from portfolio.solution_config import KIND_PORTFOLIO, Member, SolutionConfig
@@ -76,8 +76,36 @@ def test_pooling_concatenates_records(monkeypatch) -> None:
     assert {i.key for i in pooled.issues} == {"ART_A-1", "ART_A-2", "ART_B-1"}
     # source_prefix becomes the solution name → figures get the solution label
     assert pooled.source_prefix == "Payments Solution"
-    # stages unioned in first-seen order, no duplicates
-    assert pooled.stages == ["Analysis", "Dev", "Done", "Released"]
+    # pooled stages are the canonical groups (shared mapping for CFD)
+    assert pooled.stages == ["To Do", "In Progress", "Done"]
+    assert pooled.first_stage == "In Progress" and pooled.closed_stage == "Done"
+
+
+def test_cfd_pooled_via_canonical_stage_mapping(monkeypatch) -> None:
+    day = date(2025, 1, 6)
+    # Two ARTs with DIFFERENT workflows; classify_stages maps each stage into
+    # To Do / In Progress / Done and the daily entry counts are summed per group.
+    data_a = ReportData(
+        issues=[_issue("ART_A", "ART_A-1", 1, 5)],
+        cfd=[CfdRecord(day=day,
+                       stage_counts={"Funnel": 2, "Analysis": 1, "Dev": 0, "Done": 0})],
+        stages=["Funnel", "Analysis", "Dev", "Done"], source_prefix="ART_A",
+        first_stage="Analysis", closed_stage="Done")
+    data_b = ReportData(
+        issues=[_issue("ART_B", "ART_B-1", 1, 5)],
+        cfd=[CfdRecord(day=day, stage_counts={"Backlog": 1, "InProg": 3, "Released": 2})],
+        stages=["Backlog", "InProg", "Released"], source_prefix="ART_B",
+        first_stage="InProg", closed_stage="Released")
+    monkeypatch.setattr(aggregator, "load_report_data",
+                        _fake_loader({"A.xlsx": data_a, "B.xlsx": data_b}))
+
+    pooled = aggregator.build_pooled_report_data(_two_art_config(), log=lambda *_: None)
+
+    assert pooled.stages == ["To Do", "In Progress", "Done"]
+    assert len(pooled.cfd) == 1
+    # A: Funnel(2)→To Do, Analysis(1)→In Progress; B: Backlog(1)→To Do,
+    # InProg(3)→In Progress, Released(2)→Done.
+    assert pooled.cfd[0].stage_counts == {"To Do": 3, "In Progress": 4, "Done": 2}
 
 
 def test_resolve_member_paths_direct() -> None:
@@ -137,6 +165,9 @@ def test_default_metric_sets() -> None:
     # Flow Load is stage-dependent → only the comparison default (not pooled).
     assert "flow_load" not in aggregator.DEFAULT_POOLED_METRICS
     assert "flow_load" in aggregator.DEFAULT_COMPARISON_METRICS
+    # CFD is poolable via the canonical stage mapping → in both defaults.
+    assert "cfd" in aggregator.DEFAULT_POOLED_METRICS
+    assert "cfd" in aggregator.DEFAULT_COMPARISON_METRICS
 
 
 def test_pooled_default_includes_flow_distribution(monkeypatch) -> None:

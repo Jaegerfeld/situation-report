@@ -233,7 +233,14 @@ gemeinsames Stage-Mapping für CFD/Distribution, Management-Summary, PDF-Export.
   und Datei-Browser passen sich an, `.json`-Filter). Save/Load/Generate funktionieren für beide
   Kinds. `SolutionManagerApp` ist jetzt auf Modulebene (wie Launcher/build_reports). Verifiziert
   (App-Aufbau + Kind-Umschaltung + Sprachwechsel).
-- Offen in Phase 3: stage-abhängige Metriken (CFD) mit gemeinsamem Stage-Mapping, Management-Summary,
+- **Stage-abhängiges CFD mit gemeinsamem Stage-Mapping — ✅ UMGESETZT:** Beim Pooling werden die
+  ARTs-CFDs über `classify_stages()` auf die drei **kanonischen** Stages (To Do / In Progress /
+  Done) gemappt und die Tages-Eintritte je Gruppe summiert (`_pool_cfd`) — so wird ein CFD über
+  ARTs mit unterschiedlichen Workflows vergleichbar. Fehlen Workflow-Marker, greift derselbe
+  First/Closed-Fallback wie im CFD-Metrik (erste/letzte Stage). CFD ist jetzt Default-Metrik in
+  beiden Modi (im Comparison-Modus für Solutions nativ je ART, für Portfolios je Solution gepoolt).
+  Verifiziert (echte Daten: 2 ARTs / 9 + 8 Stages → kanonisches CFD, Ratio In/Out 6.56 : 1).
+- Offen in Phase 3: Management-Summary (kompakte Übersichtskachel je Solution/Portfolio),
   PDF-Export.
 
 ---

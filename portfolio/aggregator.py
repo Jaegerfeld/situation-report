@@ -27,12 +27,18 @@ from pathlib import Path
 
 from build_reports.export import _build_combined_html
 from build_reports.filters import FilterConfig, apply_filters
-from build_reports.loader import ReportData, load_report_data
+from build_reports.loader import CfdRecord, ReportData, load_report_data
 from build_reports.metrics import get_metric
 from build_reports.metrics.base import MetricPlugin
 from build_reports.metrics.flow_load import FlowLoadMetric
 from build_reports.metrics.flow_time import CT_METHOD_A, FlowTimeMetric
 from build_reports.metrics.flow_velocity import FlowVelocityMetric
+from build_reports.stage_groups import (
+    GROUP_DONE,
+    GROUP_IN_PROGRESS,
+    GROUP_TODO,
+    classify_stages,
+)
 from build_reports.terminology import (
     FLOW_DISTRIBUTION,
     FLOW_LOAD,
@@ -41,6 +47,14 @@ from build_reports.terminology import (
     SAFE,
     term,
 )
+
+#: CFD metric id (build_reports registers it under this string).
+METRIC_CFD = "cfd"
+
+#: Canonical, workflow-agnostic stages used to pool CFDs across ARTs with
+#: differing workflows. Every ART stage maps into one of these three groups
+#: via build_reports' classify_stages(), so daily entry counts stay additive.
+_CANON_STAGES = [GROUP_TODO, GROUP_IN_PROGRESS, GROUP_DONE]
 
 from project_template import MODULE_BUILD_REPORTS, get_section, load_template
 
@@ -58,11 +72,12 @@ from .solution_config import (
 #: their current stage, so pooling ARTs with different workflows would mix
 #: incomparable stage columns. Request it explicitly only when all ARTs share a
 #: workflow.
-DEFAULT_POOLED_METRICS = [FLOW_VELOCITY, FLOW_TIME, FLOW_DISTRIBUTION]
+DEFAULT_POOLED_METRICS = [FLOW_VELOCITY, FLOW_TIME, FLOW_DISTRIBUTION, METRIC_CFD]
 
 #: Default metrics for the COMPARISON mode. Each ART is computed separately, so
 #: the stage-dependent Flow Load is safe to include here too.
-DEFAULT_COMPARISON_METRICS = [FLOW_VELOCITY, FLOW_TIME, FLOW_DISTRIBUTION, FLOW_LOAD]
+DEFAULT_COMPARISON_METRICS = [FLOW_VELOCITY, FLOW_TIME, FLOW_DISTRIBUTION,
+                              METRIC_CFD, FLOW_LOAD]
 
 # Backwards-compatible alias (Phase-1 name).
 DEFAULT_METRICS = DEFAULT_POOLED_METRICS
@@ -183,6 +198,42 @@ def _make_plugins(
     return plugins
 
 
+def _pool_cfd(member_datas: list[ReportData]) -> list[CfdRecord]:
+    """
+    Merge per-ART CFDs into one canonical CFD via the shared stage mapping.
+
+    Each ART stage is classified into To Do / In Progress / Done
+    (build_reports.classify_stages), and the daily entry counts are summed per
+    canonical group across all ARTs. ARTs without CFD data contribute nothing.
+    Collapsing to the three groups is what makes a CFD poolable across ARTs with
+    different workflows (their stage names are otherwise incomparable).
+
+    Args:
+        member_datas: Per-ART ReportData (each with its own stages and CFD).
+
+    Returns:
+        CFD records keyed by the three canonical stages, ordered by day; empty
+        when no member supplied CFD data.
+    """
+    by_day: dict = {}
+    for data in member_datas:
+        if not data.cfd or not data.stages:
+            continue
+        # Mirror the CFD metric's own boundary fallback: when the workflow
+        # markers are absent, treat the first/last stage as the In/Out boundary
+        # so the Done group is still populated instead of collapsing to one group.
+        first = data.first_stage if data.first_stage in data.stages else data.stages[0]
+        closed = data.closed_stage if data.closed_stage in data.stages else data.stages[-1]
+        mapping = classify_stages(data.stages, first, closed)
+        for rec in data.cfd:
+            bucket = by_day.setdefault(rec.day, {g: 0 for g in _CANON_STAGES})
+            for stage, count in rec.stage_counts.items():
+                group = mapping.get(stage, GROUP_IN_PROGRESS)
+                bucket[group] += count
+    return [CfdRecord(day=day, stage_counts=dict(by_day[day]))
+            for day in sorted(by_day)]
+
+
 def build_pooled_report_data(
     config: SolutionConfig,
     log: Callable[[str], None] = print,
@@ -191,12 +242,14 @@ def build_pooled_report_data(
     Load every member ART and pool their issues into one ReportData.
 
     Issues are concatenated at the record level (each IssueRecord already carries
-    its own ``project``/``group``). Stage lists are unioned in first-seen order;
-    the first/closed-stage markers are taken from the first member that defines
-    them. The pooled ReportData's source_prefix is the config name, so figure
-    titles are labelled with the solution/portfolio rather than a single project
-    key. For a portfolio the member solutions are flattened to all their ARTs
-    first (see _iter_art_members), so a portfolio pools every ART it contains.
+    its own ``project``/``group``). The CFDs are merged via the shared stage
+    mapping into the three canonical stages (To Do / In Progress / Done, see
+    _pool_cfd), which also become the pooled ``stages`` — that is what lets the
+    CFD render across ARTs with different workflows. The issue-based metrics
+    (Flow Velocity/Time/Distribution) do not depend on this stage list. The
+    pooled source_prefix is the config name, so figure titles are labelled with
+    the solution/portfolio. For a portfolio the member solutions are flattened to
+    all their ARTs first (see _iter_art_members), so a portfolio pools every ART.
 
     Args:
         config: Validated solution or portfolio configuration.
@@ -205,33 +258,29 @@ def build_pooled_report_data(
     Returns:
         A single pooled ReportData spanning all contained ARTs.
     """
-    pooled_issues = []
-    pooled_stages: list[str] = []
-    first_stage: str | None = None
-    closed_stage: str | None = None
-
     art_members = _iter_art_members(config)
-    for member in art_members:
-        data = _load_member(member)
-        log(f"  {member.name}: {len(data.issues)} issues, {len(data.stages)} stages")
-        pooled_issues.extend(data.issues)
-        for stage in data.stages:
-            if stage not in pooled_stages:
-                pooled_stages.append(stage)
-        if first_stage is None:
-            first_stage = data.first_stage
-        if closed_stage is None:
-            closed_stage = data.closed_stage
+    member_datas = [_load_member(m) for m in art_members]
 
-    log(f"Pooled total: {len(pooled_issues)} issues from {len(art_members)} ART(s)")
+    pooled_issues = []
+    for member, data in zip(art_members, member_datas):
+        log(f"  {member.name}: {len(data.issues)} issues, "
+            f"{len(data.stages)} stages, {len(data.cfd)} CFD day(s)")
+        pooled_issues.extend(data.issues)
+
+    cfd_records = _pool_cfd(member_datas)
+    log(f"Pooled total: {len(pooled_issues)} issues from {len(art_members)} ART(s); "
+        f"{len(cfd_records)} canonical CFD day(s)")
+    # Stages are the canonical To Do / In Progress / Done groups so the pooled
+    # CFD renders across heterogeneous workflows; the issue-based metrics
+    # (Flow Velocity/Time/Distribution) do not depend on this stage list.
     return ReportData(
         issues=pooled_issues,
-        cfd=[],
+        cfd=cfd_records,
         transitions=[],
-        stages=pooled_stages,
+        stages=list(_CANON_STAGES),
         source_prefix=config.name,
-        first_stage=first_stage,
-        closed_stage=closed_stage,
+        first_stage=GROUP_IN_PROGRESS,
+        closed_stage=GROUP_DONE,
     )
 
 
