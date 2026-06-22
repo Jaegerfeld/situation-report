@@ -856,6 +856,10 @@ def content_de(st, images: dict[str, Path] | None = None):
         "95. Perzentil der abgeschlossenen Issues liegen, sind stark verzoegert.", st))
     add_img("flow_load",
             "Abb. 6: Flow Load -- Alter der offenen Issues je Stage mit Referenzlinien aus abgeschlossenen Issues.")
+    story.append(P(
+        "Hinweis: Die Breite jeder Box ist proportional zur Anzahl der enthaltenen "
+        "Issues -- so sehen Sie auf einen Blick, wo die Masse der offenen Arbeit liegt "
+        "(standardmaessig aktiv, abschaltbar).", st))
 
     # --- 5.4 CFD -------------------------------------------------------------
     story.append(H2("5.4  Cumulative Flow Diagram (CFD)", st))
@@ -959,6 +963,9 @@ def content_de(st, images: dict[str, Path] | None = None):
         col_widths=[4*cm, 12*cm]))
     add_img("process_flow",
             "Abb. 9: Process Flow: Transitions -- gerichteter Graph aller Statusuebergaenge mit Kantenstaerke und Farbkodierung.")
+    story.append(P(
+        "Hinweis: Die Kantenbeschriftungen lassen sich ein- und ausblenden "
+        "(standardmaessig sichtbar) -- das gilt auch fuer Process Flow: Time.", st))
     story.append(SP(4))
     story.append(box(
         "<b>Interpretation:</b> Viele rote Pfeile bedeuten haeufige Rueckschritte -- "
@@ -1625,6 +1632,10 @@ def content_en(st, images: dict[str, Path] | None = None):
         "of closed issues are significantly delayed.", st))
     add_img("flow_load",
             "Fig. 6: Flow Load — age of open issues per stage with reference lines from closed issues.")
+    story.append(P(
+        "Note: each box's width is proportional to the number of issues it contains, "
+        "so the mass of open work is visible at a glance (on by default, can be "
+        "turned off).", st))
 
     # --- 5.4 CFD -------------------------------------------------------------
     story.append(H2("5.4  Cumulative Flow Diagram (CFD)", st))
@@ -1728,6 +1739,9 @@ def content_en(st, images: dict[str, Path] | None = None):
         col_widths=[4*cm, 12*cm]))
     add_img("process_flow",
             "Fig. 9: Process Flow: Transitions — directed graph of all status transitions with edge width and colour coding.")
+    story.append(P(
+        "Note: the edge labels can be shown or hidden (shown by default) -- this "
+        "applies to Process Flow: Time as well.", st))
     story.append(SP(4))
     story.append(box(
         "<b>Interpretation:</b> Many red arrows mean frequent rework — a sign of quality "
@@ -2390,6 +2404,10 @@ def content_ro(st, images=None):
         "inchise sunt semnificativ intarziate.", st))
     add_img("flow_load",
             "Fig. 6: Flow Load — varsta issues deschise per etapa cu linii de referinta din issues inchise.")
+    story.append(P(
+        "Nota: latimea fiecarui box este proportionala cu numarul de issues continute, "
+        "deci masa muncii deschise se vede dintr-o privire (activ implicit, "
+        "dezactivabil).", st))
 
     # --- 5.4 CFD -------------------------------------------------------------
     story.append(H2("5.4  Diagrama de Flux Cumulativ (CFD)", st))
@@ -2492,6 +2510,9 @@ def content_ro(st, images=None):
         col_widths=[4*cm, 12*cm]))
     add_img("process_flow",
             "Fig. 9: Process Flow: Transitions — graf directionat al tuturor tranzitiilor de stare cu grosimea si codificarea de culoare a muchiilor.")
+    story.append(P(
+        "Nota: etichetele muchiilor pot fi afisate sau ascunse (afisate implicit) -- "
+        "la fel si pentru Process Flow: Time.", st))
     story.append(SP(4))
     story.append(box(
         "<b>Interpretare:</b> Multe sageti rosii inseamna reluari frecvente — semn al unor "
@@ -3154,6 +3175,10 @@ def content_pt(st, images=None):
         "dos issues fechados estao significativamente atrasados.", st))
     add_img("flow_load",
             "Fig. 6: Flow Load -- idade dos issues em aberto por etapa com linhas de referencia dos issues fechados.")
+    story.append(P(
+        "Nota: a largura de cada caixa e proporcional ao numero de issues que contem, "
+        "pelo que a massa de trabalho em aberto se ve de relance (ativo por omissao, "
+        "pode desativar-se).", st))
 
     # --- 5.4 CFD -------------------------------------------------------------
     story.append(H2("5.4  Cumulative Flow Diagram (CFD)", st))
@@ -3259,6 +3284,9 @@ def content_pt(st, images=None):
         col_widths=[4*cm, 12*cm]))
     add_img("process_flow",
             "Fig. 9: Process Flow: Transitions -- grafo dirigido de todas as transicoes de estado com espessura e codificacao por cores.")
+    story.append(P(
+        "Nota: os rotulos das arestas podem ser mostrados ou ocultados (mostrados por "
+        "omissao) -- o mesmo se aplica a Process Flow: Time.", st))
     story.append(SP(4))
     story.append(box(
         "<b>Interpretacao:</b> Muitas setas vermelhas significam retrabalho frequente -- "
@@ -3932,6 +3960,10 @@ def content_fr(st, images=None):
         "du 95e percentile des tickets termines accusent un retard significatif.", st))
     add_img("flow_load",
             "Fig. 6 : Flow Load -- age des tickets ouverts par etape avec lignes de reference issues des tickets termines.")
+    story.append(P(
+        "Remarque : la largeur de chaque boite est proportionnelle au nombre de "
+        "tickets, pour voir d'un coup d'oeil la masse du travail en cours (actif par "
+        "defaut, desactivable).", st))
 
     # --- 5.4 CFD -------------------------------------------------------------
     story.append(H2("5.4  Cumulative Flow Diagram (CFD)", st))
@@ -4037,6 +4069,9 @@ def content_fr(st, images=None):
         col_widths=[4*cm, 12*cm]))
     add_img("process_flow",
             "Fig. 9 : Process Flow: Transitions -- graphe oriente de toutes les transitions de statut avec largeur d'arete et codage couleur.")
+    story.append(P(
+        "Remarque : les libelles des aretes peuvent etre affiches ou masques "
+        "(affiches par defaut) -- cela vaut aussi pour Process Flow: Time.", st))
     story.append(SP(4))
     story.append(box(
         "<b>Interpretation :</b> De nombreuses fleches rouges signifient de frequents "
