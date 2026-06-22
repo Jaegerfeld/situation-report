@@ -7,6 +7,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Fixed
+- Flow Distribution "stage prominence" pie counted the workflow's terminal
+  Done stage. Because a closed/last stage keeps accumulating time as an issue
+  ages, it would eventually dominate without any business meaning — and this
+  affected open issues resting in Done as well, not only closed ones. The
+  terminal Done-group stage(s) are now excluded from prominence for every issue.
+
 ---
 
 ## [0.15.0] – 2026-06-22

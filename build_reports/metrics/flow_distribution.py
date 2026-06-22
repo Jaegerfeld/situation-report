@@ -26,9 +26,28 @@ import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 
 from ..loader import ReportData
+from ..stage_groups import GROUP_DONE, classify_stages
 from ..terminology import FLOW_DISTRIBUTION, term
 from . import register
 from .base import MetricPlugin, MetricResult
+
+
+def _done_stages(data: ReportData) -> set[str]:
+    """
+    Determine the workflow's terminal (Done-group) stages.
+
+    These are excluded from the stage-prominence chart: a closed/last stage
+    naturally accumulates ever more time and would otherwise always dominate,
+    without any business meaning. Uses the <First>/<Closed> markers when
+    available and falls back to the first/last stage otherwise.
+    """
+    stages = data.stages
+    if not stages:
+        return set()
+    first = data.first_stage if data.first_stage in stages else stages[0]
+    closed = data.closed_stage if data.closed_stage in stages else stages[-1]
+    groups = classify_stages(stages, first, closed)
+    return {s for s, g in groups.items() if g == GROUP_DONE}
 
 
 @dataclass
@@ -74,16 +93,20 @@ class FlowDistributionMetric(MetricPlugin):
 
         by_type = dict(Counter(i.issuetype for i in data.issues).most_common())
 
+        # The workflow's terminal (Done-group) stages are excluded from prominence
+        # for ALL issues: a closed/last stage keeps accumulating time as an issue
+        # ages and would otherwise always become the dominant stage without any
+        # business meaning (the last workflow status must not be considered).
+        done_stages = _done_stages(data)
+
         by_prominence: dict[str, int] = {}
         prominence_n = 0
         for issue in data.issues:
             if not (issue.stage_minutes and any(v > 0 for v in issue.stage_minutes.values())):
                 continue
-            # For closed issues exclude the terminal Done stage (current status) so that
-            # time accumulated after closing does not dominate the result.
             candidates = {
                 s: m for s, m in issue.stage_minutes.items()
-                if issue.closed_date is None or s != issue.status
+                if s not in done_stages
             }
             if not candidates or not any(v > 0 for v in candidates.values()):
                 continue
