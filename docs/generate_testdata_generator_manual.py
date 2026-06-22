@@ -412,7 +412,9 @@ def content_de(st: dict) -> list:
                    ["--pattern MUSTER",         "none",
                     "Flow-Antipattern: none / triangle / flat_triangle / cluster / batch"],
                    ["--pi-duration-weeks INT",  "12",
-                    "PI-Zyklus-Länge in Wochen (für cluster/batch)"]],
+                    "PI-Zyklus-Länge in Wochen (für cluster/batch)"],
+                   ["--pattern-strength 0-100", "50",
+                    "Muster-Intensität 0–100 (0=subtil, 50=Standard, 100=stark)"]],
                   col_widths=[4.5 * cm, 3.5 * cm, 7.5 * cm]),
               SP(8),
               box("<b>Tipp: Reproduzierbare Ergebnisse</b><br/>"
@@ -434,7 +436,8 @@ def content_de(st: dict) -> list:
                     "Zufällige Cycle-Time ohne Trend — Standard-Verhalten"],
                    ["triangle",
                     "Dreieck: rechter Winkel unten rechts",
-                    "Cycle-Time steigt linear über die Zeit (Multiplikator 1–4×). "
+                    "Cycle-Time steigt linear über die Zeit (Multiplikator ~1–4× bei "
+                    "Standard-Stärke, höher mit --pattern-strength). "
                     "Zeigt einen Prozess, der zunehmend langsamer wird."],
                    ["flat_triangle",
                     "Dreieck, Anstieg flacht am Ende ab",
@@ -680,7 +683,9 @@ def content_en(st: dict) -> list:
                    ["--pattern PATTERN",        "none",
                     "Flow anti-pattern: none / triangle / flat_triangle / cluster / batch"],
                    ["--pi-duration-weeks INT",  "12",
-                    "PI cycle length in weeks (for cluster/batch)"]],
+                    "PI cycle length in weeks (for cluster/batch)"],
+                   ["--pattern-strength 0-100", "50",
+                    "Pattern intensity 0–100 (0=subtle, 50=default, 100=strong)"]],
                   col_widths=[4.5 * cm, 3.5 * cm, 7.5 * cm]),
               SP(8),
               box("<b>Tip: Reproducible results</b><br/>"
@@ -702,7 +707,8 @@ def content_en(st: dict) -> list:
                     "Random cycle time without trend — default behaviour"],
                    ["triangle",
                     "Triangle: right angle bottom right",
-                    "Cycle time rises linearly over time (multiplier 1–4×). "
+                    "Cycle time rises linearly over time (multiplier ~1–4× at default "
+                    "strength, higher with --pattern-strength). "
                     "Indicates a process that is becoming progressively slower."],
                    ["flat_triangle",
                     "Triangle, rise flattens at the end",
@@ -945,7 +951,9 @@ def content_ro(st: dict) -> list:
                    ["--pattern TIPAR",          "none",
                     "Anti-pattern: none / triangle / flat_triangle / cluster / batch"],
                    ["--pi-duration-weeks INT",  "12",
-                    "Durata ciclului PI în săptămâni (pentru cluster/batch)"]],
+                    "Durata ciclului PI în săptămâni (pentru cluster/batch)"],
+                   ["--pattern-strength 0-100", "50",
+                    "Intensitatea modelului 0–100 (0=subtil, 50=implicit, 100=puternic)"]],
                   col_widths=[4.5 * cm, 3.5 * cm, 7.5 * cm])]
 
     story += [PageBreak(),
@@ -960,7 +968,8 @@ def content_ro(st: dict) -> list:
                     "Cycle time aleatoriu fără tendință — comportament implicit"],
                    ["triangle",
                     "Triunghi: unghi drept jos-dreapta",
-                    "Cycle time crește liniar în timp (multiplicator 1–4×). "
+                    "Cycle time crește liniar în timp (multiplicator ~1–4× la intensitate "
+                    "implicită, mai mare cu --pattern-strength). "
                     "Indică un proces care devine progresiv mai lent."],
                    ["flat_triangle",
                     "Triunghi, creștere atenuată la final",
@@ -1159,7 +1168,9 @@ def content_pt(st: dict) -> list:
                    ["--pattern PADRÃO",         "none",
                     "Anti-padrão: none / triangle / flat_triangle / cluster / batch"],
                    ["--pi-duration-weeks INT",  "12",
-                    "Duração do ciclo PI em semanas (para cluster/batch)"]],
+                    "Duração do ciclo PI em semanas (para cluster/batch)"],
+                   ["--pattern-strength 0-100", "50",
+                    "Intensidade do padrão 0–100 (0=subtil, 50=padrão, 100=forte)"]],
                   col_widths=[4.5 * cm, 3.5 * cm, 7.5 * cm])]
 
     story += [PageBreak(),
@@ -1174,7 +1185,8 @@ def content_pt(st: dict) -> list:
                     "Cycle time aleatório sem tendência — comportamento predefinido"],
                    ["triangle",
                     "Triângulo: ângulo reto em baixo à direita",
-                    "Cycle time aumenta linearmente ao longo do tempo (multiplicador 1–4×). "
+                    "Cycle time aumenta linearmente ao longo do tempo (multiplicador ~1–4× "
+                    "na intensidade padrão, maior com --pattern-strength). "
                     "Indica um processo que está a tornar-se progressivamente mais lento."],
                    ["flat_triangle",
                     "Triângulo, aumento atenua no final",
@@ -1376,7 +1388,9 @@ def content_fr(st: dict) -> list:
                    ["--pattern MOTIF",          "none",
                     "Anti-pattern : none / triangle / flat_triangle / cluster / batch"],
                    ["--pi-duration-weeks INT",  "12",
-                    "Durée du cycle PI en semaines (pour cluster/batch)"]],
+                    "Durée du cycle PI en semaines (pour cluster/batch)"],
+                   ["--pattern-strength 0-100", "50",
+                    "Intensité du motif 0–100 (0=subtil, 50=défaut, 100=fort)"]],
                   col_widths=[4.5 * cm, 3.5 * cm, 7.5 * cm])]
 
     story += [PageBreak(),
@@ -1391,7 +1405,8 @@ def content_fr(st: dict) -> list:
                     "Cycle time aléatoire sans tendance — comportement par défaut"],
                    ["triangle",
                     "Triangle : angle droit en bas à droite",
-                    "Le cycle time augmente linéairement dans le temps (multiplicateur 1–4×). "
+                    "Le cycle time augmente linéairement dans le temps (multiplicateur ~1–4× "
+                    "à l'intensité par défaut, plus élevé avec --pattern-strength). "
                     "Indique un processus qui devient progressivement plus lent."],
                    ["flat_triangle",
                     "Triangle, augmentation s'atténue à la fin",
