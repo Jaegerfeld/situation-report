@@ -7,6 +7,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+---
+
+## [0.16.0] – 2026-06-23
+
 ### Added
 - Solutions & Portfolios GUI: brought in line with the other modules — a
   calendar date picker for the From/To fields, language switching via the flag

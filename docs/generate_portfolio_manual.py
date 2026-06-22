@@ -312,7 +312,7 @@ def content_de(st: dict) -> list:
         tbl([
             ["Feld / Aktion", "Beschreibung"],
             ["Name", "Name der Solution bzw. des Portfolios (erscheint im Report)."],
-            ["Framework", "SAFe, LeSS oder Nexus — nur für die Beschriftung."],
+            ["Terminologie", "SAFe oder Global — Beschriftung der Metriken im Report."],
             ["Art", "<b>solution</b> (Mitglieder sind ARTs) oder <b>portfolio</b> "
                     "(Mitglieder sind Solutions)."],
             ["Von / Bis", "Optionaler Berichtszeitraum (JJJJ-MM-TT)."],
@@ -477,7 +477,7 @@ def content_en(st: dict) -> list:
         tbl([
             ["Field / action", "Description"],
             ["Name", "Name of the solution or portfolio (shown in the report)."],
-            ["Framework", "SAFe, LeSS or Nexus — for labelling only."],
+            ["Terminology", "SAFe or Global — labelling of the report metrics."],
             ["Kind", "<b>solution</b> (members are ARTs) or <b>portfolio</b> (members "
                      "are solutions)."],
             ["From / To", "Optional reporting period (YYYY-MM-DD)."],
@@ -639,7 +639,7 @@ def content_ro(st: dict) -> list:
         tbl([
             ["Camp / actiune", "Descriere"],
             ["Nume", "Numele solutiei sau portofoliului (apare in raport)."],
-            ["Framework", "SAFe, LeSS sau Nexus — doar pentru etichetare."],
+            ["Terminologie", "SAFe sau Global — etichetarea metricilor din raport."],
             ["Tip", "<b>solution</b> (membrii sunt ART-uri) sau <b>portfolio</b> "
                     "(membrii sunt solutii)."],
             ["De la / Pana la", "Perioada de raportare optionala (AAAA-LL-ZZ)."],
@@ -802,7 +802,7 @@ def content_pt(st: dict) -> list:
         tbl([
             ["Campo / acao", "Descricao"],
             ["Nome", "Nome da solucao ou portefolio (aparece no relatorio)."],
-            ["Framework", "SAFe, LeSS ou Nexus — apenas para rotulagem."],
+            ["Terminologia", "SAFe ou Global — rotulagem das metricas do relatorio."],
             ["Tipo", "<b>solution</b> (membros sao ARTs) ou <b>portfolio</b> (membros "
                      "sao solucoes)."],
             ["De / Ate", "Periodo de relatorio opcional (AAAA-MM-DD)."],
@@ -964,7 +964,7 @@ def content_fr(st: dict) -> list:
         tbl([
             ["Champ / action", "Description"],
             ["Nom", "Nom de la solution ou du portefeuille (apparait dans le rapport)."],
-            ["Framework", "SAFe, LeSS ou Nexus — uniquement pour l'etiquetage."],
+            ["Terminologie", "SAFe ou Global — etiquetage des metriques du rapport."],
             ["Type", "<b>solution</b> (les membres sont des ARTs) ou <b>portfolio</b> "
                      "(les membres sont des solutions)."],
             ["De / A", "Periode de rapport optionnelle (AAAA-MM-JJ)."],
