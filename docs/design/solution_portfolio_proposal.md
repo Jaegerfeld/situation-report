@@ -162,10 +162,20 @@ Flow-Time-Perzentile, ART-Anzahl) als Management-Summary; Portfolio = Roll-up de
 
 ## 8. Phasen-Roadmap
 
-**Phase 1 — dünner vertikaler Durchstich (zuerst, beweist die Architektur):**
-eine Beispiel-Solution aus 2 vorhandenen ART-Templates → Modus *Pooled* → **eine bis zwei
-datums-getriebene Metriken** (Flow Velocity, Flow Time) → fertiger HTML-Report. Reuse von
-build_reports. Noch keine Verwaltungs-UI (Solution-Konfig zunächst als Datei/CLI).
+**Phase 1 — dünner vertikaler Durchstich — ✅ UMGESETZT (Modul `portfolio`):**
+eine Beispiel-Solution aus 2 vorhandenen ART-Templates → Modus *Pooled* → die zwei
+datums-getriebenen Metriken **Flow Velocity + Flow Time** → fertiger HTML-Report. Reuse von
+build_reports. Noch keine Verwaltungs-UI (Solution-Konfig als Datei/CLI).
+
+- `portfolio/solution_config.py` — Solution-Konfig (Schema v1) laden/validieren; referenziert
+  bestehende ART-Templates (oder direkt IssueTimes).
+- `portfolio/aggregator.py` — `build_pooled_report_data()` führt die ART-Records zu einem
+  `ReportData` zusammen; `render_pooled_html()` lässt die bestehenden Metriken darüber laufen.
+- `portfolio/cli.py` / `__main__.py` — `python -m portfolio <config.json> --output report.html`.
+- Beispiel: `docs/design/solution_config.example.json`.
+- **Verifiziert (echte Daten):** 2 ARTs mit unterschiedlichen Workflows (9 bzw. 8 Stages),
+  861 gepoolte Issues, beide Metriken, gültiger HTML-Report — bestätigt, dass datums-getriebene
+  Metriken workflow-übergreifend sauber poolen.
 
 **Phase 2 — Verwaltungs-UI & Comparison-Modus:** geteilte Einstiegs-UI, Solutions anlegen/ARTs
 zuordnen, Comparison-Modus (Small Multiples), restliche poolbare Metriken.

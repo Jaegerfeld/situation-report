@@ -1,0 +1,17 @@
+{
+  "schema": 1,
+  "app": "situation_report",
+  "kind": "solution",
+  "name": "Payments Solution",
+  "framework": "SAFe",
+  "members": [
+    { "name": "ART Alpha", "template": "C:/path/to/ART_Alpha.json" },
+    { "name": "ART Beta",  "template": "C:/path/to/ART_Beta.json" },
+    { "name": "ART Gamma", "issue_times": "C:/path/to/ART_Gamma_IssueTimes.xlsx" }
+  ],
+  "report": {
+    "from_date": "2025-01-01",
+    "to_date": "2025-12-31",
+    "modes": ["pooled"]
+  }
+}

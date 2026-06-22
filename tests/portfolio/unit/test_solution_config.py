@@ -1,0 +1,95 @@
+# =============================================================================
+# Autor:          Robert Seebauer
+# Repository:     https://github.com/Jaegerfeld/situation-report
+# KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
+# Erstellt:       22.06.2026
+# Geändert:       22.06.2026
+# Lizenz:         BSD-3-Clause (siehe LICENSE)
+#
+# Fachliche Funktion:
+#   Unit-Tests für portfolio.solution_config: Validierung und Parsing einer
+#   Solution-Konfiguration aus einem JSON-Objekt (ohne Dateizugriff).
+# =============================================================================
+
+from __future__ import annotations
+
+from datetime import date
+
+import pytest
+
+from portfolio.solution_config import (
+    KIND_SOLUTION,
+    parse_solution_config,
+)
+
+
+def _valid_dict() -> dict:
+    return {
+        "schema": 1,
+        "kind": "solution",
+        "name": "Payments Solution",
+        "framework": "SAFe",
+        "members": [
+            {"name": "ART Alpha", "template": "C:/x/ART_Alpha.json"},
+            {"name": "ART Beta", "issue_times": "C:/x/ART_Beta_IssueTimes.xlsx"},
+        ],
+        "report": {"from_date": "2025-01-01", "to_date": "2025-12-31",
+                   "modes": ["pooled"]},
+    }
+
+
+class TestValid:
+    def test_parses_name_and_kind(self) -> None:
+        cfg = parse_solution_config(_valid_dict())
+        assert cfg.name == "Payments Solution"
+        assert cfg.kind == KIND_SOLUTION
+
+    def test_parses_members(self) -> None:
+        cfg = parse_solution_config(_valid_dict())
+        assert [m.name for m in cfg.members] == ["ART Alpha", "ART Beta"]
+        assert cfg.members[0].template.endswith("ART_Alpha.json")
+        assert cfg.members[1].issue_times.endswith("ART_Beta_IssueTimes.xlsx")
+
+    def test_parses_report_dates(self) -> None:
+        cfg = parse_solution_config(_valid_dict())
+        assert cfg.from_date == date(2025, 1, 1)
+        assert cfg.to_date == date(2025, 12, 31)
+
+    def test_dates_optional(self) -> None:
+        d = _valid_dict()
+        d.pop("report")
+        cfg = parse_solution_config(d)
+        assert cfg.from_date is None and cfg.to_date is None
+        assert cfg.modes == ["pooled"]
+
+
+class TestInvalid:
+    def test_missing_name_raises(self) -> None:
+        d = _valid_dict()
+        d["name"] = ""
+        with pytest.raises(ValueError, match="name"):
+            parse_solution_config(d)
+
+    def test_empty_members_raises(self) -> None:
+        d = _valid_dict()
+        d["members"] = []
+        with pytest.raises(ValueError, match="members"):
+            parse_solution_config(d)
+
+    def test_member_without_source_raises(self) -> None:
+        d = _valid_dict()
+        d["members"] = [{"name": "ART Alpha"}]
+        with pytest.raises(ValueError, match="template.*issue_times|issue_times"):
+            parse_solution_config(d)
+
+    def test_portfolio_kind_not_yet_supported(self) -> None:
+        d = _valid_dict()
+        d["kind"] = "portfolio"
+        with pytest.raises(ValueError, match="[Pp]ortfolio"):
+            parse_solution_config(d)
+
+    def test_unknown_kind_raises(self) -> None:
+        d = _valid_dict()
+        d["kind"] = "team"
+        with pytest.raises(ValueError, match="kind"):
+            parse_solution_config(d)
