@@ -266,6 +266,16 @@ def _simulate_issue(
             created_ts = _random_datetime(rng, config.from_date, config.to_date)
 
     # ── Simulate transition chain ────────────────────────────────────────────
+    # No transition may fall after to_date: an issue whose cycle time does not
+    # fit inside [from_date, to_date] simply stays "in progress" at whichever
+    # stage it had reached by to_date, rather than completing in the future.
+    # (Triangle/flat-triangle CTs and over-budget dwell chains can otherwise run
+    # years past the window — see _sample_pi_close_dt for the equivalent clamp on
+    # the cluster/batch path.)
+    to_dt = datetime(
+        config.to_date.year, config.to_date.month, config.to_date.day,
+        23, 59, 59, tzinfo=timezone(timedelta(hours=1)),
+    )
     histories: list[dict] = []
     current_idx = 0
     current_ts = created_ts
@@ -277,7 +287,10 @@ def _simulate_issue(
         dwells = _fill_time_budget(rng, n_fwd, target_ct_hours)
         for dwell in dwells:
             nxt = current_idx + 1
-            current_ts += timedelta(hours=max(1.0, dwell))
+            next_ts = current_ts + timedelta(hours=max(1.0, dwell))
+            if next_ts > to_dt:
+                break  # remaining transitions fall past to_date → issue stays open
+            current_ts = next_ts
             histories.append(_make_history(stages[current_idx], stages[nxt], current_ts, hist_id))
             hist_id += 1
             current_idx = nxt
@@ -290,7 +303,10 @@ def _simulate_issue(
             if current_idx > first_idx and rng.random() < config.backflow_prob:
                 back_idx = max(first_idx, current_idx - 1)
                 dwell = rng.randint(config.min_dwell_hours, config.max_dwell_hours)
-                current_ts += timedelta(hours=dwell)
+                next_ts = current_ts + timedelta(hours=dwell)
+                if next_ts > to_dt:
+                    break  # transition would fall past to_date → issue stays open
+                current_ts = next_ts
                 histories.append(
                     _make_history(stages[current_idx], stages[back_idx], current_ts, hist_id)
                 )
@@ -299,7 +315,10 @@ def _simulate_issue(
                 continue
             nxt = current_idx + 1
             dwell = rng.randint(config.min_dwell_hours, config.max_dwell_hours)
-            current_ts += timedelta(hours=dwell)
+            next_ts = current_ts + timedelta(hours=dwell)
+            if next_ts > to_dt:
+                break  # transition would fall past to_date → issue stays open
+            current_ts = next_ts
             histories.append(_make_history(stages[current_idx], stages[nxt], current_ts, hist_id))
             hist_id += 1
             current_idx = nxt
