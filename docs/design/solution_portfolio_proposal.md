@@ -228,8 +228,13 @@ gemeinsames Stage-Mapping für CFD/Distribution, Management-Summary, PDF-Export.
   - CLI: `python -m portfolio <portfolio.json> --mode {pooled,comparison}`.
     Beispiel: `docs/design/portfolio_config.example.json`. Verifiziert (echte Daten: Portfolio aus
     2 Solutions / 4 ARTs → 1854 Issues pooled; Comparison gruppiert Alpha 861 / Beta 913).
+- **Portfolio-Bearbeitung in der GUI — ✅ UMGESETZT:** Kind-Selektor (Solution/Portfolio) im
+  Manager-Fenster; bei „portfolio" referenzieren die Mitglieder Solution-Templates (Spaltenkopf
+  und Datei-Browser passen sich an, `.json`-Filter). Save/Load/Generate funktionieren für beide
+  Kinds. `SolutionManagerApp` ist jetzt auf Modulebene (wie Launcher/build_reports). Verifiziert
+  (App-Aufbau + Kind-Umschaltung + Sprachwechsel).
 - Offen in Phase 3: stage-abhängige Metriken (CFD) mit gemeinsamem Stage-Mapping, Management-Summary,
-  PDF-Export; Portfolio-Bearbeitung in der GUI (aktuell per JSON/CLI; Solution-Bearbeitung in GUI da).
+  PDF-Export.
 
 ---
 

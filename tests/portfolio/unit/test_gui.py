@@ -29,7 +29,12 @@ from portfolio.gui import (
     build_config_from_fields,
     default_metrics_for_mode,
 )
-from portfolio.solution_config import MODE_COMPARISON, MODE_POOLED
+from portfolio.solution_config import (
+    KIND_PORTFOLIO,
+    KIND_SOLUTION,
+    MODE_COMPARISON,
+    MODE_POOLED,
+)
 
 _ALL_LANGS = (LANG_DE, LANG_EN, LANG_RO, LANG_PT, LANG_FR)
 
@@ -65,6 +70,11 @@ class TestMemberDict:
     def test_strips_whitespace(self) -> None:
         assert _member_dict("  ART A  ", "  x.json ")["name"] == "ART A"
 
+    def test_portfolio_source_always_template(self) -> None:
+        # Even a non-.json path is stored as a solution template for portfolios.
+        d = _member_dict("Sol A", "C:/x/solutionA.xlsx", KIND_PORTFOLIO)
+        assert d == {"name": "Sol A", "template": "C:/x/solutionA.xlsx"}
+
 
 class TestBuildConfigFromFields:
     def test_builds_valid_config(self) -> None:
@@ -94,6 +104,28 @@ class TestBuildConfigFromFields:
         with pytest.raises(ValueError):
             build_config_from_fields(
                 "", "SAFe", "", "", [("ART A", "a.json")], MODE_POOLED)
+
+    def test_builds_portfolio(self) -> None:
+        cfg = build_config_from_fields(
+            "Tribe", "SAFe", "", "",
+            [("Solution A", "solA.json"), ("Solution B", "solB.json")],
+            MODE_POOLED, kind=KIND_PORTFOLIO)
+        assert cfg.kind == KIND_PORTFOLIO
+        assert [m.template for m in cfg.members] == ["solA.json", "solB.json"]
+
+    def test_portfolio_member_without_template_raises(self) -> None:
+        # A portfolio member given a non-template (.xlsx) is still stored as
+        # template by _member_dict, so this stays valid; an empty source is
+        # ignored. A portfolio with no usable members must raise.
+        with pytest.raises(ValueError):
+            build_config_from_fields(
+                "Tribe", "SAFe", "", "", [("Solution A", "")],
+                MODE_POOLED, kind=KIND_PORTFOLIO)
+
+    def test_default_kind_is_solution(self) -> None:
+        cfg = build_config_from_fields(
+            "X", "SAFe", "", "", [("ART A", "a.json")], MODE_POOLED)
+        assert cfg.kind == KIND_SOLUTION
 
     def test_no_members_raises(self) -> None:
         with pytest.raises(ValueError):

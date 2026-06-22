@@ -24,6 +24,8 @@ import webbrowser
 from datetime import date
 from pathlib import Path
 from typing import Any
+import tkinter as tk
+from tkinter import filedialog, messagebox, ttk
 
 from .aggregator import (
     DEFAULT_COMPARISON_METRICS,
@@ -35,6 +37,8 @@ from .solution_config import (
     FRAMEWORK_LESS,
     FRAMEWORK_NEXUS,
     FRAMEWORK_SAFE,
+    KIND_PORTFOLIO,
+    KIND_SOLUTION,
     MODE_COMPARISON,
     MODE_POOLED,
     SolutionConfig,
@@ -42,6 +46,8 @@ from .solution_config import (
     parse_solution_config,
     save_solution_config,
 )
+
+KINDS = [KIND_SOLUTION, KIND_PORTFOLIO]
 
 # ---------------------------------------------------------------------------
 # Language handling (shared preference file with the launcher)
@@ -82,8 +88,10 @@ _T: dict[str, dict[str, str]] = {
         "lbl_from": "Von (JJJJ-MM-TT)",
         "lbl_to": "Bis (JJJJ-MM-TT)",
         "sec_members": "ARTs in dieser Solution",
+        "lbl_kind": "Art",
         "col_name": "ART-Name",
         "col_source": "Template (.json) oder IssueTimes (.xlsx)",
+        "col_source_portfolio": "Solution-Template (.json)",
         "btn_add": "ART hinzufügen",
         "btn_remove": "Entfernen",
         "btn_browse": "Durchsuchen …",
@@ -117,8 +125,10 @@ _T: dict[str, dict[str, str]] = {
         "lbl_from": "From (YYYY-MM-DD)",
         "lbl_to": "To (YYYY-MM-DD)",
         "sec_members": "ARTs in this solution",
+        "lbl_kind": "Kind",
         "col_name": "ART name",
         "col_source": "Template (.json) or IssueTimes (.xlsx)",
+        "col_source_portfolio": "Solution template (.json)",
         "btn_add": "Add ART",
         "btn_remove": "Remove",
         "btn_browse": "Browse …",
@@ -152,8 +162,10 @@ _T: dict[str, dict[str, str]] = {
         "lbl_from": "De la (AAAA-LL-ZZ)",
         "lbl_to": "Până la (AAAA-LL-ZZ)",
         "sec_members": "ART-uri în această soluție",
+        "lbl_kind": "Tip",
         "col_name": "Nume ART",
         "col_source": "Template (.json) sau IssueTimes (.xlsx)",
+        "col_source_portfolio": "Template soluție (.json)",
         "btn_add": "Adaugă ART",
         "btn_remove": "Elimină",
         "btn_browse": "Răsfoiește …",
@@ -187,8 +199,10 @@ _T: dict[str, dict[str, str]] = {
         "lbl_from": "De (AAAA-MM-DD)",
         "lbl_to": "Até (AAAA-MM-DD)",
         "sec_members": "ARTs nesta solução",
+        "lbl_kind": "Tipo",
         "col_name": "Nome do ART",
         "col_source": "Template (.json) ou IssueTimes (.xlsx)",
+        "col_source_portfolio": "Template de solução (.json)",
         "btn_add": "Adicionar ART",
         "btn_remove": "Remover",
         "btn_browse": "Procurar …",
@@ -222,8 +236,10 @@ _T: dict[str, dict[str, str]] = {
         "lbl_from": "De (AAAA-MM-JJ)",
         "lbl_to": "À (AAAA-MM-JJ)",
         "sec_members": "ARTs dans cette solution",
+        "lbl_kind": "Type",
         "col_name": "Nom de l'ART",
         "col_source": "Template (.json) ou IssueTimes (.xlsx)",
+        "col_source_portfolio": "Template de solution (.json)",
         "btn_add": "Ajouter un ART",
         "btn_remove": "Supprimer",
         "btn_browse": "Parcourir …",
@@ -256,22 +272,27 @@ _T: dict[str, dict[str, str]] = {
 # Display-independent logic (unit-tested without tkinter)
 # ---------------------------------------------------------------------------
 
-def _member_dict(name: str, source: str) -> dict[str, str]:
+def _member_dict(name: str, source: str, kind: str = KIND_SOLUTION) -> dict[str, str]:
     """
     Map a (name, source path) pair to a member dict.
 
-    A ``.json`` source is treated as a project template; anything else is taken
-    as a direct IssueTimes path.
+    For a **portfolio** the source is always a saved solution template, so it is
+    stored under ``template``. For a **solution** a ``.json`` source is treated
+    as an ART project template and anything else as a direct IssueTimes path.
 
     Args:
-        name:   ART display name.
-        source: Path string (template .json or IssueTimes .xlsx).
+        name:   Member display name.
+        source: Path string (template .json, IssueTimes .xlsx, or solution template).
+        kind:   KIND_SOLUTION or KIND_PORTFOLIO of the parent config.
 
     Returns:
         Member dict with ``name`` plus either ``template`` or ``issue_times``.
     """
     source = source.strip()
-    key = "template" if source.lower().endswith(".json") else "issue_times"
+    if kind == KIND_PORTFOLIO:
+        key = "template"
+    else:
+        key = "template" if source.lower().endswith(".json") else "issue_times"
     return {"name": name.strip(), key: source}
 
 
@@ -282,6 +303,7 @@ def build_config_from_fields(
     to_str: str,
     members: list[tuple[str, str]],
     mode: str,
+    kind: str = KIND_SOLUTION,
 ) -> SolutionConfig:
     """
     Build (and validate) a SolutionConfig from raw form field values.
@@ -290,12 +312,14 @@ def build_config_from_fields(
     through as-is; validation/parsing is delegated to parse_solution_config.
 
     Args:
-        name:      Solution name.
+        name:      Solution/portfolio name.
         framework: SAFe / LeSS / Nexus.
         from_str:  Optional from-date string (YYYY-MM-DD) or "".
         to_str:    Optional to-date string or "".
-        members:   List of (art_name, source_path) pairs.
+        members:   List of (member_name, source_path) pairs.
         mode:      MODE_POOLED or MODE_COMPARISON.
+        kind:      KIND_SOLUTION (members are ARTs) or KIND_PORTFOLIO (members
+                   are solution templates).
 
     Returns:
         Validated SolutionConfig.
@@ -303,7 +327,7 @@ def build_config_from_fields(
     Raises:
         ValueError: If the resulting configuration is invalid.
     """
-    member_dicts = [_member_dict(n, s) for n, s in members if s.strip()]
+    member_dicts = [_member_dict(n, s, kind) for n, s in members if s.strip()]
     report: dict[str, Any] = {"modes": [mode]}
     if from_str.strip():
         report["from_date"] = from_str.strip()
@@ -312,7 +336,7 @@ def build_config_from_fields(
     return parse_solution_config({
         "schema": 1,
         "app": "situation_report",
-        "kind": "solution",
+        "kind": kind,
         "name": name,
         "framework": framework,
         "members": member_dicts,
@@ -330,233 +354,258 @@ def default_metrics_for_mode(mode: str) -> list[str]:
 # tkinter application (not unit-tested — requires a display)
 # ---------------------------------------------------------------------------
 
+
+class SolutionManagerApp(tk.Tk):
+    """tkinter window to build, save/load and run a solution configuration."""
+
+    def __init__(self) -> None:
+        super().__init__()
+        self._lang = _load_lang_pref()
+        self.title(self._tr("window_title"))
+        self.configure(padx=14, pady=12)
+        self.minsize(640, 480)
+
+        self._name = tk.StringVar()
+        self._framework = tk.StringVar(value=FRAMEWORK_SAFE)
+        self._kind = tk.StringVar(value=KIND_SOLUTION)
+        self._from = tk.StringVar()
+        self._to = tk.StringVar()
+        self._mode = tk.StringVar(value=MODE_POOLED)
+        self._lang_var = tk.StringVar(value=self._lang)
+        self._member_rows: list[dict] = []
+        self._col_source_lbl: tk.Label | None = None
+        self._status = tk.StringVar()
+
+        self._build_ui()
+
+    def _tr(self, key: str) -> str:
+        return _T.get(self._lang, _T[LANG_EN]).get(key, key)
+
+    def _col_source_text(self) -> str:
+        """Member source-column header, depending on the selected kind."""
+        return self._tr("col_source_portfolio" if self._kind.get() == KIND_PORTFOLIO
+                        else "col_source")
+
+    def _on_kind_change(self) -> None:
+        """Refresh the member source-column header when the kind changes."""
+        if self._col_source_lbl:
+            self._col_source_lbl.configure(text=self._col_source_text())
+
+    # -- UI construction -------------------------------------------------
+    def _build_ui(self) -> None:
+        top = tk.Frame(self)
+        top.pack(fill="x")
+        tk.Label(top, text=self._tr("lbl_name")).grid(row=0, column=0, sticky="w")
+        tk.Entry(top, textvariable=self._name, width=34).grid(
+            row=0, column=1, sticky="we", padx=(6, 16))
+        tk.Label(top, text=self._tr("lbl_framework")).grid(row=0, column=2, sticky="w")
+        ttk.Combobox(top, textvariable=self._framework, values=FRAMEWORKS,
+                     width=8, state="readonly").grid(row=0, column=3, padx=(6, 16))
+        tk.Label(top, text=self._tr("lbl_kind")).grid(row=0, column=4, sticky="w")
+        kind_box = ttk.Combobox(top, textvariable=self._kind, values=KINDS,
+                                width=10, state="readonly")
+        kind_box.grid(row=0, column=5)
+        kind_box.bind("<<ComboboxSelected>>", lambda *_: self._on_kind_change())
+
+        tk.Label(top, text=self._tr("lbl_from")).grid(row=1, column=0, sticky="w", pady=(6, 0))
+        tk.Entry(top, textvariable=self._from, width=16).grid(
+            row=1, column=1, sticky="w", padx=(6, 16), pady=(6, 0))
+        tk.Label(top, text=self._tr("lbl_to")).grid(row=1, column=2, sticky="w", pady=(6, 0))
+        tk.Entry(top, textvariable=self._to, width=16).grid(
+            row=1, column=3, sticky="w", padx=(6, 16), pady=(6, 0))
+        tk.Label(top, text=self._tr("lbl_lang")).grid(row=1, column=4, sticky="w", pady=(6, 0))
+        lang_box = ttk.Combobox(top, textvariable=self._lang_var, values=_LANG_ORDER,
+                                width=4, state="readonly")
+        lang_box.grid(row=1, column=5, pady=(6, 0))
+        lang_box.bind("<<ComboboxSelected>>", lambda *_: self._switch_lang())
+        top.columnconfigure(1, weight=1)
+
+        tk.Label(self, text=self._tr("sec_members"),
+                 font=("TkDefaultFont", 10, "bold")).pack(anchor="w", pady=(12, 2))
+        head = tk.Frame(self)
+        head.pack(fill="x")
+        tk.Label(head, text=self._tr("col_name"), width=20, anchor="w").grid(row=0, column=0)
+        self._col_source_lbl = tk.Label(head, text=self._col_source_text(), anchor="w")
+        self._col_source_lbl.grid(row=0, column=1, sticky="w")
+        self._members_frame = tk.Frame(self)
+        self._members_frame.pack(fill="both", expand=True)
+        ttk.Button(self, text=self._tr("btn_add"), command=self._add_member_row).pack(
+            anchor="w", pady=(4, 0))
+
+        mode_frame = tk.Frame(self)
+        mode_frame.pack(fill="x", pady=(12, 0))
+        tk.Label(mode_frame, text=self._tr("lbl_mode")).pack(side="left")
+        ttk.Radiobutton(mode_frame, text=self._tr("mode_pooled"),
+                        variable=self._mode, value=MODE_POOLED).pack(side="left", padx=(8, 0))
+        ttk.Radiobutton(mode_frame, text=self._tr("mode_comparison"),
+                        variable=self._mode, value=MODE_COMPARISON).pack(side="left", padx=(8, 0))
+
+        btns = tk.Frame(self)
+        btns.pack(fill="x", pady=(12, 0))
+        ttk.Button(btns, text=self._tr("btn_new"), command=self._new).pack(side="left")
+        ttk.Button(btns, text=self._tr("btn_load"), command=self._load).pack(side="left", padx=(6, 0))
+        ttk.Button(btns, text=self._tr("btn_save"), command=self._save).pack(side="left", padx=(6, 0))
+        ttk.Button(btns, text=self._tr("btn_generate"), command=self._generate).pack(
+            side="right")
+
+        tk.Label(self, textvariable=self._status, fg="#2980b9", anchor="w").pack(
+            fill="x", pady=(10, 0))
+
+        self._add_member_row()
+
+    def _switch_lang(self) -> None:
+        self._lang = self._lang_var.get()
+        for child in list(self.children.values()):
+            child.destroy()
+        self.title(self._tr("window_title"))
+        rows = [(r["name"].get(), r["source"].get()) for r in self._member_rows]
+        self._member_rows = []
+        self._build_ui()
+        # restore member rows
+        self._member_rows[0]["name"].set(rows[0][0] if rows else "")
+        if rows:
+            self._member_rows[0]["source"].set(rows[0][1])
+        for n, s in rows[1:]:
+            self._add_member_row()
+            self._member_rows[-1]["name"].set(n)
+            self._member_rows[-1]["source"].set(s)
+
+    def _add_member_row(self) -> None:
+        row = tk.Frame(self._members_frame)
+        row.pack(fill="x", pady=1)
+        name_var, src_var = tk.StringVar(), tk.StringVar()
+        tk.Entry(row, textvariable=name_var, width=20).grid(row=0, column=0, sticky="w")
+        tk.Entry(row, textvariable=src_var).grid(row=0, column=1, sticky="we", padx=(4, 4))
+        ttk.Button(row, text=self._tr("btn_browse"),
+                   command=lambda v=src_var: self._browse(v)).grid(row=0, column=2)
+        entry = {"frame": row, "name": name_var, "source": src_var}
+        ttk.Button(row, text=self._tr("btn_remove"),
+                   command=lambda e=entry: self._remove_member_row(e)).grid(
+            row=0, column=3, padx=(4, 0))
+        row.columnconfigure(1, weight=1)
+        self._member_rows.append(entry)
+
+    def _remove_member_row(self, entry: dict) -> None:
+        if len(self._member_rows) <= 1:
+            return
+        entry["frame"].destroy()
+        self._member_rows.remove(entry)
+
+    def _browse(self, var: tk.StringVar) -> None:
+        if self._kind.get() == KIND_PORTFOLIO:
+            filetypes = [("Solution template", "*.json"), ("All files", "*.*")]
+        else:
+            filetypes = [("Solution member", "*.json *.xlsx"),
+                         ("Project template", "*.json"),
+                         ("IssueTimes", "*.xlsx"), ("All files", "*.*")]
+        path = filedialog.askopenfilename(filetypes=filetypes)
+        if path:
+            var.set(path)
+
+    # -- actions ---------------------------------------------------------
+    def _collect_members(self) -> list[tuple[str, str]]:
+        return [(r["name"].get(), r["source"].get()) for r in self._member_rows]
+
+    def _new(self) -> None:
+        self._name.set("")
+        self._from.set("")
+        self._to.set("")
+        self._mode.set(MODE_POOLED)
+        self._kind.set(KIND_SOLUTION)
+        self._on_kind_change()
+        for entry in list(self._member_rows[1:]):
+            self._remove_member_row(entry)
+        self._member_rows[0]["name"].set("")
+        self._member_rows[0]["source"].set("")
+        self._status.set("")
+
+    def _load(self) -> None:
+        path = filedialog.askopenfilename(
+            title=self._tr("dlg_open_config"), filetypes=[("JSON", "*.json")])
+        if not path:
+            return
+        try:
+            cfg = load_solution_config(Path(path))
+        except Exception as exc:  # noqa: BLE001 - surface any load error to the user
+            messagebox.showerror(self._tr("window_title"),
+                                 self._tr("msg_load_error").format(error=exc))
+            return
+        self._name.set(cfg.name)
+        self._framework.set(cfg.framework)
+        self._kind.set(cfg.kind)
+        self._on_kind_change()
+        self._from.set(cfg.from_date.isoformat() if cfg.from_date else "")
+        self._to.set(cfg.to_date.isoformat() if cfg.to_date else "")
+        self._mode.set(cfg.modes[0] if cfg.modes else MODE_POOLED)
+        for entry in list(self._member_rows[1:]):
+            self._remove_member_row(entry)
+        self._member_rows[0]["name"].set("")
+        self._member_rows[0]["source"].set("")
+        for i, m in enumerate(cfg.members):
+            if i > 0:
+                self._add_member_row()
+            self._member_rows[i]["name"].set(m.name)
+            self._member_rows[i]["source"].set(m.template or m.issue_times)
+        self._status.set(self._tr("msg_loaded").format(path=path))
+
+    def _build_config(self) -> SolutionConfig | None:
+        try:
+            return build_config_from_fields(
+                self._name.get(), self._framework.get(),
+                self._from.get(), self._to.get(),
+                self._collect_members(), self._mode.get(),
+                kind=self._kind.get())
+        except ValueError as exc:
+            messagebox.showwarning(self._tr("window_title"),
+                                   self._tr("msg_invalid").format(error=exc))
+            return None
+
+    def _save(self) -> None:
+        cfg = self._build_config()
+        if cfg is None:
+            return
+        path = filedialog.asksaveasfilename(
+            title=self._tr("dlg_save_config"), defaultextension=".json",
+            filetypes=[("JSON", "*.json")])
+        if not path:
+            return
+        save_solution_config(Path(path), cfg)
+        self._status.set(self._tr("msg_saved").format(path=path))
+
+    def _generate(self) -> None:
+        cfg = self._build_config()
+        if cfg is None:
+            return
+        out = filedialog.asksaveasfilename(
+            title=self._tr("dlg_save_report"), defaultextension=".html",
+            initialfile=f"{cfg.name}_{self._mode.get()}.html",
+            filetypes=[("HTML", "*.html")])
+        if not out:
+            return
+        self._status.set(self._tr("msg_generating"))
+        self.update_idletasks()
+
+        render = (render_comparison_html if self._mode.get() == MODE_COMPARISON
+                  else render_pooled_html)
+
+        def worker() -> None:
+            html = render(cfg, log=lambda *_: None)
+            if html:
+                Path(out).write_text(html, encoding="utf-8")
+            self.after(0, lambda: self._done(out, bool(html)))
+
+        threading.Thread(target=worker, daemon=True).start()
+
+    def _done(self, out: str, ok: bool) -> None:
+        if ok:
+            self._status.set(self._tr("msg_report_done").format(path=out))
+            webbrowser.open(Path(out).resolve().as_uri())
+        else:
+            self._status.set(self._tr("msg_no_figures"))
+
+
 def main() -> None:  # pragma: no cover - requires a display
     """Launch the Solutions & Portfolios manager window."""
-    import tkinter as tk
-    from tkinter import filedialog, messagebox, ttk
-
-    class SolutionManagerApp(tk.Tk):
-        """tkinter window to build, save/load and run a solution configuration."""
-
-        def __init__(self) -> None:
-            super().__init__()
-            self._lang = _load_lang_pref()
-            self.title(self._tr("window_title"))
-            self.configure(padx=14, pady=12)
-            self.minsize(640, 480)
-
-            self._name = tk.StringVar()
-            self._framework = tk.StringVar(value=FRAMEWORK_SAFE)
-            self._from = tk.StringVar()
-            self._to = tk.StringVar()
-            self._mode = tk.StringVar(value=MODE_POOLED)
-            self._lang_var = tk.StringVar(value=self._lang)
-            self._member_rows: list[dict] = []
-            self._status = tk.StringVar()
-
-            self._build_ui()
-
-        def _tr(self, key: str) -> str:
-            return _T.get(self._lang, _T[LANG_EN]).get(key, key)
-
-        # -- UI construction -------------------------------------------------
-        def _build_ui(self) -> None:
-            top = tk.Frame(self)
-            top.pack(fill="x")
-            tk.Label(top, text=self._tr("lbl_name")).grid(row=0, column=0, sticky="w")
-            tk.Entry(top, textvariable=self._name, width=34).grid(
-                row=0, column=1, sticky="we", padx=(6, 16))
-            tk.Label(top, text=self._tr("lbl_framework")).grid(row=0, column=2, sticky="w")
-            ttk.Combobox(top, textvariable=self._framework, values=FRAMEWORKS,
-                         width=8, state="readonly").grid(row=0, column=3, padx=(6, 16))
-            tk.Label(top, text=self._tr("lbl_lang")).grid(row=0, column=4, sticky="w")
-            lang_box = ttk.Combobox(top, textvariable=self._lang_var, values=_LANG_ORDER,
-                                    width=4, state="readonly")
-            lang_box.grid(row=0, column=5)
-            lang_box.bind("<<ComboboxSelected>>", lambda *_: self._switch_lang())
-
-            tk.Label(top, text=self._tr("lbl_from")).grid(row=1, column=0, sticky="w", pady=(6, 0))
-            tk.Entry(top, textvariable=self._from, width=16).grid(
-                row=1, column=1, sticky="w", padx=(6, 16), pady=(6, 0))
-            tk.Label(top, text=self._tr("lbl_to")).grid(row=1, column=2, sticky="w", pady=(6, 0))
-            tk.Entry(top, textvariable=self._to, width=16).grid(
-                row=1, column=3, sticky="w", padx=(6, 16), pady=(6, 0))
-            top.columnconfigure(1, weight=1)
-
-            tk.Label(self, text=self._tr("sec_members"),
-                     font=("TkDefaultFont", 10, "bold")).pack(anchor="w", pady=(12, 2))
-            head = tk.Frame(self)
-            head.pack(fill="x")
-            tk.Label(head, text=self._tr("col_name"), width=20, anchor="w").grid(row=0, column=0)
-            tk.Label(head, text=self._tr("col_source"), anchor="w").grid(row=0, column=1, sticky="w")
-            self._members_frame = tk.Frame(self)
-            self._members_frame.pack(fill="both", expand=True)
-            ttk.Button(self, text=self._tr("btn_add"), command=self._add_member_row).pack(
-                anchor="w", pady=(4, 0))
-
-            mode_frame = tk.Frame(self)
-            mode_frame.pack(fill="x", pady=(12, 0))
-            tk.Label(mode_frame, text=self._tr("lbl_mode")).pack(side="left")
-            ttk.Radiobutton(mode_frame, text=self._tr("mode_pooled"),
-                            variable=self._mode, value=MODE_POOLED).pack(side="left", padx=(8, 0))
-            ttk.Radiobutton(mode_frame, text=self._tr("mode_comparison"),
-                            variable=self._mode, value=MODE_COMPARISON).pack(side="left", padx=(8, 0))
-
-            btns = tk.Frame(self)
-            btns.pack(fill="x", pady=(12, 0))
-            ttk.Button(btns, text=self._tr("btn_new"), command=self._new).pack(side="left")
-            ttk.Button(btns, text=self._tr("btn_load"), command=self._load).pack(side="left", padx=(6, 0))
-            ttk.Button(btns, text=self._tr("btn_save"), command=self._save).pack(side="left", padx=(6, 0))
-            ttk.Button(btns, text=self._tr("btn_generate"), command=self._generate).pack(
-                side="right")
-
-            tk.Label(self, textvariable=self._status, fg="#2980b9", anchor="w").pack(
-                fill="x", pady=(10, 0))
-
-            self._add_member_row()
-
-        def _switch_lang(self) -> None:
-            self._lang = self._lang_var.get()
-            for child in list(self.children.values()):
-                child.destroy()
-            self.title(self._tr("window_title"))
-            rows = [(r["name"].get(), r["source"].get()) for r in self._member_rows]
-            self._member_rows = []
-            self._build_ui()
-            # restore member rows
-            self._member_rows[0]["name"].set(rows[0][0] if rows else "")
-            if rows:
-                self._member_rows[0]["source"].set(rows[0][1])
-            for n, s in rows[1:]:
-                self._add_member_row()
-                self._member_rows[-1]["name"].set(n)
-                self._member_rows[-1]["source"].set(s)
-
-        def _add_member_row(self) -> None:
-            row = tk.Frame(self._members_frame)
-            row.pack(fill="x", pady=1)
-            name_var, src_var = tk.StringVar(), tk.StringVar()
-            tk.Entry(row, textvariable=name_var, width=20).grid(row=0, column=0, sticky="w")
-            tk.Entry(row, textvariable=src_var).grid(row=0, column=1, sticky="we", padx=(4, 4))
-            ttk.Button(row, text=self._tr("btn_browse"),
-                       command=lambda v=src_var: self._browse(v)).grid(row=0, column=2)
-            entry = {"frame": row, "name": name_var, "source": src_var}
-            ttk.Button(row, text=self._tr("btn_remove"),
-                       command=lambda e=entry: self._remove_member_row(e)).grid(
-                row=0, column=3, padx=(4, 0))
-            row.columnconfigure(1, weight=1)
-            self._member_rows.append(entry)
-
-        def _remove_member_row(self, entry: dict) -> None:
-            if len(self._member_rows) <= 1:
-                return
-            entry["frame"].destroy()
-            self._member_rows.remove(entry)
-
-        def _browse(self, var: tk.StringVar) -> None:
-            path = filedialog.askopenfilename(
-                filetypes=[("Solution member", "*.json *.xlsx"),
-                           ("Project template", "*.json"),
-                           ("IssueTimes", "*.xlsx"), ("All files", "*.*")])
-            if path:
-                var.set(path)
-
-        # -- actions ---------------------------------------------------------
-        def _collect_members(self) -> list[tuple[str, str]]:
-            return [(r["name"].get(), r["source"].get()) for r in self._member_rows]
-
-        def _new(self) -> None:
-            self._name.set("")
-            self._from.set("")
-            self._to.set("")
-            self._mode.set(MODE_POOLED)
-            for entry in list(self._member_rows[1:]):
-                self._remove_member_row(entry)
-            self._member_rows[0]["name"].set("")
-            self._member_rows[0]["source"].set("")
-            self._status.set("")
-
-        def _load(self) -> None:
-            path = filedialog.askopenfilename(
-                title=self._tr("dlg_open_config"), filetypes=[("JSON", "*.json")])
-            if not path:
-                return
-            try:
-                cfg = load_solution_config(Path(path))
-            except Exception as exc:  # noqa: BLE001 - surface any load error to the user
-                messagebox.showerror(self._tr("window_title"),
-                                     self._tr("msg_load_error").format(error=exc))
-                return
-            self._name.set(cfg.name)
-            self._framework.set(cfg.framework)
-            self._from.set(cfg.from_date.isoformat() if cfg.from_date else "")
-            self._to.set(cfg.to_date.isoformat() if cfg.to_date else "")
-            self._mode.set(cfg.modes[0] if cfg.modes else MODE_POOLED)
-            for entry in list(self._member_rows[1:]):
-                self._remove_member_row(entry)
-            self._member_rows[0]["name"].set("")
-            self._member_rows[0]["source"].set("")
-            for i, m in enumerate(cfg.members):
-                if i > 0:
-                    self._add_member_row()
-                self._member_rows[i]["name"].set(m.name)
-                self._member_rows[i]["source"].set(m.template or m.issue_times)
-            self._status.set(self._tr("msg_loaded").format(path=path))
-
-        def _build_config(self) -> SolutionConfig | None:
-            try:
-                return build_config_from_fields(
-                    self._name.get(), self._framework.get(),
-                    self._from.get(), self._to.get(),
-                    self._collect_members(), self._mode.get())
-            except ValueError as exc:
-                messagebox.showwarning(self._tr("window_title"),
-                                       self._tr("msg_invalid").format(error=exc))
-                return None
-
-        def _save(self) -> None:
-            cfg = self._build_config()
-            if cfg is None:
-                return
-            path = filedialog.asksaveasfilename(
-                title=self._tr("dlg_save_config"), defaultextension=".json",
-                filetypes=[("JSON", "*.json")])
-            if not path:
-                return
-            save_solution_config(Path(path), cfg)
-            self._status.set(self._tr("msg_saved").format(path=path))
-
-        def _generate(self) -> None:
-            cfg = self._build_config()
-            if cfg is None:
-                return
-            out = filedialog.asksaveasfilename(
-                title=self._tr("dlg_save_report"), defaultextension=".html",
-                initialfile=f"{cfg.name}_{self._mode.get()}.html",
-                filetypes=[("HTML", "*.html")])
-            if not out:
-                return
-            self._status.set(self._tr("msg_generating"))
-            self.update_idletasks()
-
-            render = (render_comparison_html if self._mode.get() == MODE_COMPARISON
-                      else render_pooled_html)
-
-            def worker() -> None:
-                html = render(cfg, log=lambda *_: None)
-                if html:
-                    Path(out).write_text(html, encoding="utf-8")
-                self.after(0, lambda: self._done(out, bool(html)))
-
-            threading.Thread(target=worker, daemon=True).start()
-
-        def _done(self, out: str, ok: bool) -> None:
-            if ok:
-                self._status.set(self._tr("msg_report_done").format(path=out))
-                webbrowser.open(Path(out).resolve().as_uri())
-            else:
-                self._status.set(self._tr("msg_no_figures"))
-
     SolutionManagerApp().mainloop()
 
 
