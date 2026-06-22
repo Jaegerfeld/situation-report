@@ -43,6 +43,7 @@ C4Container
         Container(helper, "helper", "Python · tkinter", "Merges multiple paginated Jira JSON files into one")
         Container(transform_data, "transform_data", "Python · tkinter", "Reads JSON export + workflow definition, computes stage times, writes XLSX files")
         Container(build_reports, "build_reports", "Python · tkinter · Plotly", "Reads XLSX, filters issues, computes flow metrics, exports HTML/PDF")
+        Container(portfolio, "portfolio", "Python · tkinter · Plotly", "Aggregates several ARTs into pooled/comparison Large-Solution & Portfolio reports (HTML/PDF)")
         Container(testdata_generator, "testdata_generator", "Python · tkinter", "Generates synthetic Jira JSON exports for testing and demos")
         Container(simulate, "simulate", "Python", "Simulations and forecasting models (planned)")
     }
@@ -51,6 +52,8 @@ C4Container
     Rel(user, helper, "starts", "GUI / CLI")
     Rel(user, transform_data, "starts", "GUI / CLI")
     Rel(user, build_reports, "starts", "GUI / CLI")
+    Rel(user, portfolio, "starts", "GUI / CLI")
+    Rel(portfolio, build_reports, "reuses", "metrics + export")
     Rel(user, testdata_generator, "starts", "GUI / CLI")
     Rel(get_data, jira, "reads", "REST API")
     Rel(get_data, transform_data, "delivers", "JSON (.json)")
