@@ -7,6 +7,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+- Flow Load: each stage's box can be drawn with a width proportional to the
+  number of issues in that stage, so the mass of open work is visible at a
+  glance. Optional and on by default — toggle via the GUI checkbox, the
+  `--flat-box-width` CLI flag, or the `proportional_box_width` template field.
+
 ### Fixed
 - Flow Distribution "stage prominence" pie counted the workflow's terminal
   Done stage. Because a closed/last stage keeps accumulating time as an issue

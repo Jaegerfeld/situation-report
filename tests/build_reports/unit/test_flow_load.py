@@ -210,6 +210,32 @@ class TestRender:
         result = metric.compute(mixed_data, SAFE)
         assert result.chart_data.target_ct_days == 30
 
+    def _counts_data(self) -> ReportData:
+        """Three open issues in Analysis, one in Implementation (different stage counts)."""
+        return ReportData(
+            issues=[
+                _issue("A1", stage_minutes={"Analysis": 100}),
+                _issue("A2", stage_minutes={"Analysis": 100}),
+                _issue("A3", stage_minutes={"Analysis": 100}),
+                _issue("I1", stage_minutes={"Implementation": 100}),
+            ],
+            cfd=[], stages=STAGES, source_prefix="",
+        )
+
+    def test_box_width_proportional_to_count(self, metric):
+        """With the option on, the stage holding more issues gets a wider box."""
+        metric.proportional_box_width = True
+        fig = metric.render(metric.compute(self._counts_data(), SAFE), SAFE)[0]
+        widths = {t.name: t.width for t in fig.data if t.type == "box"}
+        # Analysis has 3 issues, Implementation has 1 → Analysis box is wider
+        assert widths["Analysis"] > widths["Implementation"]
+
+    def test_box_width_flat_when_disabled(self, metric):
+        """With the option off, no per-box width is set (plotly default applies)."""
+        metric.proportional_box_width = False
+        fig = metric.render(metric.compute(self._counts_data(), SAFE), SAFE)[0]
+        assert all(t.width is None for t in fig.data if t.type == "box")
+
 
 class TestStatusGroupFiltering:
     """Tests for status-group-aware issue and stage filtering in FlowLoadMetric."""

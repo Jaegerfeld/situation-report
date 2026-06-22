@@ -76,6 +76,7 @@ def run_reports(
     terminology: str = SAFE,
     ct_method: str = CT_METHOD_A,
     target_ct: int = 90,
+    proportional_box_width: bool = True,
     pi_config: Path | None = None,
     output_pdf: Path | None = None,
     open_browser: bool = False,
@@ -150,6 +151,7 @@ def run_reports(
             plugin.target_ct = target_ct
         if isinstance(plugin, FlowLoadMetric):
             plugin.target_ct = target_ct
+            plugin.proportional_box_width = proportional_box_width
         if isinstance(plugin, FlowVelocityMetric):
             plugin.pi_config_path = str(pi_config) if pi_config else ""
 
@@ -215,6 +217,7 @@ def render_combined_html(
     terminology: str = SAFE,
     ct_method: str = CT_METHOD_A,
     target_ct: int = 90,
+    proportional_box_width: bool = True,
     pi_config: Path | None = None,
     log: Callable[[str], None] = print,
 ) -> str:
@@ -267,6 +270,7 @@ def render_combined_html(
             plugin.target_ct = target_ct
         if isinstance(plugin, FlowLoadMetric):
             plugin.target_ct = target_ct
+            plugin.proportional_box_width = proportional_box_width
         if isinstance(plugin, FlowVelocityMetric):
             plugin.pi_config_path = str(pi_config) if pi_config else ""
 
@@ -356,6 +360,10 @@ def main() -> None:
                         metavar="FILE", dest="pi_config",
                         help="JSON file defining custom PI intervals for Flow Velocity "
                              "(default: quarterly intervals)")
+    parser.add_argument("--flat-box-width", action="store_false",
+                        dest="proportional_box_width",
+                        help="Draw all Flow Load boxes at equal width (default: width "
+                             "proportional to the number of issues per stage)")
     parser.add_argument("--pdf", type=Path, default=None,
                         metavar="FILE",
                         help="Export all figures to this PDF file")
@@ -381,6 +389,7 @@ def main() -> None:
         terminology=args.terminology,
         ct_method=args.ct_method,
         target_ct=args.target_ct,
+        proportional_box_width=args.proportional_box_width,
         pi_config=args.pi_config,
         output_pdf=args.pdf,
         open_browser=args.browser,

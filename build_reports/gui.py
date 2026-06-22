@@ -202,6 +202,8 @@ _T: dict[str, dict[str, str]] = {
         "dlg_excl_resolution": "Resolutions zum Ausschließen wählen",
         "tip_excl_status":   "Issues mit diesen Jira-Status vollständig aus allen Metriken ausschließen (z.\u202fB. Canceled).",
         "tip_excl_resolution": "Issues mit diesen Resolutions vollständig ausschließen (z.\u202fB. Won\u2019t Do).",
+        "chk_proportional_box": "Boxbreite ~ Anzahl Elemente (Flow Load)",
+        "tip_proportional_box": "Im Flow-Load-Diagramm wird die Breite jedes Boxplots proportional zur Anzahl der enthaltenen Issues gezeichnet, sodass die Masse der offenen Arbeit auf einen Blick sichtbar ist.",
         "chk_zero_day":      "Zero-Day-Issues ausschließen  (<",
         "lbl_zero_day_min":  "min)",
         "tip_zero_day":      "Issues, deren Cycle Time (First \u2192 Closed Date) kleiner als der Schwellwert ist, werden vollst\u00e4ndig aus allen Metriken entfernt.",
@@ -319,6 +321,8 @@ _T: dict[str, dict[str, str]] = {
         "dlg_excl_resolution": "Select resolutions to exclude",
         "tip_excl_status":   "Completely exclude issues with these Jira statuses from all metrics (e.g. Canceled).",
         "tip_excl_resolution": "Completely exclude issues with these resolutions (e.g. Won\u2019t Do).",
+        "chk_proportional_box": "Box width ~ number of items (Flow Load)",
+        "tip_proportional_box": "In the Flow Load chart each boxplot is drawn with a width proportional to the number of issues it contains, so the mass of open work is visible at a glance.",
         "chk_zero_day":      "Exclude zero-day issues  (<",
         "lbl_zero_day_min":  "min)",
         "tip_zero_day":      "Issues whose cycle time (First \u2192 Closed Date) is below the threshold are completely removed from all metrics.",
@@ -437,6 +441,8 @@ _T: dict[str, dict[str, str]] = {
         "dlg_excl_resolution": "Selectați rezoluțiile de exclus",
         "tip_excl_status":   "Excludeți complet issue-urile cu aceste statusuri Jira din toate metricile (ex. Anulat).",
         "tip_excl_resolution": "Excludeți complet issue-urile cu aceste rezoluții (ex. Won’t Do).",
+        "chk_proportional_box": "Lățimea boxului ~ numărul de elemente (Flow Load)",
+        "tip_proportional_box": "În diagrama Flow Load, fiecare boxplot are lățimea proporțională cu numărul de issue-uri conținute, astfel încât masa muncii deschise este vizibilă dintr-o privire.",
         "chk_zero_day":      "Excludeți issue-urile zero-day  (<",
         "lbl_zero_day_min":  "min)",
         "tip_zero_day":      "Issue-urile al căror timp de ciclu (Prima dată → Data închiderii) este sub prag sunt eliminate complet din toate metricile.",
@@ -552,6 +558,8 @@ _T: dict[str, dict[str, str]] = {
         "dlg_excl_resolution": "Selecionar resoluções a excluir",
         "tip_excl_status":   "Excluir completamente issues com estes status Jira de todas as métricas (ex. Cancelado).",
         "tip_excl_resolution": "Excluir completamente issues com estas resoluções (ex. Won’t Do).",
+        "chk_proportional_box": "Largura da caixa ~ número de itens (Flow Load)",
+        "tip_proportional_box": "No gráfico Flow Load, cada boxplot é desenhado com largura proporcional ao número de itens que contém, para a massa de trabalho aberto ser visível de relance.",
         "chk_zero_day":      "Excluir issues zero-day  (<",
         "lbl_zero_day_min":  "min)",
         "tip_zero_day":      "Issues cujo tempo de ciclo (Primeira data → Data de fecho) está abaixo do limite são completamente removidos de todas as métricas.",
@@ -667,6 +675,8 @@ _T: dict[str, dict[str, str]] = {
         "dlg_excl_resolution": "Sélectionner les résolutions à exclure",
         "tip_excl_status":   "Exclure complètement les issues avec ces statuts Jira de toutes les métriques (ex. Annulé).",
         "tip_excl_resolution": "Exclure complètement les issues avec ces résolutions (ex. Won’t Do).",
+        "chk_proportional_box": "Largeur des boîtes ~ nombre d'éléments (Flow Load)",
+        "tip_proportional_box": "Dans le diagramme Flow Load, chaque boxplot est dessiné avec une largeur proportionnelle au nombre d'éléments qu'il contient, pour voir d'un coup d'œil où se trouve la masse du travail en cours.",
         "chk_zero_day":      "Exclure les issues zero-day  (<",
         "lbl_zero_day_min":  "min)",
         "tip_zero_day":      "Les issues dont le temps de cycle (Première date → Date de clôture) est inférieur au seuil sont complètement retirés de toutes les métriques.",
@@ -894,6 +904,7 @@ def _build_template_dict(
     exclude_zero_day: bool = False,
     zero_day_threshold_minutes: int = 5,
     target_ct: int = 90,
+    proportional_box_width: bool = True,
 ) -> dict:
     """
     Assemble the template dictionary that is written to JSON.
@@ -940,6 +951,7 @@ def _build_template_dict(
         "exclude_zero_day": exclude_zero_day,
         "zero_day_threshold_minutes": zero_day_threshold_minutes,
         "target_ct": target_ct,
+        "proportional_box_width": proportional_box_width,
         "terminology": terminology,
         "ct_method": ct_method,
         "metrics": metrics,
@@ -987,6 +999,7 @@ def _parse_template_dict(data: dict) -> dict:
         "exclude_zero_day": bool(data.get("exclude_zero_day", False)),
         "zero_day_threshold_minutes": int(data.get("zero_day_threshold_minutes", 5)),
         "target_ct": int(data.get("target_ct", 90)),
+        "proportional_box_width": bool(data.get("proportional_box_width", True)),
         "terminology": str(data.get("terminology", SAFE)),
         "ct_method": str(data.get("ct_method", CT_METHOD_A)),
         "metrics": dict(data.get("metrics", {})),
@@ -1034,6 +1047,7 @@ class BuildReportsApp(tk.Tk):
         self._excl_zero_day_var = tk.BooleanVar(value=False)
         self._zero_day_minutes_var = tk.StringVar(value="5")
         self._target_ct_var = tk.StringVar(value="90")
+        self._proportional_box_var = tk.BooleanVar(value=True)
         self._available_projects: list[str] = []
         self._available_issuetypes: list[str] = []
         self._available_statuses: list[str] = []
@@ -1511,6 +1525,18 @@ class BuildReportsApp(tk.Tk):
         tk.Label(f, text="d", anchor="w").grid(row=row, column=2, sticky="w", **pad)
         row += 1
 
+        chk_prop = tk.Checkbutton(
+            f,
+            text=self._tr("chk_proportional_box"),
+            variable=self._proportional_box_var,
+            anchor="w",
+        )
+        chk_prop.grid(row=row, column=0, columnspan=3, sticky="w", **pad)
+        self._i18n.append((chk_prop, "chk_proportional_box"))
+        self._tips.append(
+            (_ToolTip(chk_prop, self._tr("tip_proportional_box")), "tip_proportional_box"))
+        row += 1
+
         # --- Action buttons ---
         ttk.Separator(f, orient="horizontal").grid(
             row=row, column=0, columnspan=3, sticky="ew", pady=6
@@ -1640,6 +1666,7 @@ class BuildReportsApp(tk.Tk):
                 exclude_zero_day=self._excl_zero_day_var.get(),
                 zero_day_threshold_minutes=int(self._zero_day_minutes_var.get() or 5),
                 target_ct=int(self._target_ct_var.get() or 90),
+                proportional_box_width=self._proportional_box_var.get(),
                 terminology=self._terminology_var.get(),
                 ct_method=self._ct_method_var.get(),
                 metrics={mid: var.get() for mid, var in self._metric_vars.items()},
@@ -1707,6 +1734,7 @@ class BuildReportsApp(tk.Tk):
         self._excl_zero_day_var.set(state["exclude_zero_day"])
         self._zero_day_minutes_var.set(str(state["zero_day_threshold_minutes"]))
         self._target_ct_var.set(str(state["target_ct"]))
+        self._proportional_box_var.set(state["proportional_box_width"])
         self._terminology_var.set(state["terminology"])
         self._ct_method_var.set(state["ct_method"])
 
@@ -2066,6 +2094,7 @@ class BuildReportsApp(tk.Tk):
             target_ct = int(self._target_ct_var.get() or 90)
         except ValueError:
             target_ct = 90
+        proportional_box_width = self._proportional_box_var.get()
 
         selected = [mid for mid, var in self._metric_vars.items() if var.get()]
         metrics = selected if selected else None
@@ -2087,6 +2116,7 @@ class BuildReportsApp(tk.Tk):
             terminology=terminology,
             ct_method=ct_method,
             target_ct=target_ct,
+            proportional_box_width=proportional_box_width,
             metrics=metrics,
         )
 
@@ -2150,6 +2180,8 @@ class BuildReportsApp(tk.Tk):
                         plugin.target_ct = inputs.get("target_ct", 90)
                     if isinstance(plugin, FlowLoadMetric):
                         plugin.target_ct = inputs.get("target_ct", 90)
+                        plugin.proportional_box_width = inputs.get(
+                            "proportional_box_width", True)
                     if isinstance(plugin, FlowVelocityMetric):
                         pi_cfg = inputs.get("pi_config")
                         plugin.pi_config_path = str(pi_cfg) if pi_cfg else ""
@@ -2241,6 +2273,7 @@ class BuildReportsApp(tk.Tk):
                     terminology=inputs["terminology"],
                     ct_method=inputs["ct_method"],
                     target_ct=inputs.get("target_ct", 90),
+                    proportional_box_width=inputs.get("proportional_box_width", True),
                     pi_config=inputs.get("pi_config"),
                     output_pdf=Path(out_path),
                     log=self._log,
