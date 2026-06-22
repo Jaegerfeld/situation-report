@@ -163,3 +163,57 @@ def load_solution_config(path: Path) -> SolutionConfig:
     """
     raw = json.loads(Path(path).read_text(encoding="utf-8"))
     return parse_solution_config(raw)
+
+
+def to_dict(config: SolutionConfig) -> dict[str, Any]:
+    """
+    Serialise a SolutionConfig back into a plain JSON-ready dict.
+
+    Empty optional member fields are omitted so the output stays clean and
+    round-trips through parse_solution_config() to an equal config.
+
+    Args:
+        config: The configuration to serialise.
+
+    Returns:
+        JSON-serialisable dict in the schema-v1 shape.
+    """
+    members: list[dict[str, Any]] = []
+    for m in config.members:
+        entry: dict[str, Any] = {"name": m.name}
+        for key in ("template", "issue_times", "cfd", "workflow", "transitions"):
+            value = getattr(m, key)
+            if value:
+                entry[key] = value
+        members.append(entry)
+
+    report: dict[str, Any] = {"modes": list(config.modes)}
+    if config.from_date is not None:
+        report["from_date"] = config.from_date.isoformat()
+    if config.to_date is not None:
+        report["to_date"] = config.to_date.isoformat()
+
+    return {
+        "schema": SCHEMA_VERSION,
+        "app": APP_NAME,
+        "kind": config.kind,
+        "name": config.name,
+        "framework": config.framework,
+        "members": members,
+        "report": report,
+    }
+
+
+def save_solution_config(path: Path, config: SolutionConfig) -> None:
+    """
+    Write a SolutionConfig to a JSON file.
+
+    Args:
+        path:   Destination JSON file.
+        config: The configuration to write.
+    """
+    target = Path(path)
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_text(
+        json.dumps(to_dict(config), indent=2, ensure_ascii=False), encoding="utf-8"
+    )

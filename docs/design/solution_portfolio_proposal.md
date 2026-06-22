@@ -190,7 +190,16 @@ zuordnen, Comparison-Modus (Small Multiples), restliche poolbare Metriken.
     nur per `--metrics flow_load` und nur bei gemeinsamem Workflow sinnvoll.
   - *Comparison:* zusätzlich **Flow Load** (je ART getrennt → unproblematisch).
   - Verifiziert (echte Daten, 2 ARTs): Pooled = 3 Metrik-Gruppen, Comparison = 4 Gruppen / 15 Figures.
-- Offen in Phase 2: Verwaltungs-/Einstiegs-GUI.
+- **Verwaltungs-GUI — ✅ UMGESETZT:** `portfolio/gui.py` — Fenster „Solutions & Portfolios":
+  Name/Framework/Zeitraum, ARTs zuordnen (Template `.json` oder direkt `IssueTimes.xlsx`,
+  Datei-Browser), Modus pooled/comparison, Konfig speichern/laden, Report erzeugen → HTML im
+  Browser. 5-Sprachen-`_T`, display-unabhängige Logik (`build_config_from_fields`, `_T`)
+  unit-getestet. Start: `python -m portfolio` (ohne Argumente).
+- **Launcher-Integration — ✅ UMGESETZT:** neue Karte „Solutions & Portfolios" (alpha) in der
+  Modul-Registry, in allen 5 Sprachen.
+- Offen / Politur: die **vollständige geteilte Einstiegs-Layout** (links Solutions/Portfolien,
+  rechts ARTs) als Launcher-Redesign — aktuell ist es eine eigene Karte/Fenster statt
+  Split-View. Funktional vollständig, nur die Anordnung gemäß Idee-Skizze fehlt noch.
 
 **Phase 3 — Portfolio-Schachtelung & stage-abhängige Metriken:** Portfolio ▸ Solutions ▸ ARTs,
 gemeinsames Stage-Mapping für CFD/Distribution, Management-Summary, PDF-Export.

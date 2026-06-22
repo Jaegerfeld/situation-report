@@ -129,6 +129,8 @@ _T: dict[str, dict[str, str]] = {
         "mod_testdata_generator_desc":    "Synthetische Testdaten erstellen",
         "mod_helper_name":                "Helper",
         "mod_helper_desc":                "JSON-Dateien zusammenführen",
+        "mod_portfolio_name":             "Solutions & Portfolios",
+        "mod_portfolio_desc":             "Aggregierte Reports über mehrere ARTs",
         "dlg_get_data_title":             "Get Data – Workaround",
         "dlg_get_data_body": (
             "Get Data ist noch nicht verfügbar.\n"
@@ -171,6 +173,8 @@ _T: dict[str, dict[str, str]] = {
         "mod_testdata_generator_desc":    "Generate synthetic test data",
         "mod_helper_name":                "Helper",
         "mod_helper_desc":                "Merge JSON files",
+        "mod_portfolio_name":             "Solutions & Portfolios",
+        "mod_portfolio_desc":             "Aggregated reports across multiple ARTs",
         "dlg_get_data_title":             "Get Data – How to use now",
         "dlg_get_data_body": (
             "Get Data is not yet available.\n"
@@ -212,6 +216,8 @@ _T: dict[str, dict[str, str]] = {
         "mod_testdata_generator_desc":    "Generare date de test sintetice",
         "mod_helper_name":                "Helper",
         "mod_helper_desc":                "Combinare fișiere JSON",
+        "mod_portfolio_name":             "Solutions & Portfolios",
+        "mod_portfolio_desc":             "Rapoarte agregate pe mai multe ART-uri",
         "dlg_get_data_title":             "Get Data – Alternativă",
         "dlg_get_data_body": (
             "Get Data nu este încă disponibil.\n"
@@ -254,6 +260,8 @@ _T: dict[str, dict[str, str]] = {
         "mod_testdata_generator_desc":    "Gerar dados de teste sintéticos",
         "mod_helper_name":                "Helper",
         "mod_helper_desc":                "Combinar ficheiros JSON",
+        "mod_portfolio_name":             "Solutions & Portfolios",
+        "mod_portfolio_desc":             "Relatórios agregados de vários ARTs",
         "dlg_get_data_title":             "Get Data – Como usar agora",
         "dlg_get_data_body": (
             "Get Data ainda não está disponível.\n"
@@ -296,6 +304,8 @@ _T: dict[str, dict[str, str]] = {
         "mod_testdata_generator_desc":    "Générer des données de test synthétiques",
         "mod_helper_name":                "Helper",
         "mod_helper_desc":                "Fusionner des fichiers JSON",
+        "mod_portfolio_name":             "Solutions & Portfolios",
+        "mod_portfolio_desc":             "Rapports agrégés sur plusieurs ARTs",
         "dlg_get_data_title":             "Get Data – Alternative",
         "dlg_get_data_body": (
             "Get Data n'est pas encore disponible.\n"
@@ -337,6 +347,7 @@ class _ModuleEntry:
 _MODULES: list[_ModuleEntry] = [
     _ModuleEntry("transform_data",     "🔄", True,  "beta"),
     _ModuleEntry("build_reports",      "📊", True,  "beta"),
+    _ModuleEntry("portfolio",          "🗂️", True,  "alpha"),
     _ModuleEntry("get_data",           "📥", False, None,  has_info=True),
     _ModuleEntry("simulate",           "🎲", False, None),
     _ModuleEntry("testdata_generator", "🧪", True,  "beta"),

@@ -20,6 +20,7 @@ import pytest
 from portfolio.solution_config import (
     KIND_SOLUTION,
     parse_solution_config,
+    to_dict,
 )
 
 
@@ -93,3 +94,23 @@ class TestInvalid:
         d["kind"] = "team"
         with pytest.raises(ValueError, match="kind"):
             parse_solution_config(d)
+
+
+class TestSerialisation:
+    def test_roundtrip_equal(self) -> None:
+        cfg = parse_solution_config(_valid_dict())
+        assert parse_solution_config(to_dict(cfg)) == cfg
+
+    def test_to_dict_omits_empty_member_fields(self) -> None:
+        cfg = parse_solution_config(_valid_dict())
+        member_dicts = to_dict(cfg)["members"]
+        # ART Beta was given only issue_times → no empty 'template'/'cfd' keys
+        beta = member_dicts[1]
+        assert "issue_times" in beta
+        assert "template" not in beta and "cfd" not in beta
+
+    def test_to_dict_serialises_dates(self) -> None:
+        cfg = parse_solution_config(_valid_dict())
+        report = to_dict(cfg)["report"]
+        assert report["from_date"] == "2025-01-01"
+        assert report["to_date"] == "2025-12-31"

@@ -66,10 +66,10 @@ class TestModuleRegistry:
         for entry in _MODULES:
             assert isinstance(entry.available, bool)
 
-    def test_exactly_four_available_modules(self):
-        """Exactly four modules are marked as available (transform_data, build_reports, testdata_generator, helper)."""
+    def test_exactly_five_available_modules(self):
+        """Five modules are available (transform_data, build_reports, portfolio, testdata_generator, helper)."""
         available = [e for e in _MODULES if e.available]
-        assert len(available) == 4
+        assert len(available) == 5
 
     def test_testdata_generator_is_available(self):
         """testdata_generator is available."""
@@ -91,9 +91,9 @@ class TestModuleRegistry:
         ids = {e.module_id for e in _MODULES if e.available}
         assert "transform_data" in ids
 
-    def test_six_modules_total(self):
-        """The registry contains exactly six module entries."""
-        assert len(_MODULES) == 6
+    def test_seven_modules_total(self):
+        """The registry contains exactly seven module entries."""
+        assert len(_MODULES) == 7
 
     def test_all_module_ids_unique(self):
         """All module_ids in the registry are unique."""
@@ -110,10 +110,10 @@ class TestModuleRegistry:
         entry = next(e for e in _MODULES if e.module_id == "helper")
         assert entry.maturity == "alpha"
 
-    def test_only_helper_is_alpha(self):
-        """No available module other than helper is still Alpha."""
+    def test_alpha_modules(self):
+        """helper and the new portfolio module are the Alpha-maturity modules."""
         alpha = {e.module_id for e in _MODULES if e.maturity == "alpha"}
-        assert alpha == {"helper"}
+        assert alpha == {"helper", "portfolio"}
 
     def test_every_module_has_translation_keys(self):
         """Every module_id has name and desc keys in every language dict."""
