@@ -31,6 +31,8 @@ class Summary:
     median_ct: float | None     # cycle-time percentiles in days (CT = First→Closed, > 0)
     p85_ct: float | None
     p95_ct: float | None
+    open_items: int = 0         # not-done issues (items − completed) = WIP
+    target_ct_pct: float | None = None  # share of completed (with CT) within target_ct days
 
 
 def _percentile(sorted_values: list[float], pct: float) -> float | None:
@@ -55,17 +57,19 @@ def _percentile(sorted_values: list[float], pct: float) -> float | None:
     return sorted_values[lo] + (sorted_values[hi] - sorted_values[lo]) * frac
 
 
-def compute_summary(data: ReportData, label: str) -> Summary:
+def compute_summary(data: ReportData, label: str, target_ct: int = 90) -> Summary:
     """
     Compute the management-summary figures for one ReportData.
 
     Cycle time uses method A (First Date → Closed Date in days) and counts only
     issues with both dates and a positive cycle time — matching the Flow Time
-    metric's inclusion rule.
+    metric's inclusion rule. ``target_ct_pct`` is the share of those completed
+    issues whose cycle time is within ``target_ct`` days.
 
     Args:
-        data:  The (already filtered) report data for one unit.
-        label: Display label for the unit.
+        data:      The (already filtered) report data for one unit.
+        label:     Display label for the unit.
+        target_ct: Target cycle time in days for the Target-CT share.
 
     Returns:
         A populated Summary.
@@ -80,6 +84,9 @@ def compute_summary(data: ReportData, label: str) -> Summary:
             if days > 0:
                 cycle.append(days)
     cycle.sort()
+    target_pct = (
+        sum(1 for d in cycle if d <= target_ct) / len(cycle) * 100 if cycle else None
+    )
     return Summary(
         label=label,
         items=len(data.issues),
@@ -87,6 +94,8 @@ def compute_summary(data: ReportData, label: str) -> Summary:
         median_ct=_percentile(cycle, 50),
         p85_ct=_percentile(cycle, 85),
         p95_ct=_percentile(cycle, 95),
+        open_items=len(data.issues) - completed,
+        target_ct_pct=target_pct,
     )
 
 
@@ -95,7 +104,34 @@ def _fmt(value: float | None) -> str:
     return f"{value:.1f}" if value is not None else "–"
 
 
-def render_summary_html(summaries: list[Summary], title: str = "Management Summary") -> str:
+def _fmt_pct(value: float | None) -> str:
+    """Format a percentage to a whole number with a % sign, or an en dash."""
+    return f"{value:.0f}%" if value is not None else "–"
+
+
+def _summary_headers(target_ct: int) -> list[str]:
+    """Column headers for the summary table (shared by HTML and the PDF figure)."""
+    return ["", "Items", "Completed", "Open (WIP)",
+            "Median CT (d)", "85th % (d)", "95th % (d)", f"≤ {target_ct}d"]
+
+
+def _summary_cells(s: Summary) -> list[str]:
+    """Row values for one Summary, in the _summary_headers() order."""
+    return [
+        s.label,
+        str(s.items),
+        str(s.completed),
+        str(s.open_items),
+        _fmt(s.median_ct),
+        _fmt(s.p85_ct),
+        _fmt(s.p95_ct),
+        _fmt_pct(s.target_ct_pct),
+    ]
+
+
+def render_summary_html(
+    summaries: list[Summary], title: str = "Management Summary", target_ct: int = 90
+) -> str:
     """
     Render the management summary as a self-contained HTML table block.
 
@@ -105,6 +141,7 @@ def render_summary_html(summaries: list[Summary], title: str = "Management Summa
     Args:
         summaries: One Summary per overview unit.
         title:     Heading shown above the table.
+        target_ct: Target cycle time in days (only used for the column header).
 
     Returns:
         An HTML fragment (heading + styled table), or "" if summaries is empty.
@@ -112,19 +149,11 @@ def render_summary_html(summaries: list[Summary], title: str = "Management Summa
     if not summaries:
         return ""
 
-    headers = ["", "Items", "Completed", "Median CT (d)", "85th % (d)", "95th % (d)"]
-    head_html = "".join(f"<th>{_html.escape(h)}</th>" for h in headers)
+    head_html = "".join(f"<th>{_html.escape(h)}</th>" for h in _summary_headers(target_ct))
 
     rows_html = ""
     for s in summaries:
-        cells = [
-            _html.escape(s.label),
-            str(s.items),
-            str(s.completed),
-            _fmt(s.median_ct),
-            _fmt(s.p85_ct),
-            _fmt(s.p95_ct),
-        ]
+        cells = [_html.escape(c) for c in _summary_cells(s)]
         rows_html += "<tr>" + "".join(f"<td>{c}</td>" for c in cells) + "</tr>"
 
     style = (
@@ -143,7 +172,9 @@ def render_summary_html(summaries: list[Summary], title: str = "Management Summa
     )
 
 
-def summary_figure(summaries: list[Summary], title: str = "Management Summary"):
+def summary_figure(
+    summaries: list[Summary], title: str = "Management Summary", target_ct: int = 90
+):
     """
     Render the management summary as a plotly Table figure (for the PDF export).
 
@@ -152,21 +183,16 @@ def summary_figure(summaries: list[Summary], title: str = "Management Summary"):
     Args:
         summaries: One Summary per overview unit.
         title:     Figure title.
+        target_ct: Target cycle time in days (column header only).
 
     Returns:
         A plotly Figure containing a single Table trace.
     """
     import plotly.graph_objects as go
 
-    headers = ["", "Items", "Completed", "Median CT (d)", "85th % (d)", "95th % (d)"]
-    columns = [
-        [s.label for s in summaries],
-        [s.items for s in summaries],
-        [s.completed for s in summaries],
-        [_fmt(s.median_ct) for s in summaries],
-        [_fmt(s.p85_ct) for s in summaries],
-        [_fmt(s.p95_ct) for s in summaries],
-    ]
+    headers = _summary_headers(target_ct)
+    rows = [_summary_cells(s) for s in summaries]
+    columns = [[row[c] for row in rows] for c in range(len(headers))]
     fig = go.Figure(go.Table(
         header=dict(values=headers, fill_color="#f2f2f2", align="left"),
         cells=dict(values=columns, align="left"),

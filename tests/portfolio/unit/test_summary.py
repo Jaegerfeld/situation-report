@@ -63,6 +63,18 @@ class TestComputeSummary:
         assert s.items == 4
         assert s.completed == 3
         assert s.median_ct == 9.0
+        assert s.open_items == 1  # items − completed
+
+    def test_target_ct_pct(self) -> None:
+        # CTs 4, 9, 14 days; with target 10d, two of three are within → 66.7%
+        data = ReportData(issues=[
+            _issue("A-1", 1, 5), _issue("A-2", 1, 10), _issue("A-3", 1, 15)])
+        s = compute_summary(data, "X", target_ct=10)
+        assert round(s.target_ct_pct, 1) == 66.7
+
+    def test_target_ct_pct_none_without_cycle_data(self) -> None:
+        data = ReportData(issues=[_issue("A-1", 2, None)])  # open only
+        assert compute_summary(data, "X").target_ct_pct is None
 
     def test_zero_cycle_time_excluded(self) -> None:
         # first == closed → CT 0 → excluded from percentiles but still completed
@@ -81,10 +93,15 @@ class TestRenderSummaryHtml:
         assert render_summary_html([]) == ""
 
     def test_single_row(self) -> None:
-        html = render_summary_html([Summary("Solution A", 10, 7, 9.0, 20.0, 30.0)])
+        html = render_summary_html(
+            [Summary("Solution A", 10, 7, 9.0, 20.0, 30.0, open_items=3,
+                     target_ct_pct=80.0)],
+            target_ct=90)
         assert "Management Summary" in html
         assert "Solution A" in html
         assert "<table" in html and "Items" in html
+        assert "Open (WIP)" in html and "≤ 90d" in html
+        assert "80%" in html  # target-CT share rendered as a percentage
 
     def test_multiple_rows(self) -> None:
         html = render_summary_html([

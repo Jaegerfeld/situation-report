@@ -437,7 +437,8 @@ def render_html(
         return ""
     html = _build_combined_html(figures, section_breaks)
     summary = render_summary_html(
-        [compute_summary(u, u.source_prefix) for u in units])
+        [compute_summary(u, u.source_prefix, target_ct) for u in units],
+        target_ct=target_ct)
     return html.replace("<body>", "<body>" + summary, 1)
 
 
@@ -466,8 +467,8 @@ def render_pdf(
     if not figures:
         log("No figures produced — nothing to export.")
         return False
-    summaries = [compute_summary(u, u.source_prefix) for u in units]
-    pages = [summary_figure(summaries)] + figures
+    summaries = [compute_summary(u, u.source_prefix, target_ct) for u in units]
+    pages = [summary_figure(summaries, target_ct=target_ct)] + figures
     export_pdf(pages, Path(output_path))
     log(f"PDF written to: {output_path}")
     return True

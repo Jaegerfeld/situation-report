@@ -241,9 +241,11 @@ gemeinsames Stage-Mapping für CFD/Distribution, Management-Summary, PDF-Export.
   beiden Modi (im Comparison-Modus für Solutions nativ je ART, für Portfolios je Solution gepoolt).
   Verifiziert (echte Daten: 2 ARTs / 9 + 8 Stages → kanonisches CFD, Ratio In/Out 6.56 : 1).
 - **Management-Summary — ✅ UMGESETZT:** `portfolio/summary.py` rechnet je Übersichtseinheit
-  Items, abgeschlossen sowie Median/85./95.-Perzentil der Cycle Time und rendert eine kompakte
-  Tabelle oben im Report (Pooled: eine Zeile; Comparison: eine Zeile je ART bzw. Solution).
-  Verifiziert (echte Daten: CFD Solution → 861 Items, 384 abgeschlossen, Median 112.9 d).
+  Items, abgeschlossen, **offen (WIP)**, Median/85./95.-Perzentil der Cycle Time sowie den
+  **Target-CT-Anteil** (Anteil abgeschlossener Items innerhalb `target_ct` Tagen) und rendert eine
+  kompakte Tabelle oben im Report (Pooled: eine Zeile; Comparison: eine Zeile je ART bzw. Solution).
+  Verifiziert (echte Daten: CFD Solution → 861 Items, 384 abgeschlossen, 477 offen, Median 112.9 d,
+  ≤ 90 d = 33 %).
 - **PDF-Export — ✅ UMGESETZT:** `render_pdf()` (kaleido, mehrseitig) — erste Seite die
   Management-Summary (als Tabellen-Figur), danach je Metrik-Figur eine Seite. CLI: `--pdf FILE`;
   in der GUI über die Dateiendung `.pdf` im Speichern-Dialog. Verifiziert (Pooled: 8 Seiten;
