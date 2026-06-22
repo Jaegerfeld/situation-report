@@ -180,6 +180,13 @@ build_reports. Noch keine Verwaltungs-UI (Solution-Konfig als Datei/CLI).
 **Phase 2 — Verwaltungs-UI & Comparison-Modus:** geteilte Einstiegs-UI, Solutions anlegen/ARTs
 zuordnen, Comparison-Modus (Small Multiples), restliche poolbare Metriken.
 
+- **Comparison-Modus — ✅ UMGESETZT:** `render_comparison_html()` lädt jeden ART getrennt und
+  gruppiert die Figures pro Metrik (jede Figure mit ART-Name via `source_prefix`).
+  CLI: `python -m portfolio <config.json> --mode comparison`. Verifiziert (echte Daten,
+  2 ARTs, 11 Figures unter Flow Velocity + Flow Time).
+- Offen in Phase 2: Verwaltungs-/Einstiegs-GUI, restliche poolbare Metriken (Flow Load,
+  Flow Distribution).
+
 **Phase 3 — Portfolio-Schachtelung & stage-abhängige Metriken:** Portfolio ▸ Solutions ▸ ARTs,
 gemeinsames Stage-Mapping für CFD/Distribution, Management-Summary, PDF-Export.
 

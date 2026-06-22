@@ -89,6 +89,47 @@ def test_resolve_member_paths_direct() -> None:
     assert paths["workflow"] is None and paths["transitions"] is None
 
 
+def test_load_members_labels_each_separately(monkeypatch) -> None:
+    data_a = ReportData(issues=[_issue("ART_A", "ART_A-1", 1, 10)],
+                         stages=["Dev", "Done"], source_prefix="ART_A")
+    data_b = ReportData(issues=[_issue("ART_B", "ART_B-1", 3, 9)],
+                        stages=["Dev", "Done"], source_prefix="ART_B")
+    monkeypatch.setattr(
+        aggregator, "load_report_data",
+        _fake_loader({"A.xlsx": data_a, "B.xlsx": data_b}),
+    )
+
+    members = aggregator.load_members(_two_art_config(), log=lambda *_: None)
+
+    # Not pooled: one ReportData per member, each labelled with the member name
+    assert len(members) == 2
+    assert [m.source_prefix for m in members] == ["ART Alpha", "ART Beta"]
+    assert [len(m.issues) for m in members] == [1, 1]
+
+
+def test_render_comparison_html_groups_by_metric(monkeypatch) -> None:
+    data_a = ReportData(
+        issues=[_issue("ART_A", f"ART_A-{n}", 1, 5 + n) for n in range(1, 6)],
+        stages=["Analysis", "Dev", "Done"], source_prefix="ART_A",
+    )
+    data_b = ReportData(
+        issues=[_issue("ART_B", f"ART_B-{n}", 2, 6 + n) for n in range(1, 6)],
+        stages=["Analysis", "Dev", "Done"], source_prefix="ART_B",
+    )
+    monkeypatch.setattr(
+        aggregator, "load_report_data",
+        _fake_loader({"A.xlsx": data_a, "B.xlsx": data_b}),
+    )
+
+    html = aggregator.render_comparison_html(_two_art_config(), log=lambda *_: None)
+
+    assert html
+    # Both ART names appear (figures labelled per ART via source_prefix)
+    assert "ART Alpha" in html and "ART Beta" in html
+    # The solution name is NOT used as a figure label in comparison mode
+    assert "Payments Solution" not in html
+
+
 def test_render_pooled_html_endtoend(monkeypatch) -> None:
     data_a = ReportData(
         issues=[_issue("ART_A", f"ART_A-{n}", 1, 5 + n) for n in range(1, 6)],

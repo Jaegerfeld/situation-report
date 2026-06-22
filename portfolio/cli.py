@@ -24,13 +24,14 @@ from pathlib import Path
 from build_reports.metrics.flow_time import CT_METHOD_A, CT_METHOD_B
 from build_reports.terminology import GLOBAL, SAFE
 
-from .aggregator import DEFAULT_POOLED_METRICS, render_pooled_html
-from .solution_config import load_solution_config
+from .aggregator import DEFAULT_METRICS, render_comparison_html, render_pooled_html
+from .solution_config import MODE_COMPARISON, MODE_POOLED, load_solution_config
 
 
 def run_solution_report(
     config_path: Path,
     output_html: Path | None = None,
+    mode: str = MODE_POOLED,
     metrics: list[str] | None = None,
     terminology: str = SAFE,
     ct_method: str = CT_METHOD_A,
@@ -40,12 +41,14 @@ def run_solution_report(
     log: Callable[[str], None] = print,
 ) -> str:
     """
-    Execute the pooled solution-report pipeline: load config → pool → render HTML.
+    Execute the solution-report pipeline: load config → aggregate → render HTML.
 
     Args:
         config_path:  Path to the solution-config JSON.
         output_html:  If set, the combined HTML is written here.
-        metrics:      Metric IDs to run. None = DEFAULT_POOLED_METRICS.
+        mode:         MODE_POOLED (solution as one system) or MODE_COMPARISON
+                      (ARTs side by side).
+        metrics:      Metric IDs to run. None = DEFAULT_METRICS.
         terminology:  SAFE or GLOBAL display mode.
         ct_method:    Cycle-time method for Flow Time.
         target_ct:    Target cycle time in days for the Flow Time header.
@@ -58,9 +61,10 @@ def run_solution_report(
     """
     config = load_solution_config(config_path)
     log(f"Solution '{config.name}' ({config.kind}, {config.framework}) "
-        f"with {len(config.members)} member(s)")
+        f"with {len(config.members)} member(s) — mode: {mode}")
 
-    html = render_pooled_html(
+    render = render_comparison_html if mode == MODE_COMPARISON else render_pooled_html
+    html = render(
         config,
         metrics=metrics,
         terminology=terminology,
@@ -92,9 +96,14 @@ def main() -> None:
                         help="Path to the solution-config JSON file.")
     parser.add_argument("--output", type=Path, default=None, metavar="FILE",
                         help="Write the combined HTML report to this file.")
+    parser.add_argument("--mode", choices=[MODE_POOLED, MODE_COMPARISON],
+                        default=MODE_POOLED,
+                        help=f"Aggregation mode (default: {MODE_POOLED}). "
+                             f"pooled = solution as one system; "
+                             f"comparison = ARTs side by side.")
     parser.add_argument("--metrics", nargs="+", metavar="ID", default=None,
                         help=f"Metric IDs to compute (default: "
-                             f"{' '.join(DEFAULT_POOLED_METRICS)}).")
+                             f"{' '.join(DEFAULT_METRICS)}).")
     parser.add_argument("--terminology", choices=[SAFE, GLOBAL], default=SAFE,
                         help=f"Terminology mode (default: {SAFE}).")
     parser.add_argument("--ct-method", choices=[CT_METHOD_A, CT_METHOD_B],
@@ -112,6 +121,7 @@ def main() -> None:
     html = run_solution_report(
         config_path=args.config,
         output_html=args.output,
+        mode=args.mode,
         metrics=args.metrics,
         terminology=args.terminology,
         ct_method=args.ct_method,

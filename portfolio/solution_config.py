@@ -27,6 +27,9 @@ APP_NAME = "situation_report"
 KIND_SOLUTION = "solution"
 KIND_PORTFOLIO = "portfolio"
 
+MODE_POOLED = "pooled"
+MODE_COMPARISON = "comparison"
+
 FRAMEWORK_SAFE = "SAFe"
 FRAMEWORK_LESS = "LeSS"
 FRAMEWORK_NEXUS = "Nexus"

@@ -7,26 +7,29 @@
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
-#   Aggregations-Kern für Solution-/Portfolio-Reports (Phase 1, Modus "pooled").
-#   Lädt die ReportData jedes referenzierten ARTs über build_reports.loader und
-#   führt die Issues auf Record-Ebene zu EINEM gepoolten ReportData zusammen.
-#   Anschließend laufen die bestehenden build_reports-Metriken unverändert über
-#   den gepoolten Datensatz — es wird bewusst NICHT auf Statistik-Ebene gemittelt
-#   (Pooled-Median ≠ Mittel-der-Mediane), sondern auf Roh-Issue-Ebene gepoolt.
-#   Phase 1 nutzt nur datums-getriebene Metriken (Flow Velocity, Flow Time), die
-#   unabhängig vom Workflow der einzelnen ARTs korrekt poolen.
+#   Aggregations-Kern für Solution-/Portfolio-Reports. Zwei Modi:
+#   - "pooled":     Issues aller ARTs auf Record-Ebene zu EINEM ReportData
+#                   zusammenführen und die bestehenden build_reports-Metriken
+#                   darüber laufen lassen (Solution als ein System). Es wird
+#                   NICHT auf Statistik-Ebene gemittelt (Pooled-Median ≠
+#                   Mittel-der-Mediane), sondern auf Roh-Issue-Ebene gepoolt.
+#   - "comparison": Jeden ART getrennt berechnen und die Figures pro Metrik
+#                   gruppiert nebeneinanderstellen ("welcher ART ist der
+#                   Ausreißer?"). Jede Figure trägt den ART-Namen via source_prefix.
+#   Phase 1/2 nutzen die datums-getriebenen Metriken (Flow Velocity, Flow Time),
+#   die unabhängig vom Workflow der einzelnen ARTs korrekt poolen/vergleichen.
 # =============================================================================
 
 from __future__ import annotations
 
 from collections.abc import Callable
-from datetime import date
 from pathlib import Path
 
 from build_reports.export import _build_combined_html
 from build_reports.filters import FilterConfig, apply_filters
 from build_reports.loader import ReportData, load_report_data
 from build_reports.metrics import get_metric
+from build_reports.metrics.base import MetricPlugin
 from build_reports.metrics.flow_time import CT_METHOD_A, FlowTimeMetric
 from build_reports.metrics.flow_velocity import FlowVelocityMetric
 from build_reports.terminology import FLOW_TIME, FLOW_VELOCITY, SAFE, term
@@ -35,9 +38,12 @@ from project_template import MODULE_BUILD_REPORTS, get_section, load_template
 
 from .solution_config import Member, SolutionConfig
 
-#: Phase-1 default metrics for the pooled report — both date-driven, so they
-#: pool cleanly regardless of differing ART workflows.
-DEFAULT_POOLED_METRICS = [FLOW_VELOCITY, FLOW_TIME]
+#: Default metrics for both modes — both date-driven, so they pool/compare
+#: cleanly regardless of differing ART workflows.
+DEFAULT_METRICS = [FLOW_VELOCITY, FLOW_TIME]
+
+# Backwards-compatible alias (Phase-1 name).
+DEFAULT_POOLED_METRICS = DEFAULT_METRICS
 
 
 def _resolve_member_paths(member: Member) -> dict[str, Path | None]:
@@ -80,6 +86,45 @@ def _resolve_member_paths(member: Member) -> dict[str, Path | None]:
             "workflow": workflow, "transitions": transitions}
 
 
+def _load_member(member: Member) -> ReportData:
+    """
+    Load one member ART's ReportData and label it with the member's name.
+
+    The source_prefix is overridden with the member's friendly name so figure
+    titles show the ART name rather than the file-derived project key.
+    """
+    paths = _resolve_member_paths(member)
+    data = load_report_data(
+        paths["issue_times"], paths["cfd"], paths["workflow"], paths["transitions"]
+    )
+    data.source_prefix = member.name
+    return data
+
+
+def _make_plugins(
+    metric_ids: list[str],
+    ct_method: str,
+    target_ct: int,
+    pi_config: Path | None,
+    log: Callable[[str], None] = print,
+) -> list[MetricPlugin]:
+    """Instantiate and configure the requested metric plugins (shared by both modes)."""
+    plugins: list[MetricPlugin] = []
+    for mid in metric_ids:
+        try:
+            plugin = get_metric(mid)
+        except KeyError:
+            log(f"WARNING: Unknown metric '{mid}' — skipped.")
+            continue
+        if isinstance(plugin, FlowTimeMetric):
+            plugin.ct_method = ct_method
+            plugin.target_ct = target_ct
+        if isinstance(plugin, FlowVelocityMetric):
+            plugin.pi_config_path = str(pi_config) if pi_config else ""
+        plugins.append(plugin)
+    return plugins
+
+
 def build_pooled_report_data(
     config: SolutionConfig,
     log: Callable[[str], None] = print,
@@ -106,10 +151,7 @@ def build_pooled_report_data(
     closed_stage: str | None = None
 
     for member in config.members:
-        paths = _resolve_member_paths(member)
-        data = load_report_data(
-            paths["issue_times"], paths["cfd"], paths["workflow"], paths["transitions"]
-        )
+        data = _load_member(member)
         log(f"  {member.name}: {len(data.issues)} issues, {len(data.stages)} stages")
         pooled_issues.extend(data.issues)
         for stage in data.stages:
@@ -132,6 +174,33 @@ def build_pooled_report_data(
     )
 
 
+def load_members(
+    config: SolutionConfig,
+    log: Callable[[str], None] = print,
+) -> list[ReportData]:
+    """
+    Load each member ART separately (for the comparison mode).
+
+    Every member's ReportData is loaded on its own, labelled with the member
+    name, and passed through the solution-level date filter.
+
+    Args:
+        config: Validated solution configuration.
+        log:    Progress callback.
+
+    Returns:
+        One filtered ReportData per member, in configuration order.
+    """
+    cfg = FilterConfig(from_date=config.from_date, to_date=config.to_date)
+    out: list[ReportData] = []
+    for member in config.members:
+        data = _load_member(member)
+        data = apply_filters(data, cfg)
+        log(f"  {member.name}: {len(data.issues)} issues after filter")
+        out.append(data)
+    return out
+
+
 def render_pooled_html(
     config: SolutionConfig,
     metrics: list[str] | None = None,
@@ -148,38 +217,19 @@ def render_pooled_html(
     requested (date-driven) metrics over the pooled data, and combines the figures
     into one self-contained HTML page.
 
-    Args:
-        config:      Validated solution configuration.
-        metrics:     Metric IDs to run. None = DEFAULT_POOLED_METRICS.
-        terminology: SAFE or GLOBAL display mode.
-        ct_method:   Cycle-time method for Flow Time (A=date diff, B=stage minutes).
-        target_ct:   Target cycle time in days for the Flow Time header.
-        pi_config:   Optional PI interval JSON for Flow Velocity.
-        log:         Progress callback.
+    Args mirror render_comparison_html(); see DEFAULT_METRICS for the default set.
 
     Returns:
         Complete HTML document, or "" if no figures were produced.
     """
-    metric_ids = metrics or DEFAULT_POOLED_METRICS
+    metric_ids = metrics or DEFAULT_METRICS
     data = build_pooled_report_data(config, log=log)
 
     cfg = FilterConfig(from_date=config.from_date, to_date=config.to_date)
     data = apply_filters(data, cfg)
     log(f"After solution date filter: {len(data.issues)} issues")
 
-    plugins = []
-    for mid in metric_ids:
-        try:
-            plugins.append(get_metric(mid))
-        except KeyError:
-            log(f"WARNING: Unknown metric '{mid}' — skipped.")
-
-    for plugin in plugins:
-        if isinstance(plugin, FlowTimeMetric):
-            plugin.ct_method = ct_method
-            plugin.target_ct = target_ct
-        if isinstance(plugin, FlowVelocityMetric):
-            plugin.pi_config_path = str(pi_config) if pi_config else ""
+    plugins = _make_plugins(metric_ids, ct_method, target_ct, pi_config, log)
 
     all_figures: list = []
     section_breaks: dict[int, str] = {}
@@ -192,6 +242,53 @@ def render_pooled_html(
         if figures:
             section_breaks[len(all_figures)] = term(plugin.metric_id, terminology)
         all_figures.extend(figures)
+
+    if not all_figures:
+        log("No figures produced — nothing to render.")
+        return ""
+    return _build_combined_html(all_figures, section_breaks)
+
+
+def render_comparison_html(
+    config: SolutionConfig,
+    metrics: list[str] | None = None,
+    terminology: str = SAFE,
+    ct_method: str = CT_METHOD_A,
+    target_ct: int = 90,
+    pi_config: Path | None = None,
+    log: Callable[[str], None] = print,
+) -> str:
+    """
+    Build the per-ART comparison report and return it as a single HTML document.
+
+    Each member ART is computed separately and the figures are grouped **by
+    metric** — under one metric heading the ARTs appear consecutively, each
+    figure labelled with its ART name (via source_prefix). This puts the ARTs
+    side by side so outliers stand out, without any pooling.
+
+    Args mirror render_pooled_html(); see DEFAULT_METRICS for the default set.
+
+    Returns:
+        Complete HTML document, or "" if no figures were produced.
+    """
+    metric_ids = metrics or DEFAULT_METRICS
+    members_data = load_members(config, log=log)
+    plugins = _make_plugins(metric_ids, ct_method, target_ct, pi_config, log)
+
+    all_figures: list = []
+    section_breaks: dict[int, str] = {}
+    for plugin in plugins:
+        log(f"Computing {plugin.metric_id} (comparison) ...")
+        group_started = False
+        for data in members_data:
+            result = plugin.run(data, terminology)
+            for w in result.warnings:
+                log(f"  WARNING [{data.source_prefix}]: {w}")
+            figures = plugin.run_render(result, terminology)
+            if figures and not group_started:
+                section_breaks[len(all_figures)] = term(plugin.metric_id, terminology)
+                group_started = True
+            all_figures.extend(figures)
 
     if not all_figures:
         log("No figures produced — nothing to render.")
