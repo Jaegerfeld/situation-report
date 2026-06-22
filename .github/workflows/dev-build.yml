@@ -262,6 +262,33 @@ jobs:
           )
           '@ | Set-Content "$BUNDLE\Helper.bat" -Encoding ASCII
 
+          @'
+          @echo off
+          set "D=%~dp0"
+          if not exist "%D%python\python.exe" (
+              echo.
+              echo FEHLER: Eingebettetes Python wurde nicht gefunden.
+              echo Pfad: "%D%python\python.exe"
+              echo.
+              echo Ursache: Windows Defender blockiert Dateien aus dem Internet.
+              echo Loesung:
+              echo   1. Rechtsklick auf SituationReport-Windows.zip
+              echo   2. Eigenschaften - Sicherheit - Zulassen - OK
+              echo   3. ZIP erneut entpacken und starten.
+              echo.
+              pause
+              exit /b 1
+          )
+          for /d %%i in ("%D%python\tcl\tcl*") do set "TCL_LIBRARY=%%i"
+          for /d %%i in ("%D%python\tcl\tk*") do set "TK_LIBRARY=%%i"
+          "%D%python\python.exe" -m portfolio
+          if %ERRORLEVEL% neq 0 (
+              echo.
+              echo Fehler beim Starten. Bitte den roten Text oben notieren.
+              pause
+          )
+          '@ | Set-Content "$BUNDLE\Portfolio.bat" -Encoding ASCII
+
       # -----------------------------------------------------------------------
       # macOS / Linux: source + first-run venv launcher scripts
       # -----------------------------------------------------------------------
@@ -315,6 +342,7 @@ jobs:
               "TransformData.sh": launcher("transform_data"),
               "TestdataGenerator.sh": launcher("testdata_generator"),
               "Helper.sh": launcher("helper"),
+              "Portfolio.sh": launcher("portfolio"),
           }
           if IS_MACOS:
               scripts["SituationReport.command"] = launcher("launcher")
@@ -322,6 +350,7 @@ jobs:
               scripts["TransformData.command"] = launcher("transform_data")
               scripts["TestdataGenerator.command"] = launcher("testdata_generator")
               scripts["Helper.command"] = launcher("helper")
+              scripts["Portfolio.command"] = launcher("portfolio")
 
           for name, content in scripts.items():
               path = os.path.join(BUNDLE, name)
@@ -428,3 +457,4 @@ jobs:
             | `TransformData.bat` / `.command` / `.sh` | Transform Data – Rohdaten aufbereiten |
             | `TestdataGenerator.bat` / `.command` / `.sh` | Testdata Generator – Synthetische Jira-Daten erstellen |
             | `Helper.bat` / `.command` / `.sh` | Helper – JSON-Dateien zusammenführen |
+            | `Portfolio.bat` / `.command` / `.sh` | Solutions & Portfolios – aggregierte Reports über mehrere ARTs |

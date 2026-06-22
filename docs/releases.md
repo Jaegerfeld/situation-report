@@ -32,6 +32,7 @@ All available releases are on the [GitHub Releases page](https://github.com/Jaeg
    - Double-click `TransformData.bat` → Transform Data GUI
    - Double-click `TestdataGenerator.bat` → Testdata Generator GUI
    - Double-click `Helper.bat` → Helper (JSON Merger) GUI
+   - Double-click `Portfolio.bat` → Solutions & Portfolios GUI
 
 !!! note "Windows SmartScreen"
     On the first launch, SmartScreen may show a warning because the included files are not signed.
@@ -75,6 +76,7 @@ All available releases are on the [GitHub Releases page](https://github.com/Jaeg
    ./TransformData.sh          # Transform Data GUI
    ./TestdataGenerator.sh      # Testdata Generator GUI
    ./Helper.sh                 # Helper (JSON Merger) GUI
+   ./Portfolio.sh              # Solutions & Portfolios GUI
    ```
 
 !!! warning "One-time setup (first launch)"
@@ -101,6 +103,7 @@ The package contains the full repository – source files, configurations, and e
 | `TransformData.bat/.command/.sh` | Launcher for Transform Data |
 | `TestdataGenerator.bat/.command/.sh` | Launcher for Testdata Generator |
 | `Helper.bat/.command/.sh` | Launcher for Helper (JSON Merger) |
+| `Portfolio.bat/.command/.sh` | Launcher for Solutions & Portfolios |
 
 ---
 
