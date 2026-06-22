@@ -100,3 +100,12 @@ class TestRenderSummaryHtml:
     def test_label_is_escaped(self) -> None:
         html = render_summary_html([Summary("A & <B>", 1, 1, 1.0, 1.0, 1.0)])
         assert "A &amp; &lt;B&gt;" in html
+
+
+class TestSummaryFigure:
+    def test_builds_table_figure(self) -> None:
+        from portfolio.summary import summary_figure
+        fig = summary_figure([Summary("Sol A", 5, 3, 4.0, 6.0, 8.0)])
+        assert fig.data[0].type == "table"
+        # the label cell is present in the table's first column
+        assert "Sol A" in list(fig.data[0].cells.values[0])

@@ -25,7 +25,7 @@ from __future__ import annotations
 from collections.abc import Callable
 from pathlib import Path
 
-from build_reports.export import _build_combined_html
+from build_reports.export import _build_combined_html, export_pdf
 from build_reports.filters import FilterConfig, apply_filters
 from build_reports.loader import CfdRecord, ReportData, load_report_data
 from build_reports.metrics import get_metric
@@ -61,11 +61,13 @@ from project_template import MODULE_BUILD_REPORTS, get_section, load_template
 from .solution_config import (
     KIND_PORTFOLIO,
     KIND_SOLUTION,
+    MODE_COMPARISON,
+    MODE_POOLED,
     Member,
     SolutionConfig,
     load_solution_config,
 )
-from .summary import compute_summary, render_summary_html
+from .summary import compute_summary, render_summary_html, summary_figure
 
 #: Default metrics for the POOLED mode. Flow Velocity, Flow Time and Flow
 #: Distribution are record-based and pool cleanly regardless of differing ART
@@ -349,6 +351,128 @@ def load_comparison_units(
     return units
 
 
+def _default_metrics(config: SolutionConfig, mode: str) -> list[str]:
+    """Pick the default metric set for a config + mode (see the DEFAULT_* notes)."""
+    if mode == MODE_COMPARISON and config.kind != KIND_PORTFOLIO:
+        return DEFAULT_COMPARISON_METRICS
+    return DEFAULT_POOLED_METRICS
+
+
+def _collect_report(
+    config: SolutionConfig,
+    mode: str,
+    metrics: list[str] | None,
+    terminology: str,
+    ct_method: str,
+    target_ct: int,
+    pi_config: Path | None,
+    log: Callable[[str], None],
+) -> tuple[list, dict[int, str], list[ReportData]]:
+    """
+    Shared report core: resolve the report units, run the metrics, collect figures.
+
+    Pooled mode has a single unit (the pooled solution/portfolio); comparison mode
+    has one unit per ART (solution) or per member solution (portfolio). The figures
+    are grouped by metric (one section heading per metric), and each figure is
+    labelled with its unit's name via source_prefix.
+
+    Returns:
+        (figures, section_breaks, units) — units carry the labelled ReportData used
+        for both the figures and the management summary.
+    """
+    if mode == MODE_COMPARISON:
+        units = load_comparison_units(config, log=log)
+    else:
+        data = build_pooled_report_data(config, log=log)
+        data = apply_filters(
+            data, FilterConfig(from_date=config.from_date, to_date=config.to_date))
+        log(f"After date filter: {len(data.issues)} issues")
+        units = [data]
+
+    metric_ids = metrics or _default_metrics(config, mode)
+    plugins = _make_plugins(metric_ids, ct_method, target_ct, pi_config, log)
+
+    all_figures: list = []
+    section_breaks: dict[int, str] = {}
+    for plugin in plugins:
+        log(f"Computing {plugin.metric_id} ({mode}) ...")
+        group_started = False
+        for unit in units:
+            result = plugin.run(unit, terminology)
+            for w in result.warnings:
+                log(f"  WARNING [{unit.source_prefix}]: {w}")
+            figures = plugin.run_render(result, terminology)
+            if figures and not group_started:
+                section_breaks[len(all_figures)] = term(plugin.metric_id, terminology)
+                group_started = True
+            all_figures.extend(figures)
+
+    return all_figures, section_breaks, units
+
+
+def render_html(
+    config: SolutionConfig,
+    mode: str = MODE_POOLED,
+    metrics: list[str] | None = None,
+    terminology: str = SAFE,
+    ct_method: str = CT_METHOD_A,
+    target_ct: int = 90,
+    pi_config: Path | None = None,
+    log: Callable[[str], None] = print,
+) -> str:
+    """
+    Render a solution/portfolio report as a single self-contained HTML document.
+
+    The management summary table is injected at the top, followed by the metric
+    figures grouped by metric. See _collect_report for the pooled/comparison
+    semantics.
+
+    Returns:
+        Complete HTML document, or "" if no figures were produced.
+    """
+    figures, section_breaks, units = _collect_report(
+        config, mode, metrics, terminology, ct_method, target_ct, pi_config, log)
+    if not figures:
+        log("No figures produced — nothing to render.")
+        return ""
+    html = _build_combined_html(figures, section_breaks)
+    summary = render_summary_html(
+        [compute_summary(u, u.source_prefix) for u in units])
+    return html.replace("<body>", "<body>" + summary, 1)
+
+
+def render_pdf(
+    config: SolutionConfig,
+    output_path: Path,
+    mode: str = MODE_POOLED,
+    metrics: list[str] | None = None,
+    terminology: str = SAFE,
+    ct_method: str = CT_METHOD_A,
+    target_ct: int = 90,
+    pi_config: Path | None = None,
+    log: Callable[[str], None] = print,
+) -> bool:
+    """
+    Render a solution/portfolio report to a multi-page PDF (kaleido).
+
+    The management summary is rendered as the first page (a table figure), then
+    one page per metric figure.
+
+    Returns:
+        True if a PDF was written, False if there were no figures.
+    """
+    figures, _section_breaks, units = _collect_report(
+        config, mode, metrics, terminology, ct_method, target_ct, pi_config, log)
+    if not figures:
+        log("No figures produced — nothing to export.")
+        return False
+    summaries = [compute_summary(u, u.source_prefix) for u in units]
+    pages = [summary_figure(summaries)] + figures
+    export_pdf(pages, Path(output_path))
+    log(f"PDF written to: {output_path}")
+    return True
+
+
 def render_pooled_html(
     config: SolutionConfig,
     metrics: list[str] | None = None,
@@ -358,45 +482,9 @@ def render_pooled_html(
     pi_config: Path | None = None,
     log: Callable[[str], None] = print,
 ) -> str:
-    """
-    Build the pooled solution report and return it as a single HTML document.
-
-    Loads and pools all members, applies the solution-level date filter, runs the
-    requested (date-driven) metrics over the pooled data, and combines the figures
-    into one self-contained HTML page.
-
-    Args mirror render_comparison_html(); defaults to DEFAULT_POOLED_METRICS.
-
-    Returns:
-        Complete HTML document, or "" if no figures were produced.
-    """
-    metric_ids = metrics or DEFAULT_POOLED_METRICS
-    data = build_pooled_report_data(config, log=log)
-
-    cfg = FilterConfig(from_date=config.from_date, to_date=config.to_date)
-    data = apply_filters(data, cfg)
-    log(f"After solution date filter: {len(data.issues)} issues")
-
-    plugins = _make_plugins(metric_ids, ct_method, target_ct, pi_config, log)
-
-    all_figures: list = []
-    section_breaks: dict[int, str] = {}
-    for plugin in plugins:
-        log(f"Computing {plugin.metric_id} (pooled) ...")
-        result = plugin.run(data, terminology)
-        for w in result.warnings:
-            log(f"  WARNING: {w}")
-        figures = plugin.run_render(result, terminology)
-        if figures:
-            section_breaks[len(all_figures)] = term(plugin.metric_id, terminology)
-        all_figures.extend(figures)
-
-    if not all_figures:
-        log("No figures produced — nothing to render.")
-        return ""
-    html = _build_combined_html(all_figures, section_breaks)
-    summary = render_summary_html([compute_summary(data, config.name)])
-    return html.replace("<body>", "<body>" + summary, 1)
+    """Render the pooled report as HTML (thin wrapper over render_html)."""
+    return render_html(config, MODE_POOLED, metrics, terminology,
+                       ct_method, target_ct, pi_config, log)
 
 
 def render_comparison_html(
@@ -408,52 +496,6 @@ def render_comparison_html(
     pi_config: Path | None = None,
     log: Callable[[str], None] = print,
 ) -> str:
-    """
-    Build the per-ART comparison report and return it as a single HTML document.
-
-    Each member ART is computed separately and the figures are grouped **by
-    metric** — under one metric heading the ARTs appear consecutively, each
-    figure labelled with its ART name (via source_prefix). This puts the ARTs
-    side by side so outliers stand out, without any pooling.
-
-    Args mirror render_pooled_html(). For a *solution* the units are single ARTs,
-    so the default set is DEFAULT_COMPARISON_METRICS (it can include the
-    stage-dependent Flow Load). For a *portfolio* the units are themselves pooled
-    solutions, so the default falls back to DEFAULT_POOLED_METRICS (Flow Load is
-    excluded — pooling differing workflows within a solution would mix
-    incomparable stage columns).
-
-    Returns:
-        Complete HTML document, or "" if no figures were produced.
-    """
-    if metrics:
-        metric_ids = metrics
-    elif config.kind == KIND_PORTFOLIO:
-        metric_ids = DEFAULT_POOLED_METRICS
-    else:
-        metric_ids = DEFAULT_COMPARISON_METRICS
-    members_data = load_comparison_units(config, log=log)
-    plugins = _make_plugins(metric_ids, ct_method, target_ct, pi_config, log)
-
-    all_figures: list = []
-    section_breaks: dict[int, str] = {}
-    for plugin in plugins:
-        log(f"Computing {plugin.metric_id} (comparison) ...")
-        group_started = False
-        for data in members_data:
-            result = plugin.run(data, terminology)
-            for w in result.warnings:
-                log(f"  WARNING [{data.source_prefix}]: {w}")
-            figures = plugin.run_render(result, terminology)
-            if figures and not group_started:
-                section_breaks[len(all_figures)] = term(plugin.metric_id, terminology)
-                group_started = True
-            all_figures.extend(figures)
-
-    if not all_figures:
-        log("No figures produced — nothing to render.")
-        return ""
-    html = _build_combined_html(all_figures, section_breaks)
-    summary = render_summary_html(
-        [compute_summary(unit, unit.source_prefix) for unit in members_data])
-    return html.replace("<body>", "<body>" + summary, 1)
+    """Render the per-unit comparison report as HTML (thin wrapper over render_html)."""
+    return render_html(config, MODE_COMPARISON, metrics, terminology,
+                       ct_method, target_ct, pi_config, log)

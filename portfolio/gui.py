@@ -31,6 +31,7 @@ from .aggregator import (
     DEFAULT_COMPARISON_METRICS,
     DEFAULT_POOLED_METRICS,
     render_comparison_html,
+    render_pdf,
     render_pooled_html,
 )
 from .solution_config import (
@@ -579,20 +580,27 @@ class SolutionManagerApp(tk.Tk):
         out = filedialog.asksaveasfilename(
             title=self._tr("dlg_save_report"), defaultextension=".html",
             initialfile=f"{cfg.name}_{self._mode.get()}.html",
-            filetypes=[("HTML", "*.html")])
+            filetypes=[("HTML", "*.html"), ("PDF", "*.pdf")])
         if not out:
             return
         self._status.set(self._tr("msg_generating"))
         self.update_idletasks()
 
-        render = (render_comparison_html if self._mode.get() == MODE_COMPARISON
-                  else render_pooled_html)
+        out_path = Path(out)
+        is_pdf = out_path.suffix.lower() == ".pdf"
+        mode = self._mode.get()
 
         def worker() -> None:
-            html = render(cfg, log=lambda *_: None)
-            if html:
-                Path(out).write_text(html, encoding="utf-8")
-            self.after(0, lambda: self._done(out, bool(html)))
+            if is_pdf:
+                ok = render_pdf(cfg, out_path, mode=mode, log=lambda *_: None)
+            else:
+                render = (render_comparison_html if mode == MODE_COMPARISON
+                          else render_pooled_html)
+                html = render(cfg, log=lambda *_: None)
+                ok = bool(html)
+                if html:
+                    out_path.write_text(html, encoding="utf-8")
+            self.after(0, lambda: self._done(out, ok))
 
         threading.Thread(target=worker, daemon=True).start()
 

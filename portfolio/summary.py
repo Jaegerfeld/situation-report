@@ -141,3 +141,35 @@ def render_summary_html(summaries: list[Summary], title: str = "Management Summa
         f"<h2 class='metric-heading'>{_html.escape(title)}</h2>"
         f"<table class='sr-summary'><tr>{head_html}</tr>{rows_html}</table>"
     )
+
+
+def summary_figure(summaries: list[Summary], title: str = "Management Summary"):
+    """
+    Render the management summary as a plotly Table figure (for the PDF export).
+
+    Mirrors render_summary_html() but produces a figure so it can be a PDF page.
+
+    Args:
+        summaries: One Summary per overview unit.
+        title:     Figure title.
+
+    Returns:
+        A plotly Figure containing a single Table trace.
+    """
+    import plotly.graph_objects as go
+
+    headers = ["", "Items", "Completed", "Median CT (d)", "85th % (d)", "95th % (d)"]
+    columns = [
+        [s.label for s in summaries],
+        [s.items for s in summaries],
+        [s.completed for s in summaries],
+        [_fmt(s.median_ct) for s in summaries],
+        [_fmt(s.p85_ct) for s in summaries],
+        [_fmt(s.p95_ct) for s in summaries],
+    ]
+    fig = go.Figure(go.Table(
+        header=dict(values=headers, fill_color="#f2f2f2", align="left"),
+        cells=dict(values=columns, align="left"),
+    ))
+    fig.update_layout(title=title, title_font_size=14, margin=dict(t=40, b=10))
+    return fig

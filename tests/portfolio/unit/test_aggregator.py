@@ -215,6 +215,37 @@ def test_render_pooled_html_endtoend(monkeypatch) -> None:
 # Portfolio nesting (Phase 3): a portfolio references solution templates.
 # ---------------------------------------------------------------------------
 
+def test_render_pdf_prepends_summary_and_exports(monkeypatch) -> None:
+    import plotly.graph_objects as go
+    from pathlib import Path
+    fig = go.Figure()
+    unit = ReportData(issues=[_issue("ART_A", "ART_A-1", 1, 5)], source_prefix="Sol")
+    captured: dict = {}
+    monkeypatch.setattr(aggregator, "_collect_report",
+                        lambda *a, **k: ([fig], {}, [unit]))
+    monkeypatch.setattr(aggregator, "export_pdf",
+                        lambda pages, path: captured.update(pages=pages, path=str(path)))
+
+    ok = aggregator.render_pdf(
+        SolutionConfig(name="Sol", members=[Member("A", issue_times="A.xlsx")]),
+        Path("out.pdf"), log=lambda *_: None)
+
+    assert ok is True
+    # First page is the summary (a Table figure), then the metric figure.
+    assert len(captured["pages"]) == 2
+    assert captured["pages"][1] is fig
+    assert captured["pages"][0].data[0].type == "table"
+
+
+def test_render_pdf_no_figures_returns_false(monkeypatch) -> None:
+    from pathlib import Path
+    monkeypatch.setattr(aggregator, "_collect_report", lambda *a, **k: ([], {}, []))
+    ok = aggregator.render_pdf(
+        SolutionConfig(name="X", members=[Member("A", issue_times="A.xlsx")]),
+        Path("out.pdf"), log=lambda *_: None)
+    assert ok is False
+
+
 def _fake_solution_loader(by_path: dict[str, SolutionConfig]):
     """Return a load_solution_config replacement keyed by template path string."""
     def _load(path):

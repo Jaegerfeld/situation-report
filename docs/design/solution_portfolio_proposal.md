@@ -244,7 +244,14 @@ gemeinsames Stage-Mapping für CFD/Distribution, Management-Summary, PDF-Export.
   Items, abgeschlossen sowie Median/85./95.-Perzentil der Cycle Time und rendert eine kompakte
   Tabelle oben im Report (Pooled: eine Zeile; Comparison: eine Zeile je ART bzw. Solution).
   Verifiziert (echte Daten: CFD Solution → 861 Items, 384 abgeschlossen, Median 112.9 d).
-- Offen in Phase 3: PDF-Export.
+- **PDF-Export — ✅ UMGESETZT:** `render_pdf()` (kaleido, mehrseitig) — erste Seite die
+  Management-Summary (als Tabellen-Figur), danach je Metrik-Figur eine Seite. CLI: `--pdf FILE`;
+  in der GUI über die Dateiendung `.pdf` im Speichern-Dialog. Verifiziert (Pooled: 8 Seiten;
+  Portfolio-Comparison: 15 Seiten). Die Render-Funktionen teilen sich einen gemeinsamen Kern
+  (`_collect_report` → `render_html` / `render_pdf`), wodurch HTML und PDF identische Inhalte liefern.
+
+**Damit ist Phase 3 vollständig — das Feature deckt alle fünf Flow-Metriken inkl. CFD auf
+Solution- und Portfolio-Ebene ab, in beiden Modi, mit GUI, Management-Summary und HTML/PDF-Export.**
 
 ---
 
