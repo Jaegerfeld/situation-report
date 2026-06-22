@@ -45,6 +45,10 @@ _REQUIRED_KEYS = {
     "mod_simulate_desc",
     "mod_testdata_generator_name",
     "mod_testdata_generator_desc",
+    "mod_portfolio_name",
+    "mod_portfolio_desc",
+    "sec_solutions",
+    "sec_arts",
 }
 
 
@@ -114,6 +118,17 @@ class TestModuleRegistry:
         """helper and the new portfolio module are the Alpha-maturity modules."""
         alpha = {e.module_id for e in _MODULES if e.maturity == "alpha"}
         assert alpha == {"helper", "portfolio"}
+
+    def test_portfolio_on_solution_side(self):
+        """The portfolio module is the only one on the left (solution) side of the split UI."""
+        solution = {e.module_id for e in _MODULES if e.section == "solution"}
+        assert solution == {"portfolio"}
+
+    def test_all_other_modules_on_art_side(self):
+        """Every non-portfolio module belongs to the right (ART) side."""
+        art = {e.module_id for e in _MODULES if e.section == "art"}
+        assert "portfolio" not in art
+        assert "build_reports" in art and "transform_data" in art
 
     def test_every_module_has_translation_keys(self):
         """Every module_id has name and desc keys in every language dict."""

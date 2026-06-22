@@ -197,9 +197,13 @@ zuordnen, Comparison-Modus (Small Multiples), restliche poolbare Metriken.
   unit-getestet. Start: `python -m portfolio` (ohne Argumente).
 - **Launcher-Integration — ✅ UMGESETZT:** neue Karte „Solutions & Portfolios" (alpha) in der
   Modul-Registry, in allen 5 Sprachen.
-- Offen / Politur: die **vollständige geteilte Einstiegs-Layout** (links Solutions/Portfolien,
-  rechts ARTs) als Launcher-Redesign — aktuell ist es eine eigene Karte/Fenster statt
-  Split-View. Funktional vollständig, nur die Anordnung gemäß Idee-Skizze fehlt noch.
+- **Geteiltes Einstiegs-Layout — ✅ UMGESETZT:** Launcher zeigt jetzt die Split-View gemäß
+  Idee-Skizze — **links** „Large Solutions & Portfolien" (die `portfolio`-Karte), **rechts**
+  „ARTs & Team-Verbünde" (die bestehenden Modul-Karten), getrennt durch einen vertikalen
+  Trenner. Section-Header in allen 5 Sprachen; `_ModuleEntry.section` steuert die Seite.
+  Real verifiziert (App-Aufbau + Sprachwechsel).
+
+Damit ist **Phase 2 vollständig abgeschlossen.**
 
 **Phase 3 — Portfolio-Schachtelung & stage-abhängige Metriken:** Portfolio ▸ Solutions ▸ ARTs,
 gemeinsames Stage-Mapping für CFD/Distribution, Management-Summary, PDF-Export.
