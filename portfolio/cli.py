@@ -24,7 +24,7 @@ from pathlib import Path
 from build_reports.metrics.flow_time import CT_METHOD_A, CT_METHOD_B
 from build_reports.terminology import GLOBAL, SAFE
 
-from .aggregator import DEFAULT_METRICS, render_comparison_html, render_pooled_html
+from .aggregator import render_comparison_html, render_pooled_html
 from .solution_config import MODE_COMPARISON, MODE_POOLED, load_solution_config
 
 
@@ -102,8 +102,9 @@ def main() -> None:
                              f"pooled = solution as one system; "
                              f"comparison = ARTs side by side.")
     parser.add_argument("--metrics", nargs="+", metavar="ID", default=None,
-                        help=f"Metric IDs to compute (default: "
-                             f"{' '.join(DEFAULT_METRICS)}).")
+                        help="Metric IDs to compute. Default depends on --mode "
+                             "(pooled adds Flow Distribution; comparison also adds "
+                             "the stage-dependent Flow Load).")
     parser.add_argument("--terminology", choices=[SAFE, GLOBAL], default=SAFE,
                         help=f"Terminology mode (default: {SAFE}).")
     parser.add_argument("--ct-method", choices=[CT_METHOD_A, CT_METHOD_B],

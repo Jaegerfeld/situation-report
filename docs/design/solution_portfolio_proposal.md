@@ -182,10 +182,15 @@ zuordnen, Comparison-Modus (Small Multiples), restliche poolbare Metriken.
 
 - **Comparison-Modus — ✅ UMGESETZT:** `render_comparison_html()` lädt jeden ART getrennt und
   gruppiert die Figures pro Metrik (jede Figure mit ART-Name via `source_prefix`).
-  CLI: `python -m portfolio <config.json> --mode comparison`. Verifiziert (echte Daten,
-  2 ARTs, 11 Figures unter Flow Velocity + Flow Time).
-- Offen in Phase 2: Verwaltungs-/Einstiegs-GUI, restliche poolbare Metriken (Flow Load,
-  Flow Distribution).
+  CLI: `python -m portfolio <config.json> --mode comparison`.
+- **Erweiterte Metriken — ✅ UMGESETZT:** Default-Metriksätze pro Modus.
+  - *Pooled:* Flow Velocity, Flow Time, **Flow Distribution** (alle record-basiert, poolen sauber).
+    Flow Load ist hier bewusst **nicht** Default — es gruppiert offene Issues nach aktueller
+    Stage, sodass Pooling verschiedener Workflows unvergleichbare Stage-Spalten mischt;
+    nur per `--metrics flow_load` und nur bei gemeinsamem Workflow sinnvoll.
+  - *Comparison:* zusätzlich **Flow Load** (je ART getrennt → unproblematisch).
+  - Verifiziert (echte Daten, 2 ARTs): Pooled = 3 Metrik-Gruppen, Comparison = 4 Gruppen / 15 Figures.
+- Offen in Phase 2: Verwaltungs-/Einstiegs-GUI.
 
 **Phase 3 — Portfolio-Schachtelung & stage-abhängige Metriken:** Portfolio ▸ Solutions ▸ ARTs,
 gemeinsames Stage-Mapping für CFD/Distribution, Management-Summary, PDF-Export.

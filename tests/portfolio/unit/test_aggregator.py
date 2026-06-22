@@ -130,6 +130,34 @@ def test_render_comparison_html_groups_by_metric(monkeypatch) -> None:
     assert "Payments Solution" not in html
 
 
+def test_default_metric_sets() -> None:
+    # Flow Distribution pools cleanly → in both defaults.
+    assert "flow_distribution" in aggregator.DEFAULT_POOLED_METRICS
+    assert "flow_distribution" in aggregator.DEFAULT_COMPARISON_METRICS
+    # Flow Load is stage-dependent → only the comparison default (not pooled).
+    assert "flow_load" not in aggregator.DEFAULT_POOLED_METRICS
+    assert "flow_load" in aggregator.DEFAULT_COMPARISON_METRICS
+
+
+def test_pooled_default_includes_flow_distribution(monkeypatch) -> None:
+    data_a = ReportData(
+        issues=[_issue("ART_A", f"ART_A-{n}", 1, 5 + n) for n in range(1, 6)],
+        stages=["Analysis", "Dev", "Done"], source_prefix="ART_A",
+    )
+    data_b = ReportData(
+        issues=[_issue("ART_B", f"ART_B-{n}", 2, 6 + n) for n in range(1, 6)],
+        stages=["Analysis", "Dev", "Done"], source_prefix="ART_B",
+    )
+    monkeypatch.setattr(
+        aggregator, "load_report_data",
+        _fake_loader({"A.xlsx": data_a, "B.xlsx": data_b}),
+    )
+
+    html = aggregator.render_pooled_html(_two_art_config(), log=lambda *_: None)
+
+    assert "Flow Distribution" in html
+
+
 def test_render_pooled_html_endtoend(monkeypatch) -> None:
     data_a = ReportData(
         issues=[_issue("ART_A", f"ART_A-{n}", 1, 5 + n) for n in range(1, 6)],

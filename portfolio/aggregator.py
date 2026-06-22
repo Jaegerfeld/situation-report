@@ -30,20 +30,36 @@ from build_reports.filters import FilterConfig, apply_filters
 from build_reports.loader import ReportData, load_report_data
 from build_reports.metrics import get_metric
 from build_reports.metrics.base import MetricPlugin
+from build_reports.metrics.flow_load import FlowLoadMetric
 from build_reports.metrics.flow_time import CT_METHOD_A, FlowTimeMetric
 from build_reports.metrics.flow_velocity import FlowVelocityMetric
-from build_reports.terminology import FLOW_TIME, FLOW_VELOCITY, SAFE, term
+from build_reports.terminology import (
+    FLOW_DISTRIBUTION,
+    FLOW_LOAD,
+    FLOW_TIME,
+    FLOW_VELOCITY,
+    SAFE,
+    term,
+)
 
 from project_template import MODULE_BUILD_REPORTS, get_section, load_template
 
 from .solution_config import Member, SolutionConfig
 
-#: Default metrics for both modes — both date-driven, so they pool/compare
-#: cleanly regardless of differing ART workflows.
-DEFAULT_METRICS = [FLOW_VELOCITY, FLOW_TIME]
+#: Default metrics for the POOLED mode. Flow Velocity, Flow Time and Flow
+#: Distribution are record-based and pool cleanly regardless of differing ART
+#: workflows. Flow Load is deliberately excluded here: it groups open issues by
+#: their current stage, so pooling ARTs with different workflows would mix
+#: incomparable stage columns. Request it explicitly only when all ARTs share a
+#: workflow.
+DEFAULT_POOLED_METRICS = [FLOW_VELOCITY, FLOW_TIME, FLOW_DISTRIBUTION]
+
+#: Default metrics for the COMPARISON mode. Each ART is computed separately, so
+#: the stage-dependent Flow Load is safe to include here too.
+DEFAULT_COMPARISON_METRICS = [FLOW_VELOCITY, FLOW_TIME, FLOW_DISTRIBUTION, FLOW_LOAD]
 
 # Backwards-compatible alias (Phase-1 name).
-DEFAULT_POOLED_METRICS = DEFAULT_METRICS
+DEFAULT_METRICS = DEFAULT_POOLED_METRICS
 
 
 def _resolve_member_paths(member: Member) -> dict[str, Path | None]:
@@ -118,6 +134,8 @@ def _make_plugins(
             continue
         if isinstance(plugin, FlowTimeMetric):
             plugin.ct_method = ct_method
+            plugin.target_ct = target_ct
+        if isinstance(plugin, FlowLoadMetric):
             plugin.target_ct = target_ct
         if isinstance(plugin, FlowVelocityMetric):
             plugin.pi_config_path = str(pi_config) if pi_config else ""
@@ -217,12 +235,12 @@ def render_pooled_html(
     requested (date-driven) metrics over the pooled data, and combines the figures
     into one self-contained HTML page.
 
-    Args mirror render_comparison_html(); see DEFAULT_METRICS for the default set.
+    Args mirror render_comparison_html(); defaults to DEFAULT_POOLED_METRICS.
 
     Returns:
         Complete HTML document, or "" if no figures were produced.
     """
-    metric_ids = metrics or DEFAULT_METRICS
+    metric_ids = metrics or DEFAULT_POOLED_METRICS
     data = build_pooled_report_data(config, log=log)
 
     cfg = FilterConfig(from_date=config.from_date, to_date=config.to_date)
@@ -266,12 +284,14 @@ def render_comparison_html(
     figure labelled with its ART name (via source_prefix). This puts the ARTs
     side by side so outliers stand out, without any pooling.
 
-    Args mirror render_pooled_html(); see DEFAULT_METRICS for the default set.
+    Args mirror render_pooled_html(); defaults to DEFAULT_COMPARISON_METRICS
+    (which additionally includes the stage-dependent Flow Load, safe here
+    because each ART is rendered separately).
 
     Returns:
         Complete HTML document, or "" if no figures were produced.
     """
-    metric_ids = metrics or DEFAULT_METRICS
+    metric_ids = metrics or DEFAULT_COMPARISON_METRICS
     members_data = load_members(config, log=log)
     plugins = _make_plugins(metric_ids, ct_method, target_ct, pi_config, log)
 
