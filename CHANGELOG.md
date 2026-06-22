@@ -9,6 +9,22 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [0.14.4] – 2026-06-22
+
+### Fixed
+- The testdata generator's `triangle` and `flat_triangle` patterns (and the
+  normal dwell chain for incomplete issues) could produce status transitions
+  far beyond `--to-date`. With a rising cycle time wider than the
+  `from_date … to_date` window, completed issues were dated years into the
+  future (e.g. a 2023–2025 range trailing off, thinned out, until 2031),
+  making the generated data unusable. Transition timestamps are now capped at
+  `to_date`: an issue whose cycle time does not fit the window stays *in
+  progress* at the stage it had reached, matching the manual's definition of
+  `--to-date` as the latest transition date. The cluster/batch patterns were
+  already clamped and are unaffected.
+
+---
+
 ## [0.14.3] – 2026-05-23
 
 ### Fixed
