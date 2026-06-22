@@ -9,8 +9,11 @@
 # Fachliche Funktion:
 #   Liest und validiert eine Solution-/Portfolio-Konfiguration. Eine Solution
 #   fasst mehrere bereits konfigurierte ARTs zusammen, indem sie deren Project-
-#   Templates referenziert (Single Source of Truth bleibt das ART-Template).
-#   Schema v1 (Phase 1): nur kind="solution" mit Pooled-Aggregation.
+#   Templates referenziert. Ein Portfolio (kind="portfolio") fasst wiederum
+#   mehrere Solutions zusammen, indem es deren Solution-Templates referenziert —
+#   eine Solution-Konfig ist damit selbst ein wiederverwendbares Template
+#   (Single Source of Truth bleibt jeweils die referenzierte Datei). So gilt
+#   derselbe Template-/Referenz-Mechanismus auf ART- wie auf Solution-Ebene.
 # =============================================================================
 
 from __future__ import annotations
@@ -110,8 +113,6 @@ def parse_solution_config(data: dict[str, Any]) -> SolutionConfig:
     kind = str(data.get("kind", KIND_SOLUTION))
     if kind not in (KIND_SOLUTION, KIND_PORTFOLIO):
         raise ValueError(f"Unknown kind '{kind}' — expected 'solution' or 'portfolio'.")
-    if kind == KIND_PORTFOLIO:
-        raise ValueError("Portfolio nesting is not implemented yet (Phase 3).")
 
     raw_members = data.get("members")
     if not isinstance(raw_members, list) or not raw_members:
@@ -121,15 +122,24 @@ def parse_solution_config(data: dict[str, Any]) -> SolutionConfig:
     for i, m in enumerate(raw_members):
         if not isinstance(m, dict):
             raise ValueError(f"Member #{i + 1} is not an object.")
+        default_name = ("Solution" if kind == KIND_PORTFOLIO else "ART") + f" {i + 1}"
         member = Member(
-            name=str(m.get("name", "")).strip() or f"ART {i + 1}",
+            name=str(m.get("name", "")).strip() or default_name,
             template=str(m.get("template", "")),
             issue_times=str(m.get("issue_times", "")),
             cfd=str(m.get("cfd", "")),
             workflow=str(m.get("workflow", "")),
             transitions=str(m.get("transitions", "")),
         )
-        if not member.template and not member.issue_times:
+        if kind == KIND_PORTFOLIO:
+            # A portfolio member references a saved solution template (Single
+            # Source of Truth: the solution config file), never raw ART data.
+            if not member.template:
+                raise ValueError(
+                    f"Portfolio member '{member.name}' must reference a solution "
+                    f"template via 'template'."
+                )
+        elif not member.template and not member.issue_times:
             raise ValueError(
                 f"Member '{member.name}' must set either 'template' or 'issue_times'."
             )

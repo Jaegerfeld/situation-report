@@ -66,10 +66,21 @@ vermischt Verantwortlichkeiten und erschwert die getrennte Verwaltungs-UI.
 
 ---
 
-## 4. Datenmodell
+## 4. Datenmodell & Solution-Template-Mechanismus
 
-Eine **Solution-Konfiguration** ist eine neue JSON-Datei, die das bestehende
-`project_template`-System wiederverwendet statt es zu duplizieren:
+Eine **Solution-Konfiguration** ist eine **eigene** JSON-Datei (eigenes `schema`/`app`,
+`portfolio.solution_config`) — bewusst **nicht** in die `project_template`-Hülle gefaltet:
+Die Hülle existiert, um die *Modul-Pipeline-Configs eines einzelnen ARTs* (build_reports,
+transform_data …) in einer Datei zu mergen und Geschwister-Abschnitte zu erhalten. Eine Solution
+spannt dagegen *mehrere* ARTs — der Merge-Zweck der Hülle trägt hier nicht, und ein Solution-File
+in ein ART-GUI zu laden würde nur Murks ergeben. Die Solution-Konfig *referenziert* ART-Templates
+genauso, wie ein Portfolio Solution-Konfigs referenziert.
+
+**Solution-Template-Mechanismus:** Die Solution-Konfig **ist** das Solution-Template — sie hat
+dieselben Bausteine wie das ART-Template (laden/speichern/`to_dict`, GUI Save/Load) und ist damit
+ein *wiederverwendbares, referenzierbares* Artefakt. Ein Portfolio bindet Solutions exakt so ein,
+wie eine Solution ihre ARTs einbindet (`members[].template`). So gilt derselbe Template-/Referenz-
+Mechanismus auf ART- **und** Solution-Ebene.
 
 ```jsonc
 {
@@ -207,6 +218,18 @@ Damit ist **Phase 2 vollständig abgeschlossen.**
 
 **Phase 3 — Portfolio-Schachtelung & stage-abhängige Metriken:** Portfolio ▸ Solutions ▸ ARTs,
 gemeinsames Stage-Mapping für CFD/Distribution, Management-Summary, PDF-Export.
+
+- **Portfolio-Schachtelung — ✅ UMGESETZT:** `kind="portfolio"`; `members[].template` referenziert
+  Solution-Templates. `_iter_art_members()` flacht rekursiv (mit Zyklusschutz) auf ARTs ab.
+  - *Pooled:* alle ARTs aller Solutions in einem Datensatz (Label = Portfolio-Name).
+  - *Comparison:* eine Einheit **pro Solution** (deren ARTs gepoolt, Label = Solution-Name) —
+    Vergleich auf Solution-Ebene, nicht zu ART flachgemacht. Default-Metriken hier ohne Flow Load
+    (jede Einheit ist selbst ein Pool über ggf. verschiedene Workflows).
+  - CLI: `python -m portfolio <portfolio.json> --mode {pooled,comparison}`.
+    Beispiel: `docs/design/portfolio_config.example.json`. Verifiziert (echte Daten: Portfolio aus
+    2 Solutions / 4 ARTs → 1854 Issues pooled; Comparison gruppiert Alpha 861 / Beta 913).
+- Offen in Phase 3: stage-abhängige Metriken (CFD) mit gemeinsamem Stage-Mapping, Management-Summary,
+  PDF-Export; Portfolio-Bearbeitung in der GUI (aktuell per JSON/CLI; Solution-Bearbeitung in GUI da).
 
 ---
 

@@ -19,7 +19,7 @@ from datetime import datetime
 from build_reports.loader import IssueRecord, ReportData
 
 from portfolio import aggregator
-from portfolio.solution_config import Member, SolutionConfig
+from portfolio.solution_config import KIND_PORTFOLIO, Member, SolutionConfig
 
 
 def _issue(project: str, key: str, first_day: int, closed_day: int) -> IssueRecord:
@@ -178,3 +178,63 @@ def test_render_pooled_html_endtoend(monkeypatch) -> None:
     assert "<html" in html.lower()
     # The solution name is injected as the figure-title prefix (source_prefix)
     assert "Payments Solution" in html
+
+
+# ---------------------------------------------------------------------------
+# Portfolio nesting (Phase 3): a portfolio references solution templates.
+# ---------------------------------------------------------------------------
+
+def _fake_solution_loader(by_path: dict[str, SolutionConfig]):
+    """Return a load_solution_config replacement keyed by template path string."""
+    def _load(path):
+        return by_path[str(path)]
+    return _load
+
+
+def _portfolio_setup(monkeypatch) -> SolutionConfig:
+    """Wire up a portfolio of two solutions (3 ARTs total) with mocked loaders."""
+    sol_a = SolutionConfig(name="Solution A", members=[
+        Member(name="ART A1", issue_times="A1.xlsx"),
+        Member(name="ART A2", issue_times="A2.xlsx")])
+    sol_b = SolutionConfig(name="Solution B", members=[
+        Member(name="ART B1", issue_times="B1.xlsx")])
+    portfolio = SolutionConfig(name="Group Portfolio", kind=KIND_PORTFOLIO, members=[
+        Member(name="Solution A", template="solA.json"),
+        Member(name="Solution B", template="solB.json")])
+
+    rd = {p: ReportData(issues=[_issue(p, f"{p}-{n}", 1, 5 + n) for n in range(1, 4)],
+                        stages=["Analysis", "Dev", "Done"], source_prefix=p)
+          for p in ("A1.xlsx", "A2.xlsx", "B1.xlsx")}
+    monkeypatch.setattr(aggregator, "load_report_data", _fake_loader(rd))
+    monkeypatch.setattr(aggregator, "load_solution_config",
+                        _fake_solution_loader({"solA.json": sol_a, "solB.json": sol_b}))
+    return portfolio
+
+
+def test_iter_art_members_flattens_portfolio(monkeypatch) -> None:
+    portfolio = _portfolio_setup(monkeypatch)
+    arts = aggregator._iter_art_members(portfolio)
+    assert [m.name for m in arts] == ["ART A1", "ART A2", "ART B1"]
+
+
+def test_pooled_portfolio_pools_all_arts(monkeypatch) -> None:
+    portfolio = _portfolio_setup(monkeypatch)
+    pooled = aggregator.build_pooled_report_data(portfolio, log=lambda *_: None)
+    assert len(pooled.issues) == 9          # 3 ARTs × 3 issues
+    assert pooled.source_prefix == "Group Portfolio"
+
+
+def test_comparison_units_are_per_solution(monkeypatch) -> None:
+    portfolio = _portfolio_setup(monkeypatch)
+    units = aggregator.load_comparison_units(portfolio, log=lambda *_: None)
+    # one unit per member solution, labelled with the solution name
+    assert [u.source_prefix for u in units] == ["Solution A", "Solution B"]
+    # Solution A pooled its two ARTs (6 issues); Solution B has one ART (3)
+    assert [len(u.issues) for u in units] == [6, 3]
+
+
+def test_comparison_html_groups_by_solution(monkeypatch) -> None:
+    portfolio = _portfolio_setup(monkeypatch)
+    html = aggregator.render_comparison_html(portfolio, log=lambda *_: None)
+    assert html
+    assert "Solution A" in html and "Solution B" in html

@@ -83,16 +83,38 @@ class TestInvalid:
         with pytest.raises(ValueError, match="template.*issue_times|issue_times"):
             parse_solution_config(d)
 
-    def test_portfolio_kind_not_yet_supported(self) -> None:
-        d = _valid_dict()
-        d["kind"] = "portfolio"
-        with pytest.raises(ValueError, match="[Pp]ortfolio"):
-            parse_solution_config(d)
-
     def test_unknown_kind_raises(self) -> None:
         d = _valid_dict()
         d["kind"] = "team"
         with pytest.raises(ValueError, match="kind"):
+            parse_solution_config(d)
+
+
+class TestPortfolio:
+    def _portfolio_dict(self) -> dict:
+        return {
+            "schema": 1,
+            "kind": "portfolio",
+            "name": "Group Portfolio",
+            "framework": "SAFe",
+            "members": [
+                {"name": "Solution A", "template": "C:/x/SolutionA.json"},
+                {"name": "Solution B", "template": "C:/x/SolutionB.json"},
+            ],
+        }
+
+    def test_portfolio_parses(self) -> None:
+        cfg = parse_solution_config(self._portfolio_dict())
+        assert cfg.kind == "portfolio"
+        assert [m.name for m in cfg.members] == ["Solution A", "Solution B"]
+        assert cfg.members[0].template.endswith("SolutionA.json")
+
+    def test_portfolio_member_needs_template(self) -> None:
+        d = self._portfolio_dict()
+        # A portfolio member referencing raw issue_times instead of a solution
+        # template is rejected.
+        d["members"] = [{"name": "Solution A", "issue_times": "C:/x/A.xlsx"}]
+        with pytest.raises(ValueError, match="template"):
             parse_solution_config(d)
 
 

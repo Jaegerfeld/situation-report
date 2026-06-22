@@ -44,7 +44,13 @@ from build_reports.terminology import (
 
 from project_template import MODULE_BUILD_REPORTS, get_section, load_template
 
-from .solution_config import Member, SolutionConfig
+from .solution_config import (
+    KIND_PORTFOLIO,
+    KIND_SOLUTION,
+    Member,
+    SolutionConfig,
+    load_solution_config,
+)
 
 #: Default metrics for the POOLED mode. Flow Velocity, Flow Time and Flow
 #: Distribution are record-based and pool cleanly regardless of differing ART
@@ -102,6 +108,40 @@ def _resolve_member_paths(member: Member) -> dict[str, Path | None]:
             "workflow": workflow, "transitions": transitions}
 
 
+def _iter_art_members(
+    config: SolutionConfig,
+    _visited: set[str] | None = None,
+) -> list[Member]:
+    """
+    Flatten a configuration to the list of ART members it ultimately contains.
+
+    For a solution this is simply its members. For a portfolio, each member
+    references a solution template, which is loaded and recursively flattened to
+    its ARTs (a portfolio of portfolios works too). Already-visited template
+    paths are skipped so a self-referential config cannot loop forever.
+
+    Args:
+        config:   The solution or portfolio configuration.
+        _visited: Internal set of resolved template paths already expanded.
+
+    Returns:
+        Flat list of ART-level Members.
+    """
+    if config.kind == KIND_SOLUTION:
+        return list(config.members)
+
+    visited = _visited if _visited is not None else set()
+    arts: list[Member] = []
+    for member in config.members:
+        resolved = str(Path(member.template).resolve())
+        if resolved in visited:
+            continue
+        visited.add(resolved)
+        sub = load_solution_config(Path(member.template))
+        arts.extend(_iter_art_members(sub, visited))
+    return arts
+
+
 def _load_member(member: Member) -> ReportData:
     """
     Load one member ART's ReportData and label it with the member's name.
@@ -153,22 +193,25 @@ def build_pooled_report_data(
     Issues are concatenated at the record level (each IssueRecord already carries
     its own ``project``/``group``). Stage lists are unioned in first-seen order;
     the first/closed-stage markers are taken from the first member that defines
-    them. The pooled ReportData's source_prefix is the solution name, so figure
-    titles are labelled with the solution rather than a single project key.
+    them. The pooled ReportData's source_prefix is the config name, so figure
+    titles are labelled with the solution/portfolio rather than a single project
+    key. For a portfolio the member solutions are flattened to all their ARTs
+    first (see _iter_art_members), so a portfolio pools every ART it contains.
 
     Args:
-        config: Validated solution configuration.
+        config: Validated solution or portfolio configuration.
         log:    Progress callback.
 
     Returns:
-        A single pooled ReportData spanning all members.
+        A single pooled ReportData spanning all contained ARTs.
     """
     pooled_issues = []
     pooled_stages: list[str] = []
     first_stage: str | None = None
     closed_stage: str | None = None
 
-    for member in config.members:
+    art_members = _iter_art_members(config)
+    for member in art_members:
         data = _load_member(member)
         log(f"  {member.name}: {len(data.issues)} issues, {len(data.stages)} stages")
         pooled_issues.extend(data.issues)
@@ -180,7 +223,7 @@ def build_pooled_report_data(
         if closed_stage is None:
             closed_stage = data.closed_stage
 
-    log(f"Pooled total: {len(pooled_issues)} issues from {len(config.members)} ART(s)")
+    log(f"Pooled total: {len(pooled_issues)} issues from {len(art_members)} ART(s)")
     return ReportData(
         issues=pooled_issues,
         cfd=[],
@@ -217,6 +260,43 @@ def load_members(
         log(f"  {member.name}: {len(data.issues)} issues after filter")
         out.append(data)
     return out
+
+
+def load_comparison_units(
+    config: SolutionConfig,
+    log: Callable[[str], None] = print,
+) -> list[ReportData]:
+    """
+    Load the side-by-side comparison units for a config, labelled per unit.
+
+    The comparison granularity matches the config level so the grouping stays
+    meaningful ("which X is the outlier?"):
+    - **solution** → one ReportData per **ART** (each labelled with the ART name).
+    - **portfolio** → one ReportData per **member solution** (each solution's ARTs
+      pooled, labelled with the solution name) — so solutions are compared, not
+      flattened to individual ARTs.
+
+    The config-level date filter is applied to every unit.
+
+    Args:
+        config: Validated solution or portfolio configuration.
+        log:    Progress callback.
+
+    Returns:
+        One filtered, labelled ReportData per comparison unit.
+    """
+    if config.kind != KIND_PORTFOLIO:
+        return load_members(config, log=log)
+
+    cfg = FilterConfig(from_date=config.from_date, to_date=config.to_date)
+    units: list[ReportData] = []
+    for member in config.members:
+        sub = load_solution_config(Path(member.template))
+        data = build_pooled_report_data(sub, log=log)  # source_prefix = solution name
+        data = apply_filters(data, cfg)
+        log(f"  Solution '{sub.name}': {len(data.issues)} issues after filter")
+        units.append(data)
+    return units
 
 
 def render_pooled_html(
@@ -284,15 +364,23 @@ def render_comparison_html(
     figure labelled with its ART name (via source_prefix). This puts the ARTs
     side by side so outliers stand out, without any pooling.
 
-    Args mirror render_pooled_html(); defaults to DEFAULT_COMPARISON_METRICS
-    (which additionally includes the stage-dependent Flow Load, safe here
-    because each ART is rendered separately).
+    Args mirror render_pooled_html(). For a *solution* the units are single ARTs,
+    so the default set is DEFAULT_COMPARISON_METRICS (it can include the
+    stage-dependent Flow Load). For a *portfolio* the units are themselves pooled
+    solutions, so the default falls back to DEFAULT_POOLED_METRICS (Flow Load is
+    excluded — pooling differing workflows within a solution would mix
+    incomparable stage columns).
 
     Returns:
         Complete HTML document, or "" if no figures were produced.
     """
-    metric_ids = metrics or DEFAULT_COMPARISON_METRICS
-    members_data = load_members(config, log=log)
+    if metrics:
+        metric_ids = metrics
+    elif config.kind == KIND_PORTFOLIO:
+        metric_ids = DEFAULT_POOLED_METRICS
+    else:
+        metric_ids = DEFAULT_COMPARISON_METRICS
+    members_data = load_comparison_units(config, log=log)
     plugins = _make_plugins(metric_ids, ct_method, target_ct, pi_config, log)
 
     all_figures: list = []
