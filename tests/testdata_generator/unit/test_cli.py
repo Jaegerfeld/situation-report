@@ -15,15 +15,12 @@
 from __future__ import annotations
 
 import argparse
-import sys
 from datetime import date
-from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pytest
 
 from testdata_generator.cli import _parse_date, _parse_issue_types, run_generate
-
 
 # ---------------------------------------------------------------------------
 # _parse_date

@@ -168,8 +168,10 @@ def _load_member(member: Member) -> ReportData:
     titles show the ART name rather than the file-derived project key.
     """
     paths = _resolve_member_paths(member)
+    issue_times = paths["issue_times"]
+    assert issue_times is not None  # guaranteed by _resolve_member_paths
     data = load_report_data(
-        paths["issue_times"], paths["cfd"], paths["workflow"], paths["transitions"]
+        issue_times, paths["cfd"], paths["workflow"], paths["transitions"]
     )
     data.source_prefix = member.name
     return data

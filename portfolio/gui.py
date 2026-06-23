@@ -20,12 +20,12 @@ from __future__ import annotations
 
 import json
 import threading
+import tkinter as tk
 import webbrowser
 from datetime import date
 from pathlib import Path
-from typing import Any
-import tkinter as tk
 from tkinter import filedialog, messagebox, ttk
+from typing import Any
 
 from .aggregator import (
     DEFAULT_COMPARISON_METRICS,

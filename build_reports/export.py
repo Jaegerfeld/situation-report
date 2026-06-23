@@ -20,7 +20,6 @@ import io
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
-import plotly.graph_objects as go
 import plotly.io as pio
 
 if TYPE_CHECKING:
@@ -67,7 +66,7 @@ def export_pdf(figures: list[Any], output_path: Path, width: int = 1400, height:
 
     # Try to merge multiple figures into one PDF using pypdf
     try:
-        from pypdf import PdfWriter  # optional dependency
+        from pypdf import PdfWriter  # noqa: F401  # availability probe for optional dep
         _export_merged_pdf(figures, output_path, width, height)
     except ImportError:
         # Fallback: export one PDF per figure with numeric suffix
@@ -94,6 +93,7 @@ def _export_merged_pdf(
         height:      Page height in pixels.
     """
     import tempfile
+
     from pypdf import PdfWriter
 
     writer = PdfWriter()
@@ -111,7 +111,7 @@ def _export_merged_pdf(
             writer.write(f)
 
 
-def write_zero_day_excel(records: "list[IssueRecord]", path: Path) -> None:
+def write_zero_day_excel(records: list[IssueRecord], path: Path) -> None:
     """
     Write a list of zero-day IssueRecords to an Excel file.
 
@@ -174,7 +174,7 @@ def write_zero_day_excel(records: "list[IssueRecord]", path: Path) -> None:
 
 
 def write_report_excel(
-    records: "list[IssueRecord]",
+    records: list[IssueRecord],
     stages: list[str],
     path: Path,
 ) -> None:
@@ -259,7 +259,7 @@ def write_report_excel(
 
 def _build_combined_html(
     figures: list,
-    section_breaks: "dict[int, str] | None" = None,
+    section_breaks: dict[int, str] | None = None,
 ) -> str:
     """
     Combine multiple plotly Figure objects into a single self-contained HTML string.

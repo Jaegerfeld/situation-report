@@ -7,6 +7,23 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+- Code-quality gate: Ruff (lint, import order, bugbear, pyupgrade, complexity)
+  and mypy (typed analytics core) now run in CI via a new `Quality` workflow,
+  on every pull request and on pushes to `main`. The same checks run in the
+  git pre-commit hook (`python scripts/setup_hooks.py` to install). Ruff and
+  mypy versions are pinned in `pyproject.toml` so local, hook, and CI agree.
+- Packaging-consistency test: every module the launcher marks as available is
+  asserted to appear in the release and dev-build bundle copy lists, so a
+  launchable module can no longer be left out of the build.
+
+### Fixed
+- Helper and Testdata Generator: an error raised during a background task could
+  itself crash with a `NameError` instead of being logged, because the deferred
+  log callback referenced the exception variable after Python had cleared it.
+  The message is now formatted before the callback is scheduled, so the real
+  error is shown.
+
 ---
 
 ## [0.16.0] – 2026-06-23

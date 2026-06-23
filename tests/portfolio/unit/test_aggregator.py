@@ -17,7 +17,6 @@ from __future__ import annotations
 from datetime import date, datetime
 
 from build_reports.loader import CfdRecord, IssueRecord, ReportData
-
 from portfolio import aggregator
 from portfolio.solution_config import KIND_PORTFOLIO, Member, SolutionConfig
 
@@ -216,8 +215,9 @@ def test_render_pooled_html_endtoend(monkeypatch) -> None:
 # ---------------------------------------------------------------------------
 
 def test_render_pdf_prepends_summary_and_exports(monkeypatch) -> None:
-    import plotly.graph_objects as go
     from pathlib import Path
+
+    import plotly.graph_objects as go
     fig = go.Figure()
     unit = ReportData(issues=[_issue("ART_A", "ART_A-1", 1, 5)], source_prefix="Sol")
     captured: dict = {}

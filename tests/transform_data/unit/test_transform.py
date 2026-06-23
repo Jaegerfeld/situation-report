@@ -21,7 +21,6 @@ import pytest
 
 from transform_data.transform import TransformResult, run_transform
 
-
 WORKFLOW_FULL = "\n".join([
     "Funnel",
     "Analysis",
@@ -177,8 +176,8 @@ class TestRunTransform:
 
 class TestMain:
     def _run_main(self, argv: list[str]):
-        import sys
         from unittest.mock import patch
+
         from transform_data.transform import main
         with patch("sys.argv", ["prog"] + argv), \
              patch("transform_data.transform.run_transform") as mock_run:

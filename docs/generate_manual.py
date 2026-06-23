@@ -22,9 +22,8 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from _font_config import setup as _setup_fonts
-_FN, _FB, _FI, _FBI = _setup_fonts()  # normal, bold, italic, bold_italic
-from version import __version__ as _VERSION
 
+_FN, _FB, _FI, _FBI = _setup_fonts()  # normal, bold, italic, bold_italic
 import plotly.io as pio
 from reportlab.lib import colors
 from reportlab.lib.enums import TA_CENTER, TA_JUSTIFY
@@ -32,10 +31,22 @@ from reportlab.lib.pagesizes import A4
 from reportlab.lib.styles import ParagraphStyle
 from reportlab.lib.units import cm
 from reportlab.platypus import (
-    BaseDocTemplate, Frame, HRFlowable, Image as RLImage, NextPageTemplate,
-    PageBreak, PageTemplate, Paragraph, Spacer, Table, TableStyle,
+    BaseDocTemplate,
+    Frame,
+    NextPageTemplate,
+    PageBreak,
+    PageTemplate,
+    Paragraph,
+    Spacer,
+    Table,
+    TableStyle,
+)
+from reportlab.platypus import (
+    Image as RLImage,
 )
 from reportlab.platypus.tableofcontents import TableOfContents
+
+from version import __version__ as _VERSION
 
 # ---------------------------------------------------------------------------
 # Test data paths (for chart generation)

@@ -23,19 +23,19 @@ independent of real export files or the current system time.
 """
 
 import json
-import pytest
-from datetime import datetime, timezone, timedelta
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
-from transform_data.workflow import Workflow
-from transform_data.processor import process_issues
+import pytest
 
+from transform_data.processor import process_issues
+from transform_data.workflow import Workflow
 
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
 
-REF_DT = datetime(2026, 1, 1, 0, 0, 0, tzinfo=timezone.utc)
+REF_DT = datetime(2026, 1, 1, 0, 0, 0, tzinfo=UTC)
 
 SIMPLE_WORKFLOW = Workflow(
     stages=["Funnel", "Analysis", "Implementation", "Done"],
@@ -107,12 +107,12 @@ def _process(issues: list[dict], workflow: Workflow = SIMPLE_WORKFLOW):
 
 class TestNoTransitions:
     def test_all_stage_minutes_are_zero(self):
-        created = datetime(2025, 12, 1, 10, 0, tzinfo=timezone.utc)
+        created = datetime(2025, 12, 1, 10, 0, tzinfo=UTC)
         records, _ = _process([_issue("T-1", created, status="Funnel")])
         assert all(v == 0 for v in records[0].stage_minutes.values())
 
     def test_dates_are_none(self):
-        created = datetime(2025, 12, 1, 10, 0, tzinfo=timezone.utc)
+        created = datetime(2025, 12, 1, 10, 0, tzinfo=UTC)
         records, _ = _process([_issue("T-1", created)])
         r = records[0]
         assert r.first_date is None
@@ -121,7 +121,7 @@ class TestNoTransitions:
 
     def test_initial_stage_falls_back_to_first_workflow_stage(self):
         """Unmapped initial status → first stage in workflow used."""
-        created = datetime(2025, 12, 1, 10, 0, tzinfo=timezone.utc)
+        created = datetime(2025, 12, 1, 10, 0, tzinfo=UTC)
         records, _ = _process([_issue("T-1", created, status="Unknown")])
         assert records[0].initial_stage == "Funnel"
 
@@ -129,8 +129,8 @@ class TestNoTransitions:
 class TestPreTransitionTime:
     def test_time_before_first_transition_goes_to_initial_stage(self):
         """60 minutes elapse in Funnel before the first explicit transition."""
-        created = datetime(2025, 12, 1, 10, 0, tzinfo=timezone.utc)
-        t1 = datetime(2025, 12, 1, 11, 0, tzinfo=timezone.utc)  # +60 min
+        created = datetime(2025, 12, 1, 10, 0, tzinfo=UTC)
+        t1 = datetime(2025, 12, 1, 11, 0, tzinfo=UTC)  # +60 min
         records, _ = _process([_issue(
             "T-1", created, status="Analysis",
             transitions=[("Funnel", "Analysis", t1)],
@@ -139,8 +139,8 @@ class TestPreTransitionTime:
 
     def test_time_after_last_transition_goes_to_last_stage(self):
         """From last transition to REF_DT is attributed to the last stage."""
-        created = datetime(2025, 12, 1, 10, 0, tzinfo=timezone.utc)
-        t1 = datetime(2025, 12, 1, 11, 0, tzinfo=timezone.utc)
+        created = datetime(2025, 12, 1, 10, 0, tzinfo=UTC)
+        t1 = datetime(2025, 12, 1, 11, 0, tzinfo=UTC)
         # REF_DT = 2026-01-01 00:00 UTC → 31 days - 1 hour after t1
         expected = int((REF_DT - t1).total_seconds() / 60)
         records, _ = _process([_issue(
@@ -156,9 +156,9 @@ class TestCarryForward:
         Issue path: Funnel (60 min) → UnknownStage (120 min) → Analysis
         The 120 min in UnknownStage must be carried forward to Funnel.
         """
-        created = datetime(2025, 12, 1, 10, 0, tzinfo=timezone.utc)
-        t1 = datetime(2025, 12, 1, 11, 0, tzinfo=timezone.utc)   # +60 min: enter Unknown
-        t2 = datetime(2025, 12, 1, 13, 0, tzinfo=timezone.utc)   # +120 min: enter Analysis
+        created = datetime(2025, 12, 1, 10, 0, tzinfo=UTC)
+        t1 = datetime(2025, 12, 1, 11, 0, tzinfo=UTC)   # +60 min: enter Unknown
+        t2 = datetime(2025, 12, 1, 13, 0, tzinfo=UTC)   # +120 min: enter Analysis
         records, _ = _process([_issue(
             "T-1", created,
             transitions=[
@@ -171,8 +171,8 @@ class TestCarryForward:
         assert r.stage_minutes["Analysis"] > 0
 
     def test_unmapped_status_is_reported(self):
-        created = datetime(2025, 12, 1, 10, 0, tzinfo=timezone.utc)
-        t1 = datetime(2025, 12, 1, 11, 0, tzinfo=timezone.utc)
+        created = datetime(2025, 12, 1, 10, 0, tzinfo=UTC)
+        t1 = datetime(2025, 12, 1, 11, 0, tzinfo=UTC)
         _, unmapped = _process([_issue(
             "T-1", created,
             transitions=[("Funnel", "UnknownStage", t1)],
@@ -180,8 +180,8 @@ class TestCarryForward:
         assert "UnknownStage" in unmapped
 
     def test_fully_mapped_workflow_has_no_unmapped(self, simple_workflow_file: Path):
-        created = datetime(2025, 12, 1, 10, 0, tzinfo=timezone.utc)
-        t1 = datetime(2025, 12, 1, 11, 0, tzinfo=timezone.utc)
+        created = datetime(2025, 12, 1, 10, 0, tzinfo=UTC)
+        t1 = datetime(2025, 12, 1, 11, 0, tzinfo=UTC)
         _, unmapped = _process([_issue(
             "T-1", created,
             transitions=[("Funnel", "Analysis", t1)],
@@ -191,8 +191,8 @@ class TestCarryForward:
 
 class TestMilestoneDates:
     def test_first_date_set_on_entry_to_first_stage(self):
-        created = datetime(2025, 12, 1, 10, 0, tzinfo=timezone.utc)
-        t1 = datetime(2025, 12, 1, 11, 0, tzinfo=timezone.utc)
+        created = datetime(2025, 12, 1, 10, 0, tzinfo=UTC)
+        t1 = datetime(2025, 12, 1, 11, 0, tzinfo=UTC)
         records, _ = _process([_issue(
             "T-1", created,
             transitions=[("Funnel", "Analysis", t1)],
@@ -201,10 +201,10 @@ class TestMilestoneDates:
 
     def test_first_date_only_set_once_on_first_entry(self):
         """Re-entering the first_stage does not overwrite first_date."""
-        created = datetime(2025, 12, 1, 10, 0, tzinfo=timezone.utc)
-        t1 = datetime(2025, 12, 1, 11, 0, tzinfo=timezone.utc)
-        t2 = datetime(2025, 12, 1, 12, 0, tzinfo=timezone.utc)
-        t3 = datetime(2025, 12, 1, 13, 0, tzinfo=timezone.utc)
+        created = datetime(2025, 12, 1, 10, 0, tzinfo=UTC)
+        t1 = datetime(2025, 12, 1, 11, 0, tzinfo=UTC)
+        t2 = datetime(2025, 12, 1, 12, 0, tzinfo=UTC)
+        t3 = datetime(2025, 12, 1, 13, 0, tzinfo=UTC)
         records, _ = _process([_issue(
             "T-1", created,
             transitions=[
@@ -216,9 +216,9 @@ class TestMilestoneDates:
         assert records[0].first_date == t1  # not t3
 
     def test_closed_date_set_on_entry_to_closed_stage(self):
-        created = datetime(2025, 12, 1, 10, 0, tzinfo=timezone.utc)
-        t1 = datetime(2025, 12, 1, 11, 0, tzinfo=timezone.utc)
-        t2 = datetime(2025, 12, 1, 12, 0, tzinfo=timezone.utc)
+        created = datetime(2025, 12, 1, 10, 0, tzinfo=UTC)
+        t1 = datetime(2025, 12, 1, 11, 0, tzinfo=UTC)
+        t2 = datetime(2025, 12, 1, 12, 0, tzinfo=UTC)
         records, _ = _process([_issue(
             "T-1", created,
             status="Done",  # current status = closed stage → closed_date kept
@@ -231,11 +231,11 @@ class TestMilestoneDates:
 
     def test_closed_date_uses_last_entry_not_first(self):
         """Issue wird wiedereröffnet und erneut geschlossen — letzter Schließzeitpunkt zählt."""
-        created = datetime(2025, 12, 1, 10, 0, tzinfo=timezone.utc)
-        t0 = datetime(2025, 12, 1, 10, 30, tzinfo=timezone.utc)  # → Analysis (First Date)
-        t1 = datetime(2025, 12, 1, 11, 0, tzinfo=timezone.utc)  # → Done (erste Schließung)
-        t2 = datetime(2025, 12, 1, 12, 0, tzinfo=timezone.utc)  # → Funnel (Wiedereröffnung)
-        t3 = datetime(2025, 12, 1, 13, 0, tzinfo=timezone.utc)  # → Done (zweite Schließung)
+        created = datetime(2025, 12, 1, 10, 0, tzinfo=UTC)
+        t0 = datetime(2025, 12, 1, 10, 30, tzinfo=UTC)  # → Analysis (First Date)
+        t1 = datetime(2025, 12, 1, 11, 0, tzinfo=UTC)  # → Done (erste Schließung)
+        t2 = datetime(2025, 12, 1, 12, 0, tzinfo=UTC)  # → Funnel (Wiedereröffnung)
+        t3 = datetime(2025, 12, 1, 13, 0, tzinfo=UTC)  # → Done (zweite Schließung)
         records, _ = _process([_issue(
             "T-1", created,
             status="Done",  # current status = closed stage → closed_date kept
@@ -251,8 +251,8 @@ class TestMilestoneDates:
 
     def test_first_date_fallback_when_first_stage_skipped(self):
         """First Date is set to the earliest stage after first_stage (before closed) if skipped."""
-        created = datetime(2025, 12, 1, 10, 0, tzinfo=timezone.utc)
-        t1 = datetime(2025, 12, 1, 11, 0, tzinfo=timezone.utc)
+        created = datetime(2025, 12, 1, 10, 0, tzinfo=UTC)
+        t1 = datetime(2025, 12, 1, 11, 0, tzinfo=UTC)
         # Funnel -> Implementation (skips Analysis which is first_stage)
         records, _ = _process([_issue(
             "T-1", created,
@@ -262,8 +262,8 @@ class TestMilestoneDates:
 
     def test_no_first_date_if_only_stages_before_first_stage_entered(self):
         """No First Date fallback if issue only enters stages at or before first_stage."""
-        created = datetime(2025, 12, 1, 10, 0, tzinfo=timezone.utc)
-        t1 = datetime(2025, 12, 1, 11, 0, tzinfo=timezone.utc)
+        created = datetime(2025, 12, 1, 10, 0, tzinfo=UTC)
+        t1 = datetime(2025, 12, 1, 11, 0, tzinfo=UTC)
         # Funnel -> Funnel (stays before Analysis, no stage after first_stage)
         records, _ = _process([_issue(
             "T-1", created,
@@ -273,8 +273,8 @@ class TestMilestoneDates:
 
     def test_no_first_date_if_only_closed_or_later_entered(self):
         """No First Date fallback if issue only enters the Closed stage or later (not between)."""
-        created = datetime(2025, 12, 1, 10, 0, tzinfo=timezone.utc)
-        t1 = datetime(2025, 12, 1, 11, 0, tzinfo=timezone.utc)
+        created = datetime(2025, 12, 1, 10, 0, tzinfo=UTC)
+        t1 = datetime(2025, 12, 1, 11, 0, tzinfo=UTC)
         # Funnel -> Done (Done IS the closed_stage, not strictly between first and closed)
         records, _ = _process([_issue(
             "T-1", created,
@@ -296,9 +296,9 @@ class TestMilestoneDates:
             closed_stage="Done",
             inprogress_stage="Implementation",
         )
-        created = datetime(2025, 12, 1, 10, 0, tzinfo=timezone.utc)
-        t1 = datetime(2025, 12, 1, 11, 0, tzinfo=timezone.utc)
-        t2 = datetime(2025, 12, 1, 12, 0, tzinfo=timezone.utc)
+        created = datetime(2025, 12, 1, 10, 0, tzinfo=UTC)
+        t1 = datetime(2025, 12, 1, 11, 0, tzinfo=UTC)
+        t2 = datetime(2025, 12, 1, 12, 0, tzinfo=UTC)
         # Analysis -> Validating (skips Implementation, goes before Done)
         records, _ = _process([_issue(
             "T-1", created,
@@ -312,10 +312,10 @@ class TestMilestoneDates:
 
     def test_closed_date_cleared_when_issue_reopened_before_closed_stage(self):
         """Closed Date is cleared if the issue's current status is before the Closed stage."""
-        created = datetime(2025, 12, 1, 10, 0, tzinfo=timezone.utc)
-        t1 = datetime(2025, 12, 1, 11, 0, tzinfo=timezone.utc)  # → Analysis
-        t2 = datetime(2025, 12, 1, 12, 0, tzinfo=timezone.utc)  # → Done (= closed_stage)
-        t3 = datetime(2025, 12, 1, 13, 0, tzinfo=timezone.utc)  # → Analysis (reopened!)
+        created = datetime(2025, 12, 1, 10, 0, tzinfo=UTC)
+        t1 = datetime(2025, 12, 1, 11, 0, tzinfo=UTC)  # → Analysis
+        t2 = datetime(2025, 12, 1, 12, 0, tzinfo=UTC)  # → Done (= closed_stage)
+        t3 = datetime(2025, 12, 1, 13, 0, tzinfo=UTC)  # → Analysis (reopened!)
         records, _ = _process([_issue(
             "T-1", created,
             status="Analysis",  # current status: before Done (closed stage)
@@ -329,10 +329,10 @@ class TestMilestoneDates:
 
     def test_closed_date_cleared_when_issue_reopened_via_fallback(self):
         """Closed Date from fallback is cleared if the issue is currently before Closed stage."""
-        created = datetime(2025, 12, 1, 10, 0, tzinfo=timezone.utc)
-        t1 = datetime(2025, 12, 1, 11, 0, tzinfo=timezone.utc)  # → Implementation
-        t2 = datetime(2025, 12, 1, 12, 0, tzinfo=timezone.utc)  # → Done (after closed_stage)
-        t3 = datetime(2025, 12, 1, 13, 0, tzinfo=timezone.utc)  # → Funnel (reopened!)
+        created = datetime(2025, 12, 1, 10, 0, tzinfo=UTC)
+        t1 = datetime(2025, 12, 1, 11, 0, tzinfo=UTC)  # → Implementation
+        t2 = datetime(2025, 12, 1, 12, 0, tzinfo=UTC)  # → Done (after closed_stage)
+        t3 = datetime(2025, 12, 1, 13, 0, tzinfo=UTC)  # → Funnel (reopened!)
         records, _ = _process([_issue(
             "T-1", created,
             status="Funnel",  # current status: before Done (closed stage)
@@ -346,9 +346,9 @@ class TestMilestoneDates:
 
     def test_closed_date_kept_when_current_status_after_closed_stage(self):
         """Closed Date is preserved if the issue's current status is after the Closed stage."""
-        created = datetime(2025, 12, 1, 10, 0, tzinfo=timezone.utc)
-        t1 = datetime(2025, 12, 1, 11, 0, tzinfo=timezone.utc)
-        t2 = datetime(2025, 12, 1, 12, 0, tzinfo=timezone.utc)
+        created = datetime(2025, 12, 1, 10, 0, tzinfo=UTC)
+        t1 = datetime(2025, 12, 1, 11, 0, tzinfo=UTC)
+        t2 = datetime(2025, 12, 1, 12, 0, tzinfo=UTC)
         # SIMPLE_WORKFLOW: Done is the closed_stage; no stage after it in this workflow
         # Use a workflow where a stage follows Done to test "status after closed"
         wf = Workflow(
@@ -384,8 +384,8 @@ class TestMilestoneDates:
             closed_stage="Done",
             inprogress_stage="Implementation",
         )
-        created = datetime(2025, 12, 1, 10, 0, tzinfo=timezone.utc)
-        t1 = datetime(2025, 12, 1, 11, 0, tzinfo=timezone.utc)
+        created = datetime(2025, 12, 1, 10, 0, tzinfo=UTC)
+        t1 = datetime(2025, 12, 1, 11, 0, tzinfo=UTC)
         # Funnel -> Validating only; with new rule first_date would be t1 (between Analysis and Done)
         # which then triggers inprogress fallback too — let's test pure no-first case by
         # going directly to Done (not between first and closed)
@@ -399,8 +399,8 @@ class TestMilestoneDates:
 
     def test_no_closed_date_if_no_first_date(self):
         """Issue that jumps directly from To Do to Closed without First stage gets no Closed Date."""
-        created = datetime(2025, 12, 1, 10, 0, tzinfo=timezone.utc)
-        t1 = datetime(2025, 12, 1, 10, 0, 23, tzinfo=timezone.utc)  # 23 sec after creation
+        created = datetime(2025, 12, 1, 10, 0, tzinfo=UTC)
+        t1 = datetime(2025, 12, 1, 10, 0, 23, tzinfo=UTC)  # 23 sec after creation
         records, _ = _process([_issue(
             "T-1", created,
             transitions=[("Funnel", "Done", t1)],  # skips Analysis (First) entirely
@@ -421,9 +421,9 @@ class TestMilestoneDates:
             closed_stage="Releasing",
             inprogress_stage="Implementation",
         )
-        created = datetime(2025, 2, 13, 12, 48, tzinfo=timezone.utc)
-        t1 = datetime(2025, 2, 13, 12, 49, tzinfo=timezone.utc)  # Funnel -> Releasing (skips all)
-        t2 = datetime(2025, 11, 30, 8, 16, tzinfo=timezone.utc)  # Releasing -> Done
+        created = datetime(2025, 2, 13, 12, 48, tzinfo=UTC)
+        t1 = datetime(2025, 2, 13, 12, 49, tzinfo=UTC)  # Funnel -> Releasing (skips all)
+        t2 = datetime(2025, 11, 30, 8, 16, tzinfo=UTC)  # Releasing -> Done
         records, _ = _process([_issue(
             "T-1", created,
             status="Done",
@@ -437,9 +437,9 @@ class TestMilestoneDates:
 
     def test_closed_date_kept_when_first_date_present(self):
         """Normal flow: First Date exists → Closed Date is not affected by the guard."""
-        created = datetime(2025, 12, 1, 10, 0, tzinfo=timezone.utc)
-        t1 = datetime(2025, 12, 1, 11, 0, tzinfo=timezone.utc)
-        t2 = datetime(2025, 12, 10, 9, 0, tzinfo=timezone.utc)
+        created = datetime(2025, 12, 1, 10, 0, tzinfo=UTC)
+        t1 = datetime(2025, 12, 1, 11, 0, tzinfo=UTC)
+        t2 = datetime(2025, 12, 10, 9, 0, tzinfo=UTC)
         records, _ = _process([_issue(
             "T-1", created,
             status="Done",
@@ -454,15 +454,15 @@ class TestMilestoneDates:
 
 class TestTransitions:
     def test_first_transition_is_always_created(self):
-        created = datetime(2025, 12, 1, 10, 0, tzinfo=timezone.utc)
+        created = datetime(2025, 12, 1, 10, 0, tzinfo=UTC)
         records, _ = _process([_issue("T-1", created)])
         assert records[0].transitions[0].label == "Created"
         assert records[0].transitions[0].timestamp == created
 
     def test_transitions_are_sorted_by_timestamp(self):
-        created = datetime(2025, 12, 1, 10, 0, tzinfo=timezone.utc)
-        t1 = datetime(2025, 12, 1, 11, 0, tzinfo=timezone.utc)
-        t2 = datetime(2025, 12, 1, 12, 0, tzinfo=timezone.utc)
+        created = datetime(2025, 12, 1, 10, 0, tzinfo=UTC)
+        t1 = datetime(2025, 12, 1, 11, 0, tzinfo=UTC)
+        t2 = datetime(2025, 12, 1, 12, 0, tzinfo=UTC)
         records, _ = _process([_issue(
             "T-1", created,
             transitions=[
@@ -492,7 +492,7 @@ class TestParseDt:
 class TestReferenceNone:
     def test_no_reference_dt_uses_now(self, tmp_path):
         from transform_data.processor import process_issues
-        created = datetime(2025, 1, 1, 10, 0, tzinfo=timezone.utc)
+        created = datetime(2025, 1, 1, 10, 0, tzinfo=UTC)
         payload = _make_json([_issue("T-1", created)])
         jf = tmp_path / "T.json"
         jf.write_text(payload, encoding="utf-8")

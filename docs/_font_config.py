@@ -13,8 +13,9 @@
 #   Suchpfade: docs/assets/fonts/ → Windows-Fonts → Linux-Fonts → ReportLab-Vera
 # =============================================================================
 
-from pathlib import Path
 import sys
+from pathlib import Path
+
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 
@@ -63,6 +64,7 @@ def setup() -> tuple[str, str, str, str]:
     missing = [k for k, v in paths.items() if not v]
     warnings.warn(
         f"Unicode-Font nicht gefunden ({missing}), Fallback auf Helvetica "
-        f"(rumänische Sonderzeichen werden nicht korrekt dargestellt)"
+        f"(rumänische Sonderzeichen werden nicht korrekt dargestellt)",
+        stacklevel=2,
     )
     return "Helvetica", "Helvetica-Bold", "Helvetica-Oblique", "Helvetica-BoldOblique"

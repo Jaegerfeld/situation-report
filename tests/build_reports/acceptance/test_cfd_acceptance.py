@@ -108,7 +108,6 @@ class TestCfdTrendLinePositions:
 
     def test_inflow_above_outflow(self, cfd_result):
         """Inflow trend line ends above the outflow trend line (In Analysis stacks higher than Completed)."""
-        cd = cfd_result.chart_data
         metric = CfdMetric()
         figs = metric.render(cfd_result, SAFE)
         trend = [t for t in figs[0].data if not t.stackgroup]

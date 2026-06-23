@@ -13,7 +13,6 @@
 # =============================================================================
 
 import copy
-import sys
 from pathlib import Path
 
 from pptx import Presentation

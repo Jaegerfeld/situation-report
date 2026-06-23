@@ -27,7 +27,10 @@ import plotly.graph_objects as go
 
 from ..loader import ReportData
 from ..pi_config import (
-    PIInterval, assign_pi, default_quarter_intervals, load_pi_config,
+    PIInterval,
+    assign_pi,
+    default_quarter_intervals,
+    load_pi_config,
 )
 from ..terminology import FLOW_VELOCITY, term
 from . import register
@@ -142,7 +145,6 @@ class FlowVelocityMetric(MetricPlugin):
 
         from_date = closed[0]
         to_date = closed[-1]
-        days_total = (to_date - from_date).days + 1
 
         stats = dict(
             count=len(closed),

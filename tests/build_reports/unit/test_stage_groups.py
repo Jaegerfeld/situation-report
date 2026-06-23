@@ -18,8 +18,11 @@ import pytest
 
 from build_reports.loader import IssueRecord
 from build_reports.stage_groups import (
-    GROUP_DONE, GROUP_IN_PROGRESS, GROUP_TODO,
-    classify_stages, issue_stage_group,
+    GROUP_DONE,
+    GROUP_IN_PROGRESS,
+    GROUP_TODO,
+    classify_stages,
+    issue_stage_group,
 )
 
 

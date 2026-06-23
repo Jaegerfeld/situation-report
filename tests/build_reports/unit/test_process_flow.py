@@ -22,12 +22,12 @@ from build_reports.metrics.process_flow import (
     ProcessFlowMetric,
     ProcessFlowTimeMetric,
     _circular_positions,
+    _Edge,
     _edge_width,
-    _format_label,
     _format_duration,
+    _format_label,
     _node_size,
     _parse_ts,
-    _Edge,
 )
 from build_reports.terminology import PROCESS_FLOW, PROCESS_FLOW_TIME, SAFE
 

@@ -16,7 +16,6 @@ from __future__ import annotations
 from datetime import datetime
 
 from build_reports.loader import IssueRecord, ReportData
-
 from portfolio.summary import (
     Summary,
     _percentile,

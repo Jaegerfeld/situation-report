@@ -193,7 +193,7 @@ def _sample_pi_close_dt(
     )
 
 
-def _simulate_issue(
+def _simulate_issue(  # noqa: C901
     workflow: WorkflowSpec,
     config: GeneratorConfig,
     rng: random.Random,

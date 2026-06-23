@@ -44,10 +44,10 @@ def _parse_date(value: str) -> date:
     """
     try:
         return date.fromisoformat(value)
-    except ValueError:
+    except ValueError as err:
         raise argparse.ArgumentTypeError(
             f"Invalid date '{value}' — expected YYYY-MM-DD format."
-        )
+        ) from err
 
 
 def _parse_issue_types(values: list[str]) -> dict[str, float]:
@@ -73,10 +73,10 @@ def _parse_issue_types(values: list[str]) -> dict[str, float]:
         type_name, weight_str = parts
         try:
             weight = float(weight_str)
-        except ValueError:
+        except ValueError as err:
             raise argparse.ArgumentTypeError(
                 f"Invalid weight '{weight_str}' in '{entry}' — must be a number."
-            )
+            ) from err
         if weight < 0:
             raise argparse.ArgumentTypeError(
                 f"Weight must be non-negative, got {weight} in '{entry}'."

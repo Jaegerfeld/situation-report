@@ -19,7 +19,7 @@ from __future__ import annotations
 import math
 import statistics
 from collections import Counter, defaultdict
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import datetime
 
 import plotly.graph_objects as go

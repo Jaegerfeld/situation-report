@@ -30,12 +30,12 @@ Example:
 import argparse
 from collections.abc import Callable
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
-from .workflow import parse_workflow
 from .processor import process_issues
-from .writers import write_transitions, write_issue_times, write_cfd
+from .workflow import parse_workflow
+from .writers import write_cfd, write_issue_times, write_transitions
 
 
 @dataclass(frozen=True)
@@ -72,7 +72,7 @@ def run_transform(
     if workflow.closed_stage is None:
         log("WARNUNG: Kein <Closed>-Marker in der Workflow-Datei — Closed Date wird nicht berechnet.")
 
-    reference_dt = datetime.now(tz=timezone.utc)
+    reference_dt = datetime.now(tz=UTC)
     records, unmapped = process_issues(json_file, workflow, reference_dt)
 
     if unmapped:

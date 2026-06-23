@@ -17,10 +17,7 @@ import json
 from pathlib import Path
 from unittest.mock import patch
 
-import pytest
-
 from helper.cli import run_merge
-
 
 # ---------------------------------------------------------------------------
 # run_merge — error branches

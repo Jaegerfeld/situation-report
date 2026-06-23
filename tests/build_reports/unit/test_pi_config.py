@@ -21,9 +21,11 @@ from pathlib import Path
 import pytest
 
 from build_reports.pi_config import (
-    PIInterval, assign_pi, default_quarter_intervals, load_pi_config,
+    PIInterval,
+    assign_pi,
+    default_quarter_intervals,
+    load_pi_config,
 )
-
 
 # ---------------------------------------------------------------------------
 # Helpers
