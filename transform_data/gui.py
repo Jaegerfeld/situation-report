@@ -26,8 +26,8 @@ import tempfile
 import threading
 import tkinter as tk
 import webbrowser
-from tkinter import filedialog, scrolledtext, ttk
 from pathlib import Path
+from tkinter import filedialog, scrolledtext, ttk
 
 try:
     from version import __version__ as _VERSION

@@ -16,7 +16,6 @@ from __future__ import annotations
 
 import json
 from datetime import date, datetime
-from pathlib import Path
 
 import pytest
 
@@ -230,7 +229,6 @@ class TestBackflow:
         for issue in data["issues"]:
             histories = issue["changelog"]["histories"]
             for i in range(1, len(histories)):
-                prev_to = histories[i - 1]["items"][0]["toString"]
                 curr_from = histories[i]["items"][0]["fromString"]
                 curr_to = histories[i]["items"][0]["toString"]
                 if (curr_from in stages and curr_to in stages

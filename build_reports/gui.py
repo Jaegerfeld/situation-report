@@ -35,13 +35,13 @@ try:
 except ImportError:
     _VERSION = "?"
 
-import project_template
-
 from openpyxl import load_workbook
 from tkcalendar import Calendar
 
+import project_template
+
 from .cli import run_reports
-from .export import _build_combined_html, write_zero_day_excel
+from .export import _build_combined_html
 from .metrics import all_metrics
 from .metrics.flow_load import FlowLoadMetric
 from .metrics.flow_time import CT_METHOD_A, CT_METHOD_B, FlowTimeMetric
@@ -852,10 +852,10 @@ class _ToolTip:
         text:   Initial tooltip text.
     """
 
-    def __init__(self, widget: "tk.Widget", text: str) -> None:
+    def __init__(self, widget: tk.Widget, text: str) -> None:
         self._widget = widget
         self._text = text
-        self._tip_window: "tk.Toplevel | None" = None
+        self._tip_window: tk.Toplevel | None = None
         widget.bind("<Enter>", self._show, add="+")
         widget.bind("<Leave>", self._hide, add="+")
 
@@ -2163,7 +2163,7 @@ class BuildReportsApp(tk.Tk):
         self._log(self._tr("log_started"))
         self._show_in_browser_from_inputs(inputs)
 
-    def _show_in_browser_from_inputs(self, inputs: dict) -> None:
+    def _show_in_browser_from_inputs(self, inputs: dict) -> None:  # noqa: C901
         """
         Compute metrics in a background thread and open results in the browser.
 
@@ -2172,7 +2172,7 @@ class BuildReportsApp(tk.Tk):
         """
         self._set_buttons_enabled(False)
 
-        def worker() -> None:
+        def worker() -> None:  # noqa: C901
             from .filters import FilterConfig, apply_filters
             from .loader import load_report_data
             from .metrics import all_metrics as _all_metrics

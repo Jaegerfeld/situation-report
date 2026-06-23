@@ -13,8 +13,9 @@
 #   das Fallback-Verhalten für mehrere Figures ohne pypdf.
 # =============================================================================
 
+from datetime import datetime
 from pathlib import Path
-from unittest.mock import MagicMock, call, patch
+from unittest.mock import patch
 
 import plotly.graph_objects as go
 import pytest
@@ -191,7 +192,6 @@ class TestWriteReportExcel:
 
     def test_file_is_created(self, tmp_path):
         """An XLSX file is created at the given path."""
-        from datetime import datetime
         path = tmp_path / "report.xlsx"
         write_report_excel([_make_report_record("A-1")], self._STAGES, path)
         assert path.exists()
@@ -234,6 +234,7 @@ class TestWriteReportExcel:
     def test_status_group_done_for_closed_issue(self, tmp_path):
         """A closed issue receives the status group 'Done'."""
         from datetime import datetime
+
         from openpyxl import load_workbook
         path = tmp_path / "report.xlsx"
         rec = _make_report_record("A-1", datetime(2025, 1, 2), datetime(2025, 1, 10))
@@ -247,6 +248,7 @@ class TestWriteReportExcel:
     def test_status_group_in_progress(self, tmp_path):
         """An issue with First Date but no Closed Date receives 'In Progress'."""
         from datetime import datetime
+
         from openpyxl import load_workbook
         path = tmp_path / "report.xlsx"
         rec = _make_report_record("A-2", first=datetime(2025, 1, 2), closed=None)
@@ -272,6 +274,7 @@ class TestWriteReportExcel:
     def test_ct_a_correct_value(self, tmp_path):
         """Cycle Time A equals the calendar-day difference between First Date and Closed Date."""
         from datetime import datetime
+
         from openpyxl import load_workbook
         path = tmp_path / "report.xlsx"
         rec = _make_report_record("A-1", datetime(2025, 1, 1), datetime(2025, 1, 11))
@@ -285,6 +288,7 @@ class TestWriteReportExcel:
     def test_ct_b_correct_value(self, tmp_path):
         """Cycle Time B equals the sum of stage minutes (excl. last stage) divided by 1440."""
         from datetime import datetime
+
         from openpyxl import load_workbook
         path = tmp_path / "report.xlsx"
         # 1440 min in Analysis + 2880 min in In Dev; Releasing (last stage) excluded

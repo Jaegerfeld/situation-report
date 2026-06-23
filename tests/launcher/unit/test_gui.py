@@ -12,16 +12,16 @@
 # =============================================================================
 
 from launcher.gui import (
-    LANG_DE,
-    LANG_EN,
-    LANG_FR,
-    LANG_PT,
-    LANG_RO,
     _LANG_ORDER,
     _MODULES,
     _RELEASES_URL,
     _T,
     _UPDATE_API,
+    LANG_DE,
+    LANG_EN,
+    LANG_FR,
+    LANG_PT,
+    LANG_RO,
     _parse_version,
 )
 

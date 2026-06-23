@@ -14,8 +14,14 @@
 import pytest
 
 from build_reports.terminology import (
-    FLOW_DISTRIBUTION, FLOW_LOAD, FLOW_TIME, FLOW_VELOCITY,
-    GLOBAL, SAFE, all_terms, term,
+    FLOW_DISTRIBUTION,
+    FLOW_LOAD,
+    FLOW_TIME,
+    FLOW_VELOCITY,
+    GLOBAL,
+    SAFE,
+    all_terms,
+    term,
 )
 
 

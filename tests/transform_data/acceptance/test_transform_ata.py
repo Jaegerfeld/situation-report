@@ -25,15 +25,16 @@ definition to ensure the pipeline meets its functional requirements.
 A fixed reference_dt is used so results are reproducible across runs.
 """
 
-import pytest
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
-from transform_data.workflow import parse_workflow
+import pytest
+
 from transform_data.processor import process_issues
+from transform_data.workflow import parse_workflow
 
 # Fixed reference date → stage minutes for open issues are deterministic
-REFERENCE_DT = datetime(2026, 1, 1, 0, 0, 0, tzinfo=timezone.utc)
+REFERENCE_DT = datetime(2026, 1, 1, 0, 0, 0, tzinfo=UTC)
 
 
 @pytest.fixture(scope="module")
@@ -191,6 +192,6 @@ class TestCfdInvariants:
             )
 
     def test_created_date_not_in_future(self, records):
-        cutoff = datetime(2026, 12, 31, tzinfo=timezone.utc)
+        cutoff = datetime(2026, 12, 31, tzinfo=UTC)
         for r in records:
             assert r.created <= cutoff, f"{r.key}: created liegt in der Zukunft"

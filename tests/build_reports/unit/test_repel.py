@@ -13,7 +13,6 @@
 # =============================================================================
 
 import plotly.graph_objects as go
-import pytest
 
 from build_reports.repel import add_repelled_hlines
 

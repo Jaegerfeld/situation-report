@@ -14,7 +14,7 @@
 
 from __future__ import annotations
 
-from .base import MetricPlugin, MetricResult
+from .base import MetricPlugin
 
 _REGISTRY: dict[str, MetricPlugin] = {}
 
@@ -69,9 +69,11 @@ def all_metrics() -> list[MetricPlugin]:
 
 # Import metric modules to trigger auto-registration.
 # Add new metric modules here when they are created.
-from . import flow_time          # noqa: E402, F401
-from . import flow_velocity      # noqa: E402, F401
-from . import flow_load          # noqa: E402, F401
-from . import cfd                # noqa: E402, F401
-from . import flow_distribution  # noqa: E402, F401
-from . import process_flow       # noqa: E402, F401
+from . import (
+    cfd,  # noqa: E402, F401
+    flow_distribution,  # noqa: E402, F401
+    flow_load,  # noqa: E402, F401
+    flow_time,  # noqa: E402, F401
+    flow_velocity,  # noqa: E402, F401
+    process_flow,  # noqa: E402, F401
+)

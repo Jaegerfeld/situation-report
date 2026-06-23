@@ -23,10 +23,20 @@ import plotly.graph_objects as go
 import pytest
 
 from build_reports.gui import (
-    LANG_DE, LANG_EN, LANG_RO, LANG_PT, LANG_FR, _T,
-    _build_combined_html, _build_template_dict, _check_stage_consistency,
-    _default_date_range, _parse_date_safe, _parse_template_dict,
-    _read_available_filters, _split_csv, _TEMPLATE_VERSION,
+    _T,
+    LANG_DE,
+    LANG_EN,
+    LANG_FR,
+    LANG_PT,
+    LANG_RO,
+    _build_combined_html,
+    _build_template_dict,
+    _check_stage_consistency,
+    _default_date_range,
+    _parse_date_safe,
+    _parse_template_dict,
+    _read_available_filters,
+    _split_csv,
 )
 
 

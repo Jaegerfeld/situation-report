@@ -75,7 +75,7 @@ def classify_stages(
     return result
 
 
-def issue_stage_group(issue: "IssueRecord") -> str:
+def issue_stage_group(issue: IssueRecord) -> str:
     """
     Determine the status group of an issue from its workflow transition dates.
 

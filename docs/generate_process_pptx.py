@@ -1,15 +1,15 @@
-# -*- coding: utf-8 -*-
 """
 Generate a business-process capability map for situation-report.
 Target audience: non-technical stakeholders.
 """
 from pathlib import Path
+
+from lxml import etree
 from pptx import Presentation
-from pptx.util import Inches, Pt, Emu
 from pptx.dml.color import RGBColor
 from pptx.enum.text import PP_ALIGN
 from pptx.oxml.ns import qn
-from lxml import etree
+from pptx.util import Inches, Pt
 
 OUTPUT = Path(__file__).parent / "situation_report_prozess.pptx"
 
@@ -336,7 +336,6 @@ def slide_overview(prs):
 
     for i, step in enumerate(STEPS):
         c   = STEP_COLORS[i]
-        lc  = RGBColor(int(c[0]*0.75), int(c[1]*0.75), int(c[2]*0.75))
         x   = x0 + i * (box_w + gap)
 
         # Colored box

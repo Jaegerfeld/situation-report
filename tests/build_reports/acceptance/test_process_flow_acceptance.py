@@ -19,7 +19,7 @@ from pathlib import Path
 
 import pytest
 
-from build_reports.loader import load_transitions, ReportData
+from build_reports.loader import ReportData, load_transitions
 from build_reports.metrics.process_flow import ProcessFlowMetric, _FlowData
 from build_reports.terminology import SAFE
 

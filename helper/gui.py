@@ -479,7 +479,8 @@ class _App:
                 )
                 self._root.after(0, lambda: self._log_msg(self._t("log_done")))
             except Exception as exc:
-                self._root.after(0, lambda: self._log_msg(self._t("log_error").format(exc)))
+                msg = self._t("log_error").format(exc)
+                self._root.after(0, lambda: self._log_msg(msg))
             finally:
                 for timer in _progress_timer:
                     self._root.after_cancel(timer)

@@ -1,9 +1,10 @@
 """Generate a PowerPoint feature overview for situation-report."""
 from pathlib import Path
+
 from pptx import Presentation
-from pptx.util import Inches, Pt, Emu
 from pptx.dml.color import RGBColor
 from pptx.enum.text import PP_ALIGN
+from pptx.util import Inches, Pt
 
 # ---------------------------------------------------------------------------
 # Design tokens
@@ -284,7 +285,6 @@ def add_text_box(slide, text, left, top, width, height,
 
 def build_title_slide(prs, data):
     slide = prs.slides.add_slide(prs.slide_layouts[6])  # blank
-    slide.shapes.title  # may be None on blank layout — ignore
 
     # Full-bleed dark background
     add_rect(slide, 0, 0, 13.33, 7.5, C_DARK)

@@ -20,8 +20,9 @@ Tests isolate the parsing logic using the simple fixture workflow
 and temporary files for error cases.
 """
 
-import pytest
 from pathlib import Path
+
+import pytest
 
 from transform_data.workflow import parse_workflow
 

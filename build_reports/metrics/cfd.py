@@ -23,7 +23,6 @@ from datetime import date, timedelta
 import plotly.graph_objects as go
 
 from ..loader import ReportData
-from ..terminology import FLOW_DISTRIBUTION, term
 from . import register
 from .base import MetricPlugin, MetricResult
 

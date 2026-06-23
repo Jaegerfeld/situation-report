@@ -506,7 +506,7 @@ class _App:
         self._btn_report.configure(text=self._t("btn_report"))
         self._log_frame.configure(text=self._t("lbl_log"))
         lang = self._lang_var.get()
-        for rb, (val, lbl_de, lbl_en) in zip(self._pattern_rbs, _PATTERN_LABELS):
+        for rb, (_val, lbl_de, lbl_en) in zip(self._pattern_rbs, _PATTERN_LABELS):
             rb.configure(text=lbl_de if lang == LANG_DE else lbl_en)
         self._build_menu()
 
@@ -707,7 +707,7 @@ class _App:
                 return None
         return result if result else None
 
-    def _run(self) -> None:
+    def _run(self) -> None:  # noqa: C901
         if self._running:
             return
 
@@ -841,7 +841,8 @@ class _App:
                     0, lambda: self._btn_report.configure(state="normal")
                 )
             except Exception as exc:
-                self._root.after(0, lambda: self._log_msg(self._t("log_error").format(exc)))
+                msg = self._t("log_error").format(exc)
+                self._root.after(0, lambda: self._log_msg(msg))
             finally:
                 for timer in _progress_timer:
                     self._root.after_cancel(timer)
@@ -897,8 +898,8 @@ class _App:
                     0, lambda: self._log_msg(self._t("log_report_done"))
                 )
             except Exception as exc:
-                self._root.after(0, lambda: self._log_msg(
-                    self._t("log_report_error").format(exc)))
+                msg = self._t("log_report_error").format(exc)
+                self._root.after(0, lambda: self._log_msg(msg))
             finally:
                 for t in _timer:
                     self._root.after_cancel(t)

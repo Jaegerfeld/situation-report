@@ -1,6 +1,35 @@
 #!/bin/sh
-# Auto-update README.md version badge when version.py is staged.
+# Pre-commit hook for SituationReport.
+#
+#   1. Auto-update the README version badge when version.py is staged.
+#   2. Run the same quality gate as CI (ruff + mypy) so lint/type problems are
+#      caught before they reach a PR. Mirrors .github/workflows/quality.yml;
+#      ruff/mypy versions are pinned in pyproject [dev] so local == CI == hook.
+#
+# Only runs the gate when Python files are staged. Bypass in an emergency with
+# `git commit --no-verify`.
+
+# 1. README version badge -----------------------------------------------------
 if git diff --cached --name-only | grep -q "^version\.py$"; then
     python scripts/update_readme_version.py
     git add README.md
+fi
+
+# 2. Quality gate -------------------------------------------------------------
+if git diff --cached --name-only --diff-filter=ACM | grep -q "\.py$"; then
+    echo "pre-commit: running ruff + mypy ..."
+
+    if ! python -m ruff check .; then
+        echo "pre-commit: ruff found problems. Fix them (or run 'ruff check . --fix'), then re-commit." >&2
+        echo "            Bypass with 'git commit --no-verify' if you must." >&2
+        exit 1
+    fi
+
+    if ! python -m mypy; then
+        echo "pre-commit: mypy found type errors. Fix them, then re-commit." >&2
+        echo "            Bypass with 'git commit --no-verify' if you must." >&2
+        exit 1
+    fi
+
+    echo "pre-commit: ruff + mypy clean."
 fi

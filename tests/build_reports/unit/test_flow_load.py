@@ -17,7 +17,7 @@ from datetime import datetime
 import pytest
 
 from build_reports.loader import IssueRecord, ReportData
-from build_reports.metrics.flow_load import FlowLoadMetric, _age_days, _current_stage
+from build_reports.metrics.flow_load import FlowLoadMetric, _current_stage
 from build_reports.terminology import SAFE
 
 

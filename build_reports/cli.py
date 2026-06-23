@@ -16,7 +16,6 @@
 from __future__ import annotations
 
 import argparse
-import sys
 from collections.abc import Callable
 from datetime import date
 from pathlib import Path
@@ -54,13 +53,13 @@ def _parse_date(value: str) -> date:
     """
     try:
         return date.fromisoformat(value)
-    except ValueError:
+    except ValueError as err:
         raise argparse.ArgumentTypeError(
             f"Invalid date '{value}' — expected YYYY-MM-DD format."
-        )
+        ) from err
 
 
-def run_reports(
+def run_reports(  # noqa: C901
     issue_times: Path,
     cfd: Path | None = None,
     workflow: Path | None = None,

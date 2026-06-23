@@ -15,10 +15,9 @@
 from __future__ import annotations
 
 import argparse
-import sys
 from datetime import date
 from pathlib import Path
-from unittest.mock import MagicMock, call, patch
+from unittest.mock import MagicMock, patch
 
 import plotly.graph_objects as go
 import pytest
@@ -26,7 +25,6 @@ import pytest
 from build_reports.cli import _parse_date, run_reports
 from build_reports.metrics.base import MetricResult
 from build_reports.terminology import GLOBAL, SAFE
-
 
 # ---------------------------------------------------------------------------
 # Helpers

@@ -18,7 +18,12 @@ import pytest
 
 from build_reports.loader import IssueRecord, ReportData
 from build_reports.metrics.flow_time import (
-    CT_METHOD_A, CT_METHOD_B, FlowTimeMetric, _loess, _month_ticks, _point_color,
+    CT_METHOD_A,
+    CT_METHOD_B,
+    FlowTimeMetric,
+    _loess,
+    _month_ticks,
+    _point_color,
 )
 from build_reports.terminology import GLOBAL, SAFE
 
@@ -622,7 +627,6 @@ class TestMethodBClosedStage:
         closed in Dec have small carry-forward. With the fix, carry-forward is
         excluded, so Pearson r should be near zero (not strongly negative).
         """
-        from datetime import timedelta
 
         base_first = datetime(2025, 1, 1)
         issues = []

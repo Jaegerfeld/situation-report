@@ -19,12 +19,12 @@ from datetime import date
 import pytest
 
 from portfolio.gui import (
+    _T,
     LANG_DE,
     LANG_EN,
     LANG_FR,
     LANG_PT,
     LANG_RO,
-    _T,
     _member_dict,
     build_config_from_fields,
     default_metrics_for_mode,

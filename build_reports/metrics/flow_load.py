@@ -21,7 +21,7 @@
 from __future__ import annotations
 
 import statistics
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import date
 
 import plotly.graph_objects as go
@@ -30,9 +30,10 @@ from ..loader import IssueRecord, ReportData
 from ..repel import add_repelled_hlines
 from ..stage_groups import (
     GROUP_IN_PROGRESS,
-    classify_stages, issue_stage_group,
+    classify_stages,
+    issue_stage_group,
 )
-from ..terminology import FLOW_LOAD, term
+from ..terminology import FLOW_LOAD
 from . import register
 from .base import MetricPlugin, MetricResult
 
@@ -160,10 +161,15 @@ class FlowLoadMetric(MetricPlugin):
         ct_median = ct_p85 = None
         done_count = 0
         if closed_issues:
-            ct_days = sorted([
-                (i.closed_date - i.first_date).total_seconds() / 86400
+            ct_pairs = [
+                (i.closed_date, i.first_date)
                 for i in closed_issues
-                if (i.closed_date - i.first_date).total_seconds() > 0
+                if i.closed_date is not None and i.first_date is not None
+            ]
+            ct_days = sorted([
+                (closed - first).total_seconds() / 86400
+                for closed, first in ct_pairs
+                if (closed - first).total_seconds() > 0
             ])
             if ct_days:
                 n = len(ct_days)
@@ -214,8 +220,6 @@ class FlowLoadMetric(MetricPlugin):
             return []
 
         ld: _LoadData = result.chart_data
-        s = result.stats
-        label = term(FLOW_LOAD, terminology)
 
         header = (
             f"Flow Load: Aging Work in Progress  |  "
@@ -270,7 +274,7 @@ class FlowLoadMetric(MetricPlugin):
         # Reference lines — repelled so annotations don't overlap when values are close
         all_ages = [a for ages in ld.by_stage.values() for a in ages]
         y_max = max(all_ages) if all_ages else 1.0
-        hlines = []
+        hlines: list[tuple[float | None, str, str, str]] = []
         if ld.ct_median is not None:
             hlines.append((ld.ct_median, "blue", "dot", f"{ld.ct_median}d"))
         if ld.ct_pct85 is not None:

@@ -15,7 +15,7 @@
 
 from __future__ import annotations
 
-from datetime import date, datetime, timezone
+from datetime import date, datetime
 from pathlib import Path
 
 import openpyxl
@@ -29,7 +29,6 @@ from build_reports.loader import (
     load_report_data,
     load_transitions,
 )
-
 
 # ---------------------------------------------------------------------------
 # Helpers

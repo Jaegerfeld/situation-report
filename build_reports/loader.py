@@ -165,7 +165,7 @@ def load_issue_times(path: Path) -> tuple[list[IssueRecord], list[str]]:
         if not any(row):
             continue
 
-        def cell(name: str) -> object:
+        def cell(name: str, row: list = row) -> object:
             return row[col[name]] if name in col else None
 
         stage_minutes = {

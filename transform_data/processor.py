@@ -18,8 +18,8 @@
 
 import json
 import re
-from dataclasses import dataclass, field
-from datetime import datetime, timezone, timedelta
+from dataclasses import dataclass
+from datetime import UTC, datetime, timedelta, timezone
 from pathlib import Path
 
 from .workflow import Workflow
@@ -67,7 +67,7 @@ class IssueRecord:
     transitions: list[Transition]  # sorted by timestamp; first entry is always "Created"
 
 
-def process_issues(
+def process_issues(  # noqa: C901
     json_path: Path,
     workflow: Workflow,
     reference_dt: datetime | None = None,
@@ -88,7 +88,7 @@ def process_issues(
     - Issues with no transitions have all-zero stage times.
     """
     if reference_dt is None:
-        reference_dt = datetime.now(tz=timezone.utc)
+        reference_dt = datetime.now(tz=UTC)
 
     data = json.loads(json_path.read_text(encoding="utf-8"))
     records: list[IssueRecord] = []

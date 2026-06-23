@@ -14,7 +14,7 @@
 
 """Unit tests for transform_data.writers."""
 
-from datetime import date, datetime, timezone, timedelta
+from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 
 import openpyxl
@@ -22,8 +22,7 @@ import pytest
 
 from transform_data.processor import IssueRecord, Transition
 from transform_data.workflow import parse_workflow
-from transform_data.writers import write_cfd, write_transitions, write_issue_times
-
+from transform_data.writers import write_cfd, write_issue_times, write_transitions
 
 WORKFLOW_TEXT = "\n".join([
     "Funnel",

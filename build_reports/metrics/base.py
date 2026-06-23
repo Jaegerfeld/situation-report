@@ -18,7 +18,10 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from typing import Any
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    from ..loader import ReportData
 
 
 @dataclass
@@ -58,7 +61,7 @@ class MetricPlugin(ABC):
     metric_id: str = ""
 
     @abstractmethod
-    def compute(self, data: "ReportData", terminology: str) -> MetricResult:  # noqa: F821
+    def compute(self, data: ReportData, terminology: str) -> MetricResult:
         """
         Compute statistics for this metric from the provided report data.
 
@@ -92,7 +95,7 @@ class MetricPlugin(ABC):
     # compute() / render() without source_prefix injection.
     # ------------------------------------------------------------------
 
-    def run(self, data: "ReportData", terminology: str) -> MetricResult:  # noqa: F821
+    def run(self, data: ReportData, terminology: str) -> MetricResult:
         """
         Compute the metric and inject the source_prefix from data.
 

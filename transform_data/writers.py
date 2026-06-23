@@ -15,7 +15,7 @@
 # =============================================================================
 
 import io
-from datetime import date, datetime, timedelta, timezone
+from datetime import date, datetime, timedelta
 from pathlib import Path
 
 from openpyxl import Workbook

@@ -11,16 +11,20 @@ docs = ["mkdocs-material>=9.5", "mkdocs-static-i18n>=1.3", "babel>=2.14"]
 # pywebview requires .NET SDK on Windows for pythonnet; install manually if needed
 gui = ["pywebview>=4.4"]
 build = ["pyinstaller>=6.0"]
-dev = ["pytest-cov>=5.0", "genbadge[coverage]>=1.1"]
+# ruff/mypy are pinned to a minor series so the quality gate is reproducible:
+# a floating version could fire new lint rules or shift complexity counts in CI
+# on code that was never touched. Bump these deliberately, in lockstep with the
+# pre-commit hook and quality.yml.
+dev = ["pytest-cov>=5.0", "genbadge[coverage]>=1.1", "ruff==0.15.*", "mypy==2.1.*"]
 
 [tool.setuptools.packages.find]
-include = ["get_data*", "transform_data*", "build_reports*", "testdata_generator*", "simulate*", "helper*"]
+include = ["get_data*", "transform_data*", "build_reports*", "testdata_generator*", "simulate*", "helper*", "portfolio*", "launcher*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 
 [tool.coverage.run]
-source = ["build_reports", "transform_data", "get_data", "simulate", "testdata_generator", "helper"]
+source = ["build_reports", "transform_data", "get_data", "simulate", "testdata_generator", "helper", "portfolio", "launcher"]
 omit = ["*/tests/*", "*/docs/*", "*_gui.pyw", "*_gui.py", "*/gui.py", "*/__main__.py"]
 
 [tool.coverage.report]
@@ -28,3 +32,36 @@ exclude_lines = ["pragma: no cover", "if __name__ == .__main__.:"]
 
 [tool.ruff]
 line-length = 100
+extend-exclude = [
+    "*-AMD-R9-DARKSTAR.py",  # OneDrive sync-conflict copies
+    "feedback",             # archived ideas/bugs workflow folder, not source
+]
+
+[tool.ruff.lint]
+# F (pyflakes) catches real bugs — unused/undefined names; I = import sorting;
+# B = bugbear; UP = pyupgrade; C901 = cyclomatic complexity. E501 (line length)
+# and E402 (sys.path-before-import in the doc generators) are intentionally not
+# gated to avoid noise.
+select = ["F", "I", "B", "UP", "C901"]
+ignore = ["B905"]  # zip-without-explicit-strict — revisit later
+
+[tool.ruff.lint.mccabe]
+max-complexity = 15
+
+[tool.mypy]
+python_version = "3.11"
+ignore_missing_imports = true   # tkcalendar / plotly / openpyxl ship no type stubs
+follow_imports = "silent"
+warn_unused_ignores = true
+exclude = '(gui|__main__)\.py$'  # tkinter GUIs are excluded for now (noisy typing)
+# Typed analytics core. Expand to cli.py / export.py / the GUIs over time.
+files = [
+    "portfolio",
+    "build_reports/metrics",
+    "build_reports/loader.py",
+    "build_reports/filters.py",
+    "build_reports/stage_groups.py",
+    "build_reports/terminology.py",
+    "build_reports/pi_config.py",
+    "build_reports/repel.py",
+]
