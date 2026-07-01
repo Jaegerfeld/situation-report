@@ -86,6 +86,38 @@ class TestFigures:
         assert isinstance(fig, go.Figure)
         assert fig.data
 
+    def test_when_done_labels_staggered(self) -> None:
+        # Regression: dicht beieinander liegende Perzentile (123d/138d) dürfen sich
+        # oben nicht überlagern -> ihre Labels müssen auf verschiedenen Höhen sitzen.
+        fc = WhenDoneForecast(
+            backlog=35, runs=100, split_rate=0.0,
+            completion_days=[97, 123, 138, 164] * 25,
+            percentiles={50: 97, 75: 123, 85: 138, 95: 164},
+            dates={50: date(2026, 10, 6), 75: date(2026, 11, 1),
+                   85: date(2026, 11, 16), 95: date(2026, 12, 12)},
+            not_completed=0, start_date=date(2026, 7, 1),
+        )
+        fig = when_done_figure(fc)
+        # Ein Label je Perzentil, jedes über seiner eigenen Linie (x == Tageswert).
+        labels = fig.layout.annotations
+        assert len(labels) == 4
+        assert {a.x for a in labels} == {97, 123, 138, 164}
+        # Die eng benachbarten Labels liegen auf unterschiedlichen Höhen (yshift).
+        by_x = {a.x: a.yshift for a in labels}
+        assert by_x[123] != by_x[138]
+
+    def test_when_done_unreachable_percentile_skipped(self) -> None:
+        # Ein im Cap unerreichbares Perzentil (days is None) darf keine Label-Zeile
+        # belegen und kein Label erzeugen.
+        fc = WhenDoneForecast(
+            backlog=35, runs=10, split_rate=5.0, completion_days=[10, 12],
+            percentiles={50: 10, 95: None}, dates={50: date(2026, 7, 11)},
+            not_completed=8, start_date=date(2026, 7, 1),
+        )
+        fig = when_done_figure(fc)
+        assert len(fig.layout.annotations) == 1
+        assert fig.layout.annotations[0].x == 10
+
 
 class TestCombinedHtml:
     def test_contains_plotly_and_intro(self) -> None:
