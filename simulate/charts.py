@@ -52,15 +52,17 @@ def exceedance_curve(fc: HowManyForecast) -> tuple[list[int], list[float]]:
 
 
 def how_many_figure(fc: HowManyForecast, title: str | None = None,
-                    target: int | None = None) -> go.Figure:
+                    target: int | None = None,
+                    target_date: date | None = None) -> go.Figure:
     """
     Exceedance-Kurve "Wie wahrscheinlich wie viele Items?".
 
     Args:
-        fc:     Ergebnis von how_many().
-        title:  Optionaler Titel; Standard nennt Horizont und Laufzahl.
-        target: Optionale Scope-Zielmenge; wird mit ihrer Wahrscheinlichkeit als
-                senkrechte Linie markiert ("Schaffen wir den Scope?").
+        fc:          Ergebnis von how_many().
+        title:       Optionaler Titel; Standard nennt Horizont und Laufzahl.
+        target:      Optionale Scope-Zielmenge; wird mit ihrer Wahrscheinlichkeit als
+                     senkrechte Linie markiert ("Schaffen wir den Scope?").
+        target_date: Optionales Zieldatum für den Titel ("... bis Datum X").
 
     Returns:
         Plotly-Figur mit Kurve, Referenzlinien (85/75/50 %) und Konfidenz-Markern.
@@ -94,9 +96,15 @@ def how_many_figure(fc: HowManyForecast, title: str | None = None,
                       annotation_text=f"scope {target}: {p:.0f}%",
                       annotation_position="top")
 
+    if title is None:
+        if target_date is not None:
+            title = (f"Flow Predictability: items by {target_date.isoformat()} "
+                     f"({fc.horizon_days} days, {fc.runs} runs)")
+        else:
+            title = (f"Flow Predictability: items in next {fc.horizon_days} days "
+                     f"({fc.runs} runs)")
     fig.update_layout(
-        title=title or f"Flow Predictability: items in next {fc.horizon_days} days "
-                       f"({fc.runs} runs)",
+        title=title,
         title_font_size=11,
         xaxis_title="Items completed (≥ x)",
         yaxis_title="Likelihood (%)",

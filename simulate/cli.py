@@ -54,11 +54,15 @@ def _stats_html(
     backlog: int | None = None,
 ) -> str:
     """Baue den Kennzahlen-Block (HTML) über den Diagrammen."""
+    horizon_cell = f"{fc_hm.horizon_days} days"
+    if target_date is not None:
+        horizon_cell += f" (until {target_date.isoformat()})"
+    horizon_cell += f" · {fc_hm.runs} runs"
     rows = [
         f"<tr><th>History window</th><td>{start.isoformat()} … {end.isoformat()} "
         f"(exclusive), {days_observed} days</td></tr>",
         f"<tr><th>Mean throughput</th><td>{mean_per_day:.2f} items/day</td></tr>",
-        f"<tr><th>Horizon</th><td>{fc_hm.horizon_days} days · {fc_hm.runs} runs</td></tr>",
+        f"<tr><th>Horizon</th><td>{horizon_cell}</td></tr>",
     ]
     if prob is not None and backlog is not None:
         when = f" by {target_date.isoformat()}" if target_date is not None else ""
@@ -91,6 +95,7 @@ def run_simulation(
     history_days: int = 180,
     history_end: date | None = None,
     horizon_days: int = 84,
+    target_date: date | None = None,
     backlog: int | None = None,
     runs: int = 25000,
     split_rate: float = 0.0,
@@ -108,6 +113,9 @@ def run_simulation(
         history_days: Länge des History-Fensters in Tagen.
         history_end:  Exklusives Enddatum des Fensters (None = heute).
         horizon_days: Vorhersagehorizont für den Kapazitäts-Forecast.
+        target_date:  Alternativ zu horizon_days: konkretes Zieldatum ("wie viele
+                      Items schaffen wir bis zu diesem Termin?"). Überschreibt
+                      horizon_days (Horizont = target_date − heute).
         backlog:      Wenn gesetzt, zusätzlich Termin-Forecast für diese Item-Zahl.
         runs:         Anzahl Monte-Carlo-Läufe.
         split_rate:   Erwartete neue Items je abgeschlossenem Item (Scope-Wachstum).
@@ -130,19 +138,27 @@ def run_simulation(
         return ""
 
     rng = random.Random(seed)
+
+    # Optionales Zieldatum: "wie viele bis Datum X?" -> Horizont daraus ableiten.
+    if target_date is not None:
+        horizon_days = (target_date - date.today()).days
+        if horizon_days <= 0:
+            log("WARNING: target date is not in the future — nothing to forecast.")
+            return ""
+
     fc_hm = how_many(sample, horizon_days, runs, rng=rng)
+    # Anzeige-Zieldatum: explizit gesetzt oder aus dem Horizont abgeleitet.
+    disp_target = target_date or (date.today() + timedelta(days=horizon_days))
 
     fc_wd: WhenDoneForecast | None = None
     prob: float | None = None
-    target_date: date | None = None
     if backlog is not None:
-        # "Schaffen wir den Scope bis zum Horizont?" — derselbe Lauf, kein Re-Sim.
+        # "Schaffen wir den Scope bis zum Zieldatum?" — derselbe Lauf, kein Re-Sim.
         prob = probability_at_least(fc_hm, backlog)
-        target_date = date.today() + timedelta(days=horizon_days)
-        log(f"Scope confidence: P(>= {backlog} items by {target_date}) = {prob:.0%}")
+        log(f"Scope confidence: P(>= {backlog} items by {disp_target}) = {prob:.0%}")
         figures = [
-            scope_confidence_figure(prob, backlog, target_date),
-            how_many_figure(fc_hm, target=backlog),
+            scope_confidence_figure(prob, backlog, disp_target),
+            how_many_figure(fc_hm, target=backlog, target_date=disp_target),
         ]
         fc_wd = when_done(sample, backlog, runs, rng=rng, split_rate=split_rate,
                           start_date=date.today())
@@ -150,10 +166,10 @@ def run_simulation(
         if fc_wd.not_completed:
             log(f"NOTE: {fc_wd.not_completed}/{runs} runs did not finish within the cap.")
     else:
-        figures = [how_many_figure(fc_hm)]
+        figures = [how_many_figure(fc_hm, target_date=disp_target)]
 
     intro = _stats_html(start, end, sample.days_observed, sample.mean_per_day,
-                        fc_hm, fc_wd, prob, target_date, backlog)
+                        fc_hm, fc_wd, prob, disp_target, backlog)
     html = combined_html(figures, intro)
 
     if output_html:
@@ -186,8 +202,12 @@ def main() -> None:
     parser.add_argument("--history-end", type=_parse_date, default=None, dest="history_end",
                         metavar="YYYY-MM-DD",
                         help="Exclusive end of the history window (default: today).")
-    parser.add_argument("--horizon", type=int, default=84, dest="horizon_days",
-                        metavar="DAYS", help="Forecast horizon in days (default: 84).")
+    when = parser.add_mutually_exclusive_group()
+    when.add_argument("--horizon", type=int, default=84, dest="horizon_days",
+                      metavar="DAYS", help="Forecast horizon in days (default: 84).")
+    when.add_argument("--target-date", type=_parse_date, default=None, dest="target_date",
+                      metavar="YYYY-MM-DD",
+                      help="Forecast 'how many items by this date' instead of --horizon.")
     parser.add_argument("--backlog", type=int, default=None, metavar="N",
                         help="If set, also forecast when N items will be done.")
     parser.add_argument("--runs", type=int, default=25000, metavar="N",
@@ -210,6 +230,7 @@ def main() -> None:
         history_days=args.history_days,
         history_end=args.history_end,
         horizon_days=args.horizon_days,
+        target_date=args.target_date,
         backlog=args.backlog,
         runs=args.runs,
         split_rate=args.split_rate,

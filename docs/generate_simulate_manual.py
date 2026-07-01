@@ -312,6 +312,8 @@ T: dict[str, dict] = {
              "betrachtet werden (Standard 180). Enthaelt bewusst auch Null-Tage."],
             ["History-Ende", "Enddatum des Fensters (leer = heute)."],
             ["Horizont (Tage)", "Zeitraum in die Zukunft fuer 'Wie viele' (Standard 84)."],
+            ["Zieldatum", "Alternativ zum Horizont: ein konkretes Datum ('wie viele "
+             "bis zu diesem Termin?'). Ueberschreibt den Horizont."],
             ["Backlog", "Anzahl Items fuer Termin- und Scope-Konfidenz-Vorhersage "
              "(leer = nur 'Wie viele')."],
             ["Laeufe", "Anzahl Simulationsdurchgaenge (Standard 25000). Mehr = glatter."],
@@ -387,6 +389,8 @@ T: dict[str, dict] = {
              "(default 180). Deliberately includes zero-throughput days."],
             ["History end", "End of the window (empty = today)."],
             ["Horizon (days)", "How far into the future for 'how many' (default 84)."],
+            ["Target date", "Instead of the horizon: a concrete date ('how many by "
+             "this date?'). Overrides the horizon."],
             ["Backlog", "Number of items for the date and scope-confidence forecast "
              "(empty = 'how many' only)."],
             ["Runs", "Number of simulation runs (default 25000). More = smoother."],
@@ -460,6 +464,8 @@ T: dict[str, dict] = {
              "istorice (implicit 180). Include intentionat zilele cu throughput zero."],
             ["Sfarsit istoric", "Sfarsitul ferestrei (gol = azi)."],
             ["Orizont (zile)", "Cat de departe in viitor pentru 'cate' (implicit 84)."],
+            ["Data tinta", "In loc de orizont: o data concreta ('cate pana la "
+             "aceasta data?'). Suprascrie orizontul."],
             ["Backlog", "Numar de elemente pentru prognoza de data si de incredere "
              "(gol = doar 'cate')."],
             ["Rulari", "Numarul de simulari (implicit 25000). Mai multe = mai neted."],
@@ -533,6 +539,8 @@ T: dict[str, dict] = {
              "considerados (por omissao 180). Inclui deliberadamente os dias com zero."],
             ["Fim do historico", "Fim da janela (vazio = hoje)."],
             ["Horizonte (dias)", "Ate onde no futuro para 'quantos' (por omissao 84)."],
+            ["Data-alvo", "Em vez do horizonte: uma data concreta ('quantos ate "
+             "esta data?'). Substitui o horizonte."],
             ["Backlog", "Numero de itens para a previsao de data e de confianca "
              "(vazio = apenas 'quantos')."],
             ["Execucoes", "Numero de simulacoes (por omissao 25000). Mais = mais suave."],
@@ -608,6 +616,8 @@ T: dict[str, dict] = {
              "sont prises en compte (par defaut 180). Inclut volontairement les jours a zero."],
             ["Fin d'historique", "Fin de la fenetre (vide = aujourd'hui)."],
             ["Horizon (jours)", "Jusqu'ou dans le futur pour 'combien' (par defaut 84)."],
+            ["Date cible", "Au lieu de l'horizon : une date concrete ('combien d'ici "
+             "cette date ?'). Remplace l'horizon."],
             ["Backlog", "Nombre d'elements pour la prevision de date et de confiance "
              "(vide = 'combien' seulement)."],
             ["Executions", "Nombre de simulations (par defaut 25000). Plus = plus lisse."],

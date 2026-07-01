@@ -55,6 +55,13 @@ class TestFigures:
         # Ziel-Marker als Annotation "scope 2: 50%"
         assert any("scope 2" in (a.text or "") for a in fig.layout.annotations)
 
+    def test_how_many_target_date_in_title(self) -> None:
+        fc = HowManyForecast(horizon_days=30, runs=3, totals=[1, 2, 3],
+                             percentiles={})
+        fig = how_many_figure(fc, target_date=date(2026, 9, 1))
+        assert "2026-09-01" in fig.layout.title.text
+        assert "by" in fig.layout.title.text
+
     def test_scope_confidence_gauge(self) -> None:
         fig = scope_confidence_figure(0.78, 50, date(2026, 9, 1))
         assert isinstance(fig, go.Figure)

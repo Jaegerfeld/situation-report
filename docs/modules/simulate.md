@@ -20,7 +20,8 @@ scope-confidence view from the same runs.
 
 ## What it answers
 
-- **How many items** will we complete in a given period? (capacity forecast)
+- **How many items** will we complete in a given period **or by a fixed date**?
+  (capacity forecast — set a horizon in days, or a concrete target date)
 - **When will** a backlog of N items **be done**? (date forecast, optionally with
   scope growth via a split rate)
 - **Will we finish the scope by date X?** — a confidence gauge derived from the
@@ -61,6 +62,7 @@ python -m simulate ART_A_IssueTimes.xlsx \
 | `--history-days N` | `180` | History window length in days |
 | `--history-end YYYY-MM-DD` | today | Exclusive end of the history window |
 | `--horizon DAYS` | `84` | Forecast horizon (capacity forecast) |
+| `--target-date YYYY-MM-DD` | (none) | Forecast "how many by this date" instead of `--horizon` |
 | `--backlog N` | (none) | Also run the date + scope-confidence forecast for N items |
 | `--runs N` | `25000` | Number of Monte-Carlo runs |
 | `--split-rate R` | `0.0` | Expected new items per completed item (scope growth) |
