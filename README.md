@@ -31,10 +31,10 @@ Toolsuite for querying Jira issue data and processing it into flow metrics and r
 | [`launcher`](https://jaegerfeld.github.io/situation-report/modules/launcher/) | Central launcher GUI for all modules | available |
 | [`transform_data`](https://jaegerfeld.github.io/situation-report/modules/transform_data/) | Transform raw Jira data into stage-time metrics | available |
 | [`build_reports`](https://jaegerfeld.github.io/situation-report/modules/build_reports/) | Generate flow metrics and reports | available |
-| `portfolio` | Aggregated Large-Solution & Portfolio reports across several ARTs | available |
+| [`portfolio`](https://jaegerfeld.github.io/situation-report/modules/portfolio/) | Aggregated Large-Solution & Portfolio reports across several ARTs | available |
 | `get_data` | Fetch issue data from Jira via REST API | planned |
 | [`testdata_generator`](https://jaegerfeld.github.io/situation-report/modules/testdata_generator/) | Generate synthetic test data | available |
-| `simulate` | Simulations and forecasting models | planned |
+| [`simulate`](https://jaegerfeld.github.io/situation-report/modules/simulate/) | Simulations and forecasting models | available |
 | [`helper`](https://jaegerfeld.github.io/situation-report/modules/helper/) | Helper tools (JSON Merger) | available |
 
 ## Setup

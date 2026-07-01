@@ -68,6 +68,7 @@ nav:
     - launcher: modules/launcher.md
     - transform_data: modules/transform_data.md
     - build_reports: modules/build_reports.md
+    - portfolio: modules/portfolio.md
     - helper: modules/helper.md
     - testdata_generator: modules/testdata_generator.md
     - get_data: modules/get_data.md
