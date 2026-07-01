@@ -57,6 +57,7 @@ exclude = '(gui|__main__)\.py$'  # tkinter GUIs are excluded for now (noisy typi
 # Typed analytics core. Expand to cli.py / export.py / the GUIs over time.
 files = [
     "portfolio",
+    "simulate",
     "build_reports/metrics",
     "build_reports/loader.py",
     "build_reports/filters.py",

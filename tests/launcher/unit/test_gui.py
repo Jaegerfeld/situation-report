@@ -70,10 +70,15 @@ class TestModuleRegistry:
         for entry in _MODULES:
             assert isinstance(entry.available, bool)
 
-    def test_exactly_five_available_modules(self):
-        """Five modules are available (transform_data, build_reports, portfolio, testdata_generator, helper)."""
+    def test_exactly_six_available_modules(self):
+        """Six modules are available (transform_data, build_reports, portfolio, simulate, testdata_generator, helper)."""
         available = [e for e in _MODULES if e.available]
-        assert len(available) == 5
+        assert len(available) == 6
+
+    def test_simulate_is_available(self):
+        """simulate is available — launchable from the main GUI."""
+        ids = {e.module_id for e in _MODULES if e.available}
+        assert "simulate" in ids
 
     def test_testdata_generator_is_available(self):
         """testdata_generator is available."""
@@ -115,9 +120,9 @@ class TestModuleRegistry:
         assert entry.maturity == "alpha"
 
     def test_alpha_modules(self):
-        """helper and the new portfolio module are the Alpha-maturity modules."""
+        """helper, portfolio and the new simulate module are the Alpha-maturity modules."""
         alpha = {e.module_id for e in _MODULES if e.maturity == "alpha"}
-        assert alpha == {"helper", "portfolio"}
+        assert alpha == {"helper", "portfolio", "simulate"}
 
     def test_portfolio_on_solution_side(self):
         """The portfolio module is the only one on the left (solution) side of the split UI."""

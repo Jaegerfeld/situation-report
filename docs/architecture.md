@@ -45,7 +45,7 @@ C4Container
         Container(build_reports, "build_reports", "Python · tkinter · Plotly", "Reads XLSX, filters issues, computes flow metrics, exports HTML/PDF")
         Container(portfolio, "portfolio", "Python · tkinter · Plotly", "Aggregates several ARTs into pooled/comparison Large-Solution & Portfolio reports (HTML/PDF)")
         Container(testdata_generator, "testdata_generator", "Python · tkinter", "Generates synthetic Jira JSON exports for testing and demos")
-        Container(simulate, "simulate", "Python", "Simulations and forecasting models (planned)")
+        Container(simulate, "simulate", "Python · tkinter · Plotly", "Throughput-based Monte-Carlo forecast: how many / when done (with scope growth) + scope confidence; HTML report")
     }
 
     Rel(user, get_data, "starts", "CLI")
@@ -54,6 +54,8 @@ C4Container
     Rel(user, build_reports, "starts", "GUI / CLI")
     Rel(user, portfolio, "starts", "GUI / CLI")
     Rel(portfolio, build_reports, "reuses", "metrics + export")
+    Rel(user, simulate, "starts", "GUI / CLI")
+    Rel(simulate, build_reports, "reuses", "loader (ReportData)")
     Rel(user, testdata_generator, "starts", "GUI / CLI")
     Rel(get_data, jira, "reads", "REST API")
     Rel(get_data, transform_data, "delivers", "JSON (.json)")
@@ -61,6 +63,7 @@ C4Container
     Rel(helper, transform_data, "delivers", "merged.json")
     Rel(testdata_generator, transform_data, "delivers", "JSON (.json)")
     Rel(transform_data, build_reports, "delivers", "IssueTimes.xlsx · CFD.xlsx")
+    Rel(transform_data, simulate, "delivers", "IssueTimes.xlsx")
 ```
 
 ### Data flow
@@ -73,6 +76,7 @@ flowchart LR
     hlp["helper\nJSON Merger"]
     td["transform_data"]
     br["build_reports"]
+    sim["simulate\nMonte-Carlo forecast"]
     out(["📄 HTML / PDF\n📊 Excel"])
 
     jira -- "JSON\nmultiple pages" --> hlp
@@ -81,7 +85,9 @@ flowchart LR
     hlp -- "merged.json" --> td
     tdg -- "JSON" --> td
     td -- "IssueTimes.xlsx\nCFD.xlsx\nTransitions.xlsx" --> br
+    td -- "IssueTimes.xlsx" --> sim
     br --> out
+    sim --> out
 ```
 
 ---
@@ -172,3 +178,44 @@ C4Component
 | `stage_groups.py` | Stage group definitions |
 | `pi_config.py` | PI time ranges, sprint lengths |
 | `terminology.py` | Custom terminology |
+
+---
+
+## Level 3 — Components: simulate
+
+```mermaid
+C4Component
+    title Components: simulate
+
+    Person(user, "User")
+    System_Ext(xlsx_in, "IssueTimes.xlsx", "from transform_data")
+    System_Ext(report_out, "Report output", "HTML (Plotly)")
+
+    Container_Boundary(sim, "simulate") {
+        Component(main, "__main__ / cli", "Python · argparse", "Entry point: GUI without args, CLI with args; run_simulation()")
+        Component(gui, "gui", "tkinter", "File pickers + parameters (horizon, backlog, runs, split rate, seed)")
+        Component(throughput, "throughput", "Python", "ReportData -> daily throughput series incl. zero days")
+        Component(forecast, "forecast", "Python (stdlib)", "Monte-Carlo engine: how_many / when_done / probability_at_least")
+        Component(charts, "charts", "Plotly", "Exceedance curve, target marker, confidence gauge, distribution")
+    }
+
+    Rel(user, main, "starts (CLI)")
+    Rel(user, gui, "starts (GUI)")
+    Rel(main, throughput, "builds sample")
+    Rel(gui, main, "run_simulation()")
+    Rel(throughput, xlsx_in, "reads via build_reports loader")
+    Rel(throughput, forecast, "ThroughputSample")
+    Rel(forecast, charts, "forecast results")
+    Rel(charts, report_out, "writes")
+```
+
+| File | Responsibility |
+|------|---------------|
+| `__main__.py` / `cli.py` | Entry point; argparse; `run_simulation()` |
+| `gui.py` | tkinter UI (de/en); parameters; HTML report + browser |
+| `throughput.py` | `ReportData` → daily throughput series (incl. zero days) |
+| `forecast.py` | Monte-Carlo engine: `how_many`, `when_done` (scope growth), `probability_at_least` |
+| `charts.py` | Plotly: exceedance curve, target marker, confidence gauge, when-done distribution |
+
+Standard library only (`random`, `bisect`, `statistics`) — no numpy/pandas — for
+maximum portability; reuses `build_reports.loader` to read the input.

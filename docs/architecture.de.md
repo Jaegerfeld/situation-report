@@ -45,7 +45,7 @@ C4Container
         Container(build_reports, "build_reports", "Python · tkinter · Plotly", "Liest XLSX, filtert Issues, berechnet Flow-Metriken, exportiert HTML/PDF")
         Container(portfolio, "portfolio", "Python · tkinter · Plotly", "Aggregiert mehrere ARTs zu Pooled-/Comparison-Reports auf Large-Solution- & Portfolio-Ebene (HTML/PDF)")
         Container(testdata_generator, "testdata_generator", "Python · tkinter", "Erzeugt synthetische Jira-JSON-Exporte für Tests und Demos")
-        Container(simulate, "simulate", "Python", "Simulationen und Vorhersagemodelle (geplant)")
+        Container(simulate, "simulate", "Python · tkinter · Plotly", "Throughput-basierter Monte-Carlo-Forecast: wie viele / wann fertig (mit Scope-Wachstum) + Scope-Konfidenz; HTML-Report")
     }
 
     Rel(user, get_data, "startet", "CLI")
@@ -54,6 +54,8 @@ C4Container
     Rel(user, build_reports, "startet", "GUI / CLI")
     Rel(user, portfolio, "startet", "GUI / CLI")
     Rel(portfolio, build_reports, "nutzt", "Metriken + Export")
+    Rel(user, simulate, "startet", "GUI / CLI")
+    Rel(simulate, build_reports, "nutzt", "Loader (ReportData)")
     Rel(user, testdata_generator, "startet", "GUI / CLI")
     Rel(get_data, jira, "liest", "REST API")
     Rel(get_data, transform_data, "liefert", "JSON (.json)")
@@ -61,6 +63,7 @@ C4Container
     Rel(helper, transform_data, "liefert", "merged.json")
     Rel(testdata_generator, transform_data, "liefert", "JSON (.json)")
     Rel(transform_data, build_reports, "liefert", "IssueTimes.xlsx · CFD.xlsx")
+    Rel(transform_data, simulate, "liefert", "IssueTimes.xlsx")
 ```
 
 ### Datenfluss
@@ -73,6 +76,7 @@ flowchart LR
     hlp["helper\nJSON Merger"]
     td["transform_data"]
     br["build_reports"]
+    sim["simulate\nMonte-Carlo-Forecast"]
     out(["📄 HTML / PDF\n📊 Excel"])
 
     jira -- "JSON\nmehrere Seiten" --> hlp
@@ -81,7 +85,9 @@ flowchart LR
     hlp -- "merged.json" --> td
     tdg -- "JSON" --> td
     td -- "IssueTimes.xlsx\nCFD.xlsx\nTransitions.xlsx" --> br
+    td -- "IssueTimes.xlsx" --> sim
     br --> out
+    sim --> out
 ```
 
 ---
@@ -172,3 +178,44 @@ C4Component
 | `stage_groups.py` | Stage-Gruppen-Definition |
 | `pi_config.py` | PI-Zeiträume, Sprint-Längen |
 | `terminology.py` | Benutzerdefinierte Terminologie |
+
+---
+
+## Level 3 — Komponenten: simulate
+
+```mermaid
+C4Component
+    title Komponenten: simulate
+
+    Person(user, "Nutzer")
+    System_Ext(xlsx_in, "IssueTimes.xlsx", "aus transform_data")
+    System_Ext(report_out, "Report-Ausgabe", "HTML (Plotly)")
+
+    Container_Boundary(sim, "simulate") {
+        Component(main, "__main__ / cli", "Python · argparse", "Entry Point: GUI ohne Argumente, CLI mit Argumenten; run_simulation()")
+        Component(gui, "gui", "tkinter", "Dateiauswahl + Parameter (Horizont, Backlog, Läufe, Split-Rate, Seed)")
+        Component(throughput, "throughput", "Python", "ReportData -> Tagesdurchsatz-Reihe inkl. Null-Tage")
+        Component(forecast, "forecast", "Python (stdlib)", "Monte-Carlo-Engine: how_many / when_done / probability_at_least")
+        Component(charts, "charts", "Plotly", "Exceedance-Kurve, Ziel-Marker, Konfidenz-Gauge, Verteilung")
+    }
+
+    Rel(user, main, "startet (CLI)")
+    Rel(user, gui, "startet (GUI)")
+    Rel(main, throughput, "baut Sample")
+    Rel(gui, main, "run_simulation()")
+    Rel(throughput, xlsx_in, "liest via build_reports-Loader")
+    Rel(throughput, forecast, "ThroughputSample")
+    Rel(forecast, charts, "Forecast-Ergebnisse")
+    Rel(charts, report_out, "schreibt")
+```
+
+| Datei | Verantwortung |
+|------|---------------|
+| `__main__.py` / `cli.py` | Entry Point; argparse; `run_simulation()` |
+| `gui.py` | tkinter-Oberfläche (de/en); Parameter; HTML-Report + Browser |
+| `throughput.py` | `ReportData` → Tagesdurchsatz-Reihe (inkl. Null-Tage) |
+| `forecast.py` | Monte-Carlo-Engine: `how_many`, `when_done` (Scope-Wachstum), `probability_at_least` |
+| `charts.py` | Plotly: Exceedance-Kurve, Ziel-Marker, Konfidenz-Gauge, Termin-Verteilung |
+
+Reine Standardbibliothek (`random`, `bisect`, `statistics`) — kein numpy/pandas —
+für maximale Portabilität; nutzt `build_reports.loader` zum Einlesen der Eingabe.

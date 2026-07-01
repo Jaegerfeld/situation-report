@@ -8,6 +8,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- Simulate module: a throughput-based Monte-Carlo forecast (standard library
+  only, no numpy/pandas). Answers "how many items in N days?" (capacity) and
+  "when will a backlog of N be done?" (date, with optional scope growth via a
+  split rate), and reports exceedance percentiles with 85/75/50 % reference
+  lines. Available as a CLI (`python -m simulate <IssueTimes.xlsx> …`) and a
+  tkinter GUI; the empirical distribution includes zero-throughput days so the
+  forecast is not biased upward. With a backlog given, a scope-confidence gauge
+  answers "will we finish the scope by the horizon date?" from the same runs.
 - Code-quality gate: Ruff (lint, import order, bugbear, pyupgrade, complexity)
   and mypy (typed analytics core) now run in CI via a new `Quality` workflow,
   on every pull request and on pushes to `main`. The same checks run in the
