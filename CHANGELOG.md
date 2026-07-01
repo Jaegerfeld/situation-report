@@ -7,6 +7,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+---
+
+## [0.17.1] – 2026-07-01
+
 ### Added
 - Simulate: forecast "how many items by a fixed target date" — a `--target-date`
   CLI option and a GUI field (alternative to `--horizon`); the report and the
