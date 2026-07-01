@@ -59,7 +59,7 @@ class TestParseForm:
     def _defaults(self, **over: str) -> dict[str, str]:
         base = dict(
             issue_times="C:/x/ART_A_IssueTimes.xlsx", cfd="", history_days="180",
-            history_end="", horizon="84", backlog="", runs="25000",
+            history_end="", horizon="84", target_date="", backlog="", runs="25000",
             split_rate="0.0", seed="",
         )
         base.update(over)
@@ -82,7 +82,16 @@ class TestParseForm:
         p = parse_form(**self._defaults())
         assert p.cfd is None and p.history_end is None
         assert p.backlog is None and p.seed is None
+        assert p.target_date is None
         assert p.split_rate == 0.0
+
+    def test_target_date_parsed(self) -> None:
+        p = parse_form(**self._defaults(target_date="2026-09-30"))
+        assert p.target_date == date(2026, 9, 30)
+
+    def test_bad_target_date_raises(self) -> None:
+        with pytest.raises(ValueError):
+            parse_form(**self._defaults(target_date="30.09.2026"))
 
     def test_missing_issue_times_raises(self) -> None:
         with pytest.raises(ValueError):

@@ -20,7 +20,8 @@ eine Scope-Konfidenz-Sicht aus denselben Läufen ab.
 
 ## Was es beantwortet
 
-- **Wie viele Items** schaffen wir in einem Zeitraum? (Kapazitäts-Forecast)
+- **Wie viele Items** schaffen wir in einem Zeitraum **oder bis zu einem festen
+  Datum**? (Kapazitäts-Forecast — Horizont in Tagen oder konkretes Zieldatum)
 - **Wann ist** ein Backlog von N Items **fertig**? (Termin-Forecast, optional mit
   Scope-Wachstum über eine Split-Rate)
 - **Schaffen wir den Scope bis Datum X?** — eine Konfidenz-Gauge aus denselben
@@ -61,6 +62,7 @@ python -m simulate ART_A_IssueTimes.xlsx \
 | `--history-days N` | `180` | Länge des History-Fensters in Tagen |
 | `--history-end YYYY-MM-DD` | heute | Exklusives Enddatum des History-Fensters |
 | `--horizon DAYS` | `84` | Vorhersagehorizont (Kapazitäts-Forecast) |
+| `--target-date YYYY-MM-DD` | (keine) | „Wie viele bis zu diesem Datum?" statt `--horizon` |
 | `--backlog N` | (keine) | Aktiviert zusätzlich Termin- + Scope-Konfidenz-Forecast |
 | `--runs N` | `25000` | Anzahl Monte-Carlo-Läufe |
 | `--split-rate R` | `0.0` | Erwartete neue Items je erledigtem Item (Scope-Wachstum) |

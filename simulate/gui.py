@@ -88,6 +88,7 @@ _T: dict[str, dict[str, str]] = {
         "lbl_history_days": "History-Fenster (Tage)",
         "lbl_history_end": "History-Ende (JJJJ-MM-TT, leer = heute)",
         "lbl_horizon": "Horizont (Tage)",
+        "lbl_target_date": "Zieldatum (JJJJ-MM-TT, überschreibt Horizont)",
         "lbl_backlog": "Backlog (Items, leer = kein Termin-Forecast)",
         "lbl_runs": "Läufe",
         "lbl_split_rate": "Scope-Wachstum (neue Items je erledigtem)",
@@ -114,6 +115,7 @@ _T: dict[str, dict[str, str]] = {
         "lbl_history_days": "History window (days)",
         "lbl_history_end": "History end (YYYY-MM-DD, empty = today)",
         "lbl_horizon": "Horizon (days)",
+        "lbl_target_date": "Target date (YYYY-MM-DD, overrides horizon)",
         "lbl_backlog": "Backlog (items, empty = no date forecast)",
         "lbl_runs": "Runs",
         "lbl_split_rate": "Scope growth (new items per completed)",
@@ -150,6 +152,7 @@ class RunParams:
     history_days: int
     history_end: date | None
     horizon_days: int
+    target_date: date | None
     backlog: int | None
     runs: int
     split_rate: float
@@ -174,12 +177,23 @@ def _opt_int(value: str, name: str, minimum: int = 1) -> int | None:
     return _req_int(value, name, minimum)
 
 
+def _opt_date(value: str, name: str) -> date | None:
+    """Parse ein optionales ISO-Datum (leer -> None)."""
+    if value.strip() == "":
+        return None
+    try:
+        return datetime.strptime(value.strip(), "%Y-%m-%d").date()
+    except ValueError:
+        raise ValueError(f"{name} must be YYYY-MM-DD") from None
+
+
 def parse_form(
     issue_times: str,
     cfd: str,
     history_days: str,
     history_end: str,
     horizon: str,
+    target_date: str,
     backlog: str,
     runs: str,
     split_rate: str,
@@ -194,6 +208,8 @@ def parse_form(
         history_days: History-Fensterlänge in Tagen (> 0).
         history_end: Optionales ISO-Enddatum (leer = None/heute).
         horizon:     Horizont in Tagen (> 0).
+        target_date: Optionales ISO-Zieldatum; überschreibt den Horizont
+                     ("wie viele Items bis zu diesem Termin?").
         backlog:     Optionale Item-Zahl für den Termin-Forecast (> 0 oder leer).
         runs:        Anzahl Läufe (> 0).
         split_rate:  Scope-Wachstum >= 0 (leer = 0.0).
@@ -208,12 +224,8 @@ def parse_form(
     if issue_times.strip() == "":
         raise ValueError("issue_times is required")
 
-    end: date | None = None
-    if history_end.strip():
-        try:
-            end = datetime.strptime(history_end.strip(), "%Y-%m-%d").date()
-        except ValueError:
-            raise ValueError("history end must be YYYY-MM-DD") from None
+    end = _opt_date(history_end, "history end")
+    target = _opt_date(target_date, "target date")
 
     rate = 0.0
     if split_rate.strip():
@@ -230,6 +242,7 @@ def parse_form(
         history_days=_req_int(history_days, "history days"),
         history_end=end,
         horizon_days=_req_int(horizon, "horizon"),
+        target_date=target,
         backlog=_opt_int(backlog, "backlog"),
         runs=_req_int(runs, "runs"),
         split_rate=rate,
@@ -259,7 +272,7 @@ class ForecastApp:
         self.vars: dict[str, tk.StringVar] = {
             k: tk.StringVar(value=_DEFAULTS.get(k, "")) for k in (
                 "issue_times", "cfd", "history_days", "history_end",
-                "horizon", "backlog", "runs", "split_rate", "seed")
+                "horizon", "target_date", "backlog", "runs", "split_rate", "seed")
         }
         self.status = tk.StringVar(value="")
         root.title(_tr(self.lang, "window_title"))
@@ -320,8 +333,8 @@ class ForecastApp:
     def _build_params(self, frm: ttk.Frame) -> None:
         grp = ttk.LabelFrame(frm, text=self._t("grp_params"), padding=8)
         grp.grid(column=0, columnspan=3, sticky="ew", pady=4)
-        fields = ["history_days", "history_end", "horizon", "backlog",
-                  "runs", "split_rate", "seed"]
+        fields = ["history_days", "history_end", "horizon", "target_date",
+                  "backlog", "runs", "split_rate", "seed"]
         for row, key in enumerate(fields):
             ttk.Label(grp, text=self._t(f"lbl_{key}")).grid(
                 column=0, row=row, sticky="w")
@@ -339,7 +352,7 @@ class ForecastApp:
         try:
             params = parse_form(*(self.vars[k].get() for k in (
                 "issue_times", "cfd", "history_days", "history_end",
-                "horizon", "backlog", "runs", "split_rate", "seed")))
+                "horizon", "target_date", "backlog", "runs", "split_rate", "seed")))
         except ValueError as exc:
             messagebox.showerror(self._t("window_title"),
                                  self._t("msg_invalid").format(error=exc))
@@ -358,7 +371,8 @@ class ForecastApp:
             html = run_simulation(
                 params.issue_times, cfd=params.cfd,
                 history_days=params.history_days, history_end=params.history_end,
-                horizon_days=params.horizon_days, backlog=params.backlog,
+                horizon_days=params.horizon_days, target_date=params.target_date,
+                backlog=params.backlog,
                 runs=params.runs, split_rate=params.split_rate, seed=params.seed,
                 output_html=output, open_browser=True, log=lambda _m: None)
             msg = (self._t("msg_done").format(path=output) if html
