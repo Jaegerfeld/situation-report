@@ -7,6 +7,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Fixed
+- Simulate manual (all five languages): the cover page's dark-blue background
+  bled through every page, making the body text hard to read. The manual now
+  switches to the white "normal" page template after the cover, like the other
+  module manuals.
+
 ---
 
 ## [0.17.2] – 2026-07-02
