@@ -7,6 +7,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+---
+
+## [0.17.0] – 2026-07-01
+
 ### Added
 - Simulate module: a throughput-based Monte-Carlo forecast (standard library
   only, no numpy/pandas). Answers "how many items in N days?" (capacity) and
@@ -24,6 +28,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Packaging-consistency test: every module the launcher marks as available is
   asserted to appear in the release and dev-build bundle copy lists, so a
   launchable module can no longer be left out of the build.
+- Simulate documentation: mkdocs module page (en+de), an architecture entry, and
+  a 5-language user manual (DE/EN/RO/PT/FR), plus a hosted-manual "?" button in
+  the GUI.
+- Portfolio manual: added the missing GUI screenshot in all five languages.
 
 ### Fixed
 - Helper and Testdata Generator: an error raised during a background task could
