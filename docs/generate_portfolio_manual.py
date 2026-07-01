@@ -39,6 +39,7 @@ from reportlab.platypus import (
     Table,
     TableStyle,
 )
+from reportlab.platypus import Image as RLImage
 
 from version import __version__ as _VERSION
 
@@ -264,6 +265,22 @@ def _hr(st):
                       color=C_ACCENT, spaceAfter=8)
 
 
+_GUI_SHOT = Path(__file__).parent / "assets" / "Portfolio-GUI.png"
+
+
+def _img(path, width_cm=CONTENT_WIDTH_CM):
+    ri = RLImage(str(path))
+    w = width_cm * cm
+    return RLImage(str(path), width=w, height=w * (ri.imageHeight / ri.imageWidth))
+
+
+def _gui_figure(st, caption):
+    """Return the GUI screenshot flowables, or empty if the image is missing."""
+    if not _GUI_SHOT.is_file():
+        return []
+    return [_SP(6), _img(_GUI_SHOT, 12.5), _HI(caption, st), _SP(6)]
+
+
 # ---------------------------------------------------------------------------
 # Content – German
 # ---------------------------------------------------------------------------
@@ -318,6 +335,7 @@ def content_de(st: dict) -> list:
         _SP(6),
 
         _H1("4. Die Oberfläche Schritt für Schritt", st), _hr(st),
+        *_gui_figure(st, "Abb. 1: Die Oberfläche von Solutions &amp; Portfolios."),
         tbl([
             ["Feld / Aktion", "Beschreibung"],
             ["Name", "Name der Solution bzw. des Portfolios (erscheint im Report)."],
@@ -483,6 +501,7 @@ def content_en(st: dict) -> list:
         _SP(6),
 
         _H1("4. The interface step by step", st), _hr(st),
+        *_gui_figure(st, "Fig. 1: The Solutions &amp; Portfolios interface."),
         tbl([
             ["Field / action", "Description"],
             ["Name", "Name of the solution or portfolio (shown in the report)."],
@@ -645,6 +664,7 @@ def content_ro(st: dict) -> list:
         _SP(6),
 
         _H1("4. Interfata pas cu pas", st), _hr(st),
+        *_gui_figure(st, "Fig. 1: Interfata Solutions &amp; Portfolios."),
         tbl([
             ["Camp / actiune", "Descriere"],
             ["Nume", "Numele solutiei sau portofoliului (apare in raport)."],
@@ -808,6 +828,7 @@ def content_pt(st: dict) -> list:
         _SP(6),
 
         _H1("4. A interface passo a passo", st), _hr(st),
+        *_gui_figure(st, "Fig. 1: A interface Solutions &amp; Portfolios."),
         tbl([
             ["Campo / acao", "Descricao"],
             ["Nome", "Nome da solucao ou portefolio (aparece no relatorio)."],
@@ -970,6 +991,7 @@ def content_fr(st: dict) -> list:
         _SP(6),
 
         _H1("4. L'interface pas a pas", st), _hr(st),
+        *_gui_figure(st, "Fig. 1 : L'interface Solutions &amp; Portfolios."),
         tbl([
             ["Champ / action", "Description"],
             ["Nom", "Nom de la solution ou du portefeuille (apparait dans le rapport)."],

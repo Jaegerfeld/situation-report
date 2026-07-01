@@ -20,6 +20,7 @@ from pathlib import Path
 import pytest
 
 from simulate.gui import (
+    _MANUAL_URLS,
     _T,
     LANG_DE,
     LANG_EN,
@@ -47,6 +48,11 @@ class TestTranslations:
 
     def test_fallback_to_english(self) -> None:
         assert _tr("xx", "window_title") == _T[LANG_EN]["window_title"]
+
+    def test_manual_urls(self) -> None:
+        assert set(_MANUAL_URLS) == {LANG_DE, LANG_EN}
+        assert _MANUAL_URLS[LANG_DE].endswith("simulate_Benutzerhandbuch.pdf")
+        assert _MANUAL_URLS[LANG_EN].endswith("simulate_UserManual.pdf")
 
 
 class TestParseForm:

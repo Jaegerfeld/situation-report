@@ -20,6 +20,7 @@ from __future__ import annotations
 import json
 import threading
 import tkinter as tk
+import webbrowser
 from dataclasses import dataclass
 from datetime import date, datetime
 from pathlib import Path
@@ -35,6 +36,13 @@ LANG_DE = "de"
 LANG_EN = "en"
 _LANG_ORDER = [LANG_DE, LANG_EN]
 _PREFS_PATH = Path.home() / ".situation_report" / "prefs.json"
+
+#: Hosted user-manual PDF per language (GitHub Pages, deployed from docs/).
+_MANUAL_BASE = "https://jaegerfeld.github.io/situation-report/"
+_MANUAL_URLS: dict[str, str] = {
+    LANG_DE: _MANUAL_BASE + "simulate_Benutzerhandbuch.pdf",
+    LANG_EN: _MANUAL_BASE + "simulate_UserManual.pdf",
+}
 
 
 def _load_lang_pref() -> str:
@@ -260,6 +268,10 @@ class ForecastApp:
     def _t(self, key: str) -> str:
         return _tr(self.lang, key)
 
+    def _open_manual(self) -> None:
+        """Öffnet das gehostete Benutzerhandbuch (aktuelle Sprache) im Browser."""
+        webbrowser.open(_MANUAL_URLS.get(self.lang, _MANUAL_URLS[LANG_EN]))
+
     def _build(self) -> None:
         frm = ttk.Frame(self.root, padding=12)
         frm.grid(sticky="nsew")
@@ -278,6 +290,8 @@ class ForecastApp:
         box.set(self.lang)
         box.bind("<<ComboboxSelected>>", lambda _e: self._switch_lang(box.get()))
         box.grid(column=1, row=0, sticky="w", pady=(0, 8))
+        ttk.Button(frm, text="?", width=2, command=self._open_manual).grid(
+            column=2, row=0, sticky="e", pady=(0, 8))
 
     def _switch_lang(self, lang: str) -> None:
         self.lang = lang if lang in _LANG_ORDER else LANG_EN
