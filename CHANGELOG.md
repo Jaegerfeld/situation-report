@@ -9,6 +9,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [0.17.2] – 2026-07-02
+
+### Fixed
+- Simulate: in the Monte-Carlo "days to finish" report the percentile labels
+  (50/75/85/95 %) overlapped and became unreadable when two percentiles fell
+  close together. The labels are now staggered across several rows above the
+  chart, each still directly above its own reference line.
+
+---
+
 ## [0.17.1] – 2026-07-01
 
 ### Added
