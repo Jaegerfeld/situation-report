@@ -3,7 +3,7 @@
 # Repository:     https://github.com/Jaegerfeld/situation-report
 # KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
 # Erstellt:       01.07.2026
-# Geändert:       01.07.2026
+# Geändert:       02.07.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
@@ -183,16 +183,28 @@ def when_done_figure(fc: WhenDoneForecast, title: str | None = None) -> go.Figur
     ys = [freq[d] for d in xs]
     fig.add_trace(go.Bar(x=xs, y=ys, marker_color="#4a4a4a", name="runs"))
 
-    for c in sorted(fc.percentiles, reverse=True):
-        days = fc.percentiles[c]
-        if days is None:
-            # Konfidenz oberhalb der Fertigstellungsrate -> im Cap nicht erreichbar.
-            continue
+    # Konfidenz-Linien mit gestaffelten Labels: dicht beieinander liegende
+    # Perzentile (z. B. 75 % und 85 %) würden sich sonst oben überlagern und
+    # wären unlesbar. Die Labels werden über der Plotfläche auf mehreren Zeilen
+    # verteilt – nach Tagen sortiert, damit benachbarte (nahe) Labels garantiert
+    # auf unterschiedliche Höhen fallen. Konfidenzstufen, die im Cap nicht
+    # erreichbar sind (days is None), werden vorher ausgefiltert.
+    reachable: list[tuple[int, int]] = [
+        (c, d) for c in fc.percentiles
+        if (d := fc.percentiles[c]) is not None
+    ]
+    reachable.sort(key=lambda cd: cd[1])
+    _rows = 3  # zyklische Label-Zeilen über der Plotfläche
+    for i, (c, days) in enumerate(reachable):
         label = f"{c}%: {days}d"
         if c in fc.dates:
             label += f" ({fc.dates[c].isoformat()})"
-        fig.add_vline(x=days, line_dash="dash", line_color="#14304a",
-                      annotation_text=label, annotation_position="top")
+        fig.add_vline(x=days, line_dash="dash", line_color="#14304a")
+        fig.add_annotation(
+            x=days, xref="x", y=1.0, yref="paper", yanchor="bottom",
+            yshift=6 + (i % _rows) * 16, text=label, showarrow=False,
+            font=dict(size=10, color="#14304a"),
+        )
 
     subtitle = default_title
     if fc.not_completed:
@@ -201,6 +213,7 @@ def when_done_figure(fc: WhenDoneForecast, title: str | None = None) -> go.Figur
         title=title or subtitle, title_font_size=11,
         xaxis_title="Days to complete", yaxis_title="runs",
         plot_bgcolor=_BG, paper_bgcolor=_BG, height=450, showlegend=False,
+        margin=dict(t=110),
     )
     return fig
 
