@@ -3,7 +3,7 @@
 # Repository:     https://github.com/Jaegerfeld/situation-report
 # KI-Unterstuetzung: Erstellt mit Unterstuetzung von Claude (Anthropic)
 # Erstellt:       01.07.2026
-# Geaendert:      01.07.2026
+# Geaendert:      02.07.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
@@ -36,6 +36,7 @@ from reportlab.lib.units import cm
 from reportlab.platypus import (
     BaseDocTemplate,
     Frame,
+    NextPageTemplate,
     PageBreak,
     PageTemplate,
     Paragraph,
@@ -672,7 +673,10 @@ def build_story(lang, st, images):
             story.append(_img(images[key]))
             story.append(CAP(cap, st))
 
-    # TOC
+    # TOC — ab hier auf das weiße "normal"-Template umschalten. Ohne diesen
+    # Wechsel behielten alle Folgeseiten das Cover-Template und damit dessen
+    # dunkelblauen Vollflächen-Hintergrund, was den Text unlesbar machte.
+    story.append(NextPageTemplate("normal"))
     story.append(PageBreak())
     story.append(H1(t["toc"], st))
     toc = TableOfContents()
