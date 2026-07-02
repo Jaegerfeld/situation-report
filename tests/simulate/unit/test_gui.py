@@ -20,15 +20,19 @@ from pathlib import Path
 import pytest
 
 from simulate.gui import (
+    _LANG_ORDER,
     _MANUAL_URLS,
     _T,
     LANG_DE,
     LANG_EN,
+    LANG_FR,
+    LANG_PT,
+    LANG_RO,
     _tr,
     parse_form,
 )
 
-_ALL_LANGS = (LANG_DE, LANG_EN)
+_ALL_LANGS = (LANG_DE, LANG_EN, LANG_RO, LANG_PT, LANG_FR)
 
 
 class TestTranslations:
@@ -50,9 +54,14 @@ class TestTranslations:
         assert _tr("xx", "window_title") == _T[LANG_EN]["window_title"]
 
     def test_manual_urls(self) -> None:
-        assert set(_MANUAL_URLS) == {LANG_DE, LANG_EN}
+        assert set(_MANUAL_URLS) == set(_LANG_ORDER)
         assert _MANUAL_URLS[LANG_DE].endswith("simulate_Benutzerhandbuch.pdf")
         assert _MANUAL_URLS[LANG_EN].endswith("simulate_UserManual.pdf")
+        for lang in (LANG_RO, LANG_PT, LANG_FR):
+            assert _MANUAL_URLS[lang].endswith("simulate_UserManual.pdf")
+
+    def test_lang_order_is_five_languages(self) -> None:
+        assert _LANG_ORDER == [LANG_DE, LANG_EN, LANG_RO, LANG_PT, LANG_FR]
 
 
 class TestParseForm:
