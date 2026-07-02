@@ -7,6 +7,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+- Simulate GUI: language selection on par with the other modules — five
+  languages (de/en/ro/pt/fr) via a flag button (top right), replacing the former
+  de/en combobox, with full RO/PT/FR translations and per-language user manuals.
+- Simulate GUI: shared project-template mode — a **Templates** menu (Save/Load)
+  that stores the ten form fields and the language via `project_template`
+  (new `MODULE_SIMULATE` section) and restores them, interoperable with the
+  other modules' templates.
+
 ### Fixed
 - Simulate manual (all five languages): the cover page's dark-blue background
   bled through every page, making the body text hard to read. The manual now

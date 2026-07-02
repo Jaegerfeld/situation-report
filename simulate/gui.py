@@ -50,9 +50,9 @@ _MANUAL_BASE = "https://jaegerfeld.github.io/situation-report/"
 _MANUAL_URLS: dict[str, str] = {
     LANG_DE: _MANUAL_BASE + "simulate_Benutzerhandbuch.pdf",
     LANG_EN: _MANUAL_BASE + "simulate_UserManual.pdf",
-    LANG_RO: _MANUAL_BASE + "simulate_UserManual.pdf",
-    LANG_PT: _MANUAL_BASE + "simulate_UserManual.pdf",
-    LANG_FR: _MANUAL_BASE + "simulate_UserManual.pdf",
+    LANG_RO: _MANUAL_BASE + "simulate_ManualUtilizator.pdf",
+    LANG_PT: _MANUAL_BASE + "simulate_ManualUtilizador.pdf",
+    LANG_FR: _MANUAL_BASE + "simulate_ManuelUtilisateur.pdf",
 }
 
 

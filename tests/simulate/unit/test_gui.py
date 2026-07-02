@@ -57,8 +57,9 @@ class TestTranslations:
         assert set(_MANUAL_URLS) == set(_LANG_ORDER)
         assert _MANUAL_URLS[LANG_DE].endswith("simulate_Benutzerhandbuch.pdf")
         assert _MANUAL_URLS[LANG_EN].endswith("simulate_UserManual.pdf")
-        for lang in (LANG_RO, LANG_PT, LANG_FR):
-            assert _MANUAL_URLS[lang].endswith("simulate_UserManual.pdf")
+        assert _MANUAL_URLS[LANG_RO].endswith("simulate_ManualUtilizator.pdf")
+        assert _MANUAL_URLS[LANG_PT].endswith("simulate_ManualUtilizador.pdf")
+        assert _MANUAL_URLS[LANG_FR].endswith("simulate_ManuelUtilisateur.pdf")
 
     def test_lang_order_is_five_languages(self) -> None:
         assert _LANG_ORDER == [LANG_DE, LANG_EN, LANG_RO, LANG_PT, LANG_FR]

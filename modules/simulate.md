@@ -41,6 +41,22 @@ python -m simulate ART_A_IssueTimes.xlsx --horizon 84 --backlog 50 \
 | `--seed N` | Seed für reproduzierbare Läufe. |
 | `--output FILE` | HTML-Report-Zieldatei. |
 
+## GUI: Sprache & Templates
+
+Wie die übrigen Modul-GUIs unterstützt simulate fünf Sprachen
+(Deutsch, Englisch, Rumänisch, Portugiesisch, Französisch). Die
+**Flaggen-Schaltfläche** oben rechts schaltet die Oberfläche um; die Wahl wird
+in `~/.situation_report/prefs.json` gespeichert und von allen Modulen geteilt.
+
+Über das Menü **Templates** lassen sich die aktuellen Eingaben speichern und
+laden:
+
+- **Speichern** legt Dateien und Parameter samt Sprache im gemeinsamen
+  Projekt-Template ab (`project_template`, Abschnitt `simulate`).
+- **Laden** stellt Eingaben und Sprache wieder her. Dieselbe Template-Datei
+  wird von den anderen Modulen mitgenutzt – jedes Modul schreibt nur seinen
+  eigenen Abschnitt.
+
 ## Methode
 
 Reine Standardbibliothek (kein numpy/pandas): Aus dem History-Fenster –

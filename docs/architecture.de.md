@@ -193,7 +193,7 @@ C4Component
 
     Container_Boundary(sim, "simulate") {
         Component(main, "__main__ / cli", "Python · argparse", "Entry Point: GUI ohne Argumente, CLI mit Argumenten; run_simulation()")
-        Component(gui, "gui", "tkinter", "Dateiauswahl + Parameter (Horizont, Backlog, Läufe, Split-Rate, Seed)")
+        Component(gui, "gui", "tkinter", "Dateiauswahl + Parameter (Horizont, Backlog, Läufe, Split-Rate, Seed); 5-Sprachen-Umschaltung; Projekt-Template Speichern/Laden")
         Component(throughput, "throughput", "Python", "ReportData -> Tagesdurchsatz-Reihe inkl. Null-Tage")
         Component(forecast, "forecast", "Python (stdlib)", "Monte-Carlo-Engine: how_many / when_done / probability_at_least")
         Component(charts, "charts", "Plotly", "Exceedance-Kurve, Ziel-Marker, Konfidenz-Gauge, Verteilung")
@@ -212,7 +212,7 @@ C4Component
 | Datei | Verantwortung |
 |------|---------------|
 | `__main__.py` / `cli.py` | Entry Point; argparse; `run_simulation()` |
-| `gui.py` | tkinter-Oberfläche (de/en); Parameter; HTML-Report + Browser |
+| `gui.py` | tkinter-Oberfläche (5 Sprachen per Flaggen-Umschalter); Parameter; Projekt-Template Speichern/Laden (`project_template`, `MODULE_SIMULATE`); HTML-Report + Browser |
 | `throughput.py` | `ReportData` → Tagesdurchsatz-Reihe (inkl. Null-Tage) |
 | `forecast.py` | Monte-Carlo-Engine: `how_many`, `when_done` (Scope-Wachstum), `probability_at_least` |
 | `charts.py` | Plotly: Exceedance-Kurve, Ziel-Marker, Konfidenz-Gauge, Termin-Verteilung |
