@@ -193,7 +193,7 @@ C4Component
 
     Container_Boundary(sim, "simulate") {
         Component(main, "__main__ / cli", "Python · argparse", "Entry point: GUI without args, CLI with args; run_simulation()")
-        Component(gui, "gui", "tkinter", "File pickers + parameters (horizon, backlog, runs, split rate, seed)")
+        Component(gui, "gui", "tkinter", "File pickers + parameters (horizon, backlog, runs, split rate, seed); 5-language switch; project-template save/load")
         Component(throughput, "throughput", "Python", "ReportData -> daily throughput series incl. zero days")
         Component(forecast, "forecast", "Python (stdlib)", "Monte-Carlo engine: how_many / when_done / probability_at_least")
         Component(charts, "charts", "Plotly", "Exceedance curve, target marker, confidence gauge, distribution")
@@ -212,7 +212,7 @@ C4Component
 | File | Responsibility |
 |------|---------------|
 | `__main__.py` / `cli.py` | Entry point; argparse; `run_simulation()` |
-| `gui.py` | tkinter UI (de/en); parameters; HTML report + browser |
+| `gui.py` | tkinter UI (5 languages via flag switch); parameters; project-template save/load (`project_template`, `MODULE_SIMULATE`); HTML report + browser |
 | `throughput.py` | `ReportData` → daily throughput series (incl. zero days) |
 | `forecast.py` | Monte-Carlo engine: `how_many`, `when_done` (scope growth), `probability_at_least` |
 | `charts.py` | Plotly: exceedance curve, target marker, confidence gauge, when-done distribution |

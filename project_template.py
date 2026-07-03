@@ -8,7 +8,7 @@
 #
 # Fachliche Funktion:
 #   Gemeinsames Projekt-Template für alle Module (build_reports, transform_data,
-#   testdata_generator, helper). Eine einzige JSON-Datei hält je einen Abschnitt
+#   testdata_generator, helper, simulate). Eine einzige JSON-Datei hält je einen Abschnitt
 #   pro Modul, sodass die Pipeline-Konfiguration (Workflow, Pfade, Projekt,
 #   Zeitraum) einmal gesetzt und in jedem Modul-GUI geladen werden kann.
 #
@@ -34,6 +34,7 @@ MODULE_BUILD_REPORTS = "build_reports"
 MODULE_TRANSFORM_DATA = "transform_data"
 MODULE_TESTDATA_GENERATOR = "testdata_generator"
 MODULE_HELPER = "helper"
+MODULE_SIMULATE = "simulate"
 
 DEFAULT_LANGUAGE = "en"
 

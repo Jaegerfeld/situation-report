@@ -351,6 +351,16 @@ T: dict[str, dict] = {
                  "sondern eine ehrliche Aussage ueber Unsicherheit.",
         "s6_b4": "<b>Scope-Wachstum</b> realistisch waehlen: Bei Epics entstehen aus einem "
                  "Item oft weitere - das verschiebt den Termin nach hinten.",
+        "s7_t": "7  Sprache und Templates",
+        "s7_p": "Wie die uebrigen Module bietet simulate oben rechts eine "
+                "<b>Flaggen-Schaltflaeche</b>, die die Sprache der Oberflaeche zwischen "
+                "Deutsch, Englisch, Rumaenisch, Portugiesisch und Franzoesisch "
+                "umschaltet. Die Wahl wird gespeichert und von allen Modulen geteilt.",
+        "s7_b1": "<b>Templates - Speichern:</b> Legt alle aktuellen Eingaben (Dateien "
+                 "und Parameter) samt Sprache in einer gemeinsamen Projekt-Template-Datei ab.",
+        "s7_b2": "<b>Templates - Laden:</b> Stellt Eingaben und Sprache aus einer "
+                 "Template-Datei wieder her. Dieselbe Datei koennen auch die anderen "
+                 "Module mitnutzen.",
     },
     LANG_EN: {
         "cover_sub": "User Manual",
@@ -427,6 +437,15 @@ T: dict[str, dict] = {
                  "an honest statement about uncertainty.",
         "s6_b4": "<b>Choose scope growth</b> realistically: with epics one item often "
                  "spawns more - that pushes the finish date out.",
+        "s7_t": "7  Language and templates",
+        "s7_p": "Like the other modules, simulate offers a <b>flag button</b> at the top "
+                "right that switches the interface language between German, English, "
+                "Romanian, Portuguese and French. The choice is saved and shared across "
+                "all modules.",
+        "s7_b1": "<b>Templates - Save:</b> stores all current inputs (files and "
+                 "parameters) together with the language in a shared project-template file.",
+        "s7_b2": "<b>Templates - Load:</b> restores those inputs and the language from a "
+                 "template file. The same file can also be used by the other modules.",
     },
     LANG_RO: {
         "cover_sub": "Manual de Utilizator",
@@ -502,6 +521,15 @@ T: dict[str, dict] = {
                  "afirmatie onesta despre incertitudine.",
         "s6_b4": "<b>Alegeti cresterea de scope</b> realist: la epice un element naste "
                  "adesea altele - asta impinge data de finalizare mai departe.",
+        "s7_t": "7  Limba si sabloane",
+        "s7_p": "Ca si celelalte module, simulate ofera in dreapta sus un <b>buton cu "
+                "steag</b> care comuta limba interfetei intre germana, engleza, romana, "
+                "portugheza si franceza. Alegerea este salvata si partajata intre toate "
+                "modulele.",
+        "s7_b1": "<b>Sabloane - Salvare:</b> stocheaza toate intrarile curente (fisiere "
+                 "si parametri) impreuna cu limba intr-un fisier de sablon de proiect comun.",
+        "s7_b2": "<b>Sabloane - Incarcare:</b> restaureaza acele intrari si limba dintr-un "
+                 "fisier de sablon. Acelasi fisier poate fi folosit si de celelalte module.",
     },
     LANG_PT: {
         "cover_sub": "Manual do Utilizador",
@@ -577,6 +605,15 @@ T: dict[str, dict] = {
                  "uma afirmacao honesta sobre a incerteza.",
         "s6_b4": "<b>Escolha o crescimento de scope</b> de forma realista: com epicos um "
                  "item gera muitas vezes outros - isso empurra a data para a frente.",
+        "s7_t": "7  Idioma e modelos",
+        "s7_p": "Tal como os outros modulos, o simulate oferece em cima a direita um "
+                "<b>botao de bandeira</b> que alterna o idioma da interface entre alemao, "
+                "ingles, romeno, portugues e frances. A escolha e guardada e partilhada "
+                "por todos os modulos.",
+        "s7_b1": "<b>Modelos - Guardar:</b> armazena todas as entradas atuais (ficheiros "
+                 "e parametros) juntamente com o idioma num ficheiro de modelo de projeto comum.",
+        "s7_b2": "<b>Modelos - Carregar:</b> restaura essas entradas e o idioma a partir "
+                 "de um ficheiro de modelo. O mesmo ficheiro pode ser usado pelos outros modulos.",
     },
     LANG_FR: {
         "cover_sub": "Manuel d'utilisation",
@@ -654,6 +691,15 @@ T: dict[str, dict] = {
                  "c'est une declaration honnete sur l'incertitude.",
         "s6_b4": "<b>Choisissez la croissance du perimetre</b> de maniere realiste : avec "
                  "les epics, un element en engendre souvent d'autres - cela repousse la date.",
+        "s7_t": "7  Langue et modeles",
+        "s7_p": "Comme les autres modules, simulate propose en haut a droite un "
+                "<b>bouton drapeau</b> qui bascule la langue de l'interface entre "
+                "allemand, anglais, roumain, portugais et francais. Le choix est "
+                "enregistre et partage par tous les modules.",
+        "s7_b1": "<b>Modeles - Enregistrer :</b> stocke toutes les saisies actuelles "
+                 "(fichiers et parametres) avec la langue dans un fichier de modele de projet commun.",
+        "s7_b2": "<b>Modeles - Charger :</b> restaure ces saisies et la langue depuis un "
+                 "fichier de modele. Le meme fichier peut aussi etre utilise par les autres modules.",
     },
 }
 
@@ -737,6 +783,12 @@ def build_story(lang, st, images):
     story.append(BL(t["s6_b2"], st))
     story.append(BL(t["s6_b3"], st))
     story.append(BL(t["s6_b4"], st))
+
+    # 7 Language & templates
+    story.append(H1(t["s7_t"], st))
+    story.append(P(t["s7_p"], st))
+    story.append(BL(t["s7_b1"], st))
+    story.append(BL(t["s7_b2"], st))
 
     return story, toc
 
