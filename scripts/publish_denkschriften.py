@@ -34,16 +34,16 @@ TARGET = REPO / "docs" / "denkschriften"
 
 # Aktuelle Fassungen (bei Versionssprung hier aktualisieren; DE + EN je Schrift)
 MANIFEST = [
-    "Denkschrift-0_Large-Solution-Management_v1.1.pdf",
-    "Memorandum-0_Large-Solution-Management_v1.1.en.pdf",
-    "Team-of-Teams-und-Stabsausbildung_v4.0.pdf",
-    "Team-of-Teams-and-Staff-Training_v4.0.en.pdf",
-    "Enterprise-Architektur-und-Solution-Lagebild_v2.0.pdf",
-    "Enterprise-Architecture-and-Solution-Situational-Picture_v2.0.en.pdf",
-    "Architektur-Vordenker_v1.0.pdf",
-    "Architecture-Thought-Leaders_v1.0.en.pdf",
-    "KI-und-Lagebild_v1.1.pdf",
-    "AI-and-the-Situational-Picture_v1.1.en.pdf",
+    "Denkschrift-0_Large-Solution-Management_v1.2.pdf",
+    "Memorandum-0_Large-Solution-Management_v1.2.en.pdf",
+    "Team-of-Teams-und-Stabsausbildung_v4.1.pdf",
+    "Team-of-Teams-and-Staff-Training_v4.1.en.pdf",
+    "Enterprise-Architektur-und-Solution-Lagebild_v2.1.pdf",
+    "Enterprise-Architecture-and-Solution-Situational-Picture_v2.1.en.pdf",
+    "Architektur-Vordenker_v1.1.pdf",
+    "Architecture-Thought-Leaders_v1.1.en.pdf",
+    "KI-und-Lagebild_v1.2.pdf",
+    "AI-and-the-Situational-Picture_v1.2.en.pdf",
 ]
 MINDMAP_SVG = QUELLEN / "Mindmap" / "Denkschriften-Mindmap.svg"
 
