@@ -20,7 +20,7 @@ Jede Schrift steht hier in ihrer aktuellen Fassung als PDF bereit (Deutsch und E
 
 Der Vortrag, mit dem alles begann: die fehlende Operationsplanungs-Schicht, die vier Wissensfelder Flow · Quality · Value · Dependencies, Können statt Regeln – samt aller Originalfolien und einer Flyer-Übersicht der Reihe.
 
-**Download:** [PDF Deutsch](pdf/Denkschrift-0_Large-Solution-Management_v1.2.pdf) · [PDF English](pdf/Memorandum-0_Large-Solution-Management_v1.2.en.pdf)
+**Download:** [PDF Deutsch](pdf/Denkschrift-0_Large-Solution-Management_v1.2.pdf) · [PDF English](pdf/Memorandum-0_Large-Solution-Management_v1.2-en.pdf)
 **Software-Bezug:** Aus den vier Wissensfeldern wurde die [Modul-Übersicht](../modules/index.md) dieser Toolsuite.
 
 ---
@@ -35,7 +35,7 @@ Der Vortrag, mit dem alles begann: die fehlende Operationsplanungs-Schicht, die 
 
 Was Portfolios von McChrystals Team of Teams und 200 Jahren Generalstabsausbildung lernen: geteiltes Lagebild plus dezentrale Entscheidung, Stabsarbeit als lehrbares Handwerk – mit 12-Monats-Curriculum und Einstieg für Eilige.
 
-**Download:** [PDF Deutsch](pdf/Team-of-Teams-und-Stabsausbildung_v4.1.pdf) · [PDF English](pdf/Team-of-Teams-and-Staff-Training_v4.1.en.pdf)
+**Download:** [PDF Deutsch](pdf/Team-of-Teams-und-Stabsausbildung_v4.1.pdf) · [PDF English](pdf/Team-of-Teams-and-Staff-Training_v4.1-en.pdf)
 **Software-Bezug:** Der aggregierte Report ist das O&I-Artefakt; [`simulate`](../modules/simulate.md) liefert das quantitative Wargaming.
 
 ---
@@ -50,7 +50,7 @@ Was Portfolios von McChrystals Team of Teams und 200 Jahren Generalstabsausbildu
 
 Der Regelkreis EA ↔ Solution, Capabilities als gemeinsame Sprache, fünf Lagebild-Prinzipien und die vier Report-Dimensionen jenseits der Flow-Metriken – mit 90-Tage-Einstieg.
 
-**Download:** [PDF Deutsch](pdf/Enterprise-Architektur-und-Solution-Lagebild_v2.1.pdf) · [PDF English](pdf/Enterprise-Architecture-and-Solution-Situational-Picture_v2.1.en.pdf)
+**Download:** [PDF Deutsch](pdf/Enterprise-Architektur-und-Solution-Lagebild_v2.1.pdf) · [PDF English](pdf/Enterprise-Architecture-and-Solution-Situational-Picture_v2.1-en.pdf)
 **Software-Bezug:** Das [`portfolio`](../modules/portfolio.md)-Modul setzt das Solution-Lagebild um; die EA-Dimensionen bilden seine Roadmap.
 
 ---
@@ -65,7 +65,7 @@ Der Regelkreis EA ↔ Solution, Capabilities als gemeinsame Sprache, fünf Lageb
 
 Die Detailausarbeitung zu den vier Vordenkern, die die Reihe als Kronzeugen tragen – Werke, Kernkonzepte und sechs direkt umsetzbare Software-Ableitungen.
 
-**Download:** [PDF Deutsch](pdf/Architektur-Vordenker_v1.1.pdf) · [PDF English](pdf/Architecture-Thought-Leaders_v1.1.en.pdf)
+**Download:** [PDF Deutsch](pdf/Architektur-Vordenker_v1.1.pdf) · [PDF English](pdf/Architecture-Thought-Leaders_v1.1-en.pdf)
 **Software-Bezug:** Trend-Spalten, Schulden-Quadrant und Strangler-Metrik sind als Roadmap-Ableitungen im [`portfolio`](../modules/portfolio.md)-Umfeld verankert.
 
 ---
@@ -80,7 +80,7 @@ Die Detailausarbeitung zu den vier Vordenkern, die die Reihe als Kronzeugen trag
 
 Inwieweit KI beim Erstellen und vor allem beim **Bereitstellen** von Lageinformationen hilft: Nachrichtenzyklus, vier KI-Rollen, sieben Lagedienst-Muster, sechs KI-Prinzipien – mit 90-Tage-Pilot und Governance-Katalog.
 
-**Download:** [PDF Deutsch](pdf/KI-und-Lagebild_v1.2.pdf) · [PDF English](pdf/AI-and-the-Situational-Picture_v1.2.en.pdf)
+**Download:** [PDF Deutsch](pdf/KI-und-Lagebild_v1.2.pdf) · [PDF English](pdf/AI-and-the-Situational-Picture_v1.2-en.pdf)
 **Software-Bezug:** Die sieben Lagedienst-Muster definieren die KI-Phase der Portfolio-Roadmap (Pilot: Delta-Briefing); [`simulate`](../modules/simulate.md) bleibt der deterministische Kern, den KI erklärt, aber nie ersetzt.
 
 ---

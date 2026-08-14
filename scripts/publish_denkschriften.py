@@ -48,6 +48,18 @@ MANIFEST = [
 MINDMAP_SVG = QUELLEN / "Mindmap" / "Denkschriften-Mindmap.svg"
 
 
+def online_name(name: str) -> str:
+    """Online-Dateiname: ``.en.pdf`` wird zu ``-en.pdf``.
+
+    Das mkdocs-static-i18n-Plugin (suffix-Modus) interpretiert ``.en.<ext>``
+    als Sprachvariante und streift das Suffix beim Deploy aus Dateinamen und
+    Links. Mit Bindestrich bleibt der Name unangetastet und online identisch
+    mit dem verlinkten Namen; die kanonischen Quellen-/Release-Namen behalten
+    das ``.en.pdf``-Schema.
+    """
+    return name.replace(".en.pdf", "-en.pdf")
+
+
 def sync() -> list[Path]:
     pdf_dir = TARGET / "pdf"
     pdf_dir.mkdir(parents=True, exist_ok=True)
@@ -58,8 +70,8 @@ def sync() -> list[Path]:
         if not src.exists():
             missing.append(name)
             continue
-        shutil.copy2(src, pdf_dir / name)
-        copied.append(pdf_dir / name)
+        shutil.copy2(src, pdf_dir / online_name(name))
+        copied.append(pdf_dir / online_name(name))
     if missing:
         sys.exit("FEHLER - nicht in Quellen/ gefunden (MANIFEST pruefen): "
                  + ", ".join(missing))
@@ -69,7 +81,8 @@ def sync() -> list[Path]:
     else:
         print("WARNUNG: Mindmap-SVG nicht gefunden:", MINDMAP_SVG)
 
-    orphans = [p.name for p in pdf_dir.glob("*.pdf") if p.name not in MANIFEST]
+    expected = {online_name(n) for n in MANIFEST}
+    orphans = [p.name for p in pdf_dir.glob("*.pdf") if p.name not in expected]
     if orphans:
         print("HINWEIS - verwaiste Alt-Fassungen in docs/denkschriften/pdf/ "
               "(manuell entfernen): " + ", ".join(orphans))

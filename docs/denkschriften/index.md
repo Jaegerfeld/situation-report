@@ -20,7 +20,7 @@ Each memorandum is available here in its current edition as a PDF (German and En
 
 The talk that started everything: the missing operational-planning layer, the four knowledge fields Flow · Quality · Value · Dependencies, competence instead of rules – including all original slides and a one-page flyer for every memorandum.
 
-**Download:** [PDF German](pdf/Denkschrift-0_Large-Solution-Management_v1.2.pdf) · [PDF English](pdf/Memorandum-0_Large-Solution-Management_v1.2.en.pdf)
+**Download:** [PDF German](pdf/Denkschrift-0_Large-Solution-Management_v1.2.pdf) · [PDF English](pdf/Memorandum-0_Large-Solution-Management_v1.2-en.pdf)
 **Software connection:** The four knowledge fields grew into this toolsuite's [module overview](../modules/index.md).
 
 ---
@@ -35,7 +35,7 @@ The talk that started everything: the missing operational-planning layer, the fo
 
 What portfolios can learn from McChrystal's Team of Teams and 200 years of general-staff training: a shared operating picture plus decentralized decision-making, and staff work as a teachable craft – including a 12-month curriculum and a quick-start path.
 
-**Download:** [PDF German](pdf/Team-of-Teams-und-Stabsausbildung_v4.1.pdf) · [PDF English](pdf/Team-of-Teams-and-Staff-Training_v4.1.en.pdf)
+**Download:** [PDF German](pdf/Team-of-Teams-und-Stabsausbildung_v4.1.pdf) · [PDF English](pdf/Team-of-Teams-and-Staff-Training_v4.1-en.pdf)
 **Software connection:** The aggregated report is the O&I artifact; [`simulate`](../modules/simulate.md) provides the quantitative wargaming.
 
 ---
@@ -50,7 +50,7 @@ What portfolios can learn from McChrystal's Team of Teams and 200 years of gener
 
 The EA ↔ solution control loop, capabilities as a shared language, five situational-picture principles, and the four report dimensions beyond flow metrics – with a 90-day entry path.
 
-**Download:** [PDF German](pdf/Enterprise-Architektur-und-Solution-Lagebild_v2.1.pdf) · [PDF English](pdf/Enterprise-Architecture-and-Solution-Situational-Picture_v2.1.en.pdf)
+**Download:** [PDF German](pdf/Enterprise-Architektur-und-Solution-Lagebild_v2.1.pdf) · [PDF English](pdf/Enterprise-Architecture-and-Solution-Situational-Picture_v2.1-en.pdf)
 **Software connection:** The [`portfolio`](../modules/portfolio.md) module implements the solution situational picture; the EA dimensions shape its roadmap.
 
 ---
@@ -65,7 +65,7 @@ The EA ↔ solution control loop, capabilities as a shared language, five situat
 
 The in-depth treatment of the four thought leaders who serve as the series' key witnesses – their works, core concepts, and six directly actionable software derivations.
 
-**Download:** [PDF German](pdf/Architektur-Vordenker_v1.1.pdf) · [PDF English](pdf/Architecture-Thought-Leaders_v1.1.en.pdf)
+**Download:** [PDF German](pdf/Architektur-Vordenker_v1.1.pdf) · [PDF English](pdf/Architecture-Thought-Leaders_v1.1-en.pdf)
 **Software connection:** Trend columns, the debt quadrant, and the strangler metric are anchored as roadmap derivations around the [`portfolio`](../modules/portfolio.md) module.
 
 ---
@@ -80,7 +80,7 @@ The in-depth treatment of the four thought leaders who serve as the series' key 
 
 To what extent AI helps create and above all **provide** situational information: the intelligence cycle, four AI roles, seven situation-service patterns, six AI principles – with a 90-day pilot and a governance catalogue.
 
-**Download:** [PDF German](pdf/KI-und-Lagebild_v1.2.pdf) · [PDF English](pdf/AI-and-the-Situational-Picture_v1.2.en.pdf)
+**Download:** [PDF German](pdf/KI-und-Lagebild_v1.2.pdf) · [PDF English](pdf/AI-and-the-Situational-Picture_v1.2-en.pdf)
 **Software connection:** The seven situation-service patterns define the AI phase of the portfolio roadmap (pilot: delta briefing); [`simulate`](../modules/simulate.md) remains the deterministic core that AI explains but never replaces.
 
 ---
