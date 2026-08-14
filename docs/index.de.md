@@ -13,6 +13,10 @@ Toolsuite zur Abfrage von Jira-Issuedaten sowie zur Aufbereitung für Metriken u
 | [`simulate`](modules/simulate.md) | Simulationen und Vorhersagemodelle | geplant |
 | [`helper`](modules/helper.md) | Hilfswerkzeuge (JSON Merger u.a.) | verfügbar (Alpha) |
 
+## Hintergrund: Die Denkschriften-Reihe
+
+Das fachliche Fundament dieser Toolsuite — Lagebild, Stabsarbeit und KI als Stabsmitglied — ist in einer zweisprachigen Denkschriften-Reihe für Entscheider ausgearbeitet: **[Die Denkschriften-Reihe](denkschriften/index.md)**.
+
 ## Setup
 
 ```bash

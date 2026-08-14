@@ -23,6 +23,7 @@ plugins:
             Overview: Übersicht
             Architecture: Architektur
             Development: Entwicklung
+            Memoranda: Denkschriften
 
 theme:
   name: material
@@ -73,6 +74,7 @@ nav:
     - testdata_generator: modules/testdata_generator.md
     - get_data: modules/get_data.md
     - simulate: modules/simulate.md
+  - Memoranda: denkschriften/index.md
   - Architecture: architecture.md
   - Development: development.md
   - Releases: releases.md

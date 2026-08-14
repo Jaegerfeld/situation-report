@@ -1,0 +1,352 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="2060" height="2726" viewBox="0 0 2060 2726" font-family="Segoe UI, Helvetica, Arial, sans-serif">
+<rect width="2060" height="2726" fill="#ffffff"/>
+<text x="60" y="38" font-size="17" font-weight="700" fill="#16304d">Die Denkschriften-Reihe als Mindmap</text>
+<text x="60" y="56" font-size="10.5" fill="#5b6b7c">Kernpunkte, Basiserkenntnisse und Querverbindungen · Arbeitsstand 13.08.2026 · gestrichelter Ast = geplant · graue gestrichelte Kurven = Querverbindungen</text>
+<path d="M 1020.0 1373.0 C 1090.0 1373.0 1090.0 225.5 1160.0 225.5" fill="none" stroke="#8c7350" stroke-width="2.0" stroke-opacity="0.75"/>
+<path d="M 1395.0 225.5 C 1430.0 225.5 1430.0 158.5 1465.0 158.5" fill="none" stroke="#8c7350" stroke-width="1.3" stroke-opacity="0.75"/>
+<path d="M 1395.0 225.5 C 1430.0 225.5 1430.0 225.5 1465.0 225.5" fill="none" stroke="#8c7350" stroke-width="1.3" stroke-opacity="0.75"/>
+<path d="M 1395.0 225.5 C 1430.0 225.5 1430.0 292.5 1465.0 292.5" fill="none" stroke="#8c7350" stroke-width="1.3" stroke-opacity="0.75"/>
+<path d="M 1020.0 1373.0 C 1090.0 1373.0 1090.0 678.0 1160.0 678.0" fill="none" stroke="#2e5e8c" stroke-width="2.0" stroke-opacity="0.75"/>
+<path d="M 1395.0 678.0 C 1430.0 678.0 1430.0 390.5 1465.0 390.5" fill="none" stroke="#2e5e8c" stroke-width="1.3" stroke-opacity="0.75"/>
+<path d="M 1395.0 678.0 C 1430.0 678.0 1430.0 464.5 1465.0 464.5" fill="none" stroke="#2e5e8c" stroke-width="1.3" stroke-opacity="0.75"/>
+<path d="M 1395.0 678.0 C 1430.0 678.0 1430.0 531.5 1465.0 531.5" fill="none" stroke="#2e5e8c" stroke-width="1.3" stroke-opacity="0.75"/>
+<path d="M 1730.0 531.5 C 1757.5 531.5 1757.5 531.5 1785.0 531.5" fill="none" stroke="#2e5e8c" stroke-width="1.3" stroke-opacity="0.75"/>
+<path d="M 1395.0 678.0 C 1430.0 678.0 1430.0 598.5 1465.0 598.5" fill="none" stroke="#2e5e8c" stroke-width="1.3" stroke-opacity="0.75"/>
+<path d="M 1395.0 678.0 C 1430.0 678.0 1430.0 658.5 1465.0 658.5" fill="none" stroke="#2e5e8c" stroke-width="1.3" stroke-opacity="0.75"/>
+<path d="M 1395.0 678.0 C 1430.0 678.0 1430.0 718.5 1465.0 718.5" fill="none" stroke="#2e5e8c" stroke-width="1.3" stroke-opacity="0.75"/>
+<path d="M 1395.0 678.0 C 1430.0 678.0 1430.0 778.5 1465.0 778.5" fill="none" stroke="#2e5e8c" stroke-width="1.3" stroke-opacity="0.75"/>
+<path d="M 1395.0 678.0 C 1430.0 678.0 1430.0 831.5 1465.0 831.5" fill="none" stroke="#2e5e8c" stroke-width="1.3" stroke-opacity="0.75"/>
+<path d="M 1395.0 678.0 C 1430.0 678.0 1430.0 891.5 1465.0 891.5" fill="none" stroke="#2e5e8c" stroke-width="1.3" stroke-opacity="0.75"/>
+<path d="M 1395.0 678.0 C 1430.0 678.0 1430.0 965.5 1465.0 965.5" fill="none" stroke="#2e5e8c" stroke-width="1.3" stroke-opacity="0.75"/>
+<path d="M 1020.0 1373.0 C 1090.0 1373.0 1090.0 1332.5 1160.0 1332.5" fill="none" stroke="#d97706" stroke-width="2.0" stroke-opacity="0.75"/>
+<path d="M 1395.0 1332.5 C 1430.0 1332.5 1430.0 1070.5 1465.0 1070.5" fill="none" stroke="#d97706" stroke-width="1.3" stroke-opacity="0.75"/>
+<path d="M 1395.0 1332.5 C 1430.0 1332.5 1430.0 1151.5 1465.0 1151.5" fill="none" stroke="#d97706" stroke-width="1.3" stroke-opacity="0.75"/>
+<path d="M 1395.0 1332.5 C 1430.0 1332.5 1430.0 1225.5 1465.0 1225.5" fill="none" stroke="#d97706" stroke-width="1.3" stroke-opacity="0.75"/>
+<path d="M 1395.0 1332.5 C 1430.0 1332.5 1430.0 1360.5 1465.0 1360.5" fill="none" stroke="#d97706" stroke-width="1.3" stroke-opacity="0.75"/>
+<path d="M 1730.0 1360.5 C 1757.5 1360.5 1757.5 1278.0 1785.0 1278.0" fill="none" stroke="#d97706" stroke-width="1.3" stroke-opacity="0.75"/>
+<path d="M 1730.0 1360.5 C 1757.5 1360.5 1757.5 1316.0 1785.0 1316.0" fill="none" stroke="#d97706" stroke-width="1.3" stroke-opacity="0.75"/>
+<path d="M 1730.0 1360.5 C 1757.5 1360.5 1757.5 1354.0 1785.0 1354.0" fill="none" stroke="#d97706" stroke-width="1.3" stroke-opacity="0.75"/>
+<path d="M 1730.0 1360.5 C 1757.5 1360.5 1757.5 1392.0 1785.0 1392.0" fill="none" stroke="#d97706" stroke-width="1.3" stroke-opacity="0.75"/>
+<path d="M 1730.0 1360.5 C 1757.5 1360.5 1757.5 1436.5 1785.0 1436.5" fill="none" stroke="#d97706" stroke-width="1.3" stroke-opacity="0.75"/>
+<path d="M 1395.0 1332.5 C 1430.0 1332.5 1430.0 1495.5 1465.0 1495.5" fill="none" stroke="#d97706" stroke-width="1.3" stroke-opacity="0.75"/>
+<path d="M 1395.0 1332.5 C 1430.0 1332.5 1430.0 1555.5 1465.0 1555.5" fill="none" stroke="#d97706" stroke-width="1.3" stroke-opacity="0.75"/>
+<path d="M 1395.0 1332.5 C 1430.0 1332.5 1430.0 1608.5 1465.0 1608.5" fill="none" stroke="#d97706" stroke-width="1.3" stroke-opacity="0.75"/>
+<path d="M 1020.0 1373.0 C 1090.0 1373.0 1090.0 1805.5 1160.0 1805.5" fill="none" stroke="#6d5bb8" stroke-width="2.0" stroke-opacity="0.75"/>
+<path d="M 1395.0 1805.5 C 1430.0 1805.5 1430.0 1692.5 1465.0 1692.5" fill="none" stroke="#6d5bb8" stroke-width="1.3" stroke-opacity="0.75"/>
+<path d="M 1395.0 1805.5 C 1430.0 1805.5 1430.0 1752.5 1465.0 1752.5" fill="none" stroke="#6d5bb8" stroke-width="1.3" stroke-opacity="0.75"/>
+<path d="M 1395.0 1805.5 C 1430.0 1805.5 1430.0 1805.5 1465.0 1805.5" fill="none" stroke="#6d5bb8" stroke-width="1.3" stroke-opacity="0.75"/>
+<path d="M 1395.0 1805.5 C 1430.0 1805.5 1430.0 1858.5 1465.0 1858.5" fill="none" stroke="#6d5bb8" stroke-width="1.3" stroke-opacity="0.75"/>
+<path d="M 1395.0 1805.5 C 1430.0 1805.5 1430.0 1918.5 1465.0 1918.5" fill="none" stroke="#6d5bb8" stroke-width="1.3" stroke-opacity="0.75"/>
+<path d="M 1020.0 1373.0 C 1090.0 1373.0 1090.0 2298.5 1160.0 2298.5" fill="none" stroke="#1a7f4e" stroke-width="2.0" stroke-opacity="0.75"/>
+<path d="M 1395.0 2298.5 C 1430.0 2298.5 1430.0 2009.5 1465.0 2009.5" fill="none" stroke="#1a7f4e" stroke-width="1.3" stroke-opacity="0.75"/>
+<path d="M 1395.0 2298.5 C 1430.0 2298.5 1430.0 2069.5 1465.0 2069.5" fill="none" stroke="#1a7f4e" stroke-width="1.3" stroke-opacity="0.75"/>
+<path d="M 1395.0 2298.5 C 1430.0 2298.5 1430.0 2129.5 1465.0 2129.5" fill="none" stroke="#1a7f4e" stroke-width="1.3" stroke-opacity="0.75"/>
+<path d="M 1395.0 2298.5 C 1430.0 2298.5 1430.0 2196.5 1465.0 2196.5" fill="none" stroke="#1a7f4e" stroke-width="1.3" stroke-opacity="0.75"/>
+<path d="M 1395.0 2298.5 C 1430.0 2298.5 1430.0 2263.5 1465.0 2263.5" fill="none" stroke="#1a7f4e" stroke-width="1.3" stroke-opacity="0.75"/>
+<path d="M 1395.0 2298.5 C 1430.0 2298.5 1430.0 2337.5 1465.0 2337.5" fill="none" stroke="#1a7f4e" stroke-width="1.3" stroke-opacity="0.75"/>
+<path d="M 1395.0 2298.5 C 1430.0 2298.5 1430.0 2411.5 1465.0 2411.5" fill="none" stroke="#1a7f4e" stroke-width="1.3" stroke-opacity="0.75"/>
+<path d="M 1395.0 2298.5 C 1430.0 2298.5 1430.0 2485.5 1465.0 2485.5" fill="none" stroke="#1a7f4e" stroke-width="1.3" stroke-opacity="0.75"/>
+<path d="M 1395.0 2298.5 C 1430.0 2298.5 1430.0 2573.5 1465.0 2573.5" fill="none" stroke="#1a7f4e" stroke-width="1.3" stroke-opacity="0.75"/>
+<path d="M 770.0 1373.0 C 700.0 1373.0 700.0 1035.0 630.0 1035.0" fill="none" stroke="#b45309" stroke-width="2.0" stroke-opacity="0.75"/>
+<path d="M 395.0 1035.0 C 360.0 1035.0 360.0 888.5 325.0 888.5" fill="none" stroke="#b45309" stroke-width="1.3" stroke-opacity="0.75"/>
+<path d="M 395.0 1035.0 C 360.0 1035.0 360.0 948.5 325.0 948.5" fill="none" stroke="#b45309" stroke-width="1.3" stroke-opacity="0.75"/>
+<path d="M 395.0 1035.0 C 360.0 1035.0 360.0 1008.5 325.0 1008.5" fill="none" stroke="#b45309" stroke-width="1.3" stroke-opacity="0.75"/>
+<path d="M 395.0 1035.0 C 360.0 1035.0 360.0 1075.5 325.0 1075.5" fill="none" stroke="#b45309" stroke-width="1.3" stroke-opacity="0.75"/>
+<path d="M 395.0 1035.0 C 360.0 1035.0 360.0 1135.5 325.0 1135.5" fill="none" stroke="#b45309" stroke-width="1.3" stroke-opacity="0.75"/>
+<path d="M 395.0 1035.0 C 360.0 1035.0 360.0 1188.5 325.0 1188.5" fill="none" stroke="#b45309" stroke-width="1.3" stroke-opacity="0.75"/>
+<path d="M 770.0 1373.0 C 700.0 1373.0 700.0 1392.5 630.0 1392.5" fill="none" stroke="#5b6b7c" stroke-width="2.0" stroke-opacity="0.75"/>
+<path d="M 395.0 1392.5 C 360.0 1392.5 360.0 1272.5 325.0 1272.5" fill="none" stroke="#5b6b7c" stroke-width="1.3" stroke-opacity="0.75"/>
+<path d="M 395.0 1392.5 C 360.0 1392.5 360.0 1339.5 325.0 1339.5" fill="none" stroke="#5b6b7c" stroke-width="1.3" stroke-opacity="0.75"/>
+<path d="M 395.0 1392.5 C 360.0 1392.5 360.0 1406.5 325.0 1406.5" fill="none" stroke="#5b6b7c" stroke-width="1.3" stroke-opacity="0.75"/>
+<path d="M 395.0 1392.5 C 360.0 1392.5 360.0 1466.5 325.0 1466.5" fill="none" stroke="#5b6b7c" stroke-width="1.3" stroke-opacity="0.75"/>
+<path d="M 395.0 1392.5 C 360.0 1392.5 360.0 1519.5 325.0 1519.5" fill="none" stroke="#5b6b7c" stroke-width="1.3" stroke-opacity="0.75"/>
+<path d="M 770.0 1373.0 C 700.0 1373.0 700.0 1730.5 630.0 1730.5" fill="none" stroke="#0e7c86" stroke-width="2.0" stroke-opacity="0.75"/>
+<path d="M 395.0 1730.5 C 360.0 1730.5 360.0 1603.5 325.0 1603.5" fill="none" stroke="#0e7c86" stroke-width="1.3" stroke-opacity="0.75"/>
+<path d="M 395.0 1730.5 C 360.0 1730.5 360.0 1663.5 325.0 1663.5" fill="none" stroke="#0e7c86" stroke-width="1.3" stroke-opacity="0.75"/>
+<path d="M 395.0 1730.5 C 360.0 1730.5 360.0 1716.5 325.0 1716.5" fill="none" stroke="#0e7c86" stroke-width="1.3" stroke-opacity="0.75"/>
+<path d="M 395.0 1730.5 C 360.0 1730.5 360.0 1769.5 325.0 1769.5" fill="none" stroke="#0e7c86" stroke-width="1.3" stroke-opacity="0.75"/>
+<path d="M 395.0 1730.5 C 360.0 1730.5 360.0 1843.5 325.0 1843.5" fill="none" stroke="#0e7c86" stroke-width="1.3" stroke-opacity="0.75"/>
+<path d="M 1730.0 1752.5 Q 2130.0 1142.0 1730.0 531.5" fill="none" stroke="#7d8da0" stroke-width="1.3" stroke-dasharray="5 4" stroke-opacity="0.7"/>
+<circle cx="1730.0" cy="1752.5" r="2.4" fill="#7d8da0"/>
+<circle cx="1730.0" cy="531.5" r="2.4" fill="#7d8da0"/>
+<path d="M 1730.0 1692.5 Q 2130.0 1978.0 1730.0 2263.5" fill="none" stroke="#7d8da0" stroke-width="1.3" stroke-dasharray="5 4" stroke-opacity="0.7"/>
+<circle cx="1730.0" cy="1692.5" r="2.4" fill="#7d8da0"/>
+<circle cx="1730.0" cy="2263.5" r="2.4" fill="#7d8da0"/>
+<path d="M 1730.0 891.5 Q 2130.0 1614.5 1730.0 2337.5" fill="none" stroke="#7d8da0" stroke-width="1.3" stroke-dasharray="5 4" stroke-opacity="0.7"/>
+<circle cx="1730.0" cy="891.5" r="2.4" fill="#7d8da0"/>
+<circle cx="1730.0" cy="2337.5" r="2.4" fill="#7d8da0"/>
+<path d="M 1730.0 2485.5 Q 2130.0 1438.0 1730.0 390.5" fill="none" stroke="#7d8da0" stroke-width="1.3" stroke-dasharray="5 4" stroke-opacity="0.7"/>
+<circle cx="1730.0" cy="2485.5" r="2.4" fill="#7d8da0"/>
+<circle cx="1730.0" cy="390.5" r="2.4" fill="#7d8da0"/>
+<path d="M 1730.0 718.5 Q 2130.0 1055.2 2000.0 1392.0" fill="none" stroke="#7d8da0" stroke-width="1.3" stroke-dasharray="5 4" stroke-opacity="0.7"/>
+<circle cx="1730.0" cy="718.5" r="2.4" fill="#7d8da0"/>
+<circle cx="2000.0" cy="1392.0" r="2.4" fill="#7d8da0"/>
+<path d="M 2000.0 1392.0 Q 2130.0 1864.8 1730.0 2337.5" fill="none" stroke="#7d8da0" stroke-width="1.3" stroke-dasharray="5 4" stroke-opacity="0.7"/>
+<circle cx="2000.0" cy="1392.0" r="2.4" fill="#7d8da0"/>
+<circle cx="1730.0" cy="2337.5" r="2.4" fill="#7d8da0"/>
+<path d="M 192.5 1244.0 Q 895.0 50.0 1597.5 503.0" fill="none" stroke="#7d8da0" stroke-width="1.3" stroke-dasharray="5 4" stroke-opacity="0.7"/>
+<circle cx="192.5" cy="1244.0" r="2.4" fill="#7d8da0"/>
+<circle cx="1597.5" cy="503.0" r="2.4" fill="#7d8da0"/>
+<path d="M 1730.0 1858.5 Q 2130.0 1228.5 1730.0 598.5" fill="none" stroke="#7d8da0" stroke-width="1.3" stroke-dasharray="5 4" stroke-opacity="0.7"/>
+<circle cx="1730.0" cy="1858.5" r="2.4" fill="#7d8da0"/>
+<circle cx="1730.0" cy="598.5" r="2.4" fill="#7d8da0"/>
+<path d="M 1597.5 197.0 Q 895.0 50.0 192.5 1244.0" fill="none" stroke="#7d8da0" stroke-width="1.3" stroke-dasharray="5 4" stroke-opacity="0.7"/>
+<circle cx="1597.5" cy="197.0" r="2.4" fill="#7d8da0"/>
+<circle cx="192.5" cy="1244.0" r="2.4" fill="#7d8da0"/>
+<rect x="770.0" y="1332.5" width="250" height="81" rx="12" fill="#16304d" stroke="#ffffff" stroke-width="1.5"/>
+<text x="895.0" y="1353.3" font-size="15.0" font-weight="700" fill="#ffffff" text-anchor="middle">Das Lagebild –</text>
+<text x="895.0" y="1373.5" font-size="15.0" font-weight="700" fill="#ffffff" text-anchor="middle">Denkschriften-Reihe</text>
+<text x="895.0" y="1393.8" font-size="9.5" fill="#e8eef6" text-anchor="middle">Portfolio- &amp; Solution-Ebene · kuratiert von</text>
+<text x="895.0" y="1406.6" font-size="9.5" fill="#e8eef6" text-anchor="middle">Robert Seebauer</text>
+<rect x="1160.0" y="173.5" width="235" height="104" rx="9" fill="#8c7350" stroke="#ffffff" stroke-width="1.5"/>
+<text x="1277.5" y="192.0" font-size="12.5" font-weight="700" fill="#ffffff" text-anchor="middle">Denkschrift 0 v1.1 · Large</text>
+<text x="1277.5" y="208.9" font-size="12.5" font-weight="700" fill="#ffffff" text-anchor="middle">Solution Management (SAFe</text>
+<text x="1277.5" y="225.8" font-size="12.5" font-weight="700" fill="#ffffff" text-anchor="middle">Treff Frankfurt, 26.02.2026)</text>
+<text x="1277.5" y="242.6" font-size="9.5" fill="#e8eef6" text-anchor="middle">Der Ursprung – Auftakt der Reihe</text>
+<text x="1277.5" y="255.5" font-size="9.5" fill="#e8eef6" text-anchor="middle">(verschriftlicht 13.08.2026, mit</text>
+<text x="1277.5" y="268.3" font-size="9.5" fill="#e8eef6" text-anchor="middle">Originalfolien + Reihen-Flyern)</text>
+<rect x="1465.0" y="130.0" width="265" height="57" rx="7" fill="#fbfcfe" stroke="#8c7350" stroke-width="1.4"/>
+<text x="1597.5" y="146.7" font-size="10.5" font-weight="400" fill="#23303e" text-anchor="middle">Kernthese: Zwischen Strategie und Taktik</text>
+<text x="1597.5" y="160.8" font-size="10.5" font-weight="400" fill="#23303e" text-anchor="middle">fehlt die Operationsplanung – ihr erstes</text>
+<text x="1597.5" y="175.0" font-size="10.5" font-weight="400" fill="#23303e" text-anchor="middle">Werkzeug ist das Lagebild</text>
+<rect x="1465.0" y="197.0" width="265" height="57" rx="7" fill="#fbfcfe" stroke="#8c7350" stroke-width="1.4"/>
+<text x="1597.5" y="213.7" font-size="10.5" font-weight="400" fill="#23303e" text-anchor="middle">Vier Wissensfelder: Flow · Quality ·</text>
+<text x="1597.5" y="227.8" font-size="10.5" font-weight="400" fill="#23303e" text-anchor="middle">Value · Dependencies (16 Leitfragen) –</text>
+<text x="1597.5" y="242.0" font-size="10.5" font-weight="400" fill="#23303e" text-anchor="middle">der Keim der Software</text>
+<rect x="1465.0" y="264.0" width="265" height="57" rx="7" fill="#fbfcfe" stroke="#8c7350" stroke-width="1.4"/>
+<text x="1597.5" y="280.7" font-size="10.5" font-weight="400" fill="#23303e" text-anchor="middle">Saatkörner: McChrystal-Folie → ToT ·</text>
+<text x="1597.5" y="294.8" font-size="10.5" font-weight="400" fill="#23303e" text-anchor="middle">Ausbildung statt WBT → Stabsausbildung ·</text>
+<text x="1597.5" y="309.0" font-size="10.5" font-weight="400" fill="#23303e" text-anchor="middle">„vielleicht sowas wie KI&quot; → KI-Schrift</text>
+<rect x="1160.0" y="647.5" width="235" height="61" rx="9" fill="#2e5e8c" stroke="#ffffff" stroke-width="1.5"/>
+<text x="1277.5" y="666.0" font-size="12.5" font-weight="700" fill="#ffffff" text-anchor="middle">ToT v4.0 · Team of Teams &amp;</text>
+<text x="1277.5" y="682.9" font-size="12.5" font-weight="700" fill="#ffffff" text-anchor="middle">Stabsausbildung</text>
+<text x="1277.5" y="699.8" font-size="9.5" fill="#e8eef6" text-anchor="middle">Menschen &amp; Rituale – wie wir führen</text>
+<rect x="1465.0" y="355.0" width="265" height="71" rx="7" fill="#fbfcfe" stroke="#2e5e8c" stroke-width="1.4"/>
+<text x="1597.5" y="371.7" font-size="10.5" font-weight="400" fill="#23303e" text-anchor="middle">Einzelsatz: Ritual + ausgebildete</text>
+<text x="1597.5" y="385.8" font-size="10.5" font-weight="400" fill="#23303e" text-anchor="middle">Menschen erzeugen das Lagebild – das Tool</text>
+<text x="1597.5" y="400.0" font-size="10.5" font-weight="400" fill="#23303e" text-anchor="middle">macht es nur billiger, schneller,</text>
+<text x="1597.5" y="414.2" font-size="10.5" font-weight="400" fill="#23303e" text-anchor="middle">ehrlicher</text>
+<rect x="1465.0" y="436.0" width="265" height="57" rx="7" fill="#fbfcfe" stroke="#2e5e8c" stroke-width="1.4"/>
+<text x="1597.5" y="452.7" font-size="10.5" font-weight="400" fill="#23303e" text-anchor="middle">Shared Consciousness + Empowered</text>
+<text x="1597.5" y="466.8" font-size="10.5" font-weight="400" fill="#23303e" text-anchor="middle">Execution – nur im Paar wirksam</text>
+<text x="1597.5" y="481.0" font-size="10.5" font-weight="400" fill="#23303e" text-anchor="middle">(tägliches O&amp;I-Briefing, radikal offen)</text>
+<rect x="1465.0" y="503.0" width="265" height="57" rx="7" fill="#fbfcfe" stroke="#2e5e8c" stroke-width="1.4"/>
+<text x="1597.5" y="519.7" font-size="10.5" font-weight="400" fill="#23303e" text-anchor="middle">Stabsarbeit ist lehrbares Handwerk: MDMP</text>
+<text x="1597.5" y="533.8" font-size="10.5" font-weight="400" fill="#23303e" text-anchor="middle">· Wargaming · Red Teaming · AAR ·</text>
+<text x="1597.5" y="548.0" font-size="10.5" font-weight="400" fill="#23303e" text-anchor="middle">Backbrief</text>
+<rect x="1785.0" y="504.0" width="215" height="55" rx="7" fill="#fbfcfe" stroke="#2e5e8c" stroke-width="1.4"/>
+<text x="1892.5" y="520.2" font-size="10.0" font-weight="400" fill="#23303e" text-anchor="middle">Gestufte Pipeline · harte</text>
+<text x="1892.5" y="533.7" font-size="10.0" font-weight="400" fill="#23303e" text-anchor="middle">Selektion · gemischte Kohorten ·</text>
+<text x="1892.5" y="547.2" font-size="10.0" font-weight="400" fill="#23303e" text-anchor="middle">Verwendungskopplung (DE/US/UK/AT)</text>
+<rect x="1465.0" y="570.0" width="265" height="57" rx="7" fill="#fbfcfe" stroke="#2e5e8c" stroke-width="1.4"/>
+<text x="1597.5" y="586.7" font-size="10.5" font-weight="400" fill="#23303e" text-anchor="middle">12-Monats-Curriculum</text>
+<text x="1597.5" y="600.8" font-size="10.5" font-weight="400" fill="#23303e" text-anchor="middle">„Portfolio-Stabsausbildung“ (6 Module) +</text>
+<text x="1597.5" y="615.0" font-size="10.5" font-weight="400" fill="#23303e" text-anchor="middle">Einstieg für Eilige</text>
+<rect x="1465.0" y="637.0" width="265" height="43" rx="7" fill="#fbfcfe" stroke="#2e5e8c" stroke-width="1.4"/>
+<text x="1597.5" y="653.7" font-size="10.5" font-weight="400" fill="#23303e" text-anchor="middle">McChrystal: Netzwerk schlägt Hierarchie –</text>
+<text x="1597.5" y="667.8" font-size="10.5" font-weight="400" fill="#23303e" text-anchor="middle">Anpassungsfähigkeit vor Effizienz</text>
+<rect x="1465.0" y="690.0" width="265" height="57" rx="7" fill="#fbfcfe" stroke="#2e5e8c" stroke-width="1.4"/>
+<text x="1597.5" y="706.7" font-size="10.5" font-weight="400" fill="#23303e" text-anchor="middle">Clausewitz: Nebel &amp; Friktion sind</text>
+<text x="1597.5" y="720.8" font-size="10.5" font-weight="400" fill="#23303e" text-anchor="middle">Systemeigenschaft – Scheinsicherheit ist</text>
+<text x="1597.5" y="735.0" font-size="10.5" font-weight="400" fill="#23303e" text-anchor="middle">der Feind</text>
+<rect x="1465.0" y="757.0" width="265" height="43" rx="7" fill="#fbfcfe" stroke="#2e5e8c" stroke-width="1.4"/>
+<text x="1597.5" y="773.7" font-size="10.5" font-weight="400" fill="#23303e" text-anchor="middle">Marquet: Autorität zur Information</text>
+<text x="1597.5" y="787.8" font-size="10.5" font-weight="400" fill="#23303e" text-anchor="middle">verlagern – Kompetenz vor Delegation</text>
+<rect x="1465.0" y="810.0" width="265" height="43" rx="7" fill="#fbfcfe" stroke="#2e5e8c" stroke-width="1.4"/>
+<text x="1597.5" y="826.7" font-size="10.5" font-weight="400" fill="#23303e" text-anchor="middle">Pink: Autonomie · Mastery · Purpose –</text>
+<text x="1597.5" y="840.8" font-size="10.5" font-weight="400" fill="#23303e" text-anchor="middle">Motivationsbasis der Auftragstaktik</text>
+<rect x="1465.0" y="863.0" width="265" height="57" rx="7" fill="#fbfcfe" stroke="#2e5e8c" stroke-width="1.4"/>
+<text x="1597.5" y="879.7" font-size="10.5" font-weight="400" fill="#23303e" text-anchor="middle">Hubbard: Messen = Unsicherheit reduzieren</text>
+<text x="1597.5" y="893.8" font-size="10.5" font-weight="400" fill="#23303e" text-anchor="middle">– nur erheben, was Entscheidungen ändert</text>
+<text x="1597.5" y="908.0" font-size="10.5" font-weight="400" fill="#23303e" text-anchor="middle">(EVI)</text>
+<rect x="1465.0" y="930.0" width="265" height="71" rx="7" fill="#fbfcfe" stroke="#2e5e8c" stroke-width="1.4"/>
+<text x="1597.5" y="946.7" font-size="10.5" font-weight="400" fill="#23303e" text-anchor="middle">Duke (neu v4.0): Resulting vermeiden –</text>
+<text x="1597.5" y="960.8" font-size="10.5" font-weight="400" fill="#23303e" text-anchor="middle">Entscheidungs- ≠ Ergebnisqualität ·</text>
+<text x="1597.5" y="975.0" font-size="10.5" font-weight="400" fill="#23303e" text-anchor="middle">Wetten statt Gewissheiten ·</text>
+<text x="1597.5" y="989.2" font-size="10.5" font-weight="400" fill="#23303e" text-anchor="middle">Ulysses-Verträge</text>
+<rect x="1160.0" y="1293.5" width="235" height="78" rx="9" fill="#d97706" stroke="#ffffff" stroke-width="1.5"/>
+<text x="1277.5" y="1312.0" font-size="12.5" font-weight="700" fill="#ffffff" text-anchor="middle">EA v2.0 ·</text>
+<text x="1277.5" y="1328.9" font-size="12.5" font-weight="700" fill="#ffffff" text-anchor="middle">Enterprise-Architektur &amp;</text>
+<text x="1277.5" y="1345.8" font-size="12.5" font-weight="700" fill="#ffffff" text-anchor="middle">Solution-Lagebild</text>
+<text x="1277.5" y="1362.6" font-size="9.5" fill="#e8eef6" text-anchor="middle">Inhalt &amp; Struktur – worüber wir sprechen</text>
+<rect x="1465.0" y="1035.0" width="265" height="71" rx="7" fill="#fbfcfe" stroke="#d97706" stroke-width="1.4"/>
+<text x="1597.5" y="1051.7" font-size="10.5" font-weight="400" fill="#23303e" text-anchor="middle">Einzelsatz: Solution-Ebene =</text>
+<text x="1597.5" y="1065.8" font-size="10.5" font-weight="400" fill="#23303e" text-anchor="middle">architektonische Verantwortungsebene –</text>
+<text x="1597.5" y="1080.0" font-size="10.5" font-weight="400" fill="#23303e" text-anchor="middle">das Lagebild hält den Regelkreis</text>
+<text x="1597.5" y="1094.2" font-size="10.5" font-weight="400" fill="#23303e" text-anchor="middle">geschlossen</text>
+<rect x="1465.0" y="1116.0" width="265" height="71" rx="7" fill="#fbfcfe" stroke="#d97706" stroke-width="1.4"/>
+<text x="1597.5" y="1132.7" font-size="10.5" font-weight="400" fill="#23303e" text-anchor="middle">Regelkreis: Rahmen abwärts</text>
+<text x="1597.5" y="1146.8" font-size="10.5" font-weight="400" fill="#23303e" text-anchor="middle">(Capability-Map, NFRs, Guardrails) ·</text>
+<text x="1597.5" y="1161.0" font-size="10.5" font-weight="400" fill="#23303e" text-anchor="middle">Rückmeldung aufwärts (Runway, Schulden,</text>
+<text x="1597.5" y="1175.2" font-size="10.5" font-weight="400" fill="#23303e" text-anchor="middle">Risiken)</text>
+<rect x="1465.0" y="1197.0" width="265" height="57" rx="7" fill="#fbfcfe" stroke="#d97706" stroke-width="1.4"/>
+<text x="1597.5" y="1213.7" font-size="10.5" font-weight="400" fill="#23303e" text-anchor="middle">Capabilities als gemeinsame Sprache ·</text>
+<text x="1597.5" y="1227.8" font-size="10.5" font-weight="400" fill="#23303e" text-anchor="middle">Architekt als „Rosetta Stone“ zwischen</text>
+<text x="1597.5" y="1242.0" font-size="10.5" font-weight="400" fill="#23303e" text-anchor="middle">Business und Technik</text>
+<rect x="1465.0" y="1346.0" width="265" height="29" rx="7" fill="#fbfcfe" stroke="#d97706" stroke-width="1.4"/>
+<text x="1597.5" y="1362.7" font-size="10.5" font-weight="400" fill="#23303e" text-anchor="middle">Fünf Lagebild-Prinzipien</text>
+<rect x="1785.0" y="1264.0" width="215" height="28" rx="7" fill="#fbfcfe" stroke="#d97706" stroke-width="1.4"/>
+<text x="1892.5" y="1280.2" font-size="10.0" font-weight="400" fill="#23303e" text-anchor="middle">1 · Capability vor Feature</text>
+<rect x="1785.0" y="1302.0" width="215" height="28" rx="7" fill="#fbfcfe" stroke="#d97706" stroke-width="1.4"/>
+<text x="1892.5" y="1318.2" font-size="10.0" font-weight="400" fill="#23303e" text-anchor="middle">2 · Schulden sind Erstklass-Bürger</text>
+<rect x="1785.0" y="1340.0" width="215" height="28" rx="7" fill="#fbfcfe" stroke="#d97706" stroke-width="1.4"/>
+<text x="1892.5" y="1356.2" font-size="10.0" font-weight="400" fill="#23303e" text-anchor="middle">3 · Zwei Lesarten, ein Bild</text>
+<rect x="1785.0" y="1378.0" width="215" height="28" rx="7" fill="#fbfcfe" stroke="#d97706" stroke-width="1.4"/>
+<text x="1892.5" y="1394.2" font-size="10.0" font-weight="400" fill="#23303e" text-anchor="middle">4 · Konfidenz gehört zur Zahl</text>
+<rect x="1785.0" y="1416.0" width="215" height="41" rx="7" fill="#fbfcfe" stroke="#d97706" stroke-width="1.4"/>
+<text x="1892.5" y="1432.2" font-size="10.0" font-weight="400" fill="#23303e" text-anchor="middle">5 · Lagebild ist</text>
+<text x="1892.5" y="1445.7" font-size="10.0" font-weight="400" fill="#23303e" text-anchor="middle">Governance-Instrument</text>
+<rect x="1465.0" y="1467.0" width="265" height="57" rx="7" fill="#fbfcfe" stroke="#d97706" stroke-width="1.4"/>
+<text x="1597.5" y="1483.7" font-size="10.5" font-weight="400" fill="#23303e" text-anchor="middle">Vier neue Report-Dimensionen:</text>
+<text x="1597.5" y="1497.8" font-size="10.5" font-weight="400" fill="#23303e" text-anchor="middle">Capability-Health · NFR/Runway ·</text>
+<text x="1597.5" y="1512.0" font-size="10.5" font-weight="400" fill="#23303e" text-anchor="middle">ROAM-Risiken · Dependencies</text>
+<rect x="1465.0" y="1534.0" width="265" height="43" rx="7" fill="#fbfcfe" stroke="#d97706" stroke-width="1.4"/>
+<text x="1597.5" y="1550.7" font-size="10.5" font-weight="400" fill="#23303e" text-anchor="middle">Quellen: Graves · Carducci · Gu (A-ESA) ·</text>
+<text x="1597.5" y="1564.8" font-size="10.5" font-weight="400" fill="#23303e" text-anchor="middle">Milchman („Information Masquerade“)</text>
+<rect x="1465.0" y="1587.0" width="265" height="43" rx="7" fill="#fbfcfe" stroke="#d97706" stroke-width="1.4"/>
+<text x="1597.5" y="1603.7" font-size="10.5" font-weight="400" fill="#23303e" text-anchor="middle">90-Tage-Einstieg: Capability-Map →</text>
+<text x="1597.5" y="1617.8" font-size="10.5" font-weight="400" fill="#23303e" text-anchor="middle">ROAM/Decision-Log → Zwei-Lesarten-Report</text>
+<rect x="1160.0" y="1775.0" width="235" height="61" rx="9" fill="#6d5bb8" stroke="#ffffff" stroke-width="1.5"/>
+<text x="1277.5" y="1793.5" font-size="12.5" font-weight="700" fill="#ffffff" text-anchor="middle">Nebenschrift v1.0 ·</text>
+<text x="1277.5" y="1810.4" font-size="12.5" font-weight="700" fill="#ffffff" text-anchor="middle">Architektur-Vordenker</text>
+<text x="1277.5" y="1827.2" font-size="9.5" fill="#e8eef6" text-anchor="middle">Zivile Kronzeugen der Militär-Befunde</text>
+<rect x="1465.0" y="1664.0" width="265" height="57" rx="7" fill="#fbfcfe" stroke="#6d5bb8" stroke-width="1.4"/>
+<text x="1597.5" y="1680.7" font-size="10.5" font-weight="400" fill="#23303e" text-anchor="middle">Hohpe: Architect Elevator = vertikale</text>
+<text x="1597.5" y="1694.8" font-size="10.5" font-weight="400" fill="#23303e" text-anchor="middle">Liaison · „first derivative“ → Trends ins</text>
+<text x="1597.5" y="1709.0" font-size="10.5" font-weight="400" fill="#23303e" text-anchor="middle">Lagebild</text>
+<rect x="1465.0" y="1731.0" width="265" height="43" rx="7" fill="#fbfcfe" stroke="#6d5bb8" stroke-width="1.4"/>
+<text x="1597.5" y="1747.7" font-size="10.5" font-weight="400" fill="#23303e" text-anchor="middle">Fowler: Muster-Vokabular = zivile Doktrin</text>
+<text x="1597.5" y="1761.8" font-size="10.5" font-weight="400" fill="#23303e" text-anchor="middle">· Design-Stamina · Strangler Fig</text>
+<rect x="1465.0" y="1784.0" width="265" height="43" rx="7" fill="#fbfcfe" stroke="#6d5bb8" stroke-width="1.4"/>
+<text x="1597.5" y="1800.7" font-size="10.5" font-weight="400" fill="#23303e" text-anchor="middle">Martin: Grenzen &amp; Dependency Rule ·</text>
+<text x="1597.5" y="1814.8" font-size="10.5" font-weight="400" fill="#23303e" text-anchor="middle">Katas/Übungskultur · „go fast = go well“</text>
+<rect x="1465.0" y="1837.0" width="265" height="43" rx="7" fill="#fbfcfe" stroke="#6d5bb8" stroke-width="1.4"/>
+<text x="1597.5" y="1853.7" font-size="10.5" font-weight="400" fill="#23303e" text-anchor="middle">Hohmann: Marketecture · Buy a Feature /</text>
+<text x="1597.5" y="1867.8" font-size="10.5" font-weight="400" fill="#23303e" text-anchor="middle">Participatory Budgeting · Profit Streams</text>
+<rect x="1465.0" y="1890.0" width="265" height="57" rx="7" fill="#fbfcfe" stroke="#6d5bb8" stroke-width="1.4"/>
+<text x="1597.5" y="1906.7" font-size="10.5" font-weight="400" fill="#23303e" text-anchor="middle">Funktion in der Reihe: unabhängige zivile</text>
+<text x="1597.5" y="1920.8" font-size="10.5" font-weight="400" fill="#23303e" text-anchor="middle">Bestätigung + Synthese mit 6</text>
+<text x="1597.5" y="1935.0" font-size="10.5" font-weight="400" fill="#23303e" text-anchor="middle">Software-Ableitungen</text>
+<rect x="1160.0" y="2261.5" width="235" height="74" rx="9" fill="#1a7f4e" stroke="#ffffff" stroke-width="1.5"/>
+<text x="1277.5" y="2280.0" font-size="12.5" font-weight="700" fill="#ffffff" text-anchor="middle">KI v1.1 · KI und das Lagebild</text>
+<text x="1277.5" y="2296.9" font-size="12.5" font-weight="700" fill="#ffffff" text-anchor="middle">– Vom Bericht zum Lagedienst</text>
+<text x="1277.5" y="2313.8" font-size="9.5" fill="#e8eef6" text-anchor="middle">Werkzeug &amp; Bereitstellung – womit wir</text>
+<text x="1277.5" y="2326.6" font-size="9.5" fill="#e8eef6" text-anchor="middle">arbeiten (Hauptschrift 3, 13.08.2026)</text>
+<rect x="1465.0" y="1981.0" width="265" height="57" rx="7" fill="#fbfcfe" stroke="#1a7f4e" stroke-width="1.4"/>
+<text x="1597.5" y="1997.7" font-size="10.5" font-weight="400" fill="#23303e" text-anchor="middle">Leitfrage: Wie hilft KI beim Erstellen –</text>
+<text x="1597.5" y="2011.8" font-size="10.5" font-weight="400" fill="#23303e" text-anchor="middle">und vor allem beim Bereitstellen – von</text>
+<text x="1597.5" y="2026.0" font-size="10.5" font-weight="400" fill="#23303e" text-anchor="middle">Lageinformationen?</text>
+<rect x="1465.0" y="2048.0" width="265" height="43" rx="7" fill="#fbfcfe" stroke="#1a7f4e" stroke-width="1.4"/>
+<text x="1597.5" y="2064.7" font-size="10.5" font-weight="400" fill="#23303e" text-anchor="middle">Stoßrichtung: KI ist Stabsmitglied, nicht</text>
+<text x="1597.5" y="2078.8" font-size="10.5" font-weight="400" fill="#23303e" text-anchor="middle">Kommandeur · vom Bericht zum Lagedienst</text>
+<rect x="1465.0" y="2101.0" width="265" height="57" rx="7" fill="#fbfcfe" stroke="#1a7f4e" stroke-width="1.4"/>
+<text x="1597.5" y="2117.7" font-size="10.5" font-weight="400" fill="#23303e" text-anchor="middle">Rückgrat: Nachrichtenzyklus – Steuern →</text>
+<text x="1597.5" y="2131.8" font-size="10.5" font-weight="400" fill="#23303e" text-anchor="middle">Erheben → Aufbereiten → Auswerten →</text>
+<text x="1597.5" y="2146.0" font-size="10.5" font-weight="400" fill="#23303e" text-anchor="middle">Bereitstellen → Entscheiden</text>
+<rect x="1465.0" y="2168.0" width="265" height="57" rx="7" fill="#fbfcfe" stroke="#1a7f4e" stroke-width="1.4"/>
+<text x="1597.5" y="2184.7" font-size="10.5" font-weight="400" fill="#23303e" text-anchor="middle">Vier KI-Rollen: Sensor &amp; Sammler ·</text>
+<text x="1597.5" y="2198.8" font-size="10.5" font-weight="400" fill="#23303e" text-anchor="middle">Stabsgehilfe · Analyst &amp; Sparringspartner</text>
+<text x="1597.5" y="2213.0" font-size="10.5" font-weight="400" fill="#23303e" text-anchor="middle">· Lagedienst</text>
+<rect x="1465.0" y="2235.0" width="265" height="57" rx="7" fill="#fbfcfe" stroke="#1a7f4e" stroke-width="1.4"/>
+<text x="1597.5" y="2251.7" font-size="10.5" font-weight="400" fill="#23303e" text-anchor="middle">Sieben Bereitstellungs-Muster: Lesarten ·</text>
+<text x="1597.5" y="2265.8" font-size="10.5" font-weight="400" fill="#23303e" text-anchor="middle">Delta-Briefing · Q&amp;A · Wecker ·</text>
+<text x="1597.5" y="2280.0" font-size="10.5" font-weight="400" fill="#23303e" text-anchor="middle">Zustellung · Lagevortrag · Gedächtnis</text>
+<rect x="1465.0" y="2302.0" width="265" height="71" rx="7" fill="#fbfcfe" stroke="#1a7f4e" stroke-width="1.4"/>
+<text x="1597.5" y="2318.7" font-size="10.5" font-weight="400" fill="#23303e" text-anchor="middle">Sechs KI-Prinzipien: u. a. Herkunft vor</text>
+<text x="1597.5" y="2332.8" font-size="10.5" font-weight="400" fill="#23303e" text-anchor="middle">Eloquenz · das LLM textet, es rechnet</text>
+<text x="1597.5" y="2347.0" font-size="10.5" font-weight="400" fill="#23303e" text-anchor="middle">nicht · der Mensch übt weiter · Teams,</text>
+<text x="1597.5" y="2361.2" font-size="10.5" font-weight="400" fill="#23303e" text-anchor="middle">nicht Personen</text>
+<rect x="1465.0" y="2383.0" width="265" height="57" rx="7" fill="#fbfcfe" stroke="#1a7f4e" stroke-width="1.4"/>
+<text x="1597.5" y="2399.7" font-size="10.5" font-weight="400" fill="#23303e" text-anchor="middle">Risiken &amp; Governance: Halluzination ·</text>
+<text x="1597.5" y="2413.8" font-size="10.5" font-weight="400" fill="#23303e" text-anchor="middle">Automation Bias · Deskilling · AI Act / §</text>
+<text x="1597.5" y="2428.0" font-size="10.5" font-weight="400" fill="#23303e" text-anchor="middle">87 BetrVG</text>
+<rect x="1465.0" y="2450.0" width="265" height="71" rx="7" fill="#fbfcfe" stroke="#1a7f4e" stroke-width="1.4"/>
+<text x="1597.5" y="2466.7" font-size="10.5" font-weight="400" fill="#23303e" text-anchor="middle">Quellen: Prediction Machines ·</text>
+<text x="1597.5" y="2480.8" font-size="10.5" font-weight="400" fill="#23303e" text-anchor="middle">Co-Intelligence · Noise (Kauf) + frei:</text>
+<text x="1597.5" y="2495.0" font-size="10.5" font-weight="400" fill="#23303e" text-anchor="middle">Bainbridge · Parasuraman · DORA 2025 ·</text>
+<text x="1597.5" y="2509.2" font-size="10.5" font-weight="400" fill="#23303e" text-anchor="middle">NATO/RAND · JP 2-0</text>
+<rect x="1465.0" y="2531.0" width="265" height="85" rx="7" fill="#fbfcfe" stroke="#1a7f4e" stroke-width="1.4"/>
+<text x="1597.5" y="2547.7" font-size="10.5" font-weight="400" fill="#23303e" text-anchor="middle">Status: v1.1 vom 13.08.2026 (Duke</text>
+<text x="1597.5" y="2561.8" font-size="10.5" font-weight="400" fill="#23303e" text-anchor="middle">eingearbeitet) · Roadmap-Phase D via PR</text>
+<text x="1597.5" y="2576.0" font-size="10.5" font-weight="400" fill="#23303e" text-anchor="middle">#136 · GEPLANT v2.0: Vertiefung nach</text>
+<text x="1597.5" y="2590.2" font-size="10.5" font-weight="400" fill="#23303e" text-anchor="middle">Lektüre (Prediction Machines ·</text>
+<text x="1597.5" y="2604.4" font-size="10.5" font-weight="400" fill="#23303e" text-anchor="middle">Co-Intelligence · Noise)</text>
+<rect x="395.0" y="1004.5" width="235" height="61" rx="9" fill="#b45309" stroke="#ffffff" stroke-width="1.5"/>
+<text x="512.5" y="1023.0" font-size="12.5" font-weight="700" fill="#ffffff" text-anchor="middle">Roter Faden · gemeinsame</text>
+<text x="512.5" y="1039.9" font-size="12.5" font-weight="700" fill="#ffffff" text-anchor="middle">Basiserkenntnisse</text>
+<text x="512.5" y="1056.8" font-size="9.5" fill="#e8eef6" text-anchor="middle">Was alle Schriften zusammenhält</text>
+<rect x="60.0" y="860.0" width="265" height="57" rx="7" fill="#fbfcfe" stroke="#b45309" stroke-width="1.4"/>
+<text x="192.5" y="876.7" font-size="10.5" font-weight="400" fill="#23303e" text-anchor="middle">Komplex ≠ kompliziert:</text>
+<text x="192.5" y="890.8" font-size="10.5" font-weight="400" fill="#23303e" text-anchor="middle">Anpassungsfähigkeit vor Effizienz,</text>
+<text x="192.5" y="905.0" font-size="10.5" font-weight="400" fill="#23303e" text-anchor="middle">Resilienz vor Prognose</text>
+<rect x="60.0" y="927.0" width="265" height="43" rx="7" fill="#fbfcfe" stroke="#b45309" stroke-width="1.4"/>
+<text x="192.5" y="943.7" font-size="10.5" font-weight="400" fill="#23303e" text-anchor="middle">Lagebild und Entscheidungsbefugnis nur im</text>
+<text x="192.5" y="957.8" font-size="10.5" font-weight="400" fill="#23303e" text-anchor="middle">Paar – sonst teures Reporting oder Chaos</text>
+<rect x="60.0" y="980.0" width="265" height="57" rx="7" fill="#fbfcfe" stroke="#b45309" stroke-width="1.4"/>
+<text x="192.5" y="996.7" font-size="10.5" font-weight="400" fill="#23303e" text-anchor="middle">Gemeinsame Sprache/Doktrin macht</text>
+<text x="192.5" y="1010.8" font-size="10.5" font-weight="400" fill="#23303e" text-anchor="middle">zusammengewürfelte Teams sofort</text>
+<text x="192.5" y="1025.0" font-size="10.5" font-weight="400" fill="#23303e" text-anchor="middle">arbeitsfähig</text>
+<rect x="60.0" y="1047.0" width="265" height="57" rx="7" fill="#fbfcfe" stroke="#b45309" stroke-width="1.4"/>
+<text x="192.5" y="1063.7" font-size="10.5" font-weight="400" fill="#23303e" text-anchor="middle">Konfidenz &amp; Herkunft gehören zu jeder</text>
+<text x="192.5" y="1077.8" font-size="10.5" font-weight="400" fill="#23303e" text-anchor="middle">Information – gegen die Information</text>
+<text x="192.5" y="1092.0" font-size="10.5" font-weight="400" fill="#23303e" text-anchor="middle">Masquerade</text>
+<rect x="60.0" y="1114.0" width="265" height="43" rx="7" fill="#fbfcfe" stroke="#b45309" stroke-width="1.4"/>
+<text x="192.5" y="1130.7" font-size="10.5" font-weight="400" fill="#23303e" text-anchor="middle">Keine Einzelmetrik (Goodhart): Set aus</text>
+<text x="192.5" y="1144.8" font-size="10.5" font-weight="400" fill="#23303e" text-anchor="middle">Flow + Outcome + Qualität + Mensch</text>
+<rect x="60.0" y="1167.0" width="265" height="43" rx="7" fill="#fbfcfe" stroke="#b45309" stroke-width="1.4"/>
+<text x="192.5" y="1183.7" font-size="10.5" font-weight="400" fill="#23303e" text-anchor="middle">Widerspruch institutionalisieren: Red</text>
+<text x="192.5" y="1197.8" font-size="10.5" font-weight="400" fill="#23303e" text-anchor="middle">Teaming · Premortem · anonyme Vorab-Voten</text>
+<rect x="395.0" y="1362.0" width="235" height="61" rx="9" fill="#5b6b7c" stroke="#ffffff" stroke-width="1.5"/>
+<text x="512.5" y="1380.5" font-size="12.5" font-weight="700" fill="#ffffff" text-anchor="middle">Werkzeug ·</text>
+<text x="512.5" y="1397.4" font-size="12.5" font-weight="700" fill="#ffffff" text-anchor="middle">SituationReport-Software</text>
+<text x="512.5" y="1414.2" font-size="9.5" fill="#e8eef6" text-anchor="middle">Das Tool im Dienst des Rituals</text>
+<rect x="60.0" y="1244.0" width="265" height="57" rx="7" fill="#fbfcfe" stroke="#5b6b7c" stroke-width="1.4"/>
+<text x="192.5" y="1260.7" font-size="10.5" font-weight="400" fill="#23303e" text-anchor="middle">Ist: Flow-Metriken ·</text>
+<text x="192.5" y="1274.8" font-size="10.5" font-weight="400" fill="#23303e" text-anchor="middle">Pooled-/Comparison-Reports · Simulate</text>
+<text x="192.5" y="1289.0" font-size="10.5" font-weight="400" fill="#23303e" text-anchor="middle">(Monte-Carlo-Forecasts)</text>
+<rect x="60.0" y="1311.0" width="265" height="57" rx="7" fill="#fbfcfe" stroke="#5b6b7c" stroke-width="1.4"/>
+<text x="192.5" y="1327.7" font-size="10.5" font-weight="400" fill="#23303e" text-anchor="middle">Roadmap: A Konfidenz-Flags · B</text>
+<text x="192.5" y="1341.8" font-size="10.5" font-weight="400" fill="#23303e" text-anchor="middle">EA-Eingabe-Artefakte · C</text>
+<text x="192.5" y="1356.0" font-size="10.5" font-weight="400" fill="#23303e" text-anchor="middle">SLO/DORA/Jira-REST</text>
+<rect x="60.0" y="1378.0" width="265" height="57" rx="7" fill="#fbfcfe" stroke="#5b6b7c" stroke-width="1.4"/>
+<text x="192.5" y="1394.7" font-size="10.5" font-weight="400" fill="#23303e" text-anchor="middle">Geplant Phase D · KI-Assistenz:</text>
+<text x="192.5" y="1408.8" font-size="10.5" font-weight="400" fill="#23303e" text-anchor="middle">Exec-Summary · Delta · Q&amp;A · Anomalie ·</text>
+<text x="192.5" y="1423.0" font-size="10.5" font-weight="400" fill="#23303e" text-anchor="middle">Red-Team · Sprachen</text>
+<rect x="60.0" y="1445.0" width="265" height="43" rx="7" fill="#fbfcfe" stroke="#5b6b7c" stroke-width="1.4"/>
+<text x="192.5" y="1461.7" font-size="10.5" font-weight="400" fill="#23303e" text-anchor="middle">Grundsatz: deterministischer Kern – KI</text>
+<text x="192.5" y="1475.8" font-size="10.5" font-weight="400" fill="#23303e" text-anchor="middle">veredelt, sie trägt nicht</text>
+<rect x="60.0" y="1498.0" width="265" height="43" rx="7" fill="#fbfcfe" stroke="#5b6b7c" stroke-width="1.4"/>
+<text x="192.5" y="1514.7" font-size="10.5" font-weight="400" fill="#23303e" text-anchor="middle">Der aggregierte Report ist unser</text>
+<text x="192.5" y="1528.8" font-size="10.5" font-weight="400" fill="#23303e" text-anchor="middle">O&amp;I-Artefakt</text>
+<rect x="395.0" y="1708.5" width="235" height="44" rx="9" fill="#0e7c86" stroke="#ffffff" stroke-width="1.5"/>
+<text x="512.5" y="1727.0" font-size="12.5" font-weight="700" fill="#ffffff" text-anchor="middle">Flankierende Quellenarbeit</text>
+<text x="512.5" y="1743.9" font-size="9.5" fill="#e8eef6" text-anchor="middle">Arbeitsmaterial der Reihe</text>
+<rect x="60.0" y="1575.0" width="265" height="57" rx="7" fill="#fbfcfe" stroke="#0e7c86" stroke-width="1.4"/>
+<text x="192.5" y="1591.7" font-size="10.5" font-weight="400" fill="#23303e" text-anchor="middle">Lagebild-Literaturliste: 3 Ebenen ·</text>
+<text x="192.5" y="1605.8" font-size="10.5" font-weight="400" fill="#23303e" text-anchor="middle">Kompetenzkarte · Ergänzungen v2–v5 (v5:</text>
+<text x="192.5" y="1620.0" font-size="10.5" font-weight="400" fill="#23303e" text-anchor="middle">Thinking in Bets)</text>
+<rect x="60.0" y="1642.0" width="265" height="43" rx="7" fill="#fbfcfe" stroke="#0e7c86" stroke-width="1.4"/>
+<text x="192.5" y="1658.7" font-size="10.5" font-weight="400" fill="#23303e" text-anchor="middle">Red-Team-Handbuch v9 – deutsche</text>
+<text x="192.5" y="1672.8" font-size="10.5" font-weight="400" fill="#23303e" text-anchor="middle">Arbeitsübersetzung (~50 Techniken)</text>
+<rect x="60.0" y="1695.0" width="265" height="43" rx="7" fill="#fbfcfe" stroke="#0e7c86" stroke-width="1.4"/>
+<text x="192.5" y="1711.7" font-size="10.5" font-weight="400" fill="#23303e" text-anchor="middle">EPUB-Korpus: 22 Titel + Themen-Synthese</text>
+<text x="192.5" y="1725.8" font-size="10.5" font-weight="400" fill="#23303e" text-anchor="middle">(8 Fäden)</text>
+<rect x="60.0" y="1748.0" width="265" height="43" rx="7" fill="#fbfcfe" stroke="#0e7c86" stroke-width="1.4"/>
+<text x="192.5" y="1764.7" font-size="10.5" font-weight="400" fill="#23303e" text-anchor="middle">Flow-Efficiency-Debatte – offen</text>
+<text x="192.5" y="1778.8" font-size="10.5" font-weight="400" fill="#23303e" text-anchor="middle">(Erhebungskosten vs. Vacanti)</text>
+<rect x="60.0" y="1801.0" width="265" height="85" rx="7" fill="#fbfcfe" stroke="#0e7c86" stroke-width="1.4"/>
+<text x="192.5" y="1817.7" font-size="10.5" font-weight="400" fill="#23303e" text-anchor="middle">ONLINE: Denkschriften-Bereich der</text>
+<text x="192.5" y="1831.8" font-size="10.5" font-weight="400" fill="#23303e" text-anchor="middle">Doku-Site</text>
+<text x="192.5" y="1846.0" font-size="10.5" font-weight="400" fill="#23303e" text-anchor="middle">(jaegerfeld.github.io/situation-report/denkschriften)</text>
+<text x="192.5" y="1860.2" font-size="10.5" font-weight="400" fill="#23303e" text-anchor="middle">+ Release-Permalinks</text>
+<text x="192.5" y="1874.4" font-size="10.5" font-weight="400" fill="#23303e" text-anchor="middle">denkschriften/&lt;Datum&gt;</text>
+<text x="1922.0" y="1145.0" text-anchor="end" font-size="9" font-style="italic" fill="#4d5d6e" paint-order="stroke" stroke="#ffffff" stroke-width="3">dieselbe Doktrin-Idee, zwei Welten</text>
+<text x="1922.0" y="1981.0" text-anchor="end" font-size="9" font-style="italic" fill="#4d5d6e" paint-order="stroke" stroke="#ffffff" stroke-width="3">first derivative wird Produkt (Delta-Briefing)</text>
+<text x="1922.0" y="1617.5" text-anchor="end" font-size="9" font-style="italic" fill="#4d5d6e" paint-order="stroke" stroke="#ffffff" stroke-width="3">EVI: Bereitstellen heißt priorisieren</text>
+<text x="1922.0" y="1463.0" text-anchor="end" font-size="9" font-style="italic" fill="#4d5d6e" paint-order="stroke" stroke="#ffffff" stroke-width="3">DORA-Amplifier bestätigt: Ritual vor Tool</text>
+<text x="1989.5" y="1058.2" text-anchor="end" font-size="9" font-style="italic" fill="#4d5d6e" paint-order="stroke" stroke="#ffffff" stroke-width="3">Nebel → Konfidenzpflicht</text>
+<text x="1989.5" y="1867.8" text-anchor="end" font-size="9" font-style="italic" fill="#4d5d6e" paint-order="stroke" stroke="#ffffff" stroke-width="3">Fortschreibung: Herkunft vor Eloquenz</text>
+<text x="895.0" y="454.8" text-anchor="middle" font-size="9" font-style="italic" fill="#4d5d6e" paint-order="stroke" stroke="#ffffff" stroke-width="3">Simulate = quantitatives Wargaming</text>
+<text x="1922.0" y="1197.5" text-anchor="end" font-size="9" font-style="italic" fill="#4d5d6e" paint-order="stroke" stroke="#ffffff" stroke-width="3">Buy a Feature als Übungsformat (Modul 2)</text>
+<text x="895.0" y="378.2" text-anchor="middle" font-size="9" font-style="italic" fill="#4d5d6e" paint-order="stroke" stroke="#ffffff" stroke-width="3">vier Felder → erste Flow-Metriken</text>
+</svg>

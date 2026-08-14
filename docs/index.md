@@ -13,6 +13,10 @@ Toolsuite for retrieving Jira issue data and preparing it for metrics and report
 | [`simulate`](modules/simulate.md) | Simulations and prediction models | planned |
 | [`helper`](modules/helper.md) | Helper tools (JSON Merger etc.) | available (Alpha) |
 
+## Background: The Memoranda Series
+
+The conceptual foundation of this toolsuite — situational picture, staff work, and AI as a staff member — is laid out in a bilingual series of memoranda for decision-makers: **[The Memoranda Series](denkschriften/index.md)**.
+
 ## Setup
 
 ```bash
