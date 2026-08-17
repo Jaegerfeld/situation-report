@@ -4,9 +4,14 @@ Die SituationReport-Software ist das Werkzeug – die **Denkschriften** sind ihr
 
 Jede Schrift steht hier in ihrer aktuellen Fassung als PDF bereit (Deutsch und Englisch). Kuratiert und verantwortet von Robert Seebauer, erstellt mit Unterstützung von Claude (Anthropic).
 
-[![Die Denkschriften-Reihe als Mindmap](Denkschriften-Mindmap.svg)](Denkschriften-Mindmap.svg)
+[![Die Denkschriften-Reihe auf einen Blick](Denkschriften-Reihe_Ueberblick.png)](Denkschriften-Reihe_Ueberblick.png)
 
-*Die Reihe im Zusammenhang: Schriften (rechts), Fundament und Werkzeug (links), Querverbindungen (gestrichelt). Zum Vergrößern anklicken.*
+*Die Reihe auf einen Blick: fünf Schriften in ihrer Reihenfolge, je mit dem wichtigsten Satz – vom Ursprungs-Vortrag bis zur KI-Denkschrift. Zum Vergrößern anklicken.*
+
+??? info "Die Zusammenhänge im Detail: die Mindmap der Reihe"
+    [![Die Denkschriften-Reihe als Mindmap](Denkschriften-Mindmap.svg)](Denkschriften-Mindmap.svg)
+
+    *Schriften (rechts), Fundament und Werkzeug (links), Querverbindungen (gestrichelt). Zum Vergrößern anklicken.*
 
 ---
 
