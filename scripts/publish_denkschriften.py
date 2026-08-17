@@ -46,6 +46,11 @@ MANIFEST = [
     "AI-and-the-Situational-Picture_v2.0.en.pdf",
 ]
 MINDMAP_SVG = QUELLEN / "Mindmap" / "Denkschriften-Mindmap.svg"
+# Ueberblicksgrafiken (Quelle -> Online-Name; EN mit -en statt .en wegen i18n-Suffix)
+OVERVIEW_PNGS = {
+    QUELLEN / "Denkschriften-Reihe_Ueberblick.png": "Denkschriften-Reihe_Ueberblick.png",
+    QUELLEN / "Memoranda-Series_Overview.en.png": "Memoranda-Series_Overview-en.png",
+}
 
 
 def online_name(name: str) -> str:
@@ -80,6 +85,12 @@ def sync() -> list[Path]:
         copied.append(TARGET / MINDMAP_SVG.name)
     else:
         print("WARNUNG: Mindmap-SVG nicht gefunden:", MINDMAP_SVG)
+    for src, online in OVERVIEW_PNGS.items():
+        if src.exists():
+            shutil.copy2(src, TARGET / online)
+            copied.append(TARGET / online)
+        else:
+            print("WARNUNG: Ueberblicksgrafik nicht gefunden:", src)
 
     expected = {online_name(n) for n in MANIFEST}
     orphans = [p.name for p in pdf_dir.glob("*.pdf") if p.name not in expected]

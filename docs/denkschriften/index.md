@@ -4,9 +4,14 @@ The SituationReport software is the tool – the **memoranda** are its conceptua
 
 Each memorandum is available here in its current edition as a PDF (German and English). Curated and owned by Robert Seebauer, produced with the support of Claude (Anthropic).
 
-[![The memoranda series as a mind map](Denkschriften-Mindmap.svg)](Denkschriften-Mindmap.svg)
+[![The memoranda series at a glance](Memoranda-Series_Overview-en.png)](Memoranda-Series_Overview-en.png)
 
-*The series in context: the memoranda (right), foundation and tooling (left), cross-connections (dashed). Click to enlarge. The mind map is maintained in German – the memoranda themselves are fully bilingual.*
+*The series at a glance: five memoranda in sequence, each with its single most important sentence – from the original talk to the AI memorandum. Click to enlarge.*
+
+??? info "The connections in detail: the series mind map"
+    [![The memoranda series as a mind map](Denkschriften-Mindmap.svg)](Denkschriften-Mindmap.svg)
+
+    *The memoranda (right), foundation and tooling (left), cross-connections (dashed). Click to enlarge. The mind map is maintained in German – the memoranda themselves are fully bilingual.*
 
 ---
 
