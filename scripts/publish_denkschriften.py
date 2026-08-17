@@ -46,23 +46,37 @@ MANIFEST = [
     "AI-and-the-Situational-Picture_v2.0.en.pdf",
 ]
 MINDMAP_SVG = QUELLEN / "Mindmap" / "Denkschriften-Mindmap.svg"
-# Ueberblicksgrafiken (Quelle -> Online-Name; EN mit -en statt .en wegen i18n-Suffix)
+# Ueberblicksgrafiken (Quelle -> Online-Name). EN mit -en (bleibt im Root);
+# DE zusaetzlich als .de.png -> landet im de/-Baum, damit die DE-Seite lokal verlinkt.
 OVERVIEW_PNGS = {
     QUELLEN / "Denkschriften-Reihe_Ueberblick.png": "Denkschriften-Reihe_Ueberblick.png",
     QUELLEN / "Memoranda-Series_Overview.en.png": "Memoranda-Series_Overview-en.png",
 }
+OVERVIEW_DE_COPY = (QUELLEN / "Denkschriften-Reihe_Ueberblick.png", "Denkschriften-Reihe_Ueberblick.de.png")
 
 
 def online_name(name: str) -> str:
     """Online-Dateiname: ``.en.pdf`` wird zu ``-en.pdf``.
 
-    Das mkdocs-static-i18n-Plugin (suffix-Modus) interpretiert ``.en.<ext>``
-    als Sprachvariante und streift das Suffix beim Deploy aus Dateinamen und
-    Links. Mit Bindestrich bleibt der Name unangetastet und online identisch
-    mit dem verlinkten Namen; die kanonischen Quellen-/Release-Namen behalten
-    das ``.en.pdf``-Schema.
+    Das mkdocs-static-i18n-Plugin (suffix-Modus) interpretiert ``.<lang>.<ext>``
+    als Sprachvariante: Es streift das Suffix und legt die Datei in den Baum der
+    jeweiligen Sprache (``.de.pdf`` -> ``de/.../name.pdf``). Fuer die EN-Kopien
+    ist das unerwuenscht (Root ist ohnehin EN) -> Bindestrich; fuer die DE-Kopien
+    ist es genau richtig (siehe ``de_copy_name``). Kanonische Quellen-/Release-
+    Namen behalten das ``.en.pdf``-Schema.
     """
     return name.replace(".en.pdf", "-en.pdf")
+
+
+def is_german(name: str) -> bool:
+    return not name.endswith(".en.pdf")
+
+
+def de_copy_name(name: str) -> str:
+    """Zweitkopie einer deutschen PDF mit ``.de.pdf``-Suffix: landet im Build
+    unter ``de/denkschriften/pdf/<name>.pdf`` – so bleiben Leser der deutschen
+    Seite beim Download im deutschen Sprachbaum (kein Wechsel zur EN-Seite)."""
+    return name[:-4] + ".de.pdf"
 
 
 def sync() -> list[Path]:
@@ -77,6 +91,9 @@ def sync() -> list[Path]:
             continue
         shutil.copy2(src, pdf_dir / online_name(name))
         copied.append(pdf_dir / online_name(name))
+        if is_german(name):
+            shutil.copy2(src, pdf_dir / de_copy_name(name))
+            copied.append(pdf_dir / de_copy_name(name))
     if missing:
         sys.exit("FEHLER - nicht in Quellen/ gefunden (MANIFEST pruefen): "
                  + ", ".join(missing))
@@ -91,8 +108,11 @@ def sync() -> list[Path]:
             copied.append(TARGET / online)
         else:
             print("WARNUNG: Ueberblicksgrafik nicht gefunden:", src)
+    if OVERVIEW_DE_COPY[0].exists():
+        shutil.copy2(OVERVIEW_DE_COPY[0], TARGET / OVERVIEW_DE_COPY[1])
+        copied.append(TARGET / OVERVIEW_DE_COPY[1])
 
-    expected = {online_name(n) for n in MANIFEST}
+    expected = {online_name(n) for n in MANIFEST} | {de_copy_name(n) for n in MANIFEST if is_german(n)}
     orphans = [p.name for p in pdf_dir.glob("*.pdf") if p.name not in expected]
     if orphans:
         print("HINWEIS - verwaiste Alt-Fassungen in docs/denkschriften/pdf/ "
