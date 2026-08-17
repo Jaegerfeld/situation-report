@@ -13,14 +13,14 @@ Each memorandum is available here in its current edition as a PDF (German and En
 ## Memorandum 0 · The Origin
 
 **Large Solution Management – Everything Will Be Fine, Right?**
-*Version 1.2 · 2026-08-14 · 16 pages – talk given at the SAFe Treff, Frankfurt am Main, February 26, 2026*
+*Version 1.3 · 2026-08-15 · 16 pages – talk given at the SAFe Treff, Frankfurt am Main, February 26, 2026*
 
 !!! quote "The single most important sentence"
     Between strategy and tactics, operational planning is missing – and its first tool is the situational picture: if you do not know where you stand, you need not tell anyone where to march.
 
 The talk that started everything: the missing operational-planning layer, the four knowledge fields Flow · Quality · Value · Dependencies, competence instead of rules – including all original slides and a one-page flyer for every memorandum.
 
-**Download:** [PDF German](pdf/Denkschrift-0_Large-Solution-Management_v1.2.pdf) · [PDF English](pdf/Memorandum-0_Large-Solution-Management_v1.2-en.pdf)
+**Download:** [PDF German](pdf/Denkschrift-0_Large-Solution-Management_v1.3.pdf) · [PDF English](pdf/Memorandum-0_Large-Solution-Management_v1.3-en.pdf)
 **Software connection:** The four knowledge fields grew into this toolsuite's [module overview](../modules/index.md).
 
 ---
@@ -73,14 +73,14 @@ The in-depth treatment of the four thought leaders who serve as the series' key 
 ## Main Memorandum 3 · Tooling & Provision
 
 **AI and the Situational Picture – From Report to Situation Service**
-*Version 1.2 · 2026-08-14 · 17 pages*
+*Version 2.0 · 2026-08-15 · 19 pages*
 
 !!! quote "The single most important sentence"
     AI makes situational information cheap while judgment remains scarce – therefore AI belongs on the staff, not on the commander's hill, and its greatest lever is provision: the right information, at the right time, in the language of the recipient.
 
-To what extent AI helps create and above all **provide** situational information: the intelligence cycle, four AI roles, seven situation-service patterns, six AI principles – with a 90-day pilot and a governance catalogue.
+To what extent AI helps create and above all **provide** situational information: the intelligence cycle, four AI roles, seven situation-service patterns, seven AI principles – since v2.0 with the **judgment block** (decomposing every decision into six components, bias ≠ noise and decision hygiene, the jagged frontier) and the mapping of where software, AI and humans belong per decision component – with a 90-day pilot including a noise audit and a governance catalogue.
 
-**Download:** [PDF German](pdf/KI-und-Lagebild_v1.2.pdf) · [PDF English](pdf/AI-and-the-Situational-Picture_v1.2-en.pdf)
+**Download:** [PDF German](pdf/KI-und-Lagebild_v2.0.pdf) · [PDF English](pdf/AI-and-the-Situational-Picture_v2.0-en.pdf)
 **Software connection:** The seven situation-service patterns define the AI phase of the portfolio roadmap (pilot: delta briefing); [`simulate`](../modules/simulate.md) remains the deterministic core that AI explains but never replaces.
 
 ---

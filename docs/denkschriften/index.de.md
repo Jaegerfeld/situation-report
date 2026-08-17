@@ -13,14 +13,14 @@ Jede Schrift steht hier in ihrer aktuellen Fassung als PDF bereit (Deutsch und E
 ## Denkschrift 0 · Der Ursprung
 
 **Large Solution Management – Alles wird gut, oder doch?**
-*Version 1.2 · 14.08.2026 · 15 Seiten – Vortrag vom SAFe Treff, 26.02.2026, Frankfurt am Main*
+*Version 1.3 · 15.08.2026 · 15 Seiten – Vortrag vom SAFe Treff, 26.02.2026, Frankfurt am Main*
 
 !!! quote "Wichtigster Einzelsatz"
     Zwischen Strategie und Taktik fehlt die Operationsplanung – und ihr erstes Werkzeug ist das Lagebild: Wer nicht weiß, wo er steht, braucht niemandem zu sagen, wohin er laufen soll.
 
 Der Vortrag, mit dem alles begann: die fehlende Operationsplanungs-Schicht, die vier Wissensfelder Flow · Quality · Value · Dependencies, Können statt Regeln – samt aller Originalfolien und einer Flyer-Übersicht der Reihe.
 
-**Download:** [PDF Deutsch](pdf/Denkschrift-0_Large-Solution-Management_v1.2.pdf) · [PDF English](pdf/Memorandum-0_Large-Solution-Management_v1.2-en.pdf)
+**Download:** [PDF Deutsch](pdf/Denkschrift-0_Large-Solution-Management_v1.3.pdf) · [PDF English](pdf/Memorandum-0_Large-Solution-Management_v1.3-en.pdf)
 **Software-Bezug:** Aus den vier Wissensfeldern wurde die [Modul-Übersicht](../modules/index.md) dieser Toolsuite.
 
 ---
@@ -73,14 +73,14 @@ Die Detailausarbeitung zu den vier Vordenkern, die die Reihe als Kronzeugen trag
 ## Hauptschrift 3 · Werkzeug & Bereitstellung
 
 **KI und das Lagebild – Vom Bericht zum Lagedienst**
-*Version 1.2 · 14.08.2026 · 17 Seiten*
+*Version 2.0 · 15.08.2026 · 20 Seiten*
 
 !!! quote "Wichtigster Einzelsatz"
     KI macht Lageinformation billig, Urteilskraft bleibt knapp – deshalb gehört KI in den Stab, nicht auf den Feldherrnhügel, und ihr größter Hebel ist die Bereitstellung: die richtige Information, zur richtigen Zeit, in der Sprache des Empfängers.
 
-Inwieweit KI beim Erstellen und vor allem beim **Bereitstellen** von Lageinformationen hilft: Nachrichtenzyklus, vier KI-Rollen, sieben Lagedienst-Muster, sechs KI-Prinzipien – mit 90-Tage-Pilot und Governance-Katalog.
+Inwieweit KI beim Erstellen und vor allem beim **Bereitstellen** von Lageinformationen hilft: Nachrichtenzyklus, vier KI-Rollen, sieben Lagedienst-Muster, sieben KI-Prinzipien – seit v2.0 mit dem **Urteilskraft-Block** (Zerlegung jeder Entscheidung in sechs Bestandteile, Bias ≠ Noise und Entscheidungshygiene, gezackte Grenze) und der Zuordnung, wo Software, KI und Mensch je Entscheidungsbestandteil hingehören – mit 90-Tage-Pilot inkl. Noise-Audit und Governance-Katalog.
 
-**Download:** [PDF Deutsch](pdf/KI-und-Lagebild_v1.2.pdf) · [PDF English](pdf/AI-and-the-Situational-Picture_v1.2-en.pdf)
+**Download:** [PDF Deutsch](pdf/KI-und-Lagebild_v2.0.pdf) · [PDF English](pdf/AI-and-the-Situational-Picture_v2.0-en.pdf)
 **Software-Bezug:** Die sieben Lagedienst-Muster definieren die KI-Phase der Portfolio-Roadmap (Pilot: Delta-Briefing); [`simulate`](../modules/simulate.md) bleibt der deterministische Kern, den KI erklärt, aber nie ersetzt.
 
 ---

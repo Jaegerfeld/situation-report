@@ -1,6 +1,6 @@
 # Roadmap: `portfolio`-Modul → EA-informiertes Solution-Lagebild
 
-*Technisches, lebendes Dokument. Verortet im getrackten `docs/` (versioniert mit dem Code), nicht in `Quellen/`. Fachlicher Rahmen: die Denkschriften `Quellen/Enterprise-Architektur-und-Solution-Lagebild_v2.0.md` (EA-Dimensionen, Phasen A–C) und `Quellen/KI-und-Lagebild_v1.0.md` (Phase D) sowie `Quellen/Solution-Ebene_EA_Wissen-Skills-Lagebild.md`. Stand 2026-08-13.*
+*Technisches, lebendes Dokument. Verortet im getrackten `docs/` (versioniert mit dem Code). Fachlicher Rahmen: die [Denkschriften-Reihe](https://jaegerfeld.github.io/situation-report/de/denkschriften/) — EA-Denkschrift (EA-Dimensionen, Phasen A–C) und KI-Denkschrift (Phase D; ab v2.0 mit Zuordnung der D-Funktionen zu Entscheidungsbestandteilen). Stand 2026-08-15.*
 
 ## Wie diese Roadmap gegliedert ist
 
@@ -121,8 +121,8 @@ Nicht nach „Feature-Wunschliste", sondern nach **Datenherkunft** (das BGS-Prin
 - **Warum:** Hohpes „first derivative" als Produkt (Muster M2); geringstes Risiko, sofort spürbar, sauberer Beleg für den Architektur-Grundsatz. **Voraussetzung:** zwei Report-Stände. **Aufwand:** M.
 
 ### D3 · Befragbares Lagebild
-- **Was:** Q&A über Report-Daten (JSON/CSV) mit **Zitierpflicht**: jede Antwort referenziert den Datenpfad; „weiß ich nicht" ist zulässige Antwort.
-- **Warum:** Muster M3 — Shared Consciousness verbreitern. **Voraussetzung:** Provenienz-Modell über Report-Artefakte. **Aufwand:** M–L.
+- **Was:** Q&A über Report-Daten (JSON/CSV) mit **Zitierpflicht**: jede Antwort referenziert den Datenpfad; „weiß ich nicht" ist zulässige Antwort. *Hygiene-Vorgabe (KI-Denkschrift v2.0, Prinzip 7):* konfigurierbar die **eigene Einschätzung des Fragenden vor der Antwort abfragen** und beide nebeneinanderstellen — Entscheidungshygiene nach Kahneman/Sibony/Sunstein („erst unabhängig urteilen, dann die KI fragen").
+- **Warum:** Muster M3 — Shared Consciousness verbreitern, ohne das Urteil zu ersetzen. **Voraussetzung:** Provenienz-Modell über Report-Artefakte. **Aufwand:** M–L.
 
 ### D4 · Anomalie-Hinweise
 - **Was:** Statistische Auffälligkeits-Erkennung im deterministischen Kern (stdlib), KI liefert nur den Erklärtext mit Kontext.
@@ -135,6 +135,12 @@ Nicht nach „Feature-Wunschliste", sondern nach **Datenherkunft** (das BGS-Prin
 ### D6 · Mehrsprachige Report-Ausleitung
 - **Was:** Report-Texte in weitere Sprachen ausleiten (Muster M5; gelebte Praxis der Manuals).
 - **Warum:** adressatengerechte Zustellung in internationalen Solutions. **Aufwand:** S–M.
+
+### D7 · Noise-Audit-Unterstützung *(neu, KI-Denkschrift v2.0)*
+- **Was:** Dieselbe Frage n-fach in variierter Formulierung an die KI-Schicht stellen, Antworten protokollieren und die **Streuung ausweisen** (Konsistenz-Score, abweichende Aussagen markiert) — die KI misst ihre eigene Lautstärke. Optional Gegenüberstellung mit den unabhängigen Einschätzungen mehrerer Nutzer (Noise-Audit des Stabs, KI-Denkschrift D.3).
+- **Warum:** Nicht-deterministische Modelle streuen selbst; blindes Vertrauen importiert diese Streuung als Scheinobjektivität (Risiko „Noise-Verstärkung"). Prinzip 7. **Voraussetzung:** D3. **Aufwand:** M.
+
+**Zuordnung der D-Funktionen zu Entscheidungsbestandteilen** (Zerlegung nach Agrawal/Gans/Goldfarb, KI-Denkschrift C.6): D1/D2/D6 → *Aktion* (formulieren) · D3/D7 → *Vorhersage/Feedback* (erklären, konsistent halten) · D4 → *Ergebnis* · D5 → *Urteil* (nur Rohmaterial — **kein Empfehlungs-Button, der das Urteil automatisiert**).
 
 ---
 
@@ -162,7 +168,8 @@ Nicht nach „Feature-Wunschliste", sondern nach **Datenherkunft** (das BGS-Prin
 | 10 | C1/C2 SLO + DORA/Qualität | C | L | hoch (technisches Gesundheitsbild) |
 | 11 | **D2 Delta-Briefing (Phase-D-Pilot)** | D | M | hoch (sofort spürbar, geringstes KI-Risiko) |
 | 12 | D1 Exec-Summary · D6 Sprachen | D | S–M | mittel–hoch |
-| 13 | D4 Anomalie · D5 Red-Team · D3 Q&A | D | M–L | hoch (Lagedienst-Ausbau) |
+| 13 | D4 Anomalie · D5 Red-Team · D3 Q&A (mit Hygiene-Vorgabe) | D | M–L | hoch (Lagedienst-Ausbau) |
+| 14 | D7 Noise-Audit-Unterstützung | D | M | mittel–hoch (Vertrauen messbar machen) |
 
 **Empfohlene Sequenz:** Phase A vollständig (schnelles Vertrauen + Substanz) → B3/B2/B1 (EA-Kern: Governance, Schuld, Strategie) → restliche B → C nach Bedarf/Reife. **Phase D** startet unabhängig davon mit dem Piloten D2, sobald zwei Report-Stände vorliegen (Beschluss vom 13.08.2026; fachliche Leitplanken in `Quellen/KI-und-Lagebild_v1.0.md`, Teil D).
 
