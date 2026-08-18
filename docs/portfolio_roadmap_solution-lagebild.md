@@ -142,6 +142,13 @@ Nicht nach „Feature-Wunschliste", sondern nach **Datenherkunft** (das BGS-Prin
 
 **Zuordnung der D-Funktionen zu Entscheidungsbestandteilen** (Zerlegung nach Agrawal/Gans/Goldfarb, KI-Denkschrift C.6): D1/D2/D6 → *Aktion* (formulieren) · D3/D7 → *Vorhersage/Feedback* (erklären, konsistent halten) · D4 → *Ergebnis* · D5 → *Urteil* (nur Rohmaterial — **kein Empfehlungs-Button, der das Urteil automatisiert**).
 
+**Rechtliche Leitplanken für Phase D** *(neu, KI-Denkschrift v2.1, Rechts-Prüfbox D.2 — KI-Verordnung (EU) 2024/1689, Stand 18.08.2026; bei Einführung juristisch prüfen)*:
+
+- **(a) KI-Hinweise sind Teil des Produkts (Art. 50 KI-VO, gilt seit 02.08.2026).** D3 zeigt an, dass eine KI antwortet (Art. 50 Abs. 1). KI-formulierte Report-Texte (D1/D2/D6) tragen einen sichtbaren KI-Hinweis, bis ein Mensch sie geprüft und freigegeben hat — die Freigabe ist zugleich die Ausnahme von der Kennzeichnungspflicht (Art. 50 Abs. 4). Die Open-Source-Lizenz befreit nicht davon (Art. 2 Abs. 12 nimmt Art. 50 ausdrücklich aus).
+- **(b) Aggregat-Grenze im deterministischen Kern (Anhang III Nr. 4).** Kein D-Feature erhält Personendaten; Prinzip 6 („Teams, keine Personen") wird im Kern erzwungen, nicht in der KI-Schicht — so bleibt das Lagebild außerhalb des Hochrisiko-Bereichs (Leistung/Verhalten von Beschäftigten). Das gehört als Test in die Pipeline, nicht als Hinweis in die Doku.
+- **(c) Betreiber-Nachweis.** Modell, Version, Systemvorgaben und Datenklassifizierung je Deployment werden protokolliert (Grundlage für Kompetenz- und Transparenzpflicht, Art. 4/Art. 50); die Deployment-Entscheidung (on-prem / EU-Cloud / Zero-Retention) ist Teil der Konfiguration, nicht der Nutzerwahl.
+- **(d) Erst der Pilot D2** liefert die Erfahrung, wie viel Freigabe-Aufwand die Hinweise erzeugen — die Freigabe-Schwelle (Stichprobe vs. volle Prüfung) wird dort kalibriert (KI-Denkschrift C.5 „Verifizieren können").
+
 ---
 
 ## Querschnitt (über alle Phasen)
