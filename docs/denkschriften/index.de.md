@@ -18,15 +18,30 @@ Jede Schrift steht hier in ihrer aktuellen Fassung als PDF bereit (Deutsch und E
 ## Denkschrift 0 · Der Ursprung
 
 **Large Solution Management – Alles wird gut, oder doch?**
-*Version 1.4 · 18.08.2026 · 16 Seiten – Vortrag vom SAFe Treff, 26.02.2026, Frankfurt am Main*
+*Version 1.5 · 19.08.2026 · 18 Seiten – Vortrag vom SAFe Treff, 26.02.2026, Frankfurt am Main*
 
 !!! quote "Wichtigster Einzelsatz"
     Zwischen Strategie und Taktik fehlt die Operationsplanung – und ihr erstes Werkzeug ist das Lagebild: Wer nicht weiß, wo er steht, braucht niemandem zu sagen, wohin er laufen soll.
 
 Der Vortrag, mit dem alles begann: die fehlende Operationsplanungs-Schicht, die vier Wissensfelder Flow · Quality · Value · Dependencies, Können statt Regeln – samt aller Originalfolien und einer Flyer-Übersicht der Reihe.
 
-**Download:** [PDF Deutsch](pdf/Denkschrift-0_Large-Solution-Management_v1.4.pdf) · [PDF English](pdf/Memorandum-0_Large-Solution-Management_v1.4-en.pdf)
+**Download:** [PDF Deutsch](pdf/Denkschrift-0_Large-Solution-Management_v1.5.pdf) · [PDF English](pdf/Memorandum-0_Large-Solution-Management_v1.5-en.pdf)
 **Software-Bezug:** Aus den vier Wissensfeldern wurde die [Modul-Übersicht](../modules/index.md) dieser Toolsuite.
+
+---
+
+## Nebenschrift · Der Begriff
+
+**Was ist ein Lagebild? Der Begriff, seine Herkunft – und sechs Beispiele aus Krankenhaus, Feuerwehr, Navigation und Konzern-IT**
+*Version 1.0 · 19.08.2026 · 9 Seiten – für Leserinnen und Leser ohne militärischen Hintergrund*
+
+!!! quote "Wichtigster Einzelsatz"
+    Ein Lagebild ist keine Sammlung von Zahlen, sondern die geteilte, ehrliche Antwort auf drei Fragen – wo stehen wir, was hat sich geändert, was folgt daraus – aufbereitet, damit jemand entscheiden kann.
+
+Die Begriffserklärung, die alle anderen Schriften voraussetzen – entstanden auf Rückfrage aus der Veröffentlichung der Reihe: Herkunft (Lage, Lagebild, Lagebeurteilung, Lagevortrag, Lagedienst), Abgrenzung zu Statusbericht, Dashboard und KPI-Report, sechs Merkmale als Checkliste, der Führungsvorgang als Regelkreis – und sechs Beispiele: Schichtübergabe (SBAR), Feuerwehr-Lagekarte, Navigation, ein vollständiges Portfolio-Lagebild auf einer Seite, das Delta-Briefing und drei Gegenbeispiele. Mit Anleitung: die erste Lagebild-Seite in einer Woche.
+
+**Download:** [PDF Deutsch](pdf/Was-ist-ein-Lagebild_v1.0.pdf) · [PDF English](pdf/What-is-a-Situational-Picture_v1.0-en.pdf)
+**Software-Bezug:** Das Beispiel-Lagebild in Teil C ist die Seite, die [`portfolio`](../modules/portfolio.md) und [`simulate`](../modules/simulate.md) erzeugen – Zahl und Konfidenz aus der Software, die dritte Frage vom Stab.
 
 ---
 

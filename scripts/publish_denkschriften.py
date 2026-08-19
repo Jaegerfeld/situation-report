@@ -34,8 +34,10 @@ TARGET = REPO / "docs" / "denkschriften"
 
 # Aktuelle Fassungen (bei Versionssprung hier aktualisieren; DE + EN je Schrift)
 MANIFEST = [
-    "Denkschrift-0_Large-Solution-Management_v1.4.pdf",
-    "Memorandum-0_Large-Solution-Management_v1.4.en.pdf",
+    "Denkschrift-0_Large-Solution-Management_v1.5.pdf",
+    "Memorandum-0_Large-Solution-Management_v1.5.en.pdf",
+    "Was-ist-ein-Lagebild_v1.0.pdf",
+    "What-is-a-Situational-Picture_v1.0.en.pdf",
     "Team-of-Teams-und-Stabsausbildung_v4.2.pdf",
     "Team-of-Teams-and-Staff-Training_v4.2.en.pdf",
     "Enterprise-Architektur-und-Solution-Lagebild_v2.2.pdf",

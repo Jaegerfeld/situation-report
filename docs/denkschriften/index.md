@@ -18,15 +18,30 @@ Each memorandum is available here in its current edition as a PDF (German and En
 ## Memorandum 0 · The Origin
 
 **Large Solution Management – Everything Will Be Fine, Right?**
-*Version 1.4 · 2026-08-18 · 17 pages – talk given at the SAFe Treff, Frankfurt am Main, February 26, 2026*
+*Version 1.5 · 2026-08-19 · 18 pages – talk given at the SAFe Treff, Frankfurt am Main, February 26, 2026*
 
 !!! quote "The single most important sentence"
     Between strategy and tactics, operational planning is missing – and its first tool is the situational picture: if you do not know where you stand, you need not tell anyone where to march.
 
 The talk that started everything: the missing operational-planning layer, the four knowledge fields Flow · Quality · Value · Dependencies, competence instead of rules – including all original slides and a one-page flyer for every memorandum.
 
-**Download:** [PDF German](pdf/Denkschrift-0_Large-Solution-Management_v1.4.pdf) · [PDF English](pdf/Memorandum-0_Large-Solution-Management_v1.4-en.pdf)
+**Download:** [PDF German](pdf/Denkschrift-0_Large-Solution-Management_v1.5.pdf) · [PDF English](pdf/Memorandum-0_Large-Solution-Management_v1.5-en.pdf)
 **Software connection:** The four knowledge fields grew into this toolsuite's [module overview](../modules/index.md).
+
+---
+
+## Companion Memorandum · The Term
+
+**What is a situational picture? The term, its origin – and six examples from hospital, fire brigade, navigation and corporate IT**
+*Version 1.0 · 2026-08-19 · 9 pages – for readers without a military background*
+
+!!! quote "The single most important sentence"
+    A situational picture is not a collection of numbers but the shared, honest answer to three questions – where do we stand, what has changed, what follows from it – prepared so that someone can decide.
+
+The explanation of the term that all other memoranda presuppose – written in response to a reader's question after the series went public: origin (situation, situational picture, assessment, briefing, situation service), the difference from status reports, dashboards and KPI reports, six characteristics as a checklist, the command process as a control loop – and six examples: shift handover (SBAR), the fire-brigade situation map, navigation, a complete portfolio picture on a single page, the delta briefing and three counter-examples. With a guide: the first situational-picture page within a week.
+
+**Download:** [PDF German](pdf/Was-ist-ein-Lagebild_v1.0.pdf) · [PDF English](pdf/What-is-a-Situational-Picture_v1.0-en.pdf)
+**Software connection:** The example picture in Part C is the page that [`portfolio`](../modules/portfolio.md) and [`simulate`](../modules/simulate.md) produce – number and confidence from the software, the third question from the staff.
 
 ---
 
