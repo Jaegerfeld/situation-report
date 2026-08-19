@@ -14,7 +14,7 @@ Toolsuite for querying Jira issue data and processing it into flow metrics and r
 
 ## 📚 The Memoranda Series — the thinking behind the tool
 
-The software is the tool; the **memoranda (Denkschriften)** are its conceptual foundation. Five memoranda examine how large IT portfolios and solutions are led: with an honest **situational picture**, trained **staffs**, and — most recently — **AI as a staff member**. Written for decision-makers, no military, agile or AI background required. Freely available in **English and German**, each with the single most important sentence up front.
+The software is the tool; the **memoranda (Denkschriften)** are its conceptual foundation. Six memoranda examine how large IT portfolios and solutions are led: with an honest **situational picture**, trained **staffs**, and — most recently — **AI as a staff member**. Written for decision-makers, no military, agile or AI background required. Freely available in **English and German**, each with the single most important sentence up front.
 
 **→ [Read the memoranda (English)](https://jaegerfeld.github.io/situation-report/denkschriften/) · [Die Denkschriften lesen (Deutsch)](https://jaegerfeld.github.io/situation-report/de/denkschriften/)**
 

@@ -3,7 +3,7 @@
 Toolsuite zur Abfrage von Jira-Issuedaten sowie zur Aufbereitung für Metriken und Reports.
 
 !!! tip "📚 Die Denkschriften-Reihe – das Denken hinter dem Werkzeug"
-    Die Software ist das Werkzeug; die **Denkschriften** sind ihr fachliches Fundament: wie große IT-Portfolios geführt werden – mit ehrlichem **Lagebild**, ausgebildeten **Stäben** und **KI als Stabsmitglied**. Fünf Schriften für Entscheider, frei verfügbar auf Deutsch und Englisch, jede mit ihrem wichtigsten Satz vorneweg.
+    Die Software ist das Werkzeug; die **Denkschriften** sind ihr fachliches Fundament: wie große IT-Portfolios geführt werden – mit ehrlichem **Lagebild**, ausgebildeten **Stäben** und **KI als Stabsmitglied**. Sechs Schriften für Entscheider, frei verfügbar auf Deutsch und Englisch, jede mit ihrem wichtigsten Satz vorneweg.
 
     **→ [Die Denkschriften lesen](denkschriften/index.md)**
 
