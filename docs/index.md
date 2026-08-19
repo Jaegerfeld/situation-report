@@ -2,6 +2,13 @@
 
 Toolsuite for retrieving Jira issue data and preparing it for metrics and reports.
 
+!!! tip "📚 The Memoranda Series — the thinking behind the tool"
+    The software is the tool; the **memoranda (Denkschriften)** are its conceptual foundation: how large IT portfolios are led — with an honest **situational picture**, trained **staffs**, and **AI as a staff member**. Five memoranda for decision-makers, freely available in English and German, each with its single most important sentence up front.
+
+    **→ [Read the memoranda](denkschriften/index.md)**
+
+    [![The memoranda series at a glance](denkschriften/Memoranda-Series_Overview-en.png)](denkschriften/index.md)
+
 ## Modules
 
 | Module | Description | Status |
@@ -12,10 +19,6 @@ Toolsuite for retrieving Jira issue data and preparing it for metrics and report
 | [`testdata_generator`](modules/testdata_generator.md) | Generate synthetic test data | available (Beta) |
 | [`simulate`](modules/simulate.md) | Simulations and prediction models | planned |
 | [`helper`](modules/helper.md) | Helper tools (JSON Merger etc.) | available (Alpha) |
-
-## Background: The Memoranda Series
-
-The conceptual foundation of this toolsuite — situational picture, staff work, and AI as a staff member — is laid out in a bilingual series of memoranda for decision-makers: **[The Memoranda Series](denkschriften/index.md)**.
 
 ## Setup
 
