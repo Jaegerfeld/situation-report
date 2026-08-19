@@ -5,9 +5,20 @@
 Toolsuite for querying Jira issue data and processing it into flow metrics and reports.
 
 **Documentation:** https://jaegerfeld.github.io/situation-report/  
+**Memoranda (Denkschriften):** [English](https://jaegerfeld.github.io/situation-report/denkschriften/) · [Deutsch](https://jaegerfeld.github.io/situation-report/de/denkschriften/)  
 **Architecture:** https://jaegerfeld.github.io/situation-report/architecture/  
 **Roadmap:** https://github.com/users/Jaegerfeld/projects/1  
 **Changelog:** [CHANGELOG.md](CHANGELOG.md)
+
+---
+
+## 📚 The Memoranda Series — the thinking behind the tool
+
+The software is the tool; the **memoranda (Denkschriften)** are its conceptual foundation. Five memoranda examine how large IT portfolios and solutions are led: with an honest **situational picture**, trained **staffs**, and — most recently — **AI as a staff member**. Written for decision-makers, no military, agile or AI background required. Freely available in **English and German**, each with the single most important sentence up front.
+
+**→ [Read the memoranda (English)](https://jaegerfeld.github.io/situation-report/denkschriften/) · [Die Denkschriften lesen (Deutsch)](https://jaegerfeld.github.io/situation-report/de/denkschriften/)**
+
+[![The memoranda series at a glance](docs/denkschriften/Memoranda-Series_Overview-en.png)](https://jaegerfeld.github.io/situation-report/denkschriften/)
 
 ---
 
