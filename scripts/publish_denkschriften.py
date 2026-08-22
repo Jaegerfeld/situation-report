@@ -9,7 +9,8 @@ vorausgesetzt).
 
 Ablauf bei einem Versionssprung einer Denkschrift:
   1. MANIFEST unten auf die neuen Dateinamen aktualisieren.
-  2. ``python scripts/publish_denkschriften.py`` ausfuehren (kopiert + prueft).
+  2. ``python scripts/publish_denkschriften.py`` ausfuehren (kopiert + prueft;
+     bricht ab, wenn der wichtigste Einzelsatz einer PDF nicht auf Seite 1 steht).
   3. Landing-Pages ``docs/denkschriften/index.de.md`` / ``index.md`` anpassen
      (Version, Datum, Seitenzahl, ggf. Teasertext) - das Skript erinnert daran.
   4. Alte PDF-Fassung aus ``docs/denkschriften/pdf/`` entfernen (Skript meldet
@@ -81,11 +82,38 @@ def de_copy_name(name: str) -> str:
     return name[:-4] + ".de.pdf"
 
 
+PAGE1_MARKERS = ("einzelsatz", "most important sentence")
+
+
+def check_page1(paths: list[Path]) -> list[str]:
+    """Reihen-Standard: Der wichtigste Einzelsatz steht auf Seite 1 jeder Schrift.
+
+    Liefert die Namen der PDFs, bei denen er dort fehlt (z. B. weil eine laengere
+    Kopfbox ihn auf Seite 2 geschoben hat). Nutzt pypdf, falls installiert;
+    ohne pypdf wird die Pruefung mit Warnung uebersprungen (Kern bleibt stdlib).
+    """
+    try:
+        from pypdf import PdfReader
+    except ImportError:
+        print("WARNUNG: pypdf nicht installiert - Seite-1-Pruefung uebersprungen.")
+        return []
+    violations = []
+    for p in paths:
+        first = (PdfReader(p).pages[0].extract_text() or "").lower()
+        if not any(m in first for m in PAGE1_MARKERS):
+            violations.append(p.name)
+    return violations
+
+
 def sync() -> list[Path]:
     pdf_dir = TARGET / "pdf"
     pdf_dir.mkdir(parents=True, exist_ok=True)
     copied = []
     missing = []
+    bad = check_page1([QUELLEN / n for n in MANIFEST if (QUELLEN / n).exists()])
+    if bad:
+        sys.exit("FEHLER - wichtigster Einzelsatz nicht auf Seite 1 (Reihen-Standard): "
+                 + ", ".join(bad) + "  -> Vorlage anpassen (Einzelsatz vor die Kernbotschaften) und neu rendern.")
     for name in MANIFEST:
         src = QUELLEN / name
         if not src.exists():
