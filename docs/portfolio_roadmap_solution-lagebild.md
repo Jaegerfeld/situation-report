@@ -1,6 +1,6 @@
 # Roadmap: `portfolio`-Modul → EA-informiertes Solution-Lagebild
 
-*Technisches, lebendes Dokument. Verortet im getrackten `docs/` (versioniert mit dem Code). Fachlicher Rahmen: die [Denkschriften-Reihe](https://jaegerfeld.github.io/situation-report/de/denkschriften/) — EA-Denkschrift (EA-Dimensionen, Phasen A–C) und KI-Denkschrift (Phase D; ab v2.0 mit Zuordnung der D-Funktionen zu Entscheidungsbestandteilen). Stand 2026-08-31.*
+*Technisches, lebendes Dokument. Verortet im getrackten `docs/` (versioniert mit dem Code). Fachlicher Rahmen: die [Denkschriften-Reihe](https://jaegerfeld.github.io/situation-report/de/denkschriften/) — EA-Denkschrift (EA-Dimensionen, Phasen A–C) und KI-Denkschrift (Phase D; ab v2.0 mit Zuordnung der D-Funktionen zu Entscheidungsbestandteilen). Stand 2026-09-01.*
 
 ## Wie diese Roadmap gegliedert ist
 
@@ -91,6 +91,18 @@ Nicht nach „Feature-Wunschliste", sondern nach **Datenherkunft** (das BGS-Prin
 - **Warum:** Cross-ART-Abhängigkeiten als Systemverhalten (Schutz vor lokaler Optimierung); Ebene 3 – D „Dependency-/Integrations-Heatmap".
 - **Aufwand:** M.
 
+### B6 · Flussproblem-Backlog & Konferenzmappe *(VSC-1; Workshop Wolfsburg 08/2026)*
+- **Was:** `flow_problems` als eigenes Input-Artefakt mit eigener `SCHEMA_VERSION` (Quelle, betroffene Value Streams/ARTs, Cross-VS-Flag, Alter, Status, Resolution-Commitment, Wiedervorlage-PI). Report-Profil **„Konferenzmappe"** bündelt die vier Inputs der Value-Stream-Konferenz — Business Objectives, Train-Roadmaps, Impediment-Backlog, aktuelle Daten — zu einem Pre-Read. **Resolution-Tracking mit Aging** über PI-Grenzen: Impediments, die n Konferenzen überleben, eskalieren sichtbar (baut auf B3 und B5 auf).
+- **Warum:** Die VSC ist das im Workshop definierte Ritual der Solution-Ebene; der Impediment-Backlog ist laut Workshop ihr wichtigster Input. Das dort benannte Muster „Risiken werden geloggt, nie mitigiert, tauchen nächstes PI wieder auf" wird damit messbar statt anekdotisch. Herleitung: `Quellen/bilder workshop/Analyse_Workshop-Notizen_Denkschriften+Software.md` (dort P1).
+- **Aufwand:** M. **Voraussetzung:** B3/B5 (gemeinsame Datenobjekte). Umsetzung auf `feature/solution-portfolio`.
+
+### B7 · Integrierte Roadmap-Sicht & Strategic Themes *(VSC-2; Workshop Wolfsburg 08/2026)*
+- **Was:** Roadmap-Aggregation über Trains mit Initiative-Swimlanes (Zeithorizont nah granular, fern grob: P1 · P2 · Y1 · Y2 · Y3). `strategic_themes` als Entität mit Epic-Verknüpfung und **Orphan-Detection in beide Richtungen** (Theme ohne Epics = deklariert und vergessen; Epic ohne Theme = Zombie-Initiative). Der Report-Diff (D2) auf die integrierte Sicht dokumentiert die „updated roadmaps" je Konferenz automatisch.
+- **Warum:** Schließt die im Workshop konsolidierten SAFe-Lücken „no large-solution roadmap with initiative-level swim lanes" und „strategic themes haben kein strukturiertes Zuhause". Herleitung: Workshop-Analyse (dort P2).
+- **Aufwand:** M–L. **Voraussetzung:** B6; profitiert von D2, braucht es aber nicht. Umsetzung auf `feature/solution-portfolio`.
+
+> *Einordnung B6/B7:* Am 31.08.2026 zunächst ans Ende der Sequenz hinter Phase D gelegt, am **01.09.2026 in Phase B eingegliedert** — wohin sie typologisch immer gehörten (lokale Input-Contracts im deterministischen Kern, keine KI-Abhängigkeit).
+
 ---
 
 ## Phase C — externe Integration (S aus Fremdsystemen)
@@ -151,20 +163,6 @@ Nicht nach „Feature-Wunschliste", sondern nach **Datenherkunft** (das BGS-Prin
 
 ---
 
-## Nach Phase D — VSC-Erweiterungen *(eingeplant 31.08.2026, Workshop Wolfsburg)*
-
-*Herkunft: Workshop VW × SAI, Wolfsburg 25.–27.08.2026 — die Value-Stream-Konferenz (VSC) ist dort als neues Ritual der Solution-Ebene definiert worden; unsere Software liefert deren Inputs. Analyse und Belege: `Quellen/bilder workshop/Analyse_Workshop-Notizen_Denkschriften+Software.md` (dort P1/P2). **Typologisch** ist beides Phase-B-Arbeit (lokale Input-Contracts + Rendering, rein deterministischer Kern — keine KI-Abhängigkeit); **terminlich** auf Beschluss vom 31.08.2026 ans Ende der Sequenz hinter Phase D gelegt. Verortung: Branch `feature/solution-portfolio` (aggregierte Reports als Basis; kein Merge nach main ohne Kommando).*
-
-### VSC-1 · Flussproblem-Backlog & Konferenzmappe *(= P1 der Workshop-Analyse)*
-- **Was:** `flow_problems` als eigenes Input-Artefakt mit eigener `SCHEMA_VERSION` (Quelle, betroffene Value Streams/ARTs, Cross-VS-Flag, Alter, Status, Resolution-Commitment, Wiedervorlage-PI). Report-Profil **„Konferenzmappe"** bündelt die vier VSC-Inputs — Business Objectives, Train-Roadmaps, Impediment-Backlog, aktuelle Daten — zu einem Pre-Read. **Resolution-Tracking mit Aging** über PI-Grenzen: Impediments, die n Konferenzen überleben, eskalieren sichtbar (ROAM-Aging, baut auf B3 auf).
-- **Warum:** Der Impediment-Backlog ist laut Workshop der wichtigste VSC-Input; das dort benannte Muster „Risiken werden geloggt, nie mitigiert, tauchen nächstes PI wieder auf" wird damit messbar statt anekdotisch. **Aufwand:** M.
-
-### VSC-2 · Integrierte Roadmap-Sicht & Strategic Themes *(= P2 der Workshop-Analyse)*
-- **Was:** Roadmap-Aggregation über Trains mit Initiative-Swimlanes (Zeithorizont nah granular, fern grob: P1 · P2 · Y1 · Y2 · Y3). `strategic_themes` als Entität mit Epic-Verknüpfung und **Orphan-Detection in beide Richtungen** (Theme ohne Epics = deklariert und vergessen; Epic ohne Theme = Zombie-Initiative). Report-Diff (D2) auf die integrierte Sicht dokumentiert die „updated roadmaps" je Konferenz automatisch.
-- **Warum:** Schließt die im Workshop konsolidierten SAFe-Lücken „no large-solution roadmap with initiative-level swim lanes" und „strategic themes haben kein strukturiertes Zuhause". **Voraussetzung:** VSC-1 (gemeinsame Datenobjekte); profitiert von D2. **Aufwand:** M–L.
-
----
-
 ## Querschnitt (über alle Phasen)
 
 - **Zwei-Lesarten-Layout:** Exec-Summary (Ampeln/Trends) ↔ technische Detailsicht — die „Rosetta-Stone"-Anforderung (Carducci): Report muss für Business *und* Engineering lesbar sein. Render-seitig in `export`/`summary`.
@@ -185,16 +183,16 @@ Nicht nach „Feature-Wunschliste", sondern nach **Datenherkunft** (das BGS-Prin
 | 6 | B5 Dependency-Heatmap | B | M | mittel–hoch |
 | 7 | A3/A4 Comparison-Feinschliff / Stage-Map | A | S–M | mittel |
 | 8 | B4 Decision-Log | B | S | mittel |
-| 9 | C3 get_data (Jira REST) | C | M–L | hoch (Aufwand runter) |
-| 10 | C1/C2 SLO + DORA/Qualität | C | L | hoch (technisches Gesundheitsbild) |
-| 11 | **D2 Delta-Briefing (Phase-D-Pilot)** | D | M | hoch (sofort spürbar, geringstes KI-Risiko) |
-| 12 | D1 Exec-Summary · D6 Sprachen | D | S–M | mittel–hoch |
-| 13 | D4 Anomalie · D5 Red-Team · D3 Q&A (mit Hygiene-Vorgabe) | D | M–L | hoch (Lagedienst-Ausbau) |
-| 14 | D7 Noise-Audit-Unterstützung | D | M | mittel–hoch (Vertrauen messbar machen) |
-| 15 | VSC-1 Flussproblem-Backlog & Konferenzmappe | nach D | M | hoch (füttert das VSC-Ritual; Aging macht Nicht-Mitigation messbar) |
-| 16 | VSC-2 Integrierte Roadmap & Strategic Themes | nach D | M–L | hoch (SAFe-Lücken #3/#6; Orphan-Detection) |
+| 9 | **B6 Flussproblem-Backlog & Konferenzmappe (VSC-1)** | B | M | hoch (füttert das VSC-Ritual; Aging macht Nicht-Mitigation messbar) |
+| 10 | **B7 Integrierte Roadmap & Strategic Themes (VSC-2)** | B | M–L | hoch (SAFe-Lücken #3/#6; Orphan-Detection) |
+| 11 | C3 get_data (Jira REST) | C | M–L | hoch (Aufwand runter) |
+| 12 | C1/C2 SLO + DORA/Qualität | C | L | hoch (technisches Gesundheitsbild) |
+| 13 | **D2 Delta-Briefing (Phase-D-Pilot)** | D | M | hoch (sofort spürbar, geringstes KI-Risiko) |
+| 14 | D1 Exec-Summary · D6 Sprachen | D | S–M | mittel–hoch |
+| 15 | D4 Anomalie · D5 Red-Team · D3 Q&A (mit Hygiene-Vorgabe) | D | M–L | hoch (Lagedienst-Ausbau) |
+| 16 | D7 Noise-Audit-Unterstützung | D | M | mittel–hoch (Vertrauen messbar machen) |
 
-**Empfohlene Sequenz:** Phase A vollständig (schnelles Vertrauen + Substanz) → B3/B2/B1 (EA-Kern: Governance, Schuld, Strategie) → restliche B → C nach Bedarf/Reife. **Phase D** startet unabhängig davon mit dem Piloten D2, sobald zwei Report-Stände vorliegen (Beschluss vom 13.08.2026; fachliche Leitplanken in `Quellen/KI-und-Lagebild_v1.0.md`, Teil D). **Nach Abschluss von Phase D** folgen die VSC-Erweiterungen VSC-1 → VSC-2 (Beschluss vom 31.08.2026).
+**Empfohlene Sequenz:** Phase A vollständig (schnelles Vertrauen + Substanz) → B3/B2/B1 (EA-Kern: Governance, Schuld, Strategie) → B5/B4 → **B6/B7 (VSC-Erweiterungen — bauen auf B3/B5 auf; in Phase B eingegliedert am 01.09.2026)** → C nach Bedarf/Reife. **Phase D** startet unabhängig davon mit dem Piloten D2, sobald zwei Report-Stände vorliegen (Beschluss vom 13.08.2026; fachliche Leitplanken in `Quellen/KI-und-Lagebild_v1.0.md`, Teil D).
 
 ---
 
