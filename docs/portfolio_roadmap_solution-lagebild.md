@@ -101,7 +101,7 @@ Nicht nach „Feature-Wunschliste", sondern nach **Datenherkunft** (das BGS-Prin
 - **Warum:** Schließt die im Workshop konsolidierten SAFe-Lücken „no large-solution roadmap with initiative-level swim lanes" und „strategic themes haben kein strukturiertes Zuhause". Herleitung: Workshop-Analyse (dort P2).
 - **Aufwand:** M–L. **Voraussetzung:** B6; profitiert von D2, braucht es aber nicht. Umsetzung auf `feature/solution-portfolio`.
 
-> *Einordnung B6/B7:* Am 31.08.2026 zunächst ans Ende der Sequenz hinter Phase D gelegt, am **01.09.2026 in Phase B eingegliedert** — wohin sie typologisch immer gehörten (lokale Input-Contracts im deterministischen Kern, keine KI-Abhängigkeit).
+> *Einordnung B6/B7:* Am 31.08.2026 zunächst ans Ende der Sequenz hinter Phase D gelegt, am **01.09.2026 in Phase B eingegliedert** — wohin sie typologisch immer gehörten (lokale Input-Contracts im deterministischen Kern, keine KI-Abhängigkeit). **Priorisierung: nach dem D2-Piloten** (ebenfalls 01.09.2026) — B7 nutzt dessen Diff für die Konferenz-Nachberichte.
 
 ---
 
@@ -183,16 +183,16 @@ Nicht nach „Feature-Wunschliste", sondern nach **Datenherkunft** (das BGS-Prin
 | 6 | B5 Dependency-Heatmap | B | M | mittel–hoch |
 | 7 | A3/A4 Comparison-Feinschliff / Stage-Map | A | S–M | mittel |
 | 8 | B4 Decision-Log | B | S | mittel |
-| 9 | **B6 Flussproblem-Backlog & Konferenzmappe (VSC-1)** | B | M | hoch (füttert das VSC-Ritual; Aging macht Nicht-Mitigation messbar) |
-| 10 | **B7 Integrierte Roadmap & Strategic Themes (VSC-2)** | B | M–L | hoch (SAFe-Lücken #3/#6; Orphan-Detection) |
-| 11 | C3 get_data (Jira REST) | C | M–L | hoch (Aufwand runter) |
-| 12 | C1/C2 SLO + DORA/Qualität | C | L | hoch (technisches Gesundheitsbild) |
-| 13 | **D2 Delta-Briefing (Phase-D-Pilot)** | D | M | hoch (sofort spürbar, geringstes KI-Risiko) |
+| 9 | C3 get_data (Jira REST) | C | M–L | hoch (Aufwand runter) |
+| 10 | C1/C2 SLO + DORA/Qualität | C | L | hoch (technisches Gesundheitsbild) |
+| 11 | **D2 Delta-Briefing (Phase-D-Pilot)** | D | M | hoch (sofort spürbar, geringstes KI-Risiko) |
+| 12 | **B6 Flussproblem-Backlog & Konferenzmappe (VSC-1)** | B | M | hoch (füttert das VSC-Ritual; Aging macht Nicht-Mitigation messbar) |
+| 13 | **B7 Integrierte Roadmap & Strategic Themes (VSC-2)** | B | M–L | hoch (SAFe-Lücken #3/#6; Orphan-Detection; nutzt D2 für Konferenz-Nachberichte) |
 | 14 | D1 Exec-Summary · D6 Sprachen | D | S–M | mittel–hoch |
 | 15 | D4 Anomalie · D5 Red-Team · D3 Q&A (mit Hygiene-Vorgabe) | D | M–L | hoch (Lagedienst-Ausbau) |
 | 16 | D7 Noise-Audit-Unterstützung | D | M | mittel–hoch (Vertrauen messbar machen) |
 
-**Empfohlene Sequenz:** Phase A vollständig (schnelles Vertrauen + Substanz) → B3/B2/B1 (EA-Kern: Governance, Schuld, Strategie) → B5/B4 → **B6/B7 (VSC-Erweiterungen — bauen auf B3/B5 auf; in Phase B eingegliedert am 01.09.2026)** → C nach Bedarf/Reife. **Phase D** startet unabhängig davon mit dem Piloten D2, sobald zwei Report-Stände vorliegen (Beschluss vom 13.08.2026; fachliche Leitplanken in `Quellen/KI-und-Lagebild_v1.0.md`, Teil D).
+**Empfohlene Sequenz:** Phase A vollständig (schnelles Vertrauen + Substanz) → B3/B2/B1 (EA-Kern: Governance, Schuld, Strategie) → B5/B4 → C nach Bedarf/Reife. **Phase D** startet unabhängig davon mit dem Piloten D2, sobald zwei Report-Stände vorliegen (Beschluss vom 13.08.2026; fachliche Leitplanken in `Quellen/KI-und-Lagebild_v1.0.md`, Teil D). **B6/B7 folgen nach dem D2-Piloten** (Beschluss 01.09.2026): typologisch Phase B, terminlich hinter D2 — so kann die Konferenzmappe von Anfang an Delta-Briefings für die Konferenz-Nachberichte nutzen.
 
 ---
 
