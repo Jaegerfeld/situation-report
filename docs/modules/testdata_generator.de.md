@@ -92,6 +92,14 @@ python -m testdata_generator \
 
 ## Portfolio-Szenario
 
+**GUI:** Der Bereich *Demo-Portfolio* unten im Fenster erzeugt das komplette
+Szenario in einen Ordner deiner Wahl (das Seed-Feld wird übernommen, Standard
+42) — und **Portfolio-Report öffnen** rendert den Portfolio-Report und öffnet
+ihn im Browser. Zwei Klicks vom leeren Ordner zur vollständigen
+Portfolio-Evaluation, ganz ohne Kommandozeile.
+
+**Kommandozeile:**
+
 ```bash
 python -m testdata_generator --scenario portfolio --output demo/ --seed 42
 ```

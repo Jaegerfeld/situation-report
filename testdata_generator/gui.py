@@ -13,7 +13,10 @@
 #   Flat Triangle, Cluster, Batch) sowie Cycle-Time-Steuerung per Slider.
 #   Die Generierung läuft in einem separaten Thread; bei Operationen über
 #   3 Sekunden erscheint ein Ladebalken. Ergebnisse und Fehler werden im
-#   Log-Bereich angezeigt.
+#   Log-Bereich angezeigt. Zusätzlich erzeugt der Demo-Portfolio-Bereich per
+#   Knopfdruck das komplette Portfolio-Szenario (2 Solutions × 3 ARTs mit
+#   allen Artefakten, scenario.py) und öffnet den Portfolio-Report im
+#   Browser — der Evaluationspfad ohne Kommandozeile.
 # =============================================================================
 
 from __future__ import annotations
@@ -152,6 +155,14 @@ _T: dict[str, dict[str, str]] = {
         "dlg_output":         "Ausgabedatei wählen",
         "tip_issue_types":    "Leer = Feature:0.6 Bug:0.3 Enabler:0.1 (Standard)",
         "tip_seed":           "Gleicher Seed → identische Ausgabe (reproduzierbar)",
+        "lbl_scenario":       "Demo-Portfolio (2 Solutions × 3 ARTs, alle Artefakte)",
+        "btn_scenario":       "Demo-Portfolio erzeugen…",
+        "btn_scenario_report": "Portfolio-Report öffnen",
+        "dlg_scenario_dir":   "Zielordner für das Demo-Portfolio wählen",
+        "log_scenario_started": "--- Demo-Portfolio wird erzeugt ---",
+        "log_scenario_done":  "--- Demo-Portfolio erzeugt: {} ---",
+        "log_scenario_hint":  "Direkt verwendbar: portfolio.json im portfolio-Modul laden oder hier den Report öffnen.",
+        "log_scenario_error": "FEHLER beim Demo-Portfolio: {}",
     },
     LANG_EN: {
         "title":              f"testdata_generator {_VERSION}",
@@ -211,6 +222,14 @@ _T: dict[str, dict[str, str]] = {
         "dlg_output":         "Select output file",
         "tip_issue_types":    "Empty = Feature:0.6 Bug:0.3 Enabler:0.1 (default)",
         "tip_seed":           "Same seed → identical output (reproducible)",
+        "lbl_scenario":       "Demo portfolio (2 solutions × 3 ARTs, all artifacts)",
+        "btn_scenario":       "Generate Demo Portfolio…",
+        "btn_scenario_report": "Open Portfolio Report",
+        "dlg_scenario_dir":   "Select target folder for the demo portfolio",
+        "log_scenario_started": "--- Generating demo portfolio ---",
+        "log_scenario_done":  "--- Demo portfolio generated: {} ---",
+        "log_scenario_hint":  "Ready to use: load portfolio.json in the portfolio module, or open the report here.",
+        "log_scenario_error": "ERROR generating demo portfolio: {}",
     },
 }
 
@@ -275,6 +294,38 @@ def _build_report_html_file(
         return f.name
 
 
+def _build_portfolio_report_html_file(portfolio_json: Path, log=print) -> str:
+    """
+    Render the portfolio report for a generated demo scenario and write it to
+    a temporary HTML file.
+
+    Imports the portfolio module lazily so the testdata_generator GUI starts
+    without pulling it until a portfolio report is actually requested.
+
+    Args:
+        portfolio_json: Path to the scenario's portfolio.json.
+        log:            Progress callback.
+
+    Returns:
+        Path to the written temporary .html file, or "" if no figures were
+        produced.
+    """
+    import tempfile
+
+    from portfolio.aggregator import render_html
+    from portfolio.solution_config import load_solution_config
+
+    html = render_html(load_solution_config(portfolio_json), log=log)
+    if not html:
+        return ""
+
+    with tempfile.NamedTemporaryFile(
+        mode="w", suffix=".html", delete=False, encoding="utf-8"
+    ) as f:
+        f.write(html)
+        return f.name
+
+
 def _build_template_section(values: dict[str, str]) -> dict:
     """Assemble the testdata_generator section for the shared project template."""
     return {key: str(values.get(key, "")) for key in _TEMPLATE_FIELDS}
@@ -292,6 +343,7 @@ class _App:
         self._root = root
         self._running = False
         self._last_report: dict[str, Path] | None = None
+        self._last_scenario: Path | None = None
 
         self._var_workflow    = tk.StringVar()
         self._var_output      = tk.StringVar()
@@ -429,8 +481,29 @@ class _App:
         )
         self._btn_report.pack(side="left")
 
+        # ── Demo portfolio section ────────────────────────────────────────────
+        ttk.Separator(frame, orient="horizontal").grid(
+            row=18, column=0, columnspan=3, sticky="ew", pady=(8, 4)
+        )
+        lbl_scen = ttk.Label(frame, text="")
+        lbl_scen.grid(row=19, column=0, columnspan=3, sticky="w")
+        self._labels["lbl_scenario"] = lbl_scen
+
+        scen_frame = ttk.Frame(frame)
+        scen_frame.grid(row=20, column=0, columnspan=3, pady=(4, 4))
+        self._btn_scenario = ttk.Button(
+            scen_frame, text="Generate Demo Portfolio…",
+            command=self._make_scenario,
+        )
+        self._btn_scenario.pack(side="left", padx=(0, 6))
+        self._btn_scenario_report = ttk.Button(
+            scen_frame, text="Open Portfolio Report",
+            command=self._open_portfolio_report, state="disabled",
+        )
+        self._btn_scenario_report.pack(side="left")
+
         self._progress = ttk.Progressbar(frame, mode="indeterminate")
-        self._progress.grid(row=18, column=0, columnspan=3, sticky="ew")
+        self._progress.grid(row=21, column=0, columnspan=3, sticky="ew")
         self._progress.grid_remove()
 
     def _slider_row(
@@ -504,6 +577,8 @@ class _App:
             lbl.configure(text=self._t(key))
         self._btn_run.configure(text=self._t("btn_run"))
         self._btn_report.configure(text=self._t("btn_report"))
+        self._btn_scenario.configure(text=self._t("btn_scenario"))
+        self._btn_scenario_report.configure(text=self._t("btn_scenario_report"))
         self._log_frame.configure(text=self._t("lbl_log"))
         lang = self._lang_var.get()
         for rb, (_val, lbl_de, lbl_en) in zip(self._pattern_rbs, _PATTERN_LABELS):
@@ -862,6 +937,121 @@ class _App:
         self._btn_report.configure(state="normal")
         self._progress.stop()
         self._progress.grid_remove()
+
+    def _make_scenario(self) -> None:
+        """Generate the complete demo portfolio (2 solutions x 3 ARTs) into a
+        user-chosen folder; the seed field is honoured (default 42 so the
+        demo stays reproducible)."""
+        if self._running:
+            return
+
+        seed = 42
+        seed_str = self._var_seed.get().strip()
+        if seed_str:
+            try:
+                seed = int(seed_str)
+            except ValueError:
+                self._log_msg(self._t("err_seed"))
+                return
+
+        target = filedialog.askdirectory(title=self._t("dlg_scenario_dir"))
+        if not target:
+            return
+
+        self._running = True
+        self._btn_run.configure(state="disabled")
+        self._btn_scenario.configure(state="disabled")
+        self._btn_scenario_report.configure(state="disabled")
+        self._log_msg(self._t("log_scenario_started"))
+
+        _timer: list = []
+
+        def show_progress() -> None:
+            self._progress.grid()
+            self._progress.start(10)
+
+        _timer.append(self._root.after(3000, show_progress))
+
+        def _do() -> None:
+            try:
+                from .scenario import build_portfolio_scenario
+
+                paths = build_portfolio_scenario(
+                    Path(target), seed=seed, log=self._log_msg
+                )
+                self._last_scenario = paths["portfolio"]
+                done = self._t("log_scenario_done").format(target)
+                self._root.after(0, lambda: self._log_msg(done))
+                self._root.after(
+                    0, lambda: self._log_msg(self._t("log_scenario_hint"))
+                )
+                self._root.after(
+                    0,
+                    lambda: self._btn_scenario_report.configure(state="normal"),
+                )
+            except Exception as exc:
+                msg = self._t("log_scenario_error").format(exc)
+                self._root.after(0, lambda: self._log_msg(msg))
+            finally:
+                for t in _timer:
+                    self._root.after_cancel(t)
+                self._root.after(0, self._reset_after_scenario)
+
+        threading.Thread(target=_do, daemon=True).start()
+
+    def _reset_after_scenario(self) -> None:
+        self._running = False
+        self._btn_run.configure(state="normal")
+        self._btn_scenario.configure(state="normal")
+        if self._last_scenario is not None:
+            self._btn_scenario_report.configure(state="normal")
+        self._progress.stop()
+        self._progress.grid_remove()
+
+    def _open_portfolio_report(self) -> None:
+        """Render the portfolio report for the last generated demo scenario
+        and open it in the browser."""
+        if self._running or self._last_scenario is None:
+            return
+        portfolio_json = self._last_scenario
+
+        self._running = True
+        self._btn_run.configure(state="disabled")
+        self._btn_scenario.configure(state="disabled")
+        self._btn_scenario_report.configure(state="disabled")
+        self._log_msg(self._t("log_report_started"))
+
+        _timer: list = []
+
+        def show_progress() -> None:
+            self._progress.grid()
+            self._progress.start(10)
+
+        _timer.append(self._root.after(3000, show_progress))
+
+        def _do() -> None:
+            try:
+                tmp_path = _build_portfolio_report_html_file(
+                    portfolio_json, log=self._log_msg
+                )
+                if not tmp_path:
+                    self._root.after(0, lambda: self._log_msg(
+                        self._t("log_report_error").format("no figures")))
+                    return
+
+                webbrowser.open(f"file:///{tmp_path.replace(chr(92), '/')}")
+                self._root.after(
+                    0, lambda: self._log_msg(self._t("log_report_done"))
+                )
+            except Exception as exc:
+                msg = self._t("log_report_error").format(exc)
+                self._root.after(0, lambda: self._log_msg(msg))
+            finally:
+                for t in _timer:
+                    self._root.after_cancel(t)
+                self._root.after(0, self._reset_after_scenario)
+
+        threading.Thread(target=_do, daemon=True).start()
 
     def _make_report(self) -> None:
         """Run transform_data + build_reports on the last generated file and

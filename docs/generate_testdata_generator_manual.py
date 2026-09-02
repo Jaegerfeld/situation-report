@@ -542,6 +542,10 @@ def content_de(st: dict) -> list:
               P("Mit <font name='Courier'>--scenario portfolio</font> erzeugt der Generator "
                 "in einem Schritt ein komplettes Demo-Portfolio: zwei Solutions mit je drei "
                 "ARTs, inklusive aller Artefakte der Verarbeitungskette.", st),
+              P("<b>In der GUI:</b> Der Bereich „Demo-Portfolio\" unten im Fenster erzeugt "
+                "das Szenario per Knopfdruck in einen Ordner deiner Wahl (das Seed-Feld "
+                "wird übernommen, Standard 42); „Portfolio-Report öffnen\" rendert den "
+                "Portfolio-Report und öffnet ihn im Browser — ganz ohne Kommandozeile.", st),
               PRE("python -m testdata_generator --scenario portfolio \\\n"
                   "    --output demo/ --seed 42", st),
               P("Der Zielordner enthält danach:", st),
@@ -863,6 +867,11 @@ def content_en(st: dict) -> list:
               P("With <font name='Courier'>--scenario portfolio</font> the generator "
                 "creates a complete demo portfolio in one step: two solutions with three "
                 "ARTs each, including every artifact of the processing chain.", st),
+              P("<b>In the GUI:</b> the 'Demo portfolio' section at the bottom of the "
+                "window generates the scenario into a folder of your choice at the click "
+                "of a button (the seed field is honoured, default 42); 'Open Portfolio "
+                "Report' renders the portfolio report and opens it in the browser — no "
+                "command line needed.", st),
               PRE("python -m testdata_generator --scenario portfolio \\\n"
                   "    --output demo/ --seed 42", st),
               P("The target folder then contains:", st),
@@ -1128,6 +1137,10 @@ def content_ro(st: dict) -> list:
               P("Cu <font name='Courier'>--scenario portfolio</font> generatorul creează "
                 "într-un singur pas un portofoliu demo complet: două soluții cu câte trei "
                 "ART-uri, inclusiv toate artefactele lanțului de procesare.", st),
+              P("<b>În GUI:</b> secțiunea 'Demo portfolio' din partea de jos a ferestrei "
+                "generează scenariul într-un director la alegere printr-un clic (câmpul "
+                "seed este preluat, implicit 42); 'Open Portfolio Report' redă raportul "
+                "de portofoliu și îl deschide în browser — fără linie de comandă.", st),
               PRE("python -m testdata_generator --scenario portfolio \\\n"
                   "    --output demo/ --seed 42", st),
               P("Directorul țintă conține apoi:", st),
@@ -1400,6 +1413,10 @@ def content_pt(st: dict) -> list:
                 "único passo um portfólio de demonstração completo: duas solutions com "
                 "três ARTs cada, incluindo todos os artefactos da cadeia de "
                 "processamento.", st),
+              P("<b>Na GUI:</b> a secção 'Demo portfolio' na parte inferior da janela "
+                "gera o cenário numa pasta à escolha com um clique (o campo seed é "
+                "respeitado, padrão 42); 'Open Portfolio Report' gera o relatório de "
+                "portfólio e abre-o no browser — sem linha de comandos.", st),
               PRE("python -m testdata_generator --scenario portfolio \\\n"
                   "    --output demo/ --seed 42", st),
               P("A pasta de destino contém depois:", st),
@@ -1674,6 +1691,11 @@ def content_fr(st: dict) -> list:
                 "crée en une seule étape un portefeuille de démonstration complet : deux "
                 "solutions de trois ARTs chacune, avec tous les artefacts de la chaîne "
                 "de traitement.", st),
+              P("<b>Dans la GUI :</b> la section 'Demo portfolio' en bas de la fenêtre "
+                "génère le scénario dans un dossier de votre choix en un clic (le champ "
+                "seed est repris, 42 par défaut) ; 'Open Portfolio Report' génère le "
+                "rapport de portefeuille et l'ouvre dans le navigateur — sans ligne de "
+                "commande.", st),
               PRE("python -m testdata_generator --scenario portfolio \\\n"
                   "    --output demo/ --seed 42", st),
               P("Le dossier cible contient ensuite :", st),

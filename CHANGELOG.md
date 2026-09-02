@@ -8,6 +8,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- Testdata generator: **demo-portfolio section in the GUI** — the portfolio
+  scenario is now reachable without the command line: a *Generate Demo
+  Portfolio…* button builds the complete scenario (2 solutions × 3 ARTs with
+  all artifacts and governance registers) into a user-chosen folder (the
+  seed field is honoured, default 42), and *Open Portfolio Report* renders
+  the portfolio report and opens it in the browser. Two clicks from empty
+  folder to a full portfolio evaluation; generation runs in a background
+  thread with progress bar and log output, labels in DE/EN.
 - Portfolio: **decision / assumption log** (roadmap B4) — a solution config
   can reference a lightweight ADR-style log
   (`"decisions": "decisions.json"`; new module
