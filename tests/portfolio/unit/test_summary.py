@@ -233,3 +233,70 @@ class TestQualityFigure:
         assert fig.data[0].type == "table"
         conf_col = fig.data[0].cells.values[-1]
         assert list(conf_col) == ["high", "low"]
+
+
+# ---------------------------------------------------------------------------
+# A2: summary extension — E2E lead time, member share, coverage
+# ---------------------------------------------------------------------------
+
+def _issue_lt(key: str, created_day: int, first_day: int | None,
+              closed_day: int | None) -> IssueRecord:
+    """IssueRecord with distinct Created vs. First Date (for lead-time tests)."""
+    return IssueRecord(
+        project="ART", key=key, issuetype="Feature", status="Done",
+        created=datetime(2025, 1, created_day, 8), component="",
+        first_date=datetime(2025, 1, first_day, 8) if first_day else None,
+        implementation_date=None,
+        closed_date=datetime(2025, 1, closed_day, 8) if closed_day else None,
+        stage_minutes={}, resolution="Done")
+
+
+class TestLeadTime:
+    def test_lead_time_uses_created_not_first(self) -> None:
+        # Created 01., First 03., Closed 11.  ->  CT 8d, LT 10d
+        data = ReportData(issues=[_issue_lt("L-1", 1, 3, 11)])
+        s = compute_summary(data, "X")
+        assert s.median_ct == 8.0
+        assert s.median_lt == 10.0
+
+    def test_lead_time_without_first_date_still_counts(self) -> None:
+        # No First Date: excluded from CT, included in LT.
+        data = ReportData(issues=[_issue_lt("L-1", 1, None, 6)])
+        s = compute_summary(data, "X")
+        assert s.median_ct is None
+        assert s.median_lt == 5.0
+
+    def test_lead_time_percentiles_in_table(self) -> None:
+        data = ReportData(issues=[_issue_lt("L-1", 1, 2, 5), _issue_lt("L-2", 1, 2, 9)])
+        html = render_summary_html([compute_summary(data, "X")])
+        assert "Median LT (d)" in html
+        assert "85th % LT (d)" in html
+
+    def test_open_issue_has_no_lead_time(self) -> None:
+        data = ReportData(issues=[_issue_lt("L-1", 1, 2, None)])
+        s = compute_summary(data, "X")
+        assert s.median_lt is None
+
+
+class TestShareAndCoverage:
+    REF = date(2025, 1, 10)
+
+    def test_share_is_records_over_total(self) -> None:
+        q_a = assess_quality(_quality_data(6, 0, cfd_days=1), "A", reference=self.REF)
+        q_b = assess_quality(_quality_data(2, 0, cfd_days=1), "B", reference=self.REF)
+        html = render_quality_html([q_a, q_b])
+        assert "75%" in html   # A: 6 of 8
+        assert "25%" in html   # B: 2 of 8
+
+    def test_coverage_in_title_counts_delivering_sources(self) -> None:
+        q_a = assess_quality(_quality_data(5, 0, cfd_days=1), "A", reference=self.REF)
+        q_empty = assess_quality(_quality_data(0, 0), "B", reference=self.REF)
+        html = render_quality_html([q_a, q_empty])
+        assert "1/2 sources delivered data" in html
+
+    def test_share_column_present_in_figure(self) -> None:
+        q = assess_quality(_quality_data(4, 0, cfd_days=1), "A", reference=self.REF)
+        fig = quality_figure([q])
+        headers = list(fig.data[0].header.values)
+        assert "Share" in headers
+        assert "1/1 sources delivered data" in fig.layout.title.text

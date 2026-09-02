@@ -117,6 +117,8 @@ class Summary:
     p95_ct: float | None
     open_items: int = 0         # not-done issues (items − completed) = WIP
     target_ct_pct: float | None = None  # share of completed (with CT) within target_ct days
+    median_lt: float | None = None      # E2E lead time Created→Closed in days (A2)
+    p85_lt: float | None = None
 
 
 def _percentile(sorted_values: list[float], pct: float) -> float | None:
@@ -159,6 +161,7 @@ def compute_summary(data: ReportData, label: str, target_ct: int = 90) -> Summar
         A populated Summary.
     """
     cycle: list[float] = []
+    lead: list[float] = []
     completed = 0
     for issue in data.issues:
         if issue.closed_date is not None:
@@ -167,7 +170,12 @@ def compute_summary(data: ReportData, label: str, target_ct: int = 90) -> Summar
             days = (issue.closed_date - issue.first_date).total_seconds() / 86400
             if days > 0:
                 cycle.append(days)
+        if issue.created and issue.closed_date:
+            days = (issue.closed_date - issue.created).total_seconds() / 86400
+            if days > 0:
+                lead.append(days)
     cycle.sort()
+    lead.sort()
     target_pct = (
         sum(1 for d in cycle if d <= target_ct) / len(cycle) * 100 if cycle else None
     )
@@ -180,6 +188,8 @@ def compute_summary(data: ReportData, label: str, target_ct: int = 90) -> Summar
         p95_ct=_percentile(cycle, 95),
         open_items=len(data.issues) - completed,
         target_ct_pct=target_pct,
+        median_lt=_percentile(lead, 50),
+        p85_lt=_percentile(lead, 85),
     )
 
 
@@ -196,7 +206,8 @@ def _fmt_pct(value: float | None) -> str:
 def _summary_headers(target_ct: int) -> list[str]:
     """Column headers for the summary table (shared by HTML and the PDF figure)."""
     return ["", "Items", "Completed", "Open (WIP)",
-            "Median CT (d)", "85th % (d)", "95th % (d)", f"≤ {target_ct}d"]
+            "Median CT (d)", "85th % (d)", "95th % (d)", f"≤ {target_ct}d",
+            "Median LT (d)", "85th % LT (d)"]
 
 
 def _summary_cells(s: Summary) -> list[str]:
@@ -210,6 +221,8 @@ def _summary_cells(s: Summary) -> list[str]:
         _fmt(s.p85_ct),
         _fmt(s.p95_ct),
         _fmt_pct(s.target_ct_pct),
+        _fmt(s.median_lt),
+        _fmt(s.p85_lt),
     ]
 
 
@@ -266,23 +279,36 @@ _CONF_COLORS = {
 
 def _quality_headers() -> list[str]:
     """Column headers for the data-quality table (shared by HTML and PDF)."""
-    return ["Source", "Records", "No First Date", "Open share", "CFD",
+    return ["Source", "Records", "Share", "No First Date", "Open share", "CFD",
             "Data as of", "Confidence"]
 
 
-def _quality_cells(q: SourceQuality) -> list[str]:
-    """Row values for one SourceQuality, in the _quality_headers() order."""
+def _quality_cells(q: SourceQuality, total_records: int) -> list[str]:
+    """Row values for one SourceQuality, in the _quality_headers() order.
+
+    Args:
+        q:             The quality record to format.
+        total_records: Sum of records across all sources (for the member share).
+    """
     as_of = (f"{q.data_as_of.strftime('%d.%m.%Y')} ({q.age_days}d)"
              if q.data_as_of else "–")
+    share = (q.records / total_records * 100) if total_records else None
     return [
         q.label,
         str(q.records),
+        _fmt_pct(share),
         _fmt_pct(q.pct_missing_first),
         _fmt_pct(q.pct_open),
         "yes" if q.has_cfd else "no",
         as_of,
         q.confidence,
     ]
+
+
+def _coverage_title(qualities: list[SourceQuality], title: str) -> str:
+    """Append the coverage ratio (sources that delivered data) to the title."""
+    delivered = sum(1 for q in qualities if q.records > 0)
+    return f"{title} — {delivered}/{len(qualities)} sources delivered data"
 
 
 def render_quality_html(
@@ -304,10 +330,12 @@ def render_quality_html(
     if not qualities:
         return ""
 
+    total_records = sum(q.records for q in qualities)
+    title = _coverage_title(qualities, title)
     head_html = "".join(f"<th>{_html.escape(h)}</th>" for h in _quality_headers())
     rows_html = ""
     for q in qualities:
-        cells = [_html.escape(c) for c in _quality_cells(q)]
+        cells = [_html.escape(c) for c in _quality_cells(q, total_records)]
         color = _CONF_COLORS.get(q.confidence, "#ffffff")
         body = "".join(f"<td>{c}</td>" for c in cells[:-1])
         rows_html += (f"<tr>{body}"
@@ -338,7 +366,9 @@ def quality_figure(
     import plotly.graph_objects as go
 
     headers = _quality_headers()
-    rows = [_quality_cells(q) for q in qualities]
+    total_records = sum(q.records for q in qualities)
+    title = _coverage_title(qualities, title)
+    rows = [_quality_cells(q, total_records) for q in qualities]
     columns = [[row[c] for row in rows] for c in range(len(headers))]
     conf_fill = [_CONF_COLORS.get(q.confidence, "#ffffff") for q in qualities]
     fill_colors = [["white"] * len(rows)] * (len(headers) - 1) + [conf_fill]
