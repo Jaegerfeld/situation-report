@@ -88,10 +88,11 @@ Nicht nach „Feature-Wunschliste", sondern nach **Datenherkunft** (das BGS-Prin
 - **Aufwand:** S–M.
 - **Ist-Stand:** `portfolio/risks_config.py` (Schema v1: id/title/roam/owner/impact/status_since/notes), Board unter der Qualitätstabelle (PDF: eigene Seite), R-O-A-M-Gruppierung mit Farb-Zellen, Aging-Hervorhebung für Owned > 30 Tage, Portfolio aggregiert Member-Register mit Solution-Spalte; Owner = Teams; Szenario liefert je Solution ein Register mit (DoD erfüllt).
 
-### B4 · Decision-/Assumption-Log
+### B4 · Decision-/Assumption-Log ✅ (umgesetzt 02.09.2026)
 - **Was:** JSON mit Architektur-/Solution-Entscheidungen + Annahmen (ADR-artig, leichtgewichtig); im Report verlinkt.
 - **Warum:** Trade-off-Disziplin sichtbar; Annahmen prüfbar (Red-Team/Premortem-Anschluss).
 - **Aufwand:** S.
+- **Ist-Stand:** `portfolio/decision_config.py` (Schema v1: kind decision|assumption mit kind-abhängigem Status-Set proposed|accepted|superseded bzw. open|confirmed|invalidated; supersedes referenzvalidiert), Log-Tabelle unter der Dependency-Heatmap (PDF: eigene Seite), **offene Annahme mit überschrittenem review_by sortiert nach oben + rote „review due"-Zelle** (Red-Team-/Premortem-Anschluss), Portfolio aggregiert Member-Logs mit Solution-Spalte; Szenario liefert je Solution ein Log mit (DoD erfüllt). **Damit ist Phase B komplett umgesetzt (B1–B5); es folgen B6/B7 hinter D2.**
 
 ### B5 · Dependency-/Integration-Register ✅ (umgesetzt 02.09.2026)
 - **Was:** JSON mit Abhängigkeiten/Integrationspunkten zwischen ARTs (Status, Fälligkeit); Report als **Dependency-/Integrations-Heatmap**.

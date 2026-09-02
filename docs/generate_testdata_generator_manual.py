@@ -555,6 +555,7 @@ def content_de(st: dict) -> list:
                    ["nfr_*.json", "NFR-/Runway-Register je Solution"],
                    ["capabilities_*.json", "Capability-Map je Solution"],
                    ["dependencies_*.json", "Dependency-Register je Solution"],
+                   ["decisions_*.json", "Decision-/Assumption-Log je Solution"],
                    ["portfolio.json", "Portfolio-Config über beide Solutions"],
                    ["pi_config.json", "PI-Intervalle über den Datenzeitraum"],
                    ["README.md", "Beschreibung der eingebauten Geschichten"]],
@@ -578,7 +579,9 @@ def content_de(st: dict) -> list:
                   "- <b>Capability-Map</b>: Betas Data-Insights-Capability ist "
                   "kritisch, eine Alpha-Capability ohne ART (uncovered).<br/>"
                   "- <b>Dependency-Heatmap</b>: Alpha-1 → Alpha-3 blockiert und "
-                  "überfällig; Beta-1 → Alpha-1 als Cross-Solution-Integration.", st),
+                  "überfällig; Beta-1 → Alpha-1 als Cross-Solution-Integration.<br/>"
+                  "- <b>Decision-Log</b>: Betas offene Annahme hat ihr Prüfdatum "
+                  "überschritten — rot als „review due\" markiert.", st),
               SP(6),
               P("Der Ordner ist direkt verwendbar: "
                 "<font name='Courier'>python -m portfolio demo/portfolio.json</font> erzeugt "
@@ -873,6 +876,7 @@ def content_en(st: dict) -> list:
                    ["nfr_*.json", "NFR/runway register per solution"],
                    ["capabilities_*.json", "capability map per solution"],
                    ["dependencies_*.json", "dependency register per solution"],
+                   ["decisions_*.json", "decision/assumption log per solution"],
                    ["portfolio.json", "portfolio config covering both solutions"],
                    ["pi_config.json", "PI intervals across the data window"],
                    ["README.md", "description of the built-in stories"]],
@@ -895,7 +899,9 @@ def content_en(st: dict) -> list:
                   "- <b>Capability map</b>: Beta's data-insights capability is "
                   "critical, one Alpha capability has no ART (uncovered).<br/>"
                   "- <b>Dependency heatmap</b>: Alpha-1 → Alpha-3 blocked and "
-                  "overdue; Beta-1 → Alpha-1 as a cross-solution integration.", st),
+                  "overdue; Beta-1 → Alpha-1 as a cross-solution integration.<br/>"
+                  "- <b>Decision log</b>: Beta's open assumption has passed its "
+                  "review date — flagged red as 'review due'.", st),
               SP(6),
               P("The folder is directly usable: "
                 "<font name='Courier'>python -m portfolio demo/portfolio.json</font> builds "
@@ -1135,6 +1141,7 @@ def content_ro(st: dict) -> list:
                    ["nfr_*.json", "registru NFR/runway per soluție"],
                    ["capabilities_*.json", "capability map per soluție"],
                    ["dependencies_*.json", "registru de dependențe per soluție"],
+                   ["decisions_*.json", "log de decizii/presupuneri per soluție"],
                    ["portfolio.json", "config de portofoliu peste ambele soluții"],
                    ["pi_config.json", "intervale PI pe fereastra de date"],
                    ["README.md", "descrierea poveștilor încorporate"]],
@@ -1161,7 +1168,9 @@ def content_ro(st: dict) -> list:
                   "soluției Beta este critică, o capabilitate Alpha nu are ART "
                   "(uncovered).<br/>"
                   "- <b>Heatmap de dependențe</b>: Alpha-1 → Alpha-3 blocată și "
-                  "întârziată; Beta-1 → Alpha-1 ca integrare cross-solution.", st),
+                  "întârziată; Beta-1 → Alpha-1 ca integrare cross-solution.<br/>"
+                  "- <b>Log de decizii</b>: presupunerea deschisă a soluției Beta "
+                  "și-a depășit data de revizuire — marcată roșu 'review due'.", st),
               SP(6),
               P("Directorul este direct utilizabil: "
                 "<font name='Courier'>python -m portfolio demo/portfolio.json</font> "
@@ -1404,6 +1413,7 @@ def content_pt(st: dict) -> list:
                    ["nfr_*.json", "registo NFR/runway por solution"],
                    ["capabilities_*.json", "capability map por solution"],
                    ["dependencies_*.json", "registo de dependências por solution"],
+                   ["decisions_*.json", "log de decisões/suposições por solution"],
                    ["portfolio.json", "config de portfólio sobre ambas as solutions"],
                    ["pi_config.json", "intervalos PI sobre a janela de dados"],
                    ["README.md", "descrição das histórias incorporadas"]],
@@ -1429,7 +1439,9 @@ def content_pt(st: dict) -> list:
                   "- <b>Capability map</b>: a capacidade data-insights da Beta é "
                   "crítica, uma capacidade Alpha não tem ART (uncovered).<br/>"
                   "- <b>Heatmap de dependências</b>: Alpha-1 → Alpha-3 bloqueada "
-                  "e atrasada; Beta-1 → Alpha-1 como integração cross-solution.", st),
+                  "e atrasada; Beta-1 → Alpha-1 como integração cross-solution.<br/>"
+                  "- <b>Log de decisões</b>: a suposição aberta da Beta passou a "
+                  "data de revisão — marcada a vermelho 'review due'.", st),
               SP(6),
               P("A pasta é diretamente utilizável: "
                 "<font name='Courier'>python -m portfolio demo/portfolio.json</font> gera "
@@ -1675,6 +1687,7 @@ def content_fr(st: dict) -> list:
                    ["nfr_*.json", "registre NFR/runway par solution"],
                    ["capabilities_*.json", "capability map par solution"],
                    ["dependencies_*.json", "registre de dependances par solution"],
+                   ["decisions_*.json", "log de decisions/hypotheses par solution"],
                    ["portfolio.json", "config de portefeuille couvrant les deux solutions"],
                    ["pi_config.json", "intervalles PI sur la fenêtre de données"],
                    ["README.md", "description des histoires intégrées"]],
@@ -1701,7 +1714,9 @@ def content_fr(st: dict) -> list:
                   "- <b>Capability map</b> : la capacite data-insights de Beta "
                   "est critique, une capacite Alpha n'a pas d'ART (uncovered).<br/>"
                   "- <b>Heatmap des dependances</b> : Alpha-1 → Alpha-3 bloquee "
-                  "et en retard ; Beta-1 → Alpha-1 en integration cross-solution.", st),
+                  "et en retard ; Beta-1 → Alpha-1 en integration cross-solution.<br/>"
+                  "- <b>Log de decisions</b> : l'hypothese ouverte de Beta a "
+                  "depasse sa date de revision — marquee en rouge 'review due'.", st),
               SP(6),
               P("Le dossier est directement utilisable : "
                 "<font name='Courier'>python -m portfolio demo/portfolio.json</font> "

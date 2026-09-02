@@ -103,8 +103,10 @@ zwei Solution-Configs (Solution Beta mit eigener `stage_map`, Schema 2), je
 Solution ein ROAM-Risiko-Register (`risks_alpha.json`/`risks_beta.json`),
 ein NFR-/Runway-Register (`nfr_alpha.json`/`nfr_beta.json`) und eine
 Capability-Map (`capabilities_alpha.json`/`capabilities_beta.json`) und ein
-Dependency-Register (`dependencies_alpha.json`/`dependencies_beta.json`), eine
-Portfolio-Config, eine PI-Config und ein README mit den eingebauten Geschichten.
+Dependency-Register (`dependencies_alpha.json`/`dependencies_beta.json`) und
+ein Decision-/Assumption-Log (`decisions_alpha.json`/`decisions_beta.json`),
+eine Portfolio-Config, eine PI-Config und ein README mit den eingebauten
+Geschichten.
 Das Datenfenster liegt relativ zum Erzeugungsdatum, damit die Qualitäts-Ampel
 des Portfolio-Reports die Quellen als aktuell einstuft.
 
@@ -129,6 +131,9 @@ Eingebaute Geschichten (deterministisch je Seed):
 - **Dependency-Heatmap**: fünf Abhängigkeiten; Alpha-1 → Alpha-3 ist
   blockiert und überfällig (der Ausreißer liefert nicht), Beta-1 → Alpha-1
   ist eine Cross-Solution-Integration — im Portfolio-Report sichtbar.
+- **Decision-Log**: drei Entscheidungen und zwei Annahmen; Alphas
+  Stage-Map-Entscheidung ersetzt eine ältere (supersedes), Betas offene
+  Annahme hat ihr Prüfdatum überschritten — rot als „review due" markiert.
 
 Der Ordner ist direkt verwendbar: `python -m portfolio demo/portfolio.json`
 erzeugt den Portfolio-Report; die Solution-Configs funktionieren auch einzeln.

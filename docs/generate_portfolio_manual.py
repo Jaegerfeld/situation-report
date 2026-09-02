@@ -491,6 +491,22 @@ def content_de(st: dict) -> list:
            "Optimierung.", st),
         _SP(6),
 
+        _H2("5.11  Decision-/Assumption-Log (optional)", st),
+        _P("Verweist die Solution-Konfiguration über das Feld <font name='Courier'>"
+           "decisions</font> auf ein Entscheidungs-Log (JSON mit id, kind "
+           "decision/assumption, title, status, owner, logged_on, review_by, "
+           "supersedes), rendert der Report eine ADR-artige Log-Tabelle. "
+           "Entscheidungen tragen die Status proposed/accepted/superseded, "
+           "Annahmen open/confirmed/invalidated — der Parser erzwingt das "
+           "passende Set, und supersedes muss einen Eintrag desselben Logs "
+           "benennen (Trade-off-Spur bleibt intakt). Eine offene Annahme mit "
+           "überschrittenem review_by sortiert nach oben und bekommt eine rote "
+           "„review due\"-Zelle — der Anschlusspunkt für Red-Team- und "
+           "Premortem-Sitzungen. Ein Portfolio aggregiert die Logs aller "
+           "Member-Solutions mit Solution-Spalte. Owner sind Teams, keine "
+           "Personen.", st),
+        _SP(6),
+
         _H1("6. Kommandozeile (CLI)", st), _hr(st),
         _P("Für Automatisierung und reproduzierbare Reports:", st),
         _CD("python -m portfolio meine_solution.json --output report.html", st),
@@ -743,6 +759,21 @@ def content_en(st: dict) -> list:
            "external system; cross-solution dependencies become visible in the "
            "portfolio report. Cross-ART dependencies are system behaviour — "
            "making them visible protects against local optimisation.", st),
+        _SP(6),
+
+        _H2("5.11  Decision / assumption log (optional)", st),
+        _P("When the solution configuration references a decision log via the "
+           "<font name='Courier'>decisions</font> field (JSON with id, kind "
+           "decision/assumption, title, status, owner, logged_on, review_by, "
+           "supersedes), the report renders a lightweight ADR-style log table. "
+           "Decisions carry the statuses proposed/accepted/superseded, "
+           "assumptions open/confirmed/invalidated — the parser enforces the "
+           "matching set, and supersedes must name an entry of the same log "
+           "(the trade-off trail stays intact). An open assumption whose "
+           "review_by date has passed sorts first and gets a red 'review due' "
+           "cell — the hook for red-team and premortem sessions. A portfolio "
+           "aggregates the logs of all member solutions with a Solution "
+           "column. Owners are teams, not persons.", st),
         _SP(6),
 
         _H1("6. Command line (CLI)", st), _hr(st),
@@ -999,6 +1030,21 @@ def content_ro(st: dict) -> list:
            "le face vizibile protejeaza de optimizarea locala.", st),
         _SP(6),
 
+        _H2("5.11  Log de decizii si presupuneri (optional)", st),
+        _P("Daca configuratia solutiei face referire la un log de decizii prin "
+           "campul <font name='Courier'>decisions</font> (JSON cu id, kind "
+           "decision/assumption, title, status, owner, logged_on, review_by, "
+           "supersedes), raportul afiseaza un tabel de log usor, in stil ADR. "
+           "Deciziile poarta statusurile proposed/accepted/superseded, "
+           "presupunerile open/confirmed/invalidated — parserul impune setul "
+           "potrivit, iar supersedes trebuie sa numeasca o intrare din acelasi "
+           "log (urma trade-off-urilor ramane intacta). O presupunere deschisa "
+           "cu review_by depasit se sorteaza prima si primeste o celula rosie "
+           "'review due' — punctul de legatura pentru sesiuni red-team si "
+           "premortem. Un portofoliu agrega logurile tuturor solutiilor membre "
+           "cu o coloana Solution. Ownerii sunt echipe, nu persoane.", st),
+        _SP(6),
+
         _H1("6. Linia de comanda (CLI)", st), _hr(st),
         _P("Pentru automatizare si rapoarte reproductibile:", st),
         _CD("python -m portfolio solutia_mea.json --output report.html", st),
@@ -1252,6 +1298,22 @@ def content_pt(st: dict) -> list:
            "externo; dependencias cross-solution tornam-se visiveis no "
            "relatorio de portfolio. Dependencias cross-ART sao comportamento de "
            "sistema — torna-las visiveis protege da otimizacao local.", st),
+        _SP(6),
+
+        _H2("5.11  Log de decisoes e suposicoes (opcional)", st),
+        _P("Se a configuracao da solution referenciar um log de decisoes "
+           "atraves do campo <font name='Courier'>decisions</font> (JSON com "
+           "id, kind decision/assumption, title, status, owner, logged_on, "
+           "review_by, supersedes), o relatorio mostra uma tabela de log leve, "
+           "em estilo ADR. As decisoes usam os status "
+           "proposed/accepted/superseded, as suposicoes "
+           "open/confirmed/invalidated — o parser impoe o conjunto certo, e "
+           "supersedes tem de nomear uma entrada do mesmo log (o rasto de "
+           "trade-offs fica intacto). Uma suposicao aberta com review_by "
+           "ultrapassado ordena primeiro e recebe uma celula vermelha 'review "
+           "due' — o ponto de ligacao para sessoes red-team e premortem. Um "
+           "portfolio agrega os logs de todas as solutions membros com uma "
+           "coluna Solution. Os owners sao equipas, nao pessoas.", st),
         _SP(6),
 
         _H1("6. Linha de comandos (CLI)", st), _hr(st),
@@ -1511,6 +1573,23 @@ def content_fr(st: dict) -> list:
            "deviennent visibles dans le rapport de portefeuille. Les "
            "dependances cross-ART sont un comportement systeme — les rendre "
            "visibles protege de l'optimisation locale.", st),
+        _SP(6),
+
+        _H2("5.11  Log des decisions et hypotheses (optionnel)", st),
+        _P("Si la configuration de la solution reference un log de decisions "
+           "via le champ <font name='Courier'>decisions</font> (JSON avec id, "
+           "kind decision/assumption, title, status, owner, logged_on, "
+           "review_by, supersedes), le rapport affiche un tableau de log leger "
+           "de style ADR. Les decisions portent les statuts "
+           "proposed/accepted/superseded, les hypotheses "
+           "open/confirmed/invalidated — le parseur impose le bon ensemble, et "
+           "supersedes doit nommer une entree du meme log (la trace des "
+           "trade-offs reste intacte). Une hypothese ouverte dont le review_by "
+           "est depasse se classe en premier et recoit une cellule rouge "
+           "'review due' — le point d'accroche pour les sessions red-team et "
+           "premortem. Un portefeuille agrege les logs de toutes les solutions "
+           "membres avec une colonne Solution. Les owners sont des equipes, "
+           "pas des personnes.", st),
         _SP(6),
 
         _H1("6. Ligne de commande (CLI)", st), _hr(st),

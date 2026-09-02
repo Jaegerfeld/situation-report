@@ -104,7 +104,8 @@ register per solution (`risks_alpha.json`/`risks_beta.json`), an NFR/runway
 register per solution (`nfr_alpha.json`/`nfr_beta.json`), a capability map
 per solution (`capabilities_alpha.json`/`capabilities_beta.json`), a
 dependency register per solution
-(`dependencies_alpha.json`/`dependencies_beta.json`), a portfolio
+(`dependencies_alpha.json`/`dependencies_beta.json`), a decision/assumption
+log per solution (`decisions_alpha.json`/`decisions_beta.json`), a portfolio
 config, a PI config, and a README describing the built-in stories. The data window is
 placed relative to the generation date so the portfolio report's quality
 traffic light rates the sources as current.
@@ -127,6 +128,9 @@ Built-in stories (deterministic per seed):
 - **Dependency heatmap**: five dependencies; Alpha-1 → Alpha-3 is blocked and
   overdue (the outlier does not deliver), and Beta-1 → Alpha-1 is a
   cross-solution integration — visible in the portfolio report.
+- **Decision log**: three decisions and two assumptions; Alpha's stage-map
+  decision supersedes an older one, and Beta's open assumption has passed
+  its review date — flagged red as "review due".
 
 The folder is directly usable: `python -m portfolio demo/portfolio.json`
 builds the portfolio report; the solution configs also work individually.
