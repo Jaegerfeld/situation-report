@@ -373,6 +373,8 @@ def content_de(st: dict) -> list:
                                         "Median sowie 85. und 95. Perzentil."],
             ["&lt;= Nd", "Anteil abgeschlossener Issues innerhalb des Zielwerts "
                          "(Target CT, Standard 90 Tage)."],
+            ["Median / 85th LT", "End-to-End-Lead-Time (Created bis Closed) in Tagen — "
+                                 "im Pooled-Modus die Solution-Lead-Time über alle ARTs."],
         ], col_widths=[4.2*cm, 11.3*cm]),
         _SP(6),
         _H2("5.2  Pooled vs. Comparison", st),
@@ -399,6 +401,35 @@ def content_de(st: dict) -> list:
            "von drei <b>kanonischen Gruppen</b> zu — <b>To Do</b>, <b>In Progress</b>, "
            "<b>Done</b> — und summiert die Zahlen je Gruppe. So bleibt das CFD über "
            "ARTs mit unterschiedlichen Workflows hinweg vergleichbar.", st),
+        _SP(6),
+
+        _H2("5.5  Datenqualität &amp; Konfidenz", st),
+        _P("Unter der Management-Summary steht die Tabelle <b>Data Quality per "
+           "Source</b> — eine Zeile je Datenquelle: Record-Zahl, <b>Anteil</b> am "
+           "Gesamtvolumen, Anteil ohne First Date, offener Anteil, ob CFD-Daten "
+           "vorliegen, der Datenstand — und eine Ampel-<b>Konfidenz</b>:", st),
+        tbl([
+            ["Stufe", "Bedeutung"],
+            ["high", "Quelle vollständig und aktuell — Zahlen belastbar."],
+            ["medium", "Mehr als 10 % ohne First Date, keine CFD-Daten oder "
+                       "Datenstand älter als 30 Tage."],
+            ["low", "Keine Records, oder mehr als die Hälfte ohne First Date — "
+                    "Durchlaufzeit-Aussagen stünden auf einer Minderheit der Daten."],
+        ], col_widths=[2.4*cm, 13.1*cm]),
+        _P("Der Tabellentitel zeigt den <b>Abdeckungsgrad</b> ('x/y sources "
+           "delivered data'). Im PDF ist die Tabelle Seite 2. Im Comparison-Modus "
+           "werden zusätzlich <b>Ausreißer</b> markiert: Median-CT- und "
+           "95.-Perzentil-Zellen erscheinen rot, wenn sie das 1,5-fache des "
+           "Spalten-Medians übersteigen (ab drei Einheiten).", st),
+        _SP(4),
+        _H2("5.6  Eigene Stage-Map (optional)", st),
+        _P("Statt der festen drei Gruppen kann die Solution-Konfiguration eigene "
+           "kanonische Stages definieren — ein optionaler <font name='Courier'>"
+           "stage_map</font>-Block mit geordneter Zuordnung der ART-Stages und den "
+           "Markern <font name='Courier'>first_stage</font>/<font name='Courier'>"
+           "closed_stage</font> für die CFD-Grenzen. Nicht zugeordnete Stages "
+           "fallen mit Warnung in first_stage; Konfigurationen ohne den Block "
+           "verhalten sich unverändert.", st),
         _SP(6),
 
         _H1("6. Kommandozeile (CLI)", st), _hr(st),
@@ -538,6 +569,8 @@ def content_en(st: dict) -> list:
                                         "percentile."],
             ["&lt;= Nd", "Share of completed issues within the target (Target CT, "
                          "default 90 days)."],
+            ["Median / 85th LT", "End-to-end lead time (Created to Closed) in days — in "
+                                 "pooled mode the solution lead time across all ARTs."],
         ], col_widths=[4.2*cm, 11.3*cm]),
         _SP(6),
         _H2("5.2  Pooled vs. comparison", st),
@@ -564,6 +597,36 @@ def content_en(st: dict) -> list:
            "<b>canonical groups</b> — <b>To Do</b>, <b>In Progress</b>, <b>Done</b> — "
            "and sums the counts per group. This keeps the CFD comparable across ARTs "
            "with different workflows.", st),
+        _SP(6),
+
+        _H2("5.5  Data quality &amp; confidence", st),
+        _P("Below the management summary, the <b>Data Quality per Source</b> table "
+           "shows one row per data source: record count, its <b>share</b> of all "
+           "items, the share without a First Date, the open share, whether CFD "
+           "data was supplied, the data freshness — and a traffic-light "
+           "<b>confidence</b>:", st),
+        tbl([
+            ["Level", "Meaning"],
+            ["high", "Source complete and fresh — figures trustworthy."],
+            ["medium", "More than 10 % without a First Date, no CFD data, or "
+                       "data older than 30 days."],
+            ["low", "No records, or more than half without a First Date — "
+                    "cycle-time statements would rest on a minority of the data."],
+        ], col_widths=[2.4*cm, 13.1*cm]),
+        _P("The table title carries the <b>coverage ratio</b> ('x/y sources "
+           "delivered data'). In the PDF the table is page 2. In comparison mode, "
+           "<b>outliers</b> are additionally marked: Median-CT and 95th-percentile "
+           "cells turn red when they exceed 1.5x the column median (three units "
+           "minimum).", st),
+        _SP(4),
+        _H2("5.6  Custom stage map (optional)", st),
+        _P("Instead of the fixed three groups, the solution configuration may "
+           "define its own canonical stages — an optional <font name='Courier'>"
+           "stage_map</font> block with an ordered source-stage assignment and the "
+           "<font name='Courier'>first_stage</font>/<font name='Courier'>"
+           "closed_stage</font> markers for the CFD boundaries. Unmapped stages "
+           "fall into first_stage with a warning; configurations without the "
+           "block behave unchanged.", st),
         _SP(6),
 
         _H1("6. Command line (CLI)", st), _hr(st),
@@ -701,6 +764,8 @@ def content_ro(st: dict) -> list:
                                         "85 si 95."],
             ["&lt;= Nd", "Procentul problemelor finalizate in limita tintei (Target CT, "
                          "implicit 90 de zile)."],
+            ["Median / 85th LT", "Lead time end-to-end (Created pana la Closed) in zile — in "
+                                 "modul pooled, lead time-ul solutiei peste toate ART-urile."],
         ], col_widths=[4.2*cm, 11.3*cm]),
         _SP(6),
         _H2("5.2  Pooled vs. comparison", st),
@@ -727,6 +792,36 @@ def content_ro(st: dict) -> list:
            "canonice</b> — <b>To Do</b>, <b>In Progress</b>, <b>Done</b> — si insumeaza "
            "valorile per grup. Astfel CFD ramane comparabil intre ART-uri cu workflow-uri "
            "diferite.", st),
+        _SP(6),
+
+        _H2("5.5  Calitatea datelor si increderea", st),
+        _P("Sub rezumatul de management, tabelul <b>Data Quality per Source</b> "
+           "arata cate un rand pe sursa de date: numarul de inregistrari, "
+           "<b>procentul</b> din total, procentul fara First Date, procentul "
+           "deschis, daca exista date CFD, actualitatea datelor — si o "
+           "<b>incredere</b> tip semafor:", st),
+        tbl([
+            ["Nivel", "Semnificatie"],
+            ["high", "Sursa completa si actuala — cifre de incredere."],
+            ["medium", "Peste 10 % fara First Date, fara date CFD sau date mai "
+                       "vechi de 30 de zile."],
+            ["low", "Fara inregistrari sau peste jumatate fara First Date — "
+                    "afirmatiile despre durata s-ar baza pe o minoritate a datelor."],
+        ], col_widths=[2.4*cm, 13.1*cm]),
+        _P("Titlul tabelului arata <b>gradul de acoperire</b> ('x/y sources "
+           "delivered data'). In PDF tabelul este pagina 2. In modul comparison, "
+           "<b>valorile aberante</b> sunt marcate suplimentar: celulele Median-CT "
+           "si percentila 95 devin rosii cand depasesc de 1,5 ori mediana "
+           "coloanei (minim trei unitati).", st),
+        _SP(4),
+        _H2("5.6  Stage map proprie (optional)", st),
+        _P("In locul celor trei grupuri fixe, configuratia solutiei poate defini "
+           "propriile stages canonice — un bloc optional <font name='Courier'>"
+           "stage_map</font> cu atribuire ordonata a stage-urilor ART si markerii "
+           "<font name='Courier'>first_stage</font>/<font name='Courier'>"
+           "closed_stage</font> pentru limitele CFD. Stage-urile neatribuite cad "
+           "in first_stage cu avertisment; configuratiile fara bloc se comporta "
+           "neschimbat.", st),
         _SP(6),
 
         _H1("6. Linia de comanda (CLI)", st), _hr(st),
@@ -864,6 +959,8 @@ def content_pt(st: dict) -> list:
             ["Median / 85th / 95th CT", "Cycle time em dias — mediana e percentis 85 e 95."],
             ["&lt;= Nd", "Percentagem de itens concluidos dentro do alvo (Target CT, "
                          "predefinicao 90 dias)."],
+            ["Median / 85th LT", "Lead time end-to-end (Created ate Closed) em dias — no "
+                                 "modo pooled, o lead time da solucao em todos os ARTs."],
         ], col_widths=[4.2*cm, 11.3*cm]),
         _SP(6),
         _H2("5.2  Pooled vs. comparison", st),
@@ -890,6 +987,36 @@ def content_pt(st: dict) -> list:
            "<b>grupos canonicos</b> — <b>To Do</b>, <b>In Progress</b>, <b>Done</b> — e "
            "soma os valores por grupo. Assim o CFD permanece comparavel entre ARTs com "
            "workflows diferentes.", st),
+        _SP(6),
+
+        _H2("5.5  Qualidade dos dados e confianca", st),
+        _P("Abaixo do resumo de gestao, a tabela <b>Data Quality per Source</b> "
+           "mostra uma linha por fonte de dados: numero de registos, a sua "
+           "<b>quota</b> do total, a percentagem sem First Date, a percentagem "
+           "aberta, se ha dados CFD, a atualidade dos dados — e uma "
+           "<b>confianca</b> tipo semaforo:", st),
+        tbl([
+            ["Nivel", "Significado"],
+            ["high", "Fonte completa e atual — numeros fiaveis."],
+            ["medium", "Mais de 10 % sem First Date, sem dados CFD ou dados com "
+                       "mais de 30 dias."],
+            ["low", "Sem registos, ou mais de metade sem First Date — afirmacoes "
+                    "sobre o tempo de ciclo assentariam numa minoria dos dados."],
+        ], col_widths=[2.4*cm, 13.1*cm]),
+        _P("O titulo da tabela mostra o <b>grau de cobertura</b> ('x/y sources "
+           "delivered data'). No PDF a tabela e a pagina 2. No modo comparison, "
+           "os <b>outliers</b> sao adicionalmente marcados: as celulas Median-CT "
+           "e do percentil 95 ficam vermelhas quando excedem 1,5x a mediana da "
+           "coluna (minimo tres unidades).", st),
+        _SP(4),
+        _H2("5.6  Stage map propria (opcional)", st),
+        _P("Em vez dos tres grupos fixos, a configuracao da solucao pode definir "
+           "os seus proprios stages canonicos — um bloco opcional <font "
+           "name='Courier'>stage_map</font> com atribuicao ordenada dos stages "
+           "dos ARTs e os marcadores <font name='Courier'>first_stage</font>/"
+           "<font name='Courier'>closed_stage</font> para os limites do CFD. "
+           "Stages nao atribuidos caem em first_stage com aviso; configuracoes "
+           "sem o bloco comportam-se sem alteracoes.", st),
         _SP(6),
 
         _H1("6. Linha de comandos (CLI)", st), _hr(st),
@@ -1028,6 +1155,8 @@ def content_fr(st: dict) -> list:
                                         "percentile."],
             ["&lt;= Nd", "Part des tickets termines dans la cible (Target CT, defaut "
                          "90 jours)."],
+            ["Median / 85th LT", "Lead time de bout en bout (Created a Closed) en jours — en "
+                                 "mode pooled, le lead time de la solution sur tous les ARTs."],
         ], col_widths=[4.2*cm, 11.3*cm]),
         _SP(6),
         _H2("5.2  Pooled vs. comparison", st),
@@ -1054,6 +1183,36 @@ def content_fr(st: dict) -> list:
            "l'un de trois <b>groupes canoniques</b> — <b>To Do</b>, <b>In Progress</b>, "
            "<b>Done</b> — et additionne les valeurs par groupe. Le CFD reste ainsi "
            "comparable entre ARTs aux workflows differents.", st),
+        _SP(6),
+
+        _H2("5.5  Qualite des donnees et confiance", st),
+        _P("Sous le resume de gestion, le tableau <b>Data Quality per Source</b> "
+           "montre une ligne par source de donnees : nombre d'enregistrements, sa "
+           "<b>part</b> du total, la part sans First Date, la part ouverte, la "
+           "presence de donnees CFD, la fraicheur des donnees — et une "
+           "<b>confiance</b> de type feu tricolore :", st),
+        tbl([
+            ["Niveau", "Signification"],
+            ["high", "Source complete et a jour — chiffres fiables."],
+            ["medium", "Plus de 10 % sans First Date, pas de donnees CFD ou "
+                       "donnees de plus de 30 jours."],
+            ["low", "Aucun enregistrement, ou plus de la moitie sans First Date — "
+                    "les enonces de duree reposeraient sur une minorite des donnees."],
+        ], col_widths=[2.4*cm, 13.1*cm]),
+        _P("Le titre du tableau indique le <b>taux de couverture</b> ('x/y sources "
+           "delivered data'). Dans le PDF, le tableau est la page 2. En mode "
+           "comparison, les <b>valeurs aberrantes</b> sont en outre marquees : les "
+           "cellules Median-CT et 95e percentile passent au rouge quand elles "
+           "depassent 1,5x la mediane de la colonne (trois unites minimum).", st),
+        _SP(4),
+        _H2("5.6  Stage map personnalisee (optionnelle)", st),
+        _P("Au lieu des trois groupes fixes, la configuration de la solution peut "
+           "definir ses propres stages canoniques — un bloc optionnel <font "
+           "name='Courier'>stage_map</font> avec une attribution ordonnee des "
+           "stages ART et les marqueurs <font name='Courier'>first_stage</font>/"
+           "<font name='Courier'>closed_stage</font> pour les limites du CFD. Les "
+           "stages non attribues tombent dans first_stage avec un avertissement ; "
+           "les configurations sans le bloc se comportent sans changement.", st),
         _SP(6),
 
         _H1("6. Ligne de commande (CLI)", st), _hr(st),

@@ -1,6 +1,6 @@
 # Roadmap: `portfolio`-Modul → EA-informiertes Solution-Lagebild
 
-*Technisches, lebendes Dokument. Verortet im getrackten `docs/` (versioniert mit dem Code). Fachlicher Rahmen: die [Denkschriften-Reihe](https://jaegerfeld.github.io/situation-report/de/denkschriften/) — EA-Denkschrift (EA-Dimensionen, Phasen A–C) und KI-Denkschrift (Phase D; ab v2.0 mit Zuordnung der D-Funktionen zu Entscheidungsbestandteilen). Stand 2026-08-15.*
+*Technisches, lebendes Dokument. Verortet im getrackten `docs/` (versioniert mit dem Code). Fachlicher Rahmen: die [Denkschriften-Reihe](https://jaegerfeld.github.io/situation-report/de/denkschriften/) — EA-Denkschrift (EA-Dimensionen, Phasen A–C) und KI-Denkschrift (Phase D; ab v2.0 mit Zuordnung der D-Funktionen zu Entscheidungsbestandteilen). Stand 2026-09-02 — Phase A vollständig umgesetzt (A1–A4, v0.17.2 + Unreleased).*
 
 ## Wie diese Roadmap gegliedert ist
 
@@ -23,36 +23,38 @@ Nicht nach „Feature-Wunschliste", sondern nach **Datenherkunft** (das BGS-Prin
 | **Pooled**- und **Comparison**-Modus, beide end-to-end verdrahtet (CLI + GUI) | `aggregator.py`, `cli.py`, `gui.py` |
 | **Kanonische STAGE-Map** (To Do / In Progress / Done) für ART-übergreifendes CFD-Pooling trotz unterschiedlicher Workflows | `aggregator.py` → `build_reports.stage_groups` |
 | Flow-Metriken (Velocity, Time, Load, Distribution) + Management-Summary (Items, Completed, WIP, Median/P85/P95 CT, ≤Ziel-%) | `aggregator.py`, `summary.py` |
+| **A1 · Konfidenz-Flag je Quelle** (Ampel high/medium/low, Qualitätstabelle in HTML + PDF) | `summary.py` (SourceQuality/assess_quality), `aggregator.py` (quality_sink) |
+| **A2 · Summary-Erweiterung** (E2E-Lead-Time Median/P85, Member-Share, Abdeckungsgrad) | `summary.py` |
+| **A3 · Ausreißer-Hervorhebung** im Comparison (Median/P95 > 1,5 × Spalten-Median, ab 3 Zeilen) | `summary.py` (_outlier_cells) |
+| **A4 · Kanonische Stage-Map konfigurierbar** (optionaler `stage_map`-Block, Schema v2) | `solution_config.py` (StageMap), `aggregator.py` (_pool_cfd) |
 
-> Hinweis: Der Kommentar „Phase 1 supports only pooled" in `summary.py` ist **veraltet** — Comparison ist implementiert und in GUI/CLI wählbar. Beim nächsten Anfassen korrigieren.
->
 > Und: Die vorhandene kanonische **Stage**-Map (Workflow-Status) ist **nicht** die EA-**Capability**-Map (Geschäftsfähigkeiten). Letztere kommt in Phase B — andere Dimension, andere Quelle.
 
 ---
 
-## Phase A — aus vorhandenen Daten (S) · erweitert bestehenden Code
+## Phase A — aus vorhandenen Daten (S) · erweitert bestehenden Code · ✅ **komplett umgesetzt (02.09.2026, PRs #150–#160)**
 
 *Geringer Aufwand, sofort wertstiftend, keine neuen Eingaben. Berührt nur `aggregator.py` / `summary.py` / `gui.py`.*
 
-### A1 · Datenqualitäts-/Konfidenz-Flag je Quelle  ⟵ *höchste Priorität*
+### A1 · Datenqualitäts-/Konfidenz-Flag je Quelle · ✅ umgesetzt (PR #154)
 - **Was:** Beim Poolen je Member erfassen: Datenstand/Alter, Record-Zahl, Anteil Issues ohne `first_date`/`closed_date`, fehlende CFD-Daten. Als **Ampel/Confidence je Quelle** in die Summary und (Comparison) je ART.
 - **Warum (EA-Bezug):** Solution-Entscheidungen auf gepoolten Zahlen ohne Herkunfts-Vertrauen sind blind. Systemdenken verlangt: „wie belastbar ist diese Zahl?" (Kernpunkt der Denkschrift & Abschnitt 5 des Solution-Ebene-Papiers).
 - **Wo:** `_load_member`/`build_pooled_report_data` liefern die Rohzahlen bereits; neue Felder in `Summary`, Spalte in `_summary_headers`/`_summary_cells`, farbige Zelle in `render_summary_html`.
 - **Aufwand:** S–M.
 
-### A2 · Management-Summary erweitern
+### A2 · Management-Summary erweitern · ✅ umgesetzt (PR #156)
 - **Was:** End-to-End **Solution-Lead-Time** über alle ARTs (aus gepoolten Daten), **Member-Beitrag** (Anteil Items je ART), **Abdeckungsgrad** (wie viele geplante ARTs haben Daten geliefert).
 - **Warum:** „Ein konsistenter Beitrag je ART, sauber zu einem Gesamtbild gepoolt" (Ebene 3 – A der Lagebild-Liste).
 - **Wo:** `compute_summary`, `Summary`-Felder, Tabelle in `summary.py`.
 - **Aufwand:** S.
 
-### A3 · Comparison-Modus abrunden
+### A3 · Comparison-Modus abrunden · ✅ umgesetzt (PR #158)
 - **Was:** Ausreißer-Hervorhebung (welcher ART reißt Median/P95?), Datenqualitäts-Flag je ART auch im Comparison-Report; veralteten `summary.py`-Kommentar entfernen.
 - **Warum:** „Comparison-Modus: ARTs nebeneinander statt nur gepoolt" (Ebene 3 – D) ist da — hier nur schärfen.
 - **Wo:** `render_comparison_html`, `load_comparison_units`.
 - **Aufwand:** S.
 
-### A4 · Kanonische Stage-Map konfigurierbar
+### A4 · Kanonische Stage-Map konfigurierbar · ✅ umgesetzt (PR #160)
 - **Was:** Die feste 3-Gruppen-Map (To Do/In Progress/Done) optional feiner konfigurierbar machen (z. B. gemeinsame kanonische Stages je Solution), damit heterogene ART-Workflows differenzierter, aber konsistent poolen.
 - **Warum:** „Stage-abhängige Metriken über eine gemeinsame, kanonische Stage-Map" (Ebene 3 – D).
 - **Wo:** `build_reports.stage_groups` + Verweis in `solution_config` (neuer optionaler Block); Schema-Bump beachten.
@@ -163,13 +165,13 @@ Nicht nach „Feature-Wunschliste", sondern nach **Datenherkunft** (das BGS-Prin
 
 | Prio | Item | Phase | Aufwand | Wert |
 |---|---|---|---|---|
-| 1 | A1 Datenqualitäts-/Konfidenz-Flag | A | S–M | hoch (Vertrauen ins ganze Lagebild) |
-| 2 | A2 Summary erweitern (E2E-Lead-Time, Abdeckung) | A | S | hoch |
+| 1 | ✅ A1 Datenqualitäts-/Konfidenz-Flag | A | S–M | hoch (Vertrauen ins ganze Lagebild) |
+| 2 | ✅ A2 Summary erweitern (E2E-Lead-Time, Abdeckung) | A | S | hoch |
 | 3 | B3 ROAM-Board | B | S–M | hoch (Governance) |
 | 4 | B2 NFR-/Runway-Register | B | M | hoch (Schuld sichtbar) |
 | 5 | B1 Capability-Map | B | M | hoch (Strategie-Anbindung) |
 | 6 | B5 Dependency-Heatmap | B | M | mittel–hoch |
-| 7 | A3/A4 Comparison-Feinschliff / Stage-Map | A | S–M | mittel |
+| 7 | ✅ A3/A4 Comparison-Feinschliff / Stage-Map | A | S–M | mittel |
 | 8 | B4 Decision-Log | B | S | mittel |
 | 9 | C3 get_data (Jira REST) | C | M–L | hoch (Aufwand runter) |
 | 10 | C1/C2 SLO + DORA/Qualität | C | L | hoch (technisches Gesundheitsbild) |
@@ -178,7 +180,7 @@ Nicht nach „Feature-Wunschliste", sondern nach **Datenherkunft** (das BGS-Prin
 | 13 | D4 Anomalie · D5 Red-Team · D3 Q&A (mit Hygiene-Vorgabe) | D | M–L | hoch (Lagedienst-Ausbau) |
 | 14 | D7 Noise-Audit-Unterstützung | D | M | mittel–hoch (Vertrauen messbar machen) |
 
-**Empfohlene Sequenz:** Phase A vollständig (schnelles Vertrauen + Substanz) → B3/B2/B1 (EA-Kern: Governance, Schuld, Strategie) → restliche B → C nach Bedarf/Reife. **Phase D** startet unabhängig davon mit dem Piloten D2, sobald zwei Report-Stände vorliegen (Beschluss vom 13.08.2026; fachliche Leitplanken in `Quellen/KI-und-Lagebild_v1.0.md`, Teil D).
+**Empfohlene Sequenz:** ✅ Phase A vollständig (umgesetzt 02.09.2026) → B3/B2/B1 (EA-Kern: Governance, Schuld, Strategie) → restliche B → C nach Bedarf/Reife. **Phase D** startet unabhängig davon mit dem Piloten D2, sobald zwei Report-Stände vorliegen (Beschluss vom 13.08.2026; fachliche Leitplanken in `Quellen/KI-und-Lagebild_v1.0.md`, Teil D).
 
 ---
 
