@@ -187,6 +187,42 @@ zählt NFRs (verletzt/at risk) und Runway-Elemente (Lücken/überfällig). `owne
 benennt ein **Team, keine Person**. Fehlende oder defekte Dateien werden
 geloggt und übersprungen.
 
+## Dependency-/Integrations-Heatmap (optional)
+
+Eine Solution-Config kann über `"dependencies": "pfad/zu/dependencies.json"`
+auf ein Dependency-Register verweisen; der Report rendert dann unter dem
+NFR-Dashboard eine **Dependency & Integration Heatmap** (PDF: eigene Seite).
+Ein Portfolio aggregiert die Register aller Member-Solutions und ergänzt in
+der Detail-Tabelle eine **Solution**-Spalte. Das Register:
+
+```json
+{
+  "dependencies": [
+    {
+      "id": "D-1",
+      "title": "Billing-API-Contract",
+      "from": "ART Alpha-1",
+      "to": "ART Alpha-3",
+      "status": "blocked",
+      "due": "2026-08-18",
+      "notes": "optional"
+    }
+  ]
+}
+```
+
+`from` braucht etwas, das `to` liefert; `status` ist einer von `blocked` /
+`at_risk` / `on_track` / `done`. Die **Heatmap** zählt offene Abhängigkeiten
+(Status ≠ done) je from/to-Paar — jede Zelle trägt die Farbe ihres
+dringlichsten Status. Darunter listet die Detail-Tabelle jede Abhängigkeit
+(blocked zuerst); eine Abhängigkeit mit verstrichenem `due`, die nicht done
+ist, erscheint **überfällig** (rote Datumszelle). Der Titel zählt
+blocked/at risk/überfällig. `to` wird bewusst **nicht** gegen die
+Member-Liste validiert — Integrationspunkte dürfen auf den ART einer anderen
+Solution, einen Lieferanten oder ein Fremdsystem zeigen
+(Cross-Solution-Abhängigkeiten werden im Portfolio-Report sichtbar).
+Fehlende oder defekte Dateien werden geloggt und übersprungen.
+
 ## Eigene Stage-Map (optional, Config-Schema 2)
 
 Standardmäßig poolen unterschiedliche ART-Workflows in die drei kanonischen
@@ -219,6 +255,7 @@ portfolio/
 ├── risks_config.py    ROAM-Risiko-Register (B3): Schema, parse/load/save
 ├── nfr_config.py      NFR-/Runway-Register (B2): Schema, parse/load/save
 ├── capability_config.py Capability-Map (B1): Schema, parse/load/save
+├── dependency_config.py Dependency-Register (B5): Schema, parse/load/save
 ├── aggregator.py      Zusammenführung auf Datensatz-Ebene + Rendering (HTML/PDF)
 └── summary.py         Management-Summary + Datenqualität (A1/A2), Ausreißer (A3), ROAM-Board (B3), NFR-Dashboard (B2)
 ```

@@ -44,6 +44,7 @@ class TestArtifacts:
         for key in ("portfolio", "solution_alpha", "solution_beta",
                     "risks_alpha", "risks_beta", "nfr_alpha", "nfr_beta",
                     "capabilities_alpha", "capabilities_beta",
+                    "dependencies_alpha", "dependencies_beta",
                     "pi_config", "readme"):
             assert paths[key].exists(), key
         assert len(list((out / "arts").glob("*_IssueTimes.xlsx"))) == 6
@@ -186,6 +187,33 @@ class TestBuiltInStories:
         assert len(entries) == 6
         # Alle gemappten ART-Namen existieren als Member — keine Drift-Warnung.
         assert warnings == []
+
+    def test_dependency_registers_load_and_tell_their_story(self, scenario) -> None:
+        from portfolio.dependency_config import (
+            DEP_BLOCKED,
+            load_dependencies,
+        )
+        _, paths = scenario
+        alpha = load_dependencies(paths["dependencies_alpha"])
+        beta = load_dependencies(paths["dependencies_beta"])
+        assert alpha.dependencies and beta.dependencies
+        # Die Geschichte: genau eine blockierte, überfällige Abhängigkeit
+        # (Alpha-1 braucht den Ausreißer Alpha-3) ...
+        blocked = [d for d in alpha.dependencies if d.status == DEP_BLOCKED]
+        assert len(blocked) == 1
+        assert blocked[0].to_art == "ART Alpha-3"
+        assert blocked[0].due is not None and blocked[0].due < REF
+        # ... und eine Cross-Solution-Integration (Beta braucht Alpha).
+        cross = [d for d in beta.dependencies if d.to_art == "ART Alpha-1"]
+        assert len(cross) == 1
+
+    def test_portfolio_collects_dependencies_from_both_solutions(self, scenario) -> None:
+        from portfolio.aggregator import _collect_dependencies
+        _, paths = scenario
+        cfg = load_solution_config(paths["portfolio"])
+        entries = _collect_dependencies(cfg, log=lambda m: None)
+        assert {source for source, _ in entries} == {"Solution Alpha", "Solution Beta"}
+        assert len(entries) == 5
 
     def test_outlier_art_has_clearly_higher_cycle_time(self, scenario) -> None:
         from portfolio.aggregator import load_members

@@ -60,6 +60,7 @@ _CANON_STAGES = [GROUP_TODO, GROUP_IN_PROGRESS, GROUP_DONE]
 from project_template import MODULE_BUILD_REPORTS, get_section, load_template
 
 from .capability_config import Capability, load_capabilities
+from .dependency_config import Dependency, load_dependencies
 from .nfr_config import Nfr, RunwayItem, load_nfr
 from .risks_config import Risk, load_risks
 from .solution_config import (
@@ -77,9 +78,11 @@ from .summary import (
     assess_quality,
     capability_figure,
     compute_summary,
+    dependency_figure,
     nfr_figure,
     quality_figure,
     render_capabilities_html,
+    render_dependencies_html,
     render_nfr_html,
     render_quality_html,
     render_roam_html,
@@ -545,6 +548,40 @@ def _collect_capabilities(
     return entries
 
 
+def _collect_dependencies(
+    config: SolutionConfig,
+    log: Callable[[str], None] = print,
+) -> list[tuple[str, Dependency]]:
+    """
+    Collect dependencies for the report (B5).
+
+    Same resolution rules as the other governance registers: a solution loads
+    its own ``dependencies`` file, a portfolio aggregates its member
+    solutions' registers; broken or missing files are logged and skipped.
+    The 'to' side is deliberately not validated against the member list —
+    integration points may target other solutions, vendors, or external
+    systems.
+
+    Args:
+        config: The solution or portfolio configuration.
+        log:    Progress/warning callback.
+
+    Returns:
+        (source label, Dependency) pairs; empty when no register is referenced.
+    """
+    entries: list[tuple[str, Dependency]] = []
+    for label, sub in _governance_sources(config, log):
+        if not sub.dependencies:
+            continue
+        try:
+            register = load_dependencies(Path(sub.dependencies))
+        except (OSError, ValueError, json.JSONDecodeError) as exc:
+            log(f"  WARNING [{label}]: dependencies file skipped ({exc})")
+            continue
+        entries.extend((label, dep) for dep in register.dependencies)
+    return entries
+
+
 def _collect_risks(
     config: SolutionConfig,
     log: Callable[[str], None] = print,
@@ -642,8 +679,9 @@ def render_html(
     caps = render_capabilities_html(_collect_capabilities(config, log=log))
     roam = render_roam_html(_collect_risks(config, log=log))
     nfr = render_nfr_html(*_collect_nfr(config, log=log))
-    return html.replace("<body>",
-                        "<body>" + summary + quality + caps + roam + nfr, 1)
+    deps = render_dependencies_html(_collect_dependencies(config, log=log))
+    return html.replace(
+        "<body>", "<body>" + summary + quality + caps + roam + nfr + deps, 1)
 
 
 def render_pdf(
@@ -685,6 +723,9 @@ def render_pdf(
     nfrs, runway = _collect_nfr(config, log=log)
     if nfrs or runway:
         extra.append(nfr_figure(nfrs, runway))
+    dep_entries = _collect_dependencies(config, log=log)
+    if dep_entries:
+        extra.append(dependency_figure(dep_entries))
     pages[1:1] = extra
     export_pdf(pages, Path(output_path))
     log(f"PDF written to: {output_path}")

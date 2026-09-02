@@ -8,6 +8,23 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- Portfolio: **dependency / integration heatmap** (roadmap B5) — a solution
+  config can reference a dependency register
+  (`"dependencies": "dependencies.json"`; new module
+  `portfolio/dependency_config.py`, schema v1: id, title, from, to, status
+  blocked/at_risk/on_track/done, due, notes). The report renders a heatmap
+  plus a detail table below the NFR dashboard (PDF: own page): the heatmap
+  counts open dependencies (status ≠ done) per from/to pair with each cell
+  coloured by its most urgent status; the table sorts blocked first, and a
+  dependency whose due date has passed while not done renders as overdue
+  (red date cell); the title counts blocked/at-risk/overdue. The target (to)
+  is deliberately not validated against the member list — integration points
+  may name another solution's ART, a vendor, or an external system, so
+  cross-solution dependencies become visible in the portfolio report. Broken
+  files are logged and skipped. The demo scenario ships a register per
+  solution (five dependencies; Alpha-1 → Alpha-3 blocked and overdue,
+  Beta-1 → Alpha-1 as a cross-solution integration); manual section 5.10 in
+  all five languages.
 - Portfolio: **capability map & health** (roadmap B1) — a solution config can
   reference a capability map (`"capabilities": "capabilities.json"`; new
   module `portfolio/capability_config.py`, schema v1: id, title, health

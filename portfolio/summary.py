@@ -25,6 +25,12 @@ from portfolio.capability_config import (
     HEALTH_ORDER,
     Capability,
 )
+from portfolio.dependency_config import (
+    DEP_BLOCKED,
+    DEP_DONE,
+    DEP_STATUS_ORDER,
+    Dependency,
+)
 from portfolio.nfr_config import (
     NFR_STATUS_ORDER,
     RUNWAY_IN_PLACE,
@@ -1050,5 +1056,239 @@ def capability_figure(
         cells=dict(values=columns, align="left", fill_color=fill_colors),
     ))
     fig.update_layout(title=_capability_title(entries, title),
+                      title_font_size=14, margin=dict(t=40, b=10))
+    return fig
+
+
+# ---------------------------------------------------------------------------
+# Dependency / integration heatmap (B5)
+# ---------------------------------------------------------------------------
+
+#: Cell background per dependency status.
+_DEP_STATUS_COLORS = {
+    "blocked": "#f8d7da",
+    "at_risk": "#fff3cd",
+    "on_track": "#e6f4e6",
+    "done": "#e2e3e5",
+}
+
+#: Human-readable status labels (the JSON keys stay machine-friendly).
+_DEP_STATUS_LABELS = {
+    "blocked": "blocked",
+    "at_risk": "at risk",
+    "on_track": "on track",
+    "done": "done",
+}
+
+
+def _dep_is_overdue(dep: Dependency, reference: date | None = None) -> bool:
+    """True when the due date has passed and the dependency is not done."""
+    return (dep.due is not None
+            and dep.status != DEP_DONE
+            and dep.due < (reference or date.today()))
+
+
+def _sorted_dependencies(
+    entries: list[tuple[str, Dependency]]
+) -> list[tuple[str, Dependency]]:
+    """Display order: blocked first, then at risk/on track/done; then source."""
+    return sorted(entries, key=lambda e: (
+        DEP_STATUS_ORDER.index(e[1].status), e[0], e[1].dep_id))
+
+
+def _dep_headers(include_source: bool) -> list[str]:
+    """Column headers for the dependency table (shared by HTML and PDF)."""
+    head = ["Dependency", "From (needs)", "To (delivers)", "Status", "Due"]
+    return (["Solution"] + head) if include_source else head
+
+
+def _dep_cells(
+    source: str, dep: Dependency, include_source: bool,
+    reference: date | None = None,
+) -> list[str]:
+    """Row values for one dependency, in the _dep_headers() order."""
+    due = dep.due.strftime("%d.%m.%Y") if dep.due else "–"
+    if _dep_is_overdue(dep, reference):
+        due += " (overdue)"
+    row = [f"{dep.dep_id}: {dep.title}", dep.from_art, dep.to_art,
+           _DEP_STATUS_LABELS[dep.status], due]
+    return ([source] + row) if include_source else row
+
+
+def _dep_title(
+    entries: list[tuple[str, Dependency]], title: str,
+    reference: date | None = None,
+) -> str:
+    """Append dependency counts (blocked, at risk, overdue) to the title."""
+    blocked = sum(1 for _, d in entries if d.status == DEP_BLOCKED)
+    at_risk = sum(1 for _, d in entries if d.status == "at_risk")
+    suffix = f"{len(entries)} dependencies ({blocked} blocked, {at_risk} at risk"
+    overdue = sum(1 for _, d in entries if _dep_is_overdue(d, reference))
+    suffix += f", {overdue} overdue)" if overdue else ")"
+    return f"{title} — {suffix}"
+
+
+def _dep_include_source(entries: list[tuple[str, Dependency]]) -> bool:
+    """Show the Solution column only when entries stem from several sources."""
+    return len({source for source, _ in entries}) > 1
+
+
+def _heatmap_grid(
+    entries: list[tuple[str, Dependency]]
+) -> tuple[list[str], list[str], dict[tuple[str, str], list[Dependency]]]:
+    """
+    Group the open dependencies (status != done) into a from x to grid.
+
+    Returns:
+        (from-unit names, to-unit names, {(from, to): dependencies}) —
+        names sorted alphabetically for a stable layout.
+    """
+    cells: dict[tuple[str, str], list[Dependency]] = {}
+    for _, dep in entries:
+        if dep.status == DEP_DONE:
+            continue
+        cells.setdefault((dep.from_art, dep.to_art), []).append(dep)
+    froms = sorted({f for f, _ in cells})
+    tos = sorted({t for _, t in cells})
+    return froms, tos, cells
+
+
+def _heatmap_cell_color(deps: list[Dependency]) -> str:
+    """Colour of one heatmap cell: its most urgent open status wins."""
+    worst = min(DEP_STATUS_ORDER.index(d.status) for d in deps)
+    return _DEP_STATUS_COLORS[DEP_STATUS_ORDER[worst]]
+
+
+def render_dependencies_html(
+    entries: list[tuple[str, Dependency]],
+    title: str = "Dependency & Integration Heatmap",
+    reference: date | None = None,
+) -> str:
+    """
+    Render the dependency heatmap and detail table as an HTML fragment.
+
+    The heatmap counts open dependencies (status != done) per from/to pair;
+    each cell carries the colour of its most urgent status. Below it, the
+    detail table lists every dependency (blocked first, overdue due dates
+    highlighted). A Solution column is prepended when the entries stem from
+    more than one source (portfolio mode).
+
+    Args:
+        entries:   (source label, Dependency) pairs, unordered.
+        title:     Heading shown above the heatmap.
+        reference: Overdue reference date (default: today) — injectable for tests.
+
+    Returns:
+        An HTML fragment, or "" if entries is empty.
+    """
+    if not entries:
+        return ""
+
+    include_source = _dep_include_source(entries)
+    offset = 1 if include_source else 0
+    heading = _dep_title(entries, title, reference)
+    html = f"<h2 class='metric-heading'>{_html.escape(heading)}</h2>"
+
+    froms, tos, cells = _heatmap_grid(entries)
+    if cells:
+        head = "<th>needs \\ delivers</th>" + "".join(
+            f"<th>{_html.escape(t)}</th>" for t in tos)
+        rows = ""
+        for f in froms:
+            grid_tds = f"<td style='font-weight:600'>{_html.escape(f)}</td>"
+            for t in tos:
+                deps = cells.get((f, t))
+                if deps:
+                    color = _heatmap_cell_color(deps)
+                    grid_tds += (f"<td style='background:{color};text-align:center;"
+                                 f"font-weight:600'>{len(deps)}</td>")
+                else:
+                    grid_tds += "<td style='text-align:center'>–</td>"
+            rows += f"<tr>{grid_tds}</tr>"
+        html += f"<table class='sr-summary'><tr>{head}</tr>{rows}</table>"
+
+    head = "".join(f"<th>{_html.escape(h)}</th>"
+                   for h in _dep_headers(include_source))
+    rows = ""
+    for source, dep in _sorted_dependencies(entries):
+        cells_row = [_html.escape(c)
+                     for c in _dep_cells(source, dep, include_source, reference)]
+        tds = []
+        for col, c in enumerate(cells_row):
+            if col == offset + 3:  # status
+                color = _DEP_STATUS_COLORS.get(dep.status, "#ffffff")
+                tds.append(f"<td style='background:{color};font-weight:600'>{c}</td>")
+            elif col == offset + 4 and _dep_is_overdue(dep, reference):
+                tds.append(f"<td style='background:{_OVERDUE_COLOR};font-weight:600'>{c}</td>")
+            else:
+                tds.append(f"<td>{c}</td>")
+        rows += f"<tr>{''.join(tds)}</tr>"
+    html += f"<table class='sr-summary'><tr>{head}</tr>{rows}</table>"
+
+    return html
+
+
+def dependency_figure(
+    entries: list[tuple[str, Dependency]],
+    title: str = "Dependency & Integration Heatmap",
+    reference: date | None = None,
+):
+    """
+    Render the dependency heatmap and detail table as a plotly figure (PDF).
+
+    Mirrors render_dependencies_html(): heatmap grid on top (open
+    dependencies, most urgent status colours the cell), detail table below.
+
+    Args:
+        entries:   (source label, Dependency) pairs, unordered.
+        title:     Figure title.
+        reference: Overdue reference date (default: today).
+
+    Returns:
+        A plotly Figure with one or two Table traces.
+    """
+    import plotly.graph_objects as go
+    from plotly.subplots import make_subplots
+
+    include_source = _dep_include_source(entries)
+    offset = 1 if include_source else 0
+    blocks = []
+
+    froms, tos, cells = _heatmap_grid(entries)
+    if cells:
+        headers = ["needs \\ delivers"] + tos
+        rows = []
+        fills: list[list[str]] = [["white"] * len(froms) for _ in headers]
+        for r, f in enumerate(froms):
+            row = [f]
+            for c, t in enumerate(tos, start=1):
+                deps = cells.get((f, t))
+                row.append(str(len(deps)) if deps else "–")
+                if deps:
+                    fills[c][r] = _heatmap_cell_color(deps)
+            rows.append(row)
+        blocks.append((headers, rows, fills))
+
+    ordered = _sorted_dependencies(entries)
+    headers = _dep_headers(include_source)
+    rows = [_dep_cells(source, dep, include_source, reference)
+            for source, dep in ordered]
+    fills = [["white"] * len(rows) for _ in headers]
+    fills[offset + 3] = [_DEP_STATUS_COLORS.get(d.status, "#ffffff")
+                         for _, d in ordered]
+    fills[offset + 4] = [_OVERDUE_COLOR if _dep_is_overdue(d, reference)
+                         else "white" for _, d in ordered]
+    blocks.append((headers, rows, fills))
+
+    fig = make_subplots(
+        rows=len(blocks), cols=1,
+        specs=[[{"type": "table"}]] * len(blocks))
+    for i, (headers, rows, fills) in enumerate(blocks, start=1):
+        columns = [[row[c] for row in rows] for c in range(len(headers))]
+        fig.add_trace(go.Table(
+            header=dict(values=headers, fill_color="#f2f2f2", align="left"),
+            cells=dict(values=columns, align="left", fill_color=fills),
+        ), row=i, col=1)
+    fig.update_layout(title=_dep_title(entries, title, reference),
                       title_font_size=14, margin=dict(t=40, b=10))
     return fig
