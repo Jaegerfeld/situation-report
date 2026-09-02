@@ -22,6 +22,8 @@
 #   - Solution Beta nutzt eine eigene stage_map (A4), Alpha den Default-Pfad.
 #   - Beide Solutions bringen ein ROAM-Risiko-Register mit (B3); zwei
 #     Owned-Risiken sind bewusst alt → Aging-Hervorhebung im Board.
+#   - Beide Solutions bringen ein NFR-/Runway-Register mit (B2); Betas
+#     API-NFR ist verletzt, ein Runway-Element überfällige Lücke → Ampel rot.
 # =============================================================================
 
 from __future__ import annotations
@@ -32,6 +34,18 @@ from dataclasses import dataclass
 from datetime import UTC, date, datetime, timedelta
 from pathlib import Path
 
+from portfolio.nfr_config import (
+    RUNWAY_BUILDING,
+    RUNWAY_GAP,
+    RUNWAY_IN_PLACE,
+    STATUS_AT_RISK,
+    STATUS_MET,
+    STATUS_VIOLATED,
+    Nfr,
+    NfrRegister,
+    RunwayItem,
+    save_nfr,
+)
 from portfolio.risks_config import (
     IMPACT_HIGH,
     IMPACT_LOW,
@@ -166,6 +180,57 @@ def _beta_risks(reference: date) -> RiskRegister:
     ])
 
 
+def _alpha_nfr(reference: date) -> NfrRegister:
+    """NFR/runway register of Solution Alpha: healthy, one NFR at risk."""
+    return NfrRegister(
+        nfrs=[
+            Nfr("AN-1", "Report generation time", target="< 30 s for 10k issues",
+                actual="18 s", status=STATUS_MET, owner="System Team"),
+            Nfr("AN-2", "Availability of the reporting service",
+                target=">= 99.5 % per quarter", actual="99.7 %",
+                status=STATUS_MET, owner="System Team"),
+            Nfr("AN-3", "Peak concurrent report users", target="50 users",
+                actual="42 users tested", status=STATUS_AT_RISK,
+                owner="ART Alpha-1",
+                notes="Load test above 42 users pending new cluster."),
+        ],
+        runway=[
+            RunwayItem("ARW-1", "Central data lake connection",
+                       status=RUNWAY_IN_PLACE, owner="System Team"),
+            RunwayItem("ARW-2", "Self-service test environment",
+                       status=RUNWAY_BUILDING,
+                       needed_by=reference + timedelta(days=40),
+                       owner="System Team"),
+        ])
+
+
+def _beta_nfr(reference: date) -> NfrRegister:
+    """NFR/runway register of Solution Beta: one violated NFR, one overdue gap."""
+    return NfrRegister(
+        nfrs=[
+            Nfr("BN-1", "API response time", target="p95 < 200 ms",
+                actual="p95 = 340 ms", status=STATUS_VIOLATED,
+                owner="ART Beta-1",
+                notes="Regression since the vendor library update."),
+            Nfr("BN-2", "Data retention compliance", target="Delete after 180 days",
+                actual="Job active", status=STATUS_MET, owner="Shared Services"),
+            Nfr("BN-3", "Recovery time objective", target="RTO < 4 h",
+                actual="Not measured since failover test",
+                status=STATUS_AT_RISK, owner="ART Beta-2"),
+        ],
+        runway=[
+            RunwayItem("BRW-1", "Automated failover for the sync service",
+                       status=RUNWAY_GAP,
+                       needed_by=reference - timedelta(days=20),
+                       owner="ART Beta-2",
+                       notes="Overdue: needed before the last release."),
+            RunwayItem("BRW-2", "Contract test suite against vendor API",
+                       status=RUNWAY_BUILDING,
+                       needed_by=reference + timedelta(days=30),
+                       owner="ART Beta-1"),
+        ])
+
+
 def build_portfolio_scenario(
     output_dir: Path,
     seed: int = 42,
@@ -254,17 +319,21 @@ def build_portfolio_scenario(
     save_risks(risks_alpha, _alpha_risks(reference))
     risks_beta = out / "risks_beta.json"
     save_risks(risks_beta, _beta_risks(reference))
+    nfr_alpha = out / "nfr_alpha.json"
+    save_nfr(nfr_alpha, _alpha_nfr(reference))
+    nfr_beta = out / "nfr_beta.json"
+    save_nfr(nfr_beta, _beta_nfr(reference))
 
     solution_alpha = out / "solution_alpha.json"
     save_solution_config(solution_alpha, SolutionConfig(
         name="Solution Alpha", members=members["alpha"],
         from_date=reference - timedelta(days=window_days), to_date=reference,
-        risks=str(risks_alpha)))
+        risks=str(risks_alpha), nfr=str(nfr_alpha)))
     solution_beta = out / "solution_beta.json"
     save_solution_config(solution_beta, SolutionConfig(
         name="Solution Beta", members=members["beta"],
         from_date=reference - timedelta(days=window_days), to_date=reference,
-        stage_map=_BETA_STAGE_MAP, risks=str(risks_beta)))
+        stage_map=_BETA_STAGE_MAP, risks=str(risks_beta), nfr=str(nfr_beta)))
 
     portfolio_cfg = out / "portfolio.json"
     save_solution_config(portfolio_cfg, SolutionConfig(
@@ -310,6 +379,9 @@ def build_portfolio_scenario(
         "- **ROAM-Board**: beide Solutions bringen ein Risiko-Register mit",
         "  (`risks_alpha.json`/`risks_beta.json`); zwei Owned-Risiken sind",
         "  bewusst alt (45/50 Tage) — das Aging springt im Board rot an.",
+        "- **NFR & Runway**: beide Solutions bringen ein NFR-Register mit",
+        "  (`nfr_alpha.json`/`nfr_beta.json`); Betas API-NFR ist verletzt und",
+        "  ein Runway-Element ist eine überfällige Lücke — Dashboard-Ampel rot.",
         "",
         "Die Pfade in den Configs sind absolut — nach dem Verschieben des",
         "Ordners das Szenario neu erzeugen.",
@@ -318,4 +390,5 @@ def build_portfolio_scenario(
     log(f"Szenario komplett: {out}")
     return {"portfolio": portfolio_cfg, "solution_alpha": solution_alpha,
             "solution_beta": solution_beta, "risks_alpha": risks_alpha,
-            "risks_beta": risks_beta, "pi_config": pi_cfg, "readme": readme}
+            "risks_beta": risks_beta, "nfr_alpha": nfr_alpha,
+            "nfr_beta": nfr_beta, "pi_config": pi_cfg, "readme": readme}

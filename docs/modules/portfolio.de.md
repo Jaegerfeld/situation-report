@@ -109,6 +109,49 @@ Risiken gesamt, Owned und Aging. `owner` benennt ein **Team, keine Person**.
 Eine fehlende oder defekte risks-Datei wird geloggt und übersprungen —
 Governance-Daten brechen den Flow-Report nie.
 
+## NFR-/Architecture-Runway-Dashboard (optional)
+
+Eine Solution-Config kann über `"nfr": "pfad/zu/nfr.json"` auf ein NFR-Register
+verweisen; der Report rendert dann unter dem ROAM-Board ein **NFR & Architecture
+Runway**-Dashboard (PDF: eigene Seite, beide Tabellen gestapelt). Ein Portfolio
+aggregiert die Register aller Member-Solutions und ergänzt eine
+**Solution**-Spalte. Das Register:
+
+```json
+{
+  "nfrs": [
+    {
+      "id": "N-1",
+      "title": "API-Antwortzeit",
+      "target": "p95 < 200 ms",
+      "actual": "p95 = 340 ms",
+      "status": "violated",
+      "owner": "ART Beta-1"
+    }
+  ],
+  "runway": [
+    {
+      "id": "RW-1",
+      "title": "Automatisches Failover",
+      "status": "gap",
+      "needed_by": "2026-08-13",
+      "owner": "ART Beta-2"
+    }
+  ]
+}
+```
+
+Der NFR-`status` ist einer von `met` / `at_risk` / `violated`, der
+Runway-`status` einer von `in_place` / `building` / `gap` — **von Menschen
+bewertet** im PI-Planning/-Review; das Werkzeug rechnet Ziel gegen Ist bewusst
+nicht selbst („das LLM textet, es rechnet nicht" gilt sinngemäß auch fürs
+Werkzeug). Verletzte NFRs und Runway-Lücken sortieren nach oben, Status-Zellen
+sind farbig; ein Runway-Element, dessen `needed_by` verstrichen ist, ohne dass
+es `in_place` ist, erscheint als **überfällig** (rote Datumszelle). Der Titel
+zählt NFRs (verletzt/at risk) und Runway-Elemente (Lücken/überfällig). `owner`
+benennt ein **Team, keine Person**. Fehlende oder defekte Dateien werden
+geloggt und übersprungen.
+
 ## Eigene Stage-Map (optional, Config-Schema 2)
 
 Standardmäßig poolen unterschiedliche ART-Workflows in die drei kanonischen
@@ -139,8 +182,9 @@ portfolio/
 ├── cli.py             run_solution_report() + argparse-CLI
 ├── solution_config.py Solution-/Portfolio-Konfiguration (Mitglieder, Modus, Terminologie)
 ├── risks_config.py    ROAM-Risiko-Register (B3): Schema, parse/load/save
+├── nfr_config.py      NFR-/Runway-Register (B2): Schema, parse/load/save
 ├── aggregator.py      Zusammenführung auf Datensatz-Ebene + Rendering (HTML/PDF)
-└── summary.py         Management-Summary + Datenqualität/Konfidenz (A1/A2), Ausreißer (A3), ROAM-Board (B3)
+└── summary.py         Management-Summary + Datenqualität (A1/A2), Ausreißer (A3), ROAM-Board (B3), NFR-Dashboard (B2)
 ```
 
 Nutzt `build_reports` (Loader, Metriken, Export) wieder. Die Aggregation erfolgt

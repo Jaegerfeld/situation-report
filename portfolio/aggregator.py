@@ -59,6 +59,7 @@ _CANON_STAGES = [GROUP_TODO, GROUP_IN_PROGRESS, GROUP_DONE]
 
 from project_template import MODULE_BUILD_REPORTS, get_section, load_template
 
+from .nfr_config import Nfr, RunwayItem, load_nfr
 from .risks_config import Risk, load_risks
 from .solution_config import (
     KIND_PORTFOLIO,
@@ -74,7 +75,9 @@ from .summary import (
     SourceQuality,
     assess_quality,
     compute_summary,
+    nfr_figure,
     quality_figure,
+    render_nfr_html,
     render_quality_html,
     render_roam_html,
     render_summary_html,
@@ -468,6 +471,38 @@ def _collect_report(
     return all_figures, section_breaks, units, qualities
 
 
+def _governance_sources(
+    config: SolutionConfig,
+    log: Callable[[str], None] = print,
+) -> list[tuple[str, SolutionConfig]]:
+    """
+    Resolve the configs whose governance files (risks, NFR) feed the report.
+
+    A solution contributes itself; a portfolio contributes each member
+    solution's loaded config (an unreadable member is logged and skipped —
+    governance data must never break the flow report).
+
+    Args:
+        config: The solution or portfolio configuration.
+        log:    Progress/warning callback.
+
+    Returns:
+        (solution name, SolutionConfig) pairs.
+    """
+    if config.kind != KIND_PORTFOLIO:
+        return [(config.name, config)]
+    sources: list[tuple[str, SolutionConfig]] = []
+    for member in config.members:
+        try:
+            sub = load_solution_config(Path(member.template))
+        except (OSError, ValueError, json.JSONDecodeError) as exc:
+            log(f"  WARNING [{member.name}]: solution config not readable "
+                f"for governance data ({exc})")
+            continue
+        sources.append((sub.name, sub))
+    return sources
+
+
 def _collect_risks(
     config: SolutionConfig,
     log: Callable[[str], None] = print,
@@ -476,10 +511,8 @@ def _collect_risks(
     Collect ROAM risks for the report (B3).
 
     For a solution, its own ``risks`` file is loaded (source label = solution
-    name). For a portfolio, each member solution's config is loaded and its
-    risks are aggregated (source label = member solution name). A missing or
-    invalid risks file is logged as a warning and skipped — governance data
-    must never break the flow report.
+    name); a portfolio aggregates the registers of its member solutions. A
+    missing or invalid risks file is logged as a warning and skipped.
 
     Args:
         config: The solution or portfolio configuration.
@@ -488,29 +521,50 @@ def _collect_risks(
     Returns:
         (source label, Risk) pairs; empty when no register is referenced.
     """
-    sources: list[tuple[str, str]] = []
-    if config.kind == KIND_PORTFOLIO:
-        for member in config.members:
-            try:
-                sub = load_solution_config(Path(member.template))
-            except (OSError, ValueError, json.JSONDecodeError) as exc:
-                log(f"  WARNING [{member.name}]: solution config not readable "
-                    f"for risks ({exc})")
-                continue
-            if sub.risks:
-                sources.append((sub.name, sub.risks))
-    elif config.risks:
-        sources.append((config.name, config.risks))
-
     entries: list[tuple[str, Risk]] = []
-    for label, path in sources:
+    for label, sub in _governance_sources(config, log):
+        if not sub.risks:
+            continue
         try:
-            register = load_risks(Path(path))
+            register = load_risks(Path(sub.risks))
         except (OSError, ValueError, json.JSONDecodeError) as exc:
             log(f"  WARNING [{label}]: risks file skipped ({exc})")
             continue
         entries.extend((label, risk) for risk in register.risks)
     return entries
+
+
+def _collect_nfr(
+    config: SolutionConfig,
+    log: Callable[[str], None] = print,
+) -> tuple[list[tuple[str, Nfr]], list[tuple[str, RunwayItem]]]:
+    """
+    Collect NFRs and runway elements for the report (B2).
+
+    Same resolution rules as _collect_risks: a solution loads its own ``nfr``
+    file, a portfolio aggregates its member solutions' registers; broken or
+    missing files are logged and skipped.
+
+    Args:
+        config: The solution or portfolio configuration.
+        log:    Progress/warning callback.
+
+    Returns:
+        ((source label, Nfr) pairs, (source label, RunwayItem) pairs).
+    """
+    nfrs: list[tuple[str, Nfr]] = []
+    runway: list[tuple[str, RunwayItem]] = []
+    for label, sub in _governance_sources(config, log):
+        if not sub.nfr:
+            continue
+        try:
+            register = load_nfr(Path(sub.nfr))
+        except (OSError, ValueError, json.JSONDecodeError) as exc:
+            log(f"  WARNING [{label}]: NFR file skipped ({exc})")
+            continue
+        nfrs.extend((label, nfr) for nfr in register.nfrs)
+        runway.extend((label, item) for item in register.runway)
+    return nfrs, runway
 
 
 def render_html(
@@ -544,7 +598,8 @@ def render_html(
         target_ct=target_ct)
     quality = render_quality_html(qualities)
     roam = render_roam_html(_collect_risks(config, log=log))
-    return html.replace("<body>", "<body>" + summary + quality + roam, 1)
+    nfr = render_nfr_html(*_collect_nfr(config, log=log))
+    return html.replace("<body>", "<body>" + summary + quality + roam + nfr, 1)
 
 
 def render_pdf(
@@ -574,11 +629,16 @@ def render_pdf(
         return False
     summaries = [compute_summary(u, u.source_prefix, target_ct) for u in units]
     pages = [summary_figure(summaries, target_ct=target_ct)] + figures
+    extra = []
     if qualities:
-        pages.insert(1, quality_figure(qualities))
+        extra.append(quality_figure(qualities))
     risk_entries = _collect_risks(config, log=log)
     if risk_entries:
-        pages.insert(2 if qualities else 1, roam_figure(risk_entries))
+        extra.append(roam_figure(risk_entries))
+    nfrs, runway = _collect_nfr(config, log=log)
+    if nfrs or runway:
+        extra.append(nfr_figure(nfrs, runway))
+    pages[1:1] = extra
     export_pdf(pages, Path(output_path))
     log(f"PDF written to: {output_path}")
     return True

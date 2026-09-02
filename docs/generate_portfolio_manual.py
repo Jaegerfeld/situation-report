@@ -446,6 +446,20 @@ def content_de(st: dict) -> list:
            "das Board eine eigene Seite.", st),
         _SP(6),
 
+        _H2("5.8  NFR-/Runway-Dashboard (optional)", st),
+        _P("Verweist die Solution-Konfiguration über das Feld <font name='Courier'>"
+           "nfr</font> auf ein NFR-Register (JSON mit den Blöcken nfrs und runway), "
+           "rendert der Report unter dem ROAM-Board zwei Tabellen: die NFRs "
+           "(Ziel/Ist/Status met, at_risk, violated) und die Architecture-Runway-"
+           "Elemente (Status in_place, building, gap mit needed_by-Datum). Die "
+           "Status pflegen Menschen im PI-Planning/-Review — das Werkzeug rechnet "
+           "Ziel gegen Ist nicht selbst. Verletzte NFRs und Lücken sortieren nach "
+           "oben; ein Runway-Element mit verstrichenem needed_by, das nicht in "
+           "place ist, erscheint überfällig (rote Datumszelle). Ein Portfolio "
+           "aggregiert die Register aller Member-Solutions mit Solution-Spalte. "
+           "Owner sind Teams, keine Personen.", st),
+        _SP(6),
+
         _H1("6. Kommandozeile (CLI)", st), _hr(st),
         _P("Für Automatisierung und reproduzierbare Reports:", st),
         _CD("python -m portfolio meine_solution.json --output report.html", st),
@@ -654,6 +668,20 @@ def content_en(st: dict) -> list:
            "aggregates the registers of all member solutions and adds a Solution "
            "column. Owners are teams, not persons. A missing or invalid file is "
            "logged and skipped; in the PDF the board is its own page.", st),
+        _SP(6),
+
+        _H2("5.8  NFR/runway dashboard (optional)", st),
+        _P("When the solution configuration references an NFR register via the "
+           "<font name='Courier'>nfr</font> field (JSON with nfrs and runway "
+           "blocks), the report renders two tables below the ROAM board: the "
+           "NFRs (target/actual/status met, at_risk, violated) and the "
+           "architecture-runway elements (status in_place, building, gap with a "
+           "needed_by date). People assess the statuses in PI planning/review — "
+           "the tool does not compute target vs. actual itself. Violated NFRs "
+           "and gaps sort first; a runway element whose needed_by has passed "
+           "while not in place renders as overdue (red date cell). A portfolio "
+           "aggregates the registers of all member solutions with a Solution "
+           "column. Owners are teams, not persons.", st),
         _SP(6),
 
         _H1("6. Command line (CLI)", st), _hr(st),
@@ -865,6 +893,20 @@ def content_ro(st: dict) -> list:
            "board-ul este o pagina proprie.", st),
         _SP(6),
 
+        _H2("5.8  Dashboard NFR/runway (optional)", st),
+        _P("Daca configuratia solutiei face referire la un registru NFR prin "
+           "campul <font name='Courier'>nfr</font> (JSON cu blocurile nfrs si "
+           "runway), raportul afiseaza sub board-ul ROAM doua tabele: NFR-urile "
+           "(target/actual/status met, at_risk, violated) si elementele de "
+           "architecture runway (status in_place, building, gap cu data "
+           "needed_by). Statusurile sunt evaluate de oameni in PI planning/review "
+           "— instrumentul nu calculeaza singur target vs. actual. NFR-urile "
+           "incalcate si lacunele se sorteaza primele; un element runway cu "
+           "needed_by depasit care nu este in place apare ca intarziat (celula "
+           "de data rosie). Un portofoliu agrega registrele tuturor solutiilor "
+           "membre cu o coloana Solution. Ownerii sunt echipe, nu persoane.", st),
+        _SP(6),
+
         _H1("6. Linia de comanda (CLI)", st), _hr(st),
         _P("Pentru automatizare si rapoarte reproductibile:", st),
         _CD("python -m portfolio solutia_mea.json --output report.html", st),
@@ -1072,6 +1114,21 @@ def content_pt(st: dict) -> list:
            "as solutions membros e acrescenta uma coluna Solution. Os owners sao "
            "equipas, nao pessoas. Um ficheiro em falta ou invalido e registado "
            "no log e ignorado; no PDF o board e uma pagina propria.", st),
+        _SP(6),
+
+        _H2("5.8  Dashboard NFR/runway (opcional)", st),
+        _P("Se a configuracao da solution referenciar um registo NFR atraves do "
+           "campo <font name='Courier'>nfr</font> (JSON com os blocos nfrs e "
+           "runway), o relatorio mostra por baixo do board ROAM duas tabelas: os "
+           "NFRs (target/actual/status met, at_risk, violated) e os elementos de "
+           "architecture runway (status in_place, building, gap com data "
+           "needed_by). Os status sao avaliados por pessoas no PI planning/review "
+           "— a ferramenta nao calcula target vs. actual por si. NFRs violados e "
+           "lacunas ordenam primeiro; um elemento runway com needed_by "
+           "ultrapassado que nao esta in place aparece como atrasado (celula de "
+           "data vermelha). Um portfolio agrega os registos de todas as "
+           "solutions membros com uma coluna Solution. Os owners sao equipas, "
+           "nao pessoas.", st),
         _SP(6),
 
         _H1("6. Linha de comandos (CLI)", st), _hr(st),
@@ -1283,6 +1340,21 @@ def content_fr(st: dict) -> list:
            "Solution. Les owners sont des equipes, pas des personnes. Un fichier "
            "manquant ou invalide est journalise et ignore ; dans le PDF, le "
            "board est une page a part.", st),
+        _SP(6),
+
+        _H2("5.8  Dashboard NFR/runway (optionnel)", st),
+        _P("Si la configuration de la solution reference un registre NFR via le "
+           "champ <font name='Courier'>nfr</font> (JSON avec les blocs nfrs et "
+           "runway), le rapport affiche sous le board ROAM deux tableaux : les "
+           "NFR (target/actual/status met, at_risk, violated) et les elements de "
+           "l'architecture runway (status in_place, building, gap avec une date "
+           "needed_by). Les statuts sont evalues par des personnes en PI "
+           "planning/review — l'outil ne calcule pas lui-meme target vs. actual. "
+           "Les NFR violes et les lacunes se classent en premier ; un element "
+           "runway dont needed_by est depasse sans etre in place apparait en "
+           "retard (cellule de date rouge). Un portefeuille agrege les registres "
+           "de toutes les solutions membres avec une colonne Solution. Les "
+           "owners sont des equipes, pas des personnes.", st),
         _SP(6),
 
         _H1("6. Ligne de commande (CLI)", st), _hr(st),

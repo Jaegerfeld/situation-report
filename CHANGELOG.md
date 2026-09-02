@@ -8,6 +8,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- Portfolio: **NFR / architecture-runway dashboard** (roadmap B2) — a solution
+  config can reference an NFR register (`"nfr": "nfr.json"`; new module
+  `portfolio/nfr_config.py`, schema v1 with `nfrs` — id, title, target,
+  actual, status met/at_risk/violated — and `runway` — id, title, status
+  in_place/building/gap, needed_by). The report renders both tables below the
+  ROAM board (PDF: own page): violated NFRs and gaps sort first with coloured
+  status cells; a runway element whose needed_by has passed while not in place
+  renders as overdue (red date cell); the title counts violated/at-risk NFRs
+  and gaps/overdue elements. Statuses are assessed by people in PI
+  planning/review — the tool does not compute target vs. actual. A portfolio
+  aggregates member-solution registers with a Solution column; owners are
+  teams, not persons; broken files are logged and skipped. The demo scenario
+  ships a register per solution (six NFRs, four runway elements; Beta's API
+  NFR violated, one overdue gap); manual section 5.8 in all five languages.
 - Portfolio: **ROAM risk board** (roadmap B3) — a solution config can
   reference a risk register (`"risks": "risks.json"`; new module
   `portfolio/risks_config.py`, schema v1: id, title, roam, owner, impact,

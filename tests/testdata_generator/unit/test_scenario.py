@@ -42,7 +42,8 @@ class TestArtifacts:
     def test_all_expected_files_exist(self, scenario) -> None:
         out, paths = scenario
         for key in ("portfolio", "solution_alpha", "solution_beta",
-                    "risks_alpha", "risks_beta", "pi_config", "readme"):
+                    "risks_alpha", "risks_beta", "nfr_alpha", "nfr_beta",
+                    "pi_config", "readme"):
             assert paths[key].exists(), key
         assert len(list((out / "arts").glob("*_IssueTimes.xlsx"))) == 6
         assert len(list((out / "arts").glob("*_Transitions.xlsx"))) == 6
@@ -129,6 +130,34 @@ class TestBuiltInStories:
         entries = _collect_risks(cfg, log=lambda m: None)
         assert {source for source, _ in entries} == {"Solution Alpha", "Solution Beta"}
         assert len(entries) == 9
+
+    def test_nfr_registers_load_and_tell_their_story(self, scenario) -> None:
+        from portfolio.nfr_config import (
+            RUNWAY_GAP,
+            STATUS_VIOLATED,
+            load_nfr,
+        )
+        _, paths = scenario
+        alpha = load_nfr(paths["nfr_alpha"])
+        beta = load_nfr(paths["nfr_beta"])
+        assert alpha.nfrs and alpha.runway and beta.nfrs and beta.runway
+        # Die Geschichte: genau eine verletzte NFR und eine überfällige Lücke,
+        # beide bei Solution Beta.
+        assert not any(n.status == STATUS_VIOLATED for n in alpha.nfrs)
+        violated = [n for n in beta.nfrs if n.status == STATUS_VIOLATED]
+        assert len(violated) == 1
+        gaps = [r for r in beta.runway if r.status == RUNWAY_GAP]
+        assert len(gaps) == 1
+        assert gaps[0].needed_by is not None and gaps[0].needed_by < REF
+
+    def test_portfolio_collects_nfr_from_both_solutions(self, scenario) -> None:
+        from portfolio.aggregator import _collect_nfr
+        _, paths = scenario
+        cfg = load_solution_config(paths["portfolio"])
+        nfrs, runway = _collect_nfr(cfg, log=lambda m: None)
+        assert {source for source, _ in nfrs} == {"Solution Alpha", "Solution Beta"}
+        assert len(nfrs) == 6
+        assert len(runway) == 4
 
     def test_outlier_art_has_clearly_higher_cycle_time(self, scenario) -> None:
         from portfolio.aggregator import load_members
