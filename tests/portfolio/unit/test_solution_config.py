@@ -153,3 +153,76 @@ class TestSerialisation:
         d = _valid_dict()
         d["report"]["terminology"] = "Nonsense"
         assert parse_solution_config(d).terminology == "SAFe"
+
+
+# ---------------------------------------------------------------------------
+# A4: optional custom stage map
+# ---------------------------------------------------------------------------
+
+def _stage_map_dict() -> dict:
+    return {
+        "stages": {
+            "Backlog": ["Funnel", "Analysis"],
+            "In Arbeit": ["Implementing", "Review"],
+            "Fertig": ["Done", "Released"],
+        },
+        "first_stage": "In Arbeit",
+        "closed_stage": "Fertig",
+    }
+
+
+class TestStageMap:
+    def test_absent_block_yields_none(self) -> None:
+        cfg = parse_solution_config(_valid_dict())
+        assert cfg.stage_map is None
+
+    def test_valid_block_is_parsed(self) -> None:
+        d = _valid_dict()
+        d["stage_map"] = _stage_map_dict()
+        cfg = parse_solution_config(d)
+        assert list(cfg.stage_map.stages.keys()) == ["Backlog", "In Arbeit", "Fertig"]
+        assert cfg.stage_map.first_stage == "In Arbeit"
+        assert cfg.stage_map.lookup()["Review"] == "In Arbeit"
+
+    def test_duplicate_source_stage_rejected(self) -> None:
+        d = _valid_dict()
+        sm = _stage_map_dict()
+        sm["stages"]["Fertig"].append("Analysis")  # already in Backlog
+        d["stage_map"] = sm
+        with pytest.raises(ValueError, match="Analysis"):
+            parse_solution_config(d)
+
+    def test_unknown_boundary_marker_rejected(self) -> None:
+        d = _valid_dict()
+        sm = _stage_map_dict()
+        sm["first_stage"] = "Nirvana"
+        d["stage_map"] = sm
+        with pytest.raises(ValueError, match="first_stage"):
+            parse_solution_config(d)
+
+    def test_identical_markers_rejected(self) -> None:
+        d = _valid_dict()
+        sm = _stage_map_dict()
+        sm["closed_stage"] = "In Arbeit"
+        d["stage_map"] = sm
+        with pytest.raises(ValueError, match="must differ"):
+            parse_solution_config(d)
+
+    def test_empty_group_rejected(self) -> None:
+        d = _valid_dict()
+        sm = _stage_map_dict()
+        sm["stages"]["Backlog"] = []
+        d["stage_map"] = sm
+        with pytest.raises(ValueError, match="Backlog"):
+            parse_solution_config(d)
+
+    def test_roundtrip_through_to_dict(self) -> None:
+        d = _valid_dict()
+        d["stage_map"] = _stage_map_dict()
+        cfg = parse_solution_config(d)
+        again = parse_solution_config(to_dict(cfg))
+        assert again.stage_map == cfg.stage_map
+
+    def test_v1_dict_without_block_roundtrips_without_block(self) -> None:
+        cfg = parse_solution_config(_valid_dict())
+        assert "stage_map" not in to_dict(cfg)
