@@ -4,7 +4,7 @@ version = "0.1.0"
 description = "Jira issue data toolsuite for metrics and reports"
 license = { text = "BSD-3-Clause" }
 requires-python = ">=3.11"
-dependencies = ["openpyxl>=3.1", "plotly>=5.20", "kaleido>=0.2", "pypdf>=4.0", "tkcalendar>=1.6"]
+dependencies = ["openpyxl>=3.1", "plotly>=5.20", "kaleido>=0.2", "pypdf>=6.16.1", "tkcalendar>=1.6"]
 
 [project.optional-dependencies]
 docs = ["mkdocs-material>=9.5", "mkdocs-static-i18n>=1.3", "babel>=2.14"]
@@ -15,7 +15,7 @@ build = ["pyinstaller>=6.0"]
 # a floating version could fire new lint rules or shift complexity counts in CI
 # on code that was never touched. Bump these deliberately, in lockstep with the
 # pre-commit hook and quality.yml.
-dev = ["pytest-cov>=5.0", "genbadge[coverage]>=1.1", "ruff==0.15.*", "mypy==2.1.*"]
+dev = ["pytest-cov>=5.0", "genbadge[coverage]>=1.1", "ruff==0.15.*", "mypy==2.1.*", "bandit==1.9.*", "pip-audit==2.10.*"]
 
 [tool.setuptools.packages.find]
 include = ["get_data*", "transform_data*", "build_reports*", "testdata_generator*", "simulate*", "helper*", "portfolio*", "launcher*"]
@@ -28,6 +28,9 @@ source = ["build_reports", "transform_data", "get_data", "simulate", "testdata_g
 omit = ["*/tests/*", "*/docs/*", "*_gui.pyw", "*_gui.py", "*/gui.py", "*/__main__.py"]
 
 [tool.coverage.report]
+# Baseline 02.09.2026: 85 % — the gate sits below it so it catches regressions,
+# not normal fluctuation. Raise deliberately, never lower.
+fail_under = 80
 exclude_lines = ["pragma: no cover", "if __name__ == .__main__.:"]
 
 [tool.ruff]
@@ -35,6 +38,7 @@ line-length = 100
 extend-exclude = [
     "*-AMD-R9-DARKSTAR.py",  # OneDrive sync-conflict copies
     "feedback",             # archived ideas/bugs workflow folder, not source
+    "Quellen",              # gitignored working material (asset build scripts etc.)
 ]
 
 [tool.ruff.lint]

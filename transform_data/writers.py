@@ -40,6 +40,16 @@ def _new_wb(headers: list[str]) -> tuple[Workbook, object]:
     return wb, ws
 
 
+def _append_text_safe(ws, row: list) -> None:
+    # openpyxl stores any string starting with "=" as a live formula (CWE-1236:
+    # formula injection via Jira free-text fields). Coerce those cells back to
+    # plain text; the value itself stays byte-identical.
+    ws.append(row)
+    for cell in ws[ws.max_row]:
+        if cell.data_type == "f":
+            cell.data_type = "s"
+
+
 def write_transitions(records: list[IssueRecord], output_path: Path) -> None:
     """
     Write Transitions XLSX.
@@ -50,7 +60,7 @@ def write_transitions(records: list[IssueRecord], output_path: Path) -> None:
     wb, ws = _new_wb(["Key", "Transition", "Timestamp"])
     for record in records:
         for t in record.transitions:
-            ws.append([t.key, t.label, t.timestamp.strftime("%d.%m.%Y %H:%M:%S")])
+            _append_text_safe(ws, [t.key, t.label, t.timestamp.strftime("%d.%m.%Y %H:%M:%S")])
     _save_wb(wb, output_path)
 
 
@@ -85,7 +95,7 @@ def write_issue_times(records: list[IssueRecord], workflow: Workflow, output_pat
             fmt_dt(r.inprogress_date),
             fmt_dt(r.closed_date),
         ] + [r.stage_minutes.get(s, 0) for s in stage_cols] + [r.resolution]
-        ws.append(row)
+        _append_text_safe(ws, row)
     _save_wb(wb, output_path)
 
 
@@ -137,7 +147,7 @@ def write_cfd(
 
     current_date = min_date
     while current_date <= max_date:
-        ws.append([current_date.strftime("%d.%m.%Y")] + [daily[current_date][s] for s in stage_cols])
+        _append_text_safe(ws, [current_date.strftime("%d.%m.%Y")] + [daily[current_date][s] for s in stage_cols])
         current_date += timedelta(days=1)
 
     _save_wb(wb, output_path)

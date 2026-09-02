@@ -31,10 +31,28 @@ jobs:
       # ruff/mypy are pinned in pyproject [project.optional-dependencies].dev,
       # so CI runs the exact versions used locally and in the pre-commit hook.
       - name: Install dependencies
-        run: pip install -e ".[dev]" --quiet
+        # pip/setuptools first: the runner image ships pinned toolchain versions
+        # that pip-audit would otherwise flag (e.g. setuptools PYSEC findings).
+        run: |
+          pip install --upgrade pip setuptools --quiet
+          pip install -e ".[dev]" --quiet
 
       - name: Ruff (lint + import order)
         run: python -m ruff check .
 
       - name: mypy (typed analytics core)
         run: python -m mypy
+
+      # Gate on medium+ severity: the accepted low-severity findings
+      # (try/except-pass in prefs loading, fixed-argv subprocess, simulation
+      # random) are documented in the security baseline and stay visible
+      # locally via `bandit --severity-level low`.
+      - name: Bandit (security lint)
+        run: >
+          python -m bandit -r
+          build_reports transform_data portfolio simulate helper launcher
+          testdata_generator get_data scripts project_template.py version.py
+          --severity-level medium -q
+
+      - name: pip-audit (known CVEs in dependencies)
+        run: python -m pip_audit

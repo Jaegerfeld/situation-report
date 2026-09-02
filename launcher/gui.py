@@ -656,7 +656,8 @@ class LauncherApp(tk.Tk):
                     "User-Agent": f"SituationReport/{_VERSION}",
                 },
             )
-            with urllib.request.urlopen(req, timeout=5) as resp:
+            # _UPDATE_API is a fixed https module constant - no user-controlled scheme
+            with urllib.request.urlopen(req, timeout=5) as resp:  # nosec B310
                 data = json.loads(resp.read())
             latest_tag = data.get("tag_name", "")
             if not latest_tag:
