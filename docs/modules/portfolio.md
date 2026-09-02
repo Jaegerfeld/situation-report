@@ -74,6 +74,38 @@ In **comparison** mode, Median-CT and 95th-percentile cells are highlighted
 red when they exceed 1.5× the column median (three rows minimum) — the
 "which unit is the outlier?" question answers itself.
 
+## ROAM risk board (optional)
+
+A solution config may reference a risk register via `"risks": "path/to/risks.json"`;
+the report then renders a **ROAM board** below the quality table (PDF: its own
+page). A portfolio aggregates the registers of all member solutions and adds a
+**Solution** column. The register:
+
+```json
+{
+  "risks": [
+    {
+      "id": "R-1",
+      "title": "Test environment not ordered yet",
+      "roam": "owned",
+      "owner": "System Team",
+      "impact": "high",
+      "status_since": "2026-07-15",
+      "notes": "optional"
+    }
+  ]
+}
+```
+
+`roam` is one of `resolved` / `owned` / `accepted` / `mitigated`, `impact` one
+of `high` / `medium` / `low`. Rows are grouped in R-O-A-M order with coloured
+category and impact cells. `status_since` (when the risk entered its current
+category) drives **aging**: an *owned* risk older than 30 days gets a red
+"Since" cell — ownership without movement is exactly what the board surfaces.
+The title counts total, owned, and aging risks. `owner` names a **team, not a
+person**. A missing or invalid risks file is logged and skipped — governance
+data never breaks the flow report.
+
 ## Custom stage map (optional, config schema 2)
 
 By default, differing ART workflows pool into the three canonical groups
@@ -103,8 +135,9 @@ portfolio/
 ├── __main__.py        Dispatcher: GUI without arguments, CLI with arguments
 ├── cli.py             run_solution_report() + argparse CLI
 ├── solution_config.py Solution/Portfolio config (members, mode, terminology)
+├── risks_config.py    ROAM risk register (B3): schema, parse/load/save
 ├── aggregator.py      Record-level pooling + rendering (HTML/PDF)
-└── summary.py         Management summary + data quality/confidence (A1/A2), outliers (A3)
+└── summary.py         Management summary + data quality/confidence (A1/A2), outliers (A3), ROAM board (B3)
 ```
 
 Reuses `build_reports` (loader, metrics, export). Aggregation is done by

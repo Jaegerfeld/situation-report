@@ -76,6 +76,39 @@ Im **Comparison**-Modus werden Median-CT- und 95.-Perzentil-Zellen rot
 hervorgehoben, wenn sie das 1,5-fache des Spalten-Medians übersteigen (ab drei
 Zeilen) — die Frage „welche Einheit ist der Ausreißer?" beantwortet sich selbst.
 
+## ROAM-Risk-Board (optional)
+
+Eine Solution-Config kann über `"risks": "pfad/zu/risks.json"` auf ein
+Risiko-Register verweisen; der Report rendert dann unter der Qualitätstabelle
+ein **ROAM-Board** (PDF: eigene Seite). Ein Portfolio aggregiert die Register
+aller Member-Solutions und ergänzt eine **Solution**-Spalte. Das Register:
+
+```json
+{
+  "risks": [
+    {
+      "id": "R-1",
+      "title": "Testumgebung noch nicht bestellt",
+      "roam": "owned",
+      "owner": "System Team",
+      "impact": "high",
+      "status_since": "2026-07-15",
+      "notes": "optional"
+    }
+  ]
+}
+```
+
+`roam` ist eine der Kategorien `resolved` / `owned` / `accepted` / `mitigated`,
+`impact` eine von `high` / `medium` / `low`. Die Zeilen sind in R-O-A-M-Reihenfolge
+gruppiert, Kategorie- und Impact-Zellen farbig. `status_since` (wann das Risiko
+in seine aktuelle Kategorie kam) treibt das **Aging**: ein *Owned*-Risiko, das
+älter als 30 Tage ist, bekommt eine rote „Since"-Zelle — Ownership ohne
+Bewegung ist genau das, was das Board sichtbar machen soll. Der Titel zählt
+Risiken gesamt, Owned und Aging. `owner` benennt ein **Team, keine Person**.
+Eine fehlende oder defekte risks-Datei wird geloggt und übersprungen —
+Governance-Daten brechen den Flow-Report nie.
+
 ## Eigene Stage-Map (optional, Config-Schema 2)
 
 Standardmäßig poolen unterschiedliche ART-Workflows in die drei kanonischen
@@ -105,8 +138,9 @@ portfolio/
 ├── __main__.py        Dispatcher: GUI ohne Argumente, CLI mit Argumenten
 ├── cli.py             run_solution_report() + argparse-CLI
 ├── solution_config.py Solution-/Portfolio-Konfiguration (Mitglieder, Modus, Terminologie)
+├── risks_config.py    ROAM-Risiko-Register (B3): Schema, parse/load/save
 ├── aggregator.py      Zusammenführung auf Datensatz-Ebene + Rendering (HTML/PDF)
-└── summary.py         Management-Summary + Datenqualität/Konfidenz (A1/A2), Ausreißer (A3)
+└── summary.py         Management-Summary + Datenqualität/Konfidenz (A1/A2), Ausreißer (A3), ROAM-Board (B3)
 ```
 
 Nutzt `build_reports` (Loader, Metriken, Export) wieder. Die Aggregation erfolgt

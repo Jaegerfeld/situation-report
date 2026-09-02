@@ -21,6 +21,14 @@ from dataclasses import dataclass
 from datetime import date
 
 from build_reports.loader import ReportData
+from portfolio.risks_config import (
+    IMPACT_HIGH,
+    IMPACT_LOW,
+    IMPACT_ORDER,
+    ROAM_ORDER,
+    ROAM_OWNED,
+    Risk,
+)
 
 #: Confidence levels for a data source (traffic-light semantics).
 CONFIDENCE_HIGH = "high"
@@ -445,6 +453,185 @@ def summary_figure(
     fig = go.Figure(go.Table(
         header=dict(values=headers, fill_color="#f2f2f2", align="left"),
         cells=dict(values=columns, align="left", fill_color=fill),
+    ))
+    fig.update_layout(title=title, title_font_size=14, margin=dict(t=40, b=10))
+    return fig
+
+
+# ---------------------------------------------------------------------------
+# ROAM risk board (B3)
+# ---------------------------------------------------------------------------
+
+#: Cell background per ROAM category (board colours).
+_ROAM_COLORS = {
+    "resolved": "#e6f4e6",
+    "owned": "#fff3cd",
+    "accepted": "#e2e3e5",
+    "mitigated": "#d1ecf1",
+}
+
+#: Cell background per impact level (mirrors the confidence traffic light).
+_IMPACT_COLORS = {
+    IMPACT_HIGH: "#f8d7da",
+    "medium": "#fff3cd",
+    IMPACT_LOW: "#e6f4e6",
+}
+
+#: An *owned* risk older than this many days is flagged as aging — ownership
+#: without visible movement is exactly what the board exists to surface.
+#: Resolved/accepted/mitigated risks do not age (their state is a decision).
+_RISK_AGING_DAYS = 30
+_AGING_COLOR = "#f8d7da"
+
+
+def _risk_age_days(risk: Risk, reference: date | None = None) -> int | None:
+    """Days since the risk entered its current ROAM category (None = unknown)."""
+    if risk.status_since is None:
+        return None
+    return ((reference or date.today()) - risk.status_since).days
+
+
+def _risk_is_aging(risk: Risk, reference: date | None = None) -> bool:
+    """True when an owned risk has sat in 'owned' longer than _RISK_AGING_DAYS."""
+    age = _risk_age_days(risk, reference)
+    return risk.roam == ROAM_OWNED and age is not None and age > _RISK_AGING_DAYS
+
+
+def _sorted_roam(entries: list[tuple[str, Risk]]) -> list[tuple[str, Risk]]:
+    """Board order: ROAM category, then impact (high first), then source."""
+    return sorted(entries, key=lambda e: (
+        ROAM_ORDER.index(e[1].roam), IMPACT_ORDER.index(e[1].impact), e[0]))
+
+
+def _roam_headers(include_source: bool) -> list[str]:
+    """Column headers for the ROAM board (shared by HTML and PDF)."""
+    head = ["ROAM", "Risk", "Impact", "Owner (team)", "Since"]
+    return (["Solution"] + head) if include_source else head
+
+
+def _roam_cells(
+    source: str, risk: Risk, include_source: bool, reference: date | None = None
+) -> list[str]:
+    """Row values for one risk, in the _roam_headers() order."""
+    age = _risk_age_days(risk, reference)
+    since = (f"{risk.status_since.strftime('%d.%m.%Y')} ({age}d)"
+             if risk.status_since else "–")
+    row = [risk.roam.capitalize(), f"{risk.risk_id}: {risk.title}",
+           risk.impact, risk.owner or "–", since]
+    return ([source] + row) if include_source else row
+
+
+def _roam_title(
+    entries: list[tuple[str, Risk]], title: str, reference: date | None = None
+) -> str:
+    """Append risk counts (total, owned, aging) to the board title."""
+    owned = sum(1 for _, r in entries if r.roam == ROAM_OWNED)
+    aging = sum(1 for _, r in entries if _risk_is_aging(r, reference))
+    suffix = f"{len(entries)} risks, {owned} owned"
+    if aging:
+        suffix += f", {aging} owned > {_RISK_AGING_DAYS}d"
+    return f"{title} — {suffix}"
+
+
+def _roam_include_source(entries: list[tuple[str, Risk]]) -> bool:
+    """Show the Solution column only when risks come from several sources."""
+    return len({source for source, _ in entries}) > 1
+
+
+def render_roam_html(
+    entries: list[tuple[str, Risk]],
+    title: str = "ROAM Risk Board",
+    reference: date | None = None,
+) -> str:
+    """
+    Render the ROAM risk board as an HTML fragment.
+
+    Rows are grouped in R-O-A-M order with coloured category and impact cells;
+    the Since cell of an aging owned risk is highlighted. A Solution column is
+    prepended when the entries stem from more than one source (portfolio mode).
+
+    Args:
+        entries:   (source label, Risk) pairs, unordered.
+        title:     Heading shown above the board.
+        reference: Age reference date (default: today) — injectable for tests.
+
+    Returns:
+        An HTML fragment (heading + styled table), or "" if entries is empty.
+    """
+    if not entries:
+        return ""
+
+    include_source = _roam_include_source(entries)
+    ordered = _sorted_roam(entries)
+    title = _roam_title(entries, title, reference)
+    head_html = "".join(
+        f"<th>{_html.escape(h)}</th>" for h in _roam_headers(include_source))
+
+    offset = 1 if include_source else 0
+    rows_html = ""
+    for source, risk in ordered:
+        cells = [_html.escape(c)
+                 for c in _roam_cells(source, risk, include_source, reference)]
+        tds = []
+        for col, c in enumerate(cells):
+            if col == offset:  # ROAM category
+                color = _ROAM_COLORS.get(risk.roam, "#ffffff")
+                tds.append(f"<td style='background:{color};font-weight:600'>{c}</td>")
+            elif col == offset + 2:  # impact
+                color = _IMPACT_COLORS.get(risk.impact, "#ffffff")
+                tds.append(f"<td style='background:{color}'>{c}</td>")
+            elif col == offset + 4 and _risk_is_aging(risk, reference):  # since
+                tds.append(f"<td style='background:{_AGING_COLOR};font-weight:600'>{c}</td>")
+            else:
+                tds.append(f"<td>{c}</td>")
+        rows_html += f"<tr>{''.join(tds)}</tr>"
+
+    return (
+        f"<h2 class='metric-heading'>{_html.escape(title)}</h2>"
+        f"<table class='sr-summary'><tr>{head_html}</tr>{rows_html}</table>"
+    )
+
+
+def roam_figure(
+    entries: list[tuple[str, Risk]],
+    title: str = "ROAM Risk Board",
+    reference: date | None = None,
+):
+    """
+    Render the ROAM risk board as a plotly Table figure (for the PDF export).
+
+    Mirrors render_roam_html(): coloured ROAM and impact columns, aging
+    highlight in the Since column.
+
+    Args:
+        entries:   (source label, Risk) pairs, unordered.
+        title:     Figure title.
+        reference: Age reference date (default: today).
+
+    Returns:
+        A plotly Figure containing a single Table trace.
+    """
+    import plotly.graph_objects as go
+
+    include_source = _roam_include_source(entries)
+    ordered = _sorted_roam(entries)
+    headers = _roam_headers(include_source)
+    title = _roam_title(entries, title, reference)
+    rows = [_roam_cells(source, risk, include_source, reference)
+            for source, risk in ordered]
+    columns = [[row[c] for row in rows] for c in range(len(headers))]
+
+    offset = 1 if include_source else 0
+    white = ["white"] * len(rows)
+    fill_colors: list[list[str]] = [list(white) for _ in headers]
+    fill_colors[offset] = [_ROAM_COLORS.get(r.roam, "#ffffff") for _, r in ordered]
+    fill_colors[offset + 2] = [_IMPACT_COLORS.get(r.impact, "#ffffff")
+                               for _, r in ordered]
+    fill_colors[offset + 4] = [_AGING_COLOR if _risk_is_aging(r, reference) else "white"
+                               for _, r in ordered]
+    fig = go.Figure(go.Table(
+        header=dict(values=headers, fill_color="#f2f2f2", align="left"),
+        cells=dict(values=columns, align="left", fill_color=fill_colors),
     ))
     fig.update_layout(title=title, title_font_size=14, margin=dict(t=40, b=10))
     return fig

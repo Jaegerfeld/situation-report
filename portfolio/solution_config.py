@@ -26,6 +26,8 @@ from typing import Any
 
 # v2 (02.09.2026): optionaler "stage_map"-Block (A4). v1-Dateien ohne den
 # Block laden unveraendert; der Parser prueft das Schemafeld bewusst nicht.
+# Seit B3 zusaetzlich das optionale "risks"-Feld (Pfad zur ROAM-risks.json) —
+# additiv, daher kein Schema-Bump.
 SCHEMA_VERSION = 2
 APP_NAME = "situation_report"
 
@@ -149,6 +151,8 @@ class SolutionConfig:
         modes:      Requested report modes ("pooled" / "comparison").
         stage_map:  Optional custom canonical stage mapping (A4); None keeps
                     the fixed three-group pooling.
+        risks:      Optional path to a ROAM risks JSON (B3); "" means no
+                    risk register.
     """
     name: str
     kind: str = KIND_SOLUTION
@@ -159,6 +163,7 @@ class SolutionConfig:
     to_date: date | None = None
     modes: list[str] = field(default_factory=lambda: ["pooled"])
     stage_map: StageMap | None = None
+    risks: str = ""
 
 
 def _parse_date(value: Any) -> date | None:
@@ -241,6 +246,7 @@ def parse_solution_config(data: dict[str, Any]) -> SolutionConfig:
         to_date=_parse_date(report.get("to_date")),
         modes=list(report.get("modes", ["pooled"])) or ["pooled"],
         stage_map=parse_stage_map(data.get("stage_map")),
+        risks=str(data.get("risks", "")).strip(),
     )
 
 
@@ -305,6 +311,8 @@ def to_dict(config: SolutionConfig) -> dict[str, Any]:
             "first_stage": config.stage_map.first_stage,
             "closed_stage": config.stage_map.closed_stage,
         }
+    if config.risks:
+        out["risks"] = config.risks
     return out
 
 

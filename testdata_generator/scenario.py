@@ -20,6 +20,8 @@
 #   - "Beta-3" liefert schwache Daten (viele Issues ohne First Date, kein CFD,
 #     alter Datenstand) → A1-Ampel low, Abdeckungsgrad sichtbar.
 #   - Solution Beta nutzt eine eigene stage_map (A4), Alpha den Default-Pfad.
+#   - Beide Solutions bringen ein ROAM-Risiko-Register mit (B3); zwei
+#     Owned-Risiken sind bewusst alt → Aging-Hervorhebung im Board.
 # =============================================================================
 
 from __future__ import annotations
@@ -30,6 +32,18 @@ from dataclasses import dataclass
 from datetime import UTC, date, datetime, timedelta
 from pathlib import Path
 
+from portfolio.risks_config import (
+    IMPACT_HIGH,
+    IMPACT_LOW,
+    IMPACT_MEDIUM,
+    ROAM_ACCEPTED,
+    ROAM_MITIGATED,
+    ROAM_OWNED,
+    ROAM_RESOLVED,
+    Risk,
+    RiskRegister,
+    save_risks,
+)
 from portfolio.solution_config import (
     KIND_PORTFOLIO,
     Member,
@@ -109,6 +123,49 @@ def _profiles() -> list[tuple[str, _ArtProfile]]:
     ]
 
 
+def _alpha_risks(reference: date) -> RiskRegister:
+    """ROAM register of Solution Alpha: healthy spread, one aging owned risk."""
+    return RiskRegister(risks=[
+        Risk("AR-1", "Test environment for PI 4 not ordered yet",
+             ROAM_OWNED, owner="System Team", impact=IMPACT_HIGH,
+             status_since=reference - timedelta(days=45),
+             notes="Aging: owned for over a month without visible movement."),
+        Risk("AR-2", "Key supplier interface spec still in draft",
+             ROAM_OWNED, owner="ART Alpha-2", impact=IMPACT_MEDIUM,
+             status_since=reference - timedelta(days=10)),
+        Risk("AR-3", "Legacy migration effort underestimated",
+             ROAM_MITIGATED, owner="ART Alpha-3", impact=IMPACT_MEDIUM,
+             status_since=reference - timedelta(days=20),
+             notes="Scope cut agreed; buffer feature moved to next PI."),
+        Risk("AR-4", "License audit finding on reporting library",
+             ROAM_RESOLVED, owner="System Team", impact=IMPACT_LOW,
+             status_since=reference - timedelta(days=5)),
+        Risk("AR-5", "Peak-load capacity above target only with new cluster",
+             ROAM_ACCEPTED, owner="ART Alpha-1", impact=IMPACT_LOW,
+             status_since=reference - timedelta(days=30)),
+    ])
+
+
+def _beta_risks(reference: date) -> RiskRegister:
+    """ROAM register of Solution Beta: the second aging owned risk lives here."""
+    return RiskRegister(risks=[
+        Risk("BR-1", "Data quality of ART Beta-3 blocks solution reporting",
+             ROAM_OWNED, owner="ART Beta-3", impact=IMPACT_HIGH,
+             status_since=reference - timedelta(days=50),
+             notes="Aging: matches the weak-source story of this scenario."),
+        Risk("BR-2", "Security review for release milestone not scheduled",
+             ROAM_MITIGATED, owner="Shared Services", impact=IMPACT_HIGH,
+             status_since=reference - timedelta(days=7),
+             notes="Interim: external reviewer booked for next sprint."),
+        Risk("BR-3", "Vendor API rate limits during nightly sync",
+             ROAM_ACCEPTED, owner="ART Beta-1", impact=IMPACT_MEDIUM,
+             status_since=reference - timedelta(days=15)),
+        Risk("BR-4", "Duplicate effort with platform team clarified",
+             ROAM_RESOLVED, owner="ART Beta-2", impact=IMPACT_LOW,
+             status_since=reference - timedelta(days=12)),
+    ])
+
+
 def build_portfolio_scenario(
     output_dir: Path,
     seed: int = 42,
@@ -131,7 +188,7 @@ def build_portfolio_scenario(
 
     Returns:
         Dict with the key output paths (portfolio config, solution configs,
-        PI config, readme).
+        risk registers, PI config, readme).
     """
     reference = reference or date.today()
     out = Path(output_dir)
@@ -193,15 +250,21 @@ def build_portfolio_scenario(
         log(f"  {profile.name}: {len(records)} issues"
             f"{' (kein CFD, Datenstand -' + str(profile.stale_days) + 'd)' if profile.stale_days else ''}")
 
+    risks_alpha = out / "risks_alpha.json"
+    save_risks(risks_alpha, _alpha_risks(reference))
+    risks_beta = out / "risks_beta.json"
+    save_risks(risks_beta, _beta_risks(reference))
+
     solution_alpha = out / "solution_alpha.json"
     save_solution_config(solution_alpha, SolutionConfig(
         name="Solution Alpha", members=members["alpha"],
-        from_date=reference - timedelta(days=window_days), to_date=reference))
+        from_date=reference - timedelta(days=window_days), to_date=reference,
+        risks=str(risks_alpha)))
     solution_beta = out / "solution_beta.json"
     save_solution_config(solution_beta, SolutionConfig(
         name="Solution Beta", members=members["beta"],
         from_date=reference - timedelta(days=window_days), to_date=reference,
-        stage_map=_BETA_STAGE_MAP))
+        stage_map=_BETA_STAGE_MAP, risks=str(risks_beta)))
 
     portfolio_cfg = out / "portfolio.json"
     save_solution_config(portfolio_cfg, SolutionConfig(
@@ -244,6 +307,9 @@ def build_portfolio_scenario(
         "- **Solution Beta** poolt über eine eigene `stage_map` (Schema 2,",
         "  Vorlauf/Umsetzung/Fertig); Solution Alpha nutzt den Default-Pfad",
         "  (To Do / In Progress / Done).",
+        "- **ROAM-Board**: beide Solutions bringen ein Risiko-Register mit",
+        "  (`risks_alpha.json`/`risks_beta.json`); zwei Owned-Risiken sind",
+        "  bewusst alt (45/50 Tage) — das Aging springt im Board rot an.",
         "",
         "Die Pfade in den Configs sind absolut — nach dem Verschieben des",
         "Ordners das Szenario neu erzeugen.",
@@ -251,4 +317,5 @@ def build_portfolio_scenario(
 
     log(f"Szenario komplett: {out}")
     return {"portfolio": portfolio_cfg, "solution_alpha": solution_alpha,
-            "solution_beta": solution_beta, "pi_config": pi_cfg, "readme": readme}
+            "solution_beta": solution_beta, "risks_alpha": risks_alpha,
+            "risks_beta": risks_beta, "pi_config": pi_cfg, "readme": readme}

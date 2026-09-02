@@ -432,6 +432,20 @@ def content_de(st: dict) -> list:
            "verhalten sich unverändert.", st),
         _SP(6),
 
+        _H2("5.7  ROAM-Risk-Board (optional)", st),
+        _P("Verweist die Solution-Konfiguration über das Feld <font name='Courier'>"
+           "risks</font> auf ein Risiko-Register (JSON mit id, title, roam, owner, "
+           "impact, status_since), rendert der Report unter der Qualitätstabelle "
+           "ein ROAM-Board: Zeilen in R-O-A-M-Reihenfolge (Resolved / Owned / "
+           "Accepted / Mitigated), Kategorie- und Impact-Zellen farbig. Ein "
+           "Owned-Risiko, das länger als 30 Tage in seiner Kategorie steht, bekommt "
+           "eine rote Since-Zelle (Aging) — Ownership ohne Bewegung wird sichtbar. "
+           "Ein Portfolio aggregiert die Register aller Member-Solutions und "
+           "ergänzt eine Solution-Spalte. Owner sind Teams, keine Personen. Eine "
+           "fehlende oder defekte Datei wird geloggt und übersprungen; im PDF ist "
+           "das Board eine eigene Seite.", st),
+        _SP(6),
+
         _H1("6. Kommandozeile (CLI)", st), _hr(st),
         _P("Für Automatisierung und reproduzierbare Reports:", st),
         _CD("python -m portfolio meine_solution.json --output report.html", st),
@@ -629,6 +643,19 @@ def content_en(st: dict) -> list:
            "block behave unchanged.", st),
         _SP(6),
 
+        _H2("5.7  ROAM risk board (optional)", st),
+        _P("When the solution configuration references a risk register via the "
+           "<font name='Courier'>risks</font> field (JSON with id, title, roam, "
+           "owner, impact, status_since), the report renders a ROAM board below "
+           "the quality table: rows in R-O-A-M order (Resolved / Owned / Accepted "
+           "/ Mitigated) with coloured category and impact cells. An owned risk "
+           "sitting in its category for more than 30 days gets a red Since cell "
+           "(aging) — ownership without movement becomes visible. A portfolio "
+           "aggregates the registers of all member solutions and adds a Solution "
+           "column. Owners are teams, not persons. A missing or invalid file is "
+           "logged and skipped; in the PDF the board is its own page.", st),
+        _SP(6),
+
         _H1("6. Command line (CLI)", st), _hr(st),
         _P("For automation and reproducible reports:", st),
         _CD("python -m portfolio my_solution.json --output report.html", st),
@@ -822,6 +849,20 @@ def content_ro(st: dict) -> list:
            "closed_stage</font> pentru limitele CFD. Stage-urile neatribuite cad "
            "in first_stage cu avertisment; configuratiile fara bloc se comporta "
            "neschimbat.", st),
+        _SP(6),
+
+        _H2("5.7  ROAM risk board (optional)", st),
+        _P("Daca configuratia solutiei face referire la un registru de riscuri "
+           "prin campul <font name='Courier'>risks</font> (JSON cu id, title, "
+           "roam, owner, impact, status_since), raportul afiseaza sub tabelul de "
+           "calitate un board ROAM: randuri in ordinea R-O-A-M (Resolved / Owned "
+           "/ Accepted / Mitigated), cu celule colorate pentru categorie si "
+           "impact. Un risc owned care sta in categoria sa mai mult de 30 de "
+           "zile primeste o celula Since rosie (aging) — ownership fara miscare "
+           "devine vizibil. Un portofoliu agrega registrele tuturor solutiilor "
+           "membre si adauga o coloana Solution. Ownerii sunt echipe, nu "
+           "persoane. Un fisier lipsa sau defect este logat si sarit; in PDF "
+           "board-ul este o pagina proprie.", st),
         _SP(6),
 
         _H1("6. Linia de comanda (CLI)", st), _hr(st),
@@ -1019,6 +1060,20 @@ def content_pt(st: dict) -> list:
            "sem o bloco comportam-se sem alteracoes.", st),
         _SP(6),
 
+        _H2("5.7  ROAM risk board (opcional)", st),
+        _P("Se a configuracao da solution referenciar um registo de riscos "
+           "atraves do campo <font name='Courier'>risks</font> (JSON com id, "
+           "title, roam, owner, impact, status_since), o relatorio mostra por "
+           "baixo da tabela de qualidade um board ROAM: linhas na ordem R-O-A-M "
+           "(Resolved / Owned / Accepted / Mitigated), com celulas coloridas de "
+           "categoria e impacto. Um risco owned que fica na sua categoria mais "
+           "de 30 dias recebe uma celula Since vermelha (aging) — ownership sem "
+           "movimento torna-se visivel. Um portfolio agrega os registos de todas "
+           "as solutions membros e acrescenta uma coluna Solution. Os owners sao "
+           "equipas, nao pessoas. Um ficheiro em falta ou invalido e registado "
+           "no log e ignorado; no PDF o board e uma pagina propria.", st),
+        _SP(6),
+
         _H1("6. Linha de comandos (CLI)", st), _hr(st),
         _P("Para automacao e relatorios reproduziveis:", st),
         _CD("python -m portfolio a_minha_solucao.json --output report.html", st),
@@ -1213,6 +1268,21 @@ def content_fr(st: dict) -> list:
            "<font name='Courier'>closed_stage</font> pour les limites du CFD. Les "
            "stages non attribues tombent dans first_stage avec un avertissement ; "
            "les configurations sans le bloc se comportent sans changement.", st),
+        _SP(6),
+
+        _H2("5.7  ROAM risk board (optionnel)", st),
+        _P("Si la configuration de la solution reference un registre de risques "
+           "via le champ <font name='Courier'>risks</font> (JSON avec id, title, "
+           "roam, owner, impact, status_since), le rapport affiche sous le "
+           "tableau de qualite un board ROAM : lignes dans l'ordre R-O-A-M "
+           "(Resolved / Owned / Accepted / Mitigated), avec cellules colorees "
+           "pour la categorie et l'impact. Un risque owned qui reste dans sa "
+           "categorie plus de 30 jours recoit une cellule Since rouge (aging) — "
+           "l'ownership sans mouvement devient visible. Un portefeuille agrege "
+           "les registres de toutes les solutions membres et ajoute une colonne "
+           "Solution. Les owners sont des equipes, pas des personnes. Un fichier "
+           "manquant ou invalide est journalise et ignore ; dans le PDF, le "
+           "board est une page a part.", st),
         _SP(6),
 
         _H1("6. Ligne de commande (CLI)", st), _hr(st),
