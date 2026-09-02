@@ -8,6 +8,28 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- Portfolio: **data-quality / confidence flag per source** (roadmap A1) — the
+  report shows a "Data Quality per Source" table below the management summary
+  (HTML) and as page 2 of the PDF: records, share of issues without a First
+  Date, open share, CFD present, data freshness, and a traffic-light
+  confidence (high/medium/low) with documented thresholds. Pooled mode
+  assesses each member ART during loading (no second file pass); comparison mode
+  assesses each unit.
+- Portfolio: **management-summary extension** (roadmap A2) — two new columns
+  for the end-to-end lead time (Created → Closed, median and 85th percentile;
+  in pooled mode the solution lead time across all ARTs), a member **share**
+  column in the quality table, and the **coverage ratio** ("x/y sources
+  delivered data") in its title.
+- Portfolio: **outlier highlighting in the comparison summary** (roadmap A3) —
+  Median-CT and 95th-percentile cells are marked red when they exceed 1.5×
+  the column median (three rows minimum; constants documented).
+- Portfolio: **configurable canonical stage map** (roadmap A4) — an optional
+  `stage_map` block in the solution config defines custom canonical stages
+  (ordered source-stage assignment plus explicit `first_stage`/`closed_stage`
+  markers) for pooling heterogeneous workflows. Without the block the fixed
+  three-group mapping is unchanged; v1 config files load as before, new files
+  write `"schema": 2`.
+- Portfolio: 15 CLI unit tests (`portfolio/cli.py` coverage 0 → 100 %).
 - Simulate GUI: language selection on par with the other modules — five
   languages (de/en/ro/pt/fr) via a flag button (top right), replacing the former
   de/en combobox, with full RO/PT/FR translations and per-language user manuals.
@@ -15,6 +37,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   that stores the ten form fields and the language via `project_template`
   (new `MODULE_SIMULATE` section) and restores them, interoperable with the
   other modules' templates.
+
+### Security
+- transform_data: XLSX outputs are hardened against **formula injection**
+  (CWE-1236) — strings with a leading "=" from Jira free-text fields are
+  stored as text, never as live formulas; values stay byte-identical.
+- pypdf dependency floor raised to >= 6.16.1 (15 known CVEs/PYSECs below).
+- CI quality gate now runs **bandit** (medium+ severity) and **pip-audit** on
+  every pull request; coverage is enforced with fail_under = 80.
 
 ### Fixed
 - Simulate manual (all five languages): the cover page's dark-blue background

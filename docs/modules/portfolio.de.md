@@ -57,6 +57,47 @@ Die Konfigurationsdatei (`solution.json`) listet die Mitglieder auf (ARTs bei
 einer Solution, Solutions bei einem Portfolio) und wird in der GUI erstellt bzw.
 bearbeitet.
 
+## Report-Inhalte
+
+Jeder Report beginnt mit der **Management-Summary** — eine Zeile je Einheit
+(Pooled: die ganze Solution/das Portfolio): Items, abgeschlossen, offen (WIP),
+Durchlaufzeit-Perzentile (Median/85./95.), der Ziel-CT-Anteil und die
+**End-to-End-Lead-Time** (Created → Closed, Median/85.; im Pooled-Modus die
+Solution-Lead-Time über alle ARTs).
+
+Darunter zeigt die Tabelle **Data Quality per Source** je Quelle: Record-Zahl,
+ihren **Anteil** am Gesamtvolumen, den Anteil ohne First Date, den offenen
+Anteil, ob CFD-Daten geliefert wurden, den Datenstand — und eine
+Ampel-**Konfidenz** (high/medium/low, Schwellen in `summary.py` dokumentiert).
+Der Titel trägt den Abdeckungsgrad („x/y sources delivered data"). Im PDF ist
+die Tabelle Seite 2.
+
+Im **Comparison**-Modus werden Median-CT- und 95.-Perzentil-Zellen rot
+hervorgehoben, wenn sie das 1,5-fache des Spalten-Medians übersteigen (ab drei
+Zeilen) — die Frage „welche Einheit ist der Ausreißer?" beantwortet sich selbst.
+
+## Eigene Stage-Map (optional, Config-Schema 2)
+
+Standardmäßig poolen unterschiedliche ART-Workflows in die drei kanonischen
+Gruppen To Do / In Progress / Done. Eine Solution-Config kann stattdessen
+eigene kanonische Stages definieren:
+
+```json
+"stage_map": {
+  "stages": {
+    "Backlog":   ["Funnel", "Analysis"],
+    "In Arbeit": ["Implementing", "Review"],
+    "Fertig":    ["Done", "Released"]
+  },
+  "first_stage": "In Arbeit",
+  "closed_stage": "Fertig"
+}
+```
+
+`first_stage`/`closed_stage` markieren die CFD-Grenzen. Nicht zugeordnete
+Stages fallen mit protokollierter Warnung in `first_stage`. Configs ohne den
+Block verhalten sich unverändert (v1-Dateien laden wie bisher).
+
 ## Architektur
 
 ```
@@ -65,7 +106,7 @@ portfolio/
 ├── cli.py             run_solution_report() + argparse-CLI
 ├── solution_config.py Solution-/Portfolio-Konfiguration (Mitglieder, Modus, Terminologie)
 ├── aggregator.py      Zusammenführung auf Datensatz-Ebene + Rendering (HTML/PDF)
-└── summary.py         Management-Summary (Items, Done, WIP, CT-Perzentile)
+└── summary.py         Management-Summary + Datenqualität/Konfidenz (A1/A2), Ausreißer (A3)
 ```
 
 Nutzt `build_reports` (Loader, Metriken, Export) wieder. Die Aggregation erfolgt
