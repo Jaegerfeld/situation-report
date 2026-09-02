@@ -222,7 +222,7 @@ def test_render_pdf_prepends_summary_and_exports(monkeypatch) -> None:
     unit = ReportData(issues=[_issue("ART_A", "ART_A-1", 1, 5)], source_prefix="Sol")
     captured: dict = {}
     monkeypatch.setattr(aggregator, "_collect_report",
-                        lambda *a, **k: ([fig], {}, [unit]))
+                        lambda *a, **k: ([fig], {}, [unit], []))
     monkeypatch.setattr(aggregator, "export_pdf",
                         lambda pages, path: captured.update(pages=pages, path=str(path)))
 
@@ -239,7 +239,7 @@ def test_render_pdf_prepends_summary_and_exports(monkeypatch) -> None:
 
 def test_render_pdf_no_figures_returns_false(monkeypatch) -> None:
     from pathlib import Path
-    monkeypatch.setattr(aggregator, "_collect_report", lambda *a, **k: ([], {}, []))
+    monkeypatch.setattr(aggregator, "_collect_report", lambda *a, **k: ([], {}, [], []))
     ok = aggregator.render_pdf(
         SolutionConfig(name="X", members=[Member("A", issue_times="A.xlsx")]),
         Path("out.pdf"), log=lambda *_: None)

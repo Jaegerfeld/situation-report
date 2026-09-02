@@ -67,7 +67,15 @@ from .solution_config import (
     SolutionConfig,
     load_solution_config,
 )
-from .summary import compute_summary, render_summary_html, summary_figure
+from .summary import (
+    SourceQuality,
+    assess_quality,
+    compute_summary,
+    quality_figure,
+    render_quality_html,
+    render_summary_html,
+    summary_figure,
+)
 
 #: Default metrics for the POOLED mode. Flow Velocity, Flow Time and Flow
 #: Distribution are record-based and pool cleanly regardless of differing ART
@@ -242,6 +250,7 @@ def _pool_cfd(member_datas: list[ReportData]) -> list[CfdRecord]:
 def build_pooled_report_data(
     config: SolutionConfig,
     log: Callable[[str], None] = print,
+    quality_sink: list[SourceQuality] | None = None,
 ) -> ReportData:
     """
     Load every member ART and pool their issues into one ReportData.
@@ -257,8 +266,12 @@ def build_pooled_report_data(
     all their ARTs first (see _iter_art_members), so a portfolio pools every ART.
 
     Args:
-        config: Validated solution or portfolio configuration.
-        log:    Progress callback.
+        config:       Validated solution or portfolio configuration.
+        log:          Progress callback.
+        quality_sink: Optional list that receives one SourceQuality per member
+                      ART (A1 confidence flag). The member data is already
+                      loaded here, so assessing it in-place avoids a second
+                      pass over the input files.
 
     Returns:
         A single pooled ReportData spanning all contained ARTs.
@@ -270,6 +283,8 @@ def build_pooled_report_data(
     for member, data in zip(art_members, member_datas):
         log(f"  {member.name}: {len(data.issues)} issues, "
             f"{len(data.stages)} stages, {len(data.cfd)} CFD day(s)")
+        if quality_sink is not None:
+            quality_sink.append(assess_quality(data, member.name))
         pooled_issues.extend(data.issues)
 
     cfd_records = _pool_cfd(member_datas)
@@ -369,7 +384,7 @@ def _collect_report(
     target_ct: int,
     pi_config: Path | None,
     log: Callable[[str], None],
-) -> tuple[list, dict[int, str], list[ReportData]]:
+) -> tuple[list, dict[int, str], list[ReportData], list[SourceQuality]]:
     """
     Shared report core: resolve the report units, run the metrics, collect figures.
 
@@ -379,13 +394,18 @@ def _collect_report(
     labelled with its unit's name via source_prefix.
 
     Returns:
-        (figures, section_breaks, units) — units carry the labelled ReportData used
-        for both the figures and the management summary.
+        (figures, section_breaks, units, qualities) — units carry the labelled
+        ReportData used for both the figures and the management summary;
+        qualities carry one SourceQuality per source (pooled: per member ART,
+        comparison: per unit) for the A1 confidence table.
     """
+    qualities: list[SourceQuality]
     if mode == MODE_COMPARISON:
         units = load_comparison_units(config, log=log)
+        qualities = [assess_quality(u, u.source_prefix) for u in units]
     else:
-        data = build_pooled_report_data(config, log=log)
+        qualities = []
+        data = build_pooled_report_data(config, log=log, quality_sink=qualities)
         data = apply_filters(
             data, FilterConfig(from_date=config.from_date, to_date=config.to_date))
         log(f"After date filter: {len(data.issues)} issues")
@@ -409,7 +429,7 @@ def _collect_report(
                 group_started = True
             all_figures.extend(figures)
 
-    return all_figures, section_breaks, units
+    return all_figures, section_breaks, units, qualities
 
 
 def render_html(
@@ -432,7 +452,7 @@ def render_html(
     Returns:
         Complete HTML document, or "" if no figures were produced.
     """
-    figures, section_breaks, units = _collect_report(
+    figures, section_breaks, units, qualities = _collect_report(
         config, mode, metrics, terminology, ct_method, target_ct, pi_config, log)
     if not figures:
         log("No figures produced — nothing to render.")
@@ -441,7 +461,8 @@ def render_html(
     summary = render_summary_html(
         [compute_summary(u, u.source_prefix, target_ct) for u in units],
         target_ct=target_ct)
-    return html.replace("<body>", "<body>" + summary, 1)
+    quality = render_quality_html(qualities)
+    return html.replace("<body>", "<body>" + summary + quality, 1)
 
 
 def render_pdf(
@@ -464,13 +485,15 @@ def render_pdf(
     Returns:
         True if a PDF was written, False if there were no figures.
     """
-    figures, _section_breaks, units = _collect_report(
+    figures, _section_breaks, units, qualities = _collect_report(
         config, mode, metrics, terminology, ct_method, target_ct, pi_config, log)
     if not figures:
         log("No figures produced — nothing to export.")
         return False
     summaries = [compute_summary(u, u.source_prefix, target_ct) for u in units]
     pages = [summary_figure(summaries, target_ct=target_ct)] + figures
+    if qualities:
+        pages.insert(1, quality_figure(qualities))
     export_pdf(pages, Path(output_path))
     log(f"PDF written to: {output_path}")
     return True
