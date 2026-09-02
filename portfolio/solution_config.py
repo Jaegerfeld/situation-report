@@ -28,7 +28,8 @@ from typing import Any
 # Block laden unveraendert; der Parser prueft das Schemafeld bewusst nicht.
 # Seit B3 zusaetzlich das optionale "risks"-Feld (Pfad zur ROAM-risks.json),
 # seit B2 das optionale "nfr"-Feld (Pfad zur NFR-/Runway-nfr.json), seit B1
-# das optionale "capabilities"-Feld (Pfad zur Capability-Map-JSON) —
+# das optionale "capabilities"-Feld (Pfad zur Capability-Map-JSON), seit B5
+# das optionale "dependencies"-Feld (Pfad zum Dependency-Register) —
 # alles additiv, daher kein Schema-Bump.
 SCHEMA_VERSION = 2
 APP_NAME = "situation_report"
@@ -159,6 +160,8 @@ class SolutionConfig:
                     "" means no NFR register.
         capabilities: Optional path to a capability-map JSON (B1); "" means
                     no capability map.
+        dependencies: Optional path to a dependency-register JSON (B5); ""
+                    means no dependency register.
     """
     name: str
     kind: str = KIND_SOLUTION
@@ -172,6 +175,7 @@ class SolutionConfig:
     risks: str = ""
     nfr: str = ""
     capabilities: str = ""
+    dependencies: str = ""
 
 
 def _parse_date(value: Any) -> date | None:
@@ -257,6 +261,7 @@ def parse_solution_config(data: dict[str, Any]) -> SolutionConfig:
         risks=str(data.get("risks", "")).strip(),
         nfr=str(data.get("nfr", "")).strip(),
         capabilities=str(data.get("capabilities", "")).strip(),
+        dependencies=str(data.get("dependencies", "")).strip(),
     )
 
 
@@ -327,6 +332,8 @@ def to_dict(config: SolutionConfig) -> dict[str, Any]:
         out["nfr"] = config.nfr
     if config.capabilities:
         out["capabilities"] = config.capabilities
+    if config.dependencies:
+        out["dependencies"] = config.dependencies
     return out
 
 

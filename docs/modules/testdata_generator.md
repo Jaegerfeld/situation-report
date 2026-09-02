@@ -102,7 +102,9 @@ files, raw Jira JSON, `IssueTimes`/`CFD`/`Transitions` workbooks, two solution
 configs (Solution Beta with its own `stage_map`, schema 2), a ROAM risk
 register per solution (`risks_alpha.json`/`risks_beta.json`), an NFR/runway
 register per solution (`nfr_alpha.json`/`nfr_beta.json`), a capability map
-per solution (`capabilities_alpha.json`/`capabilities_beta.json`), a portfolio
+per solution (`capabilities_alpha.json`/`capabilities_beta.json`), a
+dependency register per solution
+(`dependencies_alpha.json`/`dependencies_beta.json`), a portfolio
 config, a PI config, and a README describing the built-in stories. The data window is
 placed relative to the generation date so the portfolio report's quality
 traffic light rates the sources as current.
@@ -122,6 +124,9 @@ Built-in stories (deterministic per seed):
 - **Capability map**: six capabilities; Beta's data-insights capability is
   critical (weak source) and one Alpha capability has no contributing ART —
   flagged as uncovered.
+- **Dependency heatmap**: five dependencies; Alpha-1 → Alpha-3 is blocked and
+  overdue (the outlier does not deliver), and Beta-1 → Alpha-1 is a
+  cross-solution integration — visible in the portfolio report.
 
 The folder is directly usable: `python -m portfolio demo/portfolio.json`
 builds the portfolio report; the solution configs also work individually.

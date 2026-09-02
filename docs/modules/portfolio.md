@@ -182,6 +182,41 @@ title counts NFRs (violated/at risk) and runway elements (gaps/overdue).
 `owner` names a team, not a person. Missing or invalid files are logged and
 skipped.
 
+## Dependency / integration heatmap (optional)
+
+A solution config may reference a dependency register via
+`"dependencies": "path/to/dependencies.json"`; the report then renders a
+**Dependency & Integration Heatmap** below the NFR dashboard (PDF: own page).
+A portfolio aggregates the registers of all member solutions and adds a
+**Solution** column to the detail table. The register:
+
+```json
+{
+  "dependencies": [
+    {
+      "id": "D-1",
+      "title": "Billing API contract",
+      "from": "ART Alpha-1",
+      "to": "ART Alpha-3",
+      "status": "blocked",
+      "due": "2026-08-18",
+      "notes": "optional"
+    }
+  ]
+}
+```
+
+`from` needs something that `to` delivers; `status` is one of `blocked` /
+`at_risk` / `on_track` / `done`. The **heatmap** counts open dependencies
+(status ≠ done) per from/to pair — each cell carries the colour of its most
+urgent status. Below it, the detail table lists every dependency (blocked
+first); a dependency whose `due` has passed while not done renders as
+**overdue** (red date cell). The title counts blocked/at-risk/overdue. `to`
+is deliberately **not** validated against the member list — integration
+points may target another solution's ART, a vendor, or an external system
+(cross-solution dependencies become visible in the portfolio report). Missing
+or invalid files are logged and skipped.
+
 ## Custom stage map (optional, config schema 2)
 
 By default, differing ART workflows pool into the three canonical groups
@@ -214,6 +249,7 @@ portfolio/
 ├── risks_config.py    ROAM risk register (B3): schema, parse/load/save
 ├── nfr_config.py      NFR/runway register (B2): schema, parse/load/save
 ├── capability_config.py Capability map (B1): schema, parse/load/save
+├── dependency_config.py Dependency register (B5): schema, parse/load/save
 ├── aggregator.py      Record-level pooling + rendering (HTML/PDF)
 └── summary.py         Management summary + data quality (A1/A2), outliers (A3), ROAM board (B3), NFR dashboard (B2)
 ```

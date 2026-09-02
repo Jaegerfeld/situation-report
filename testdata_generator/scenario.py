@@ -26,6 +26,8 @@
 #     API-NFR ist verletzt, ein Runway-Element überfällige Lücke → Ampel rot.
 #   - Beide Solutions bringen eine Capability-Map mit (B1); Betas
 #     Data-Insights-Capability ist kritisch, eine Alpha-Capability uncovered.
+#   - Beide Solutions bringen ein Dependency-Register mit (B5); Alpha-1 →
+#     Alpha-3 blockiert + überfällig, Beta-1 → Alpha-1 Cross-Solution.
 # =============================================================================
 
 from __future__ import annotations
@@ -43,6 +45,15 @@ from portfolio.capability_config import (
     Capability,
     CapabilityMap,
     save_capabilities,
+)
+from portfolio.dependency_config import (
+    DEP_AT_RISK,
+    DEP_BLOCKED,
+    DEP_DONE,
+    DEP_ON_TRACK,
+    Dependency,
+    DependencyRegister,
+    save_dependencies,
 )
 from portfolio.nfr_config import (
     RUNWAY_BUILDING,
@@ -224,6 +235,40 @@ def _beta_capabilities(reference: date) -> CapabilityMap:
     ])
 
 
+def _alpha_dependencies(reference: date) -> DependencyRegister:
+    """Dependencies of Solution Alpha: the overdue blocked one lives here."""
+    return DependencyRegister(dependencies=[
+        # Die Geschichte: der Ausreißer Alpha-3 liefert nicht — blockiert
+        # und überfällig, springt in der Heatmap rot an.
+        Dependency("AD-1", "Billing API contract for order flow",
+                   from_art="ART Alpha-1", to_art="ART Alpha-3",
+                   status=DEP_BLOCKED, due=reference - timedelta(days=15),
+                   notes="Overdue: matches the outlier story of this scenario."),
+        Dependency("AD-2", "Shared test fixtures for the order domain",
+                   from_art="ART Alpha-2", to_art="ART Alpha-1",
+                   status=DEP_ON_TRACK, due=reference + timedelta(days=25)),
+        Dependency("AD-3", "SSO integration with platform services",
+                   from_art="ART Alpha-2", to_art="Platform Services",
+                   status=DEP_ON_TRACK, due=reference + timedelta(days=40),
+                   notes="External integration point outside the solution."),
+    ])
+
+
+def _beta_dependencies(reference: date) -> DependencyRegister:
+    """Dependencies of Solution Beta: includes a cross-solution integration."""
+    return DependencyRegister(dependencies=[
+        # Cross-Solution-Integration: Beta braucht Alphas Order-Events —
+        # sichtbar nur im Portfolio-Report.
+        Dependency("BD-1", "Order events feed for reporting",
+                   from_art="ART Beta-1", to_art="ART Alpha-1",
+                   status=DEP_AT_RISK, due=reference + timedelta(days=10),
+                   notes="Cross-solution integration with Solution Alpha."),
+        Dependency("BD-2", "Sync-service schema migration",
+                   from_art="ART Beta-2", to_art="ART Beta-3",
+                   status=DEP_DONE, due=reference - timedelta(days=30)),
+    ])
+
+
 def _alpha_nfr(reference: date) -> NfrRegister:
     """NFR/runway register of Solution Alpha: healthy, one NFR at risk."""
     return NfrRegister(
@@ -371,19 +416,23 @@ def build_portfolio_scenario(
     save_capabilities(caps_alpha, _alpha_capabilities(reference))
     caps_beta = out / "capabilities_beta.json"
     save_capabilities(caps_beta, _beta_capabilities(reference))
+    deps_alpha = out / "dependencies_alpha.json"
+    save_dependencies(deps_alpha, _alpha_dependencies(reference))
+    deps_beta = out / "dependencies_beta.json"
+    save_dependencies(deps_beta, _beta_dependencies(reference))
 
     solution_alpha = out / "solution_alpha.json"
     save_solution_config(solution_alpha, SolutionConfig(
         name="Solution Alpha", members=members["alpha"],
         from_date=reference - timedelta(days=window_days), to_date=reference,
         risks=str(risks_alpha), nfr=str(nfr_alpha),
-        capabilities=str(caps_alpha)))
+        capabilities=str(caps_alpha), dependencies=str(deps_alpha)))
     solution_beta = out / "solution_beta.json"
     save_solution_config(solution_beta, SolutionConfig(
         name="Solution Beta", members=members["beta"],
         from_date=reference - timedelta(days=window_days), to_date=reference,
         stage_map=_BETA_STAGE_MAP, risks=str(risks_beta), nfr=str(nfr_beta),
-        capabilities=str(caps_beta)))
+        capabilities=str(caps_beta), dependencies=str(deps_beta)))
 
     portfolio_cfg = out / "portfolio.json"
     save_solution_config(portfolio_cfg, SolutionConfig(
@@ -436,6 +485,11 @@ def build_portfolio_scenario(
         "  (`capabilities_alpha.json`/`capabilities_beta.json`); Betas",
         "  Data-Insights-Capability ist kritisch (schwache Quelle) und Alphas",
         "  Partner-Self-Service hat keinen beitragenden ART (uncovered).",
+        "- **Dependency-Heatmap**: beide Solutions bringen ein",
+        "  Dependency-Register mit (`dependencies_alpha.json`/",
+        "  `dependencies_beta.json`); Alpha-1 → Alpha-3 ist blockiert und",
+        "  überfällig (der Ausreißer liefert nicht), Beta-1 → Alpha-1 ist eine",
+        "  Cross-Solution-Integration — im Portfolio-Report sichtbar.",
         "",
         "Die Pfade in den Configs sind absolut — nach dem Verschieben des",
         "Ordners das Szenario neu erzeugen.",
@@ -446,5 +500,6 @@ def build_portfolio_scenario(
             "solution_beta": solution_beta, "risks_alpha": risks_alpha,
             "risks_beta": risks_beta, "nfr_alpha": nfr_alpha,
             "nfr_beta": nfr_beta, "capabilities_alpha": caps_alpha,
-            "capabilities_beta": caps_beta, "pi_config": pi_cfg,
+            "capabilities_beta": caps_beta, "dependencies_alpha": deps_alpha,
+            "dependencies_beta": deps_beta, "pi_config": pi_cfg,
             "readme": readme}

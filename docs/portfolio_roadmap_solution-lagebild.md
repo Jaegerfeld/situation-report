@@ -93,10 +93,11 @@ Nicht nach „Feature-Wunschliste", sondern nach **Datenherkunft** (das BGS-Prin
 - **Warum:** Trade-off-Disziplin sichtbar; Annahmen prüfbar (Red-Team/Premortem-Anschluss).
 - **Aufwand:** S.
 
-### B5 · Dependency-/Integration-Register
+### B5 · Dependency-/Integration-Register ✅ (umgesetzt 02.09.2026)
 - **Was:** JSON mit Abhängigkeiten/Integrationspunkten zwischen ARTs (Status, Fälligkeit); Report als **Dependency-/Integrations-Heatmap**.
 - **Warum:** Cross-ART-Abhängigkeiten als Systemverhalten (Schutz vor lokaler Optimierung); Ebene 3 – D „Dependency-/Integrations-Heatmap".
 - **Aufwand:** M.
+- **Ist-Stand:** `portfolio/dependency_config.py` (Schema v1: from/to/status blocked|at_risk|on_track|done + due), Heatmap (offene Abhängigkeiten je from/to-Paar, Zellfarbe = dringlichster Status) + Detail-Tabelle unter dem NFR-Dashboard (PDF: eigene Seite), blocked zuerst, Overdue-Hervorhebung (due verstrichen ∧ nicht done); `to` bewusst nicht gegen Member validiert — Cross-Solution-/Extern-Ziele erlaubt und im Portfolio-Report sichtbar; Szenario liefert je Solution ein Register mit (DoD erfüllt).
 
 ---
 

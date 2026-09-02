@@ -475,6 +475,22 @@ def content_de(st: dict) -> list:
            "Quelle. Owner sind Teams, keine Personen.", st),
         _SP(6),
 
+        _H2("5.10  Dependency-Heatmap (optional)", st),
+        _P("Verweist die Solution-Konfiguration über das Feld <font name='Courier'>"
+           "dependencies</font> auf ein Dependency-Register (JSON mit id, title, "
+           "from, to, status blocked/at_risk/on_track/done, due), rendert der "
+           "Report eine Heatmap plus Detail-Tabelle: Die Heatmap zählt offene "
+           "Abhängigkeiten je from/to-Paar, jede Zelle trägt die Farbe ihres "
+           "dringlichsten Status; in der Tabelle sortieren blockierte zuerst, "
+           "und eine Abhängigkeit mit verstrichenem due, die nicht done ist, "
+           "erscheint überfällig (rote Datumszelle). Das Ziel (to) darf "
+           "außerhalb der Solution liegen — der ART einer anderen Solution, ein "
+           "Lieferant, ein Fremdsystem; Cross-Solution-Abhängigkeiten werden im "
+           "Portfolio-Report sichtbar. Cross-ART-Abhängigkeiten sind "
+           "Systemverhalten — sie sichtbar zu machen schützt vor lokaler "
+           "Optimierung.", st),
+        _SP(6),
+
         _H1("6. Kommandozeile (CLI)", st), _hr(st),
         _P("Für Automatisierung und reproduzierbare Reports:", st),
         _CD("python -m portfolio meine_solution.json --output report.html", st),
@@ -712,6 +728,21 @@ def content_en(st: dict) -> list:
            "Solution column. The capability map (business capabilities) is not "
            "the stage_map (workflow stages) — different dimension, different "
            "source. Owners are teams, not persons.", st),
+        _SP(6),
+
+        _H2("5.10  Dependency heatmap (optional)", st),
+        _P("When the solution configuration references a dependency register "
+           "via the <font name='Courier'>dependencies</font> field (JSON with "
+           "id, title, from, to, status blocked/at_risk/on_track/done, due), "
+           "the report renders a heatmap plus a detail table: the heatmap "
+           "counts open dependencies per from/to pair, each cell carrying the "
+           "colour of its most urgent status; in the table, blocked ones sort "
+           "first, and a dependency whose due date has passed while not done "
+           "renders as overdue (red date cell). The target (to) may lie "
+           "outside the solution — another solution's ART, a vendor, an "
+           "external system; cross-solution dependencies become visible in the "
+           "portfolio report. Cross-ART dependencies are system behaviour — "
+           "making them visible protects against local optimisation.", st),
         _SP(6),
 
         _H1("6. Command line (CLI)", st), _hr(st),
@@ -953,6 +984,21 @@ def content_ro(st: dict) -> list:
            "persoane.", st),
         _SP(6),
 
+        _H2("5.10  Heatmap de dependente (optional)", st),
+        _P("Daca configuratia solutiei face referire la un registru de "
+           "dependente prin campul <font name='Courier'>dependencies</font> "
+           "(JSON cu id, title, from, to, status blocked/at_risk/on_track/done, "
+           "due), raportul afiseaza o heatmap plus un tabel de detalii: heatmap "
+           "numara dependentele deschise per pereche from/to, fiecare celula "
+           "purtand culoarea celui mai urgent status; in tabel cele blocate se "
+           "sorteaza primele, iar o dependenta cu due depasit care nu este done "
+           "apare ca intarziata (celula de data rosie). Tinta (to) poate fi in "
+           "afara solutiei — ART-ul altei solutii, un furnizor, un sistem "
+           "extern; dependentele cross-solution devin vizibile in raportul de "
+           "portofoliu. Dependentele cross-ART sunt comportament de sistem — a "
+           "le face vizibile protejeaza de optimizarea locala.", st),
+        _SP(6),
+
         _H1("6. Linia de comanda (CLI)", st), _hr(st),
         _P("Pentru automatizare si rapoarte reproductibile:", st),
         _CD("python -m portfolio solutia_mea.json --output report.html", st),
@@ -1190,6 +1236,22 @@ def content_pt(st: dict) -> list:
            "membros com uma coluna Solution. A capability map (capacidades de "
            "negocio) nao e a stage_map (estados de workflow) — outra dimensao, "
            "outra fonte. Os owners sao equipas, nao pessoas.", st),
+        _SP(6),
+
+        _H2("5.10  Heatmap de dependencias (opcional)", st),
+        _P("Se a configuracao da solution referenciar um registo de "
+           "dependencias atraves do campo <font name='Courier'>dependencies"
+           "</font> (JSON com id, title, from, to, status "
+           "blocked/at_risk/on_track/done, due), o relatorio mostra uma heatmap "
+           "mais uma tabela de detalhes: a heatmap conta as dependencias "
+           "abertas por par from/to, cada celula com a cor do status mais "
+           "urgente; na tabela as bloqueadas ordenam primeiro, e uma "
+           "dependencia com due ultrapassado que nao esta done aparece como "
+           "atrasada (celula de data vermelha). O alvo (to) pode estar fora da "
+           "solution — o ART de outra solution, um fornecedor, um sistema "
+           "externo; dependencias cross-solution tornam-se visiveis no "
+           "relatorio de portfolio. Dependencias cross-ART sao comportamento de "
+           "sistema — torna-las visiveis protege da otimizacao local.", st),
         _SP(6),
 
         _H1("6. Linha de comandos (CLI)", st), _hr(st),
@@ -1432,6 +1494,23 @@ def content_fr(st: dict) -> list:
            "La capability map (capacites metier) n'est pas la stage_map "
            "(statuts de workflow) — autre dimension, autre source. Les owners "
            "sont des equipes, pas des personnes.", st),
+        _SP(6),
+
+        _H2("5.10  Heatmap des dependances (optionnel)", st),
+        _P("Si la configuration de la solution reference un registre de "
+           "dependances via le champ <font name='Courier'>dependencies</font> "
+           "(JSON avec id, title, from, to, status "
+           "blocked/at_risk/on_track/done, due), le rapport affiche une heatmap "
+           "plus un tableau de details : la heatmap compte les dependances "
+           "ouvertes par paire from/to, chaque cellule portant la couleur du "
+           "statut le plus urgent ; dans le tableau, les bloquees se classent "
+           "en premier, et une dependance dont le due est depasse sans etre "
+           "done apparait en retard (cellule de date rouge). La cible (to) peut "
+           "etre hors de la solution — l'ART d'une autre solution, un "
+           "fournisseur, un systeme externe ; les dependances cross-solution "
+           "deviennent visibles dans le rapport de portefeuille. Les "
+           "dependances cross-ART sont un comportement systeme — les rendre "
+           "visibles protege de l'optimisation locale.", st),
         _SP(6),
 
         _H1("6. Ligne de commande (CLI)", st), _hr(st),
