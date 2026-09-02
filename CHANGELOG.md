@@ -8,6 +8,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- Portfolio: **ROAM risk board** (roadmap B3) — a solution config can
+  reference a risk register (`"risks": "risks.json"`; new module
+  `portfolio/risks_config.py`, schema v1: id, title, roam, owner, impact,
+  status_since, notes). The report renders the board below the quality table
+  (PDF: own page): rows grouped in R-O-A-M order with coloured category and
+  impact cells; an *owned* risk older than 30 days gets a red aging highlight
+  in its Since cell; the title counts total/owned/aging risks. A portfolio
+  aggregates the registers of all member solutions and adds a Solution column.
+  Owners are teams, not persons. Missing or invalid risks files are logged and
+  skipped — governance data never breaks the flow report. The demo scenario
+  now ships a register per solution (nine risks, two deliberately aging);
+  manual section 5.7 in all five languages.
 - Testdata generator: **portfolio scenario** (`--scenario portfolio`) — one
   command generates a complete, consistent demo portfolio: two solutions with
   three ARTs each, including every artifact of the processing chain (workflow

@@ -551,6 +551,7 @@ def content_de(st: dict) -> list:
                    ["arts/", "IssueTimes-, CFD- und Transitions-Dateien je ART"],
                    ["solution_alpha.json", "Solution-Config ohne stage_map (Default-Pfad)"],
                    ["solution_beta.json", "Solution-Config mit eigener stage_map (Schema 2)"],
+                   ["risks_*.json", "ROAM-Risiko-Register je Solution"],
                    ["portfolio.json", "Portfolio-Config über beide Solutions"],
                    ["pi_config.json", "PI-Intervalle über den Datenzeitraum"],
                    ["README.md", "Beschreibung der eingebauten Geschichten"]],
@@ -566,7 +567,9 @@ def content_de(st: dict) -> list:
                   "Issues, Datenstand 60 Tage alt) — Konfidenz 'low' in der "
                   "Qualitätstabelle.<br/>"
                   "- <b>Solution Beta</b> poolt über eine eigene stage_map "
-                  "(Vorlauf/Umsetzung/Fertig); Solution Alpha nutzt den Default-Pfad.", st),
+                  "(Vorlauf/Umsetzung/Fertig); Solution Alpha nutzt den Default-Pfad.<br/>"
+                  "- <b>ROAM-Board</b>: zwei Owned-Risiken sind bewusst alt "
+                  "(45/50 Tage) — die Aging-Hervorhebung springt an.", st),
               SP(6),
               P("Der Ordner ist direkt verwendbar: "
                 "<font name='Courier'>python -m portfolio demo/portfolio.json</font> erzeugt "
@@ -857,6 +860,7 @@ def content_en(st: dict) -> list:
                    ["arts/", "IssueTimes, CFD, and Transitions files per ART"],
                    ["solution_alpha.json", "solution config without stage_map (default path)"],
                    ["solution_beta.json", "solution config with its own stage_map (schema 2)"],
+                   ["risks_*.json", "ROAM risk register per solution"],
                    ["portfolio.json", "portfolio config covering both solutions"],
                    ["pi_config.json", "PI intervals across the data window"],
                    ["README.md", "description of the built-in stories"]],
@@ -871,7 +875,9 @@ def content_en(st: dict) -> list:
                   "- <b>ART Beta-3</b> delivers weak data (no CFD, few started issues, "
                   "data 60 days old) — confidence 'low' in the quality table.<br/>"
                   "- <b>Solution Beta</b> pools via its own stage_map "
-                  "(Vorlauf/Umsetzung/Fertig); Solution Alpha uses the default path.", st),
+                  "(Vorlauf/Umsetzung/Fertig); Solution Alpha uses the default path.<br/>"
+                  "- <b>ROAM board</b>: two owned risks are deliberately old "
+                  "(45/50 days) — the aging highlight fires.", st),
               SP(6),
               P("The folder is directly usable: "
                 "<font name='Courier'>python -m portfolio demo/portfolio.json</font> builds "
@@ -1107,6 +1113,7 @@ def content_ro(st: dict) -> list:
                    ["arts/", "fișiere IssueTimes, CFD și Transitions per ART"],
                    ["solution_alpha.json", "config de soluție fără stage_map (cale implicită)"],
                    ["solution_beta.json", "config de soluție cu stage_map propriu (schema 2)"],
+                   ["risks_*.json", "registru de riscuri ROAM per soluție"],
                    ["portfolio.json", "config de portofoliu peste ambele soluții"],
                    ["pi_config.json", "intervale PI pe fereastra de date"],
                    ["README.md", "descrierea poveștilor încorporate"]],
@@ -1123,7 +1130,9 @@ def content_ro(st: dict) -> list:
                   "începute, date vechi de 60 de zile) — încredere 'low' în tabelul de "
                   "calitate.<br/>"
                   "- <b>Solution Beta</b> agregă printr-un stage_map propriu "
-                  "(Vorlauf/Umsetzung/Fertig); Solution Alpha folosește calea implicită.", st),
+                  "(Vorlauf/Umsetzung/Fertig); Solution Alpha folosește calea implicită.<br/>"
+                  "- <b>Board ROAM</b>: două riscuri owned sunt intenționat vechi "
+                  "(45/50 de zile) — evidențierea aging se activează.", st),
               SP(6),
               P("Directorul este direct utilizabil: "
                 "<font name='Courier'>python -m portfolio demo/portfolio.json</font> "
@@ -1362,6 +1371,7 @@ def content_pt(st: dict) -> list:
                    ["arts/", "ficheiros IssueTimes, CFD e Transitions por ART"],
                    ["solution_alpha.json", "config de solution sem stage_map (caminho padrão)"],
                    ["solution_beta.json", "config de solution com stage_map próprio (schema 2)"],
+                   ["risks_*.json", "registo de riscos ROAM por solution"],
                    ["portfolio.json", "config de portfólio sobre ambas as solutions"],
                    ["pi_config.json", "intervalos PI sobre a janela de dados"],
                    ["README.md", "descrição das histórias incorporadas"]],
@@ -1378,7 +1388,9 @@ def content_pt(st: dict) -> list:
                   "iniciados, dados com 60 dias) — confiança 'low' na tabela de "
                   "qualidade.<br/>"
                   "- <b>Solution Beta</b> agrega através de um stage_map próprio "
-                  "(Vorlauf/Umsetzung/Fertig); a Solution Alpha usa o caminho padrão.", st),
+                  "(Vorlauf/Umsetzung/Fertig); a Solution Alpha usa o caminho padrão.<br/>"
+                  "- <b>Board ROAM</b>: dois riscos owned são deliberadamente antigos "
+                  "(45/50 dias) — o realce de aging dispara.", st),
               SP(6),
               P("A pasta é diretamente utilizável: "
                 "<font name='Courier'>python -m portfolio demo/portfolio.json</font> gera "
@@ -1620,6 +1632,7 @@ def content_fr(st: dict) -> list:
                    ["arts/", "fichiers IssueTimes, CFD et Transitions par ART"],
                    ["solution_alpha.json", "config de solution sans stage_map (chemin par défaut)"],
                    ["solution_beta.json", "config de solution avec stage_map propre (schéma 2)"],
+                   ["risks_*.json", "registre de risques ROAM par solution"],
                    ["portfolio.json", "config de portefeuille couvrant les deux solutions"],
                    ["pi_config.json", "intervalles PI sur la fenêtre de données"],
                    ["README.md", "description des histoires intégrées"]],
@@ -1637,7 +1650,9 @@ def content_fr(st: dict) -> list:
                   "dans le tableau de qualité.<br/>"
                   "- <b>Solution Beta</b> agrège via son propre stage_map "
                   "(Vorlauf/Umsetzung/Fertig) ; la Solution Alpha utilise le chemin par "
-                  "défaut.", st),
+                  "défaut.<br/>"
+                  "- <b>Board ROAM</b> : deux risques owned sont volontairement "
+                  "anciens (45/50 jours) — le surlignage aging se déclenche.", st),
               SP(6),
               P("Le dossier est directement utilisable : "
                 "<font name='Courier'>python -m portfolio demo/portfolio.json</font> "

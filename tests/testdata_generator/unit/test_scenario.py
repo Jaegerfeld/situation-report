@@ -42,7 +42,7 @@ class TestArtifacts:
     def test_all_expected_files_exist(self, scenario) -> None:
         out, paths = scenario
         for key in ("portfolio", "solution_alpha", "solution_beta",
-                    "pi_config", "readme"):
+                    "risks_alpha", "risks_beta", "pi_config", "readme"):
             assert paths[key].exists(), key
         assert len(list((out / "arts").glob("*_IssueTimes.xlsx"))) == 6
         assert len(list((out / "arts").glob("*_Transitions.xlsx"))) == 6
@@ -108,6 +108,27 @@ class TestBuiltInStories:
             assert q.data_as_of is not None
             assert (REF - q.data_as_of).days <= 30
         assert len(pooled.issues) == 360
+
+    def test_roam_registers_load_and_carry_two_aging_risks(self, scenario) -> None:
+        from portfolio.risks_config import ROAM_OWNED, load_risks
+        _, paths = scenario
+        alpha = load_risks(paths["risks_alpha"])
+        beta = load_risks(paths["risks_beta"])
+        assert alpha.risks and beta.risks
+        aging = [r for r in alpha.risks + beta.risks
+                 if r.roam == ROAM_OWNED and r.status_since is not None
+                 and (REF - r.status_since).days > 30]
+        assert len(aging) == 2
+        assert load_solution_config(paths["solution_alpha"]).risks
+        assert load_solution_config(paths["solution_beta"]).risks
+
+    def test_portfolio_collects_risks_from_both_solutions(self, scenario) -> None:
+        from portfolio.aggregator import _collect_risks
+        _, paths = scenario
+        cfg = load_solution_config(paths["portfolio"])
+        entries = _collect_risks(cfg, log=lambda m: None)
+        assert {source for source, _ in entries} == {"Solution Alpha", "Solution Beta"}
+        assert len(entries) == 9
 
     def test_outlier_art_has_clearly_higher_cycle_time(self, scenario) -> None:
         from portfolio.aggregator import load_members

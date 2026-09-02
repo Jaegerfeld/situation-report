@@ -22,6 +22,7 @@
 
 from __future__ import annotations
 
+import json
 from collections.abc import Callable
 from pathlib import Path
 
@@ -58,6 +59,7 @@ _CANON_STAGES = [GROUP_TODO, GROUP_IN_PROGRESS, GROUP_DONE]
 
 from project_template import MODULE_BUILD_REPORTS, get_section, load_template
 
+from .risks_config import Risk, load_risks
 from .solution_config import (
     KIND_PORTFOLIO,
     KIND_SOLUTION,
@@ -74,7 +76,9 @@ from .summary import (
     compute_summary,
     quality_figure,
     render_quality_html,
+    render_roam_html,
     render_summary_html,
+    roam_figure,
     summary_figure,
 )
 
@@ -464,6 +468,51 @@ def _collect_report(
     return all_figures, section_breaks, units, qualities
 
 
+def _collect_risks(
+    config: SolutionConfig,
+    log: Callable[[str], None] = print,
+) -> list[tuple[str, Risk]]:
+    """
+    Collect ROAM risks for the report (B3).
+
+    For a solution, its own ``risks`` file is loaded (source label = solution
+    name). For a portfolio, each member solution's config is loaded and its
+    risks are aggregated (source label = member solution name). A missing or
+    invalid risks file is logged as a warning and skipped — governance data
+    must never break the flow report.
+
+    Args:
+        config: The solution or portfolio configuration.
+        log:    Progress/warning callback.
+
+    Returns:
+        (source label, Risk) pairs; empty when no register is referenced.
+    """
+    sources: list[tuple[str, str]] = []
+    if config.kind == KIND_PORTFOLIO:
+        for member in config.members:
+            try:
+                sub = load_solution_config(Path(member.template))
+            except (OSError, ValueError, json.JSONDecodeError) as exc:
+                log(f"  WARNING [{member.name}]: solution config not readable "
+                    f"for risks ({exc})")
+                continue
+            if sub.risks:
+                sources.append((sub.name, sub.risks))
+    elif config.risks:
+        sources.append((config.name, config.risks))
+
+    entries: list[tuple[str, Risk]] = []
+    for label, path in sources:
+        try:
+            register = load_risks(Path(path))
+        except (OSError, ValueError, json.JSONDecodeError) as exc:
+            log(f"  WARNING [{label}]: risks file skipped ({exc})")
+            continue
+        entries.extend((label, risk) for risk in register.risks)
+    return entries
+
+
 def render_html(
     config: SolutionConfig,
     mode: str = MODE_POOLED,
@@ -494,7 +543,8 @@ def render_html(
         [compute_summary(u, u.source_prefix, target_ct) for u in units],
         target_ct=target_ct)
     quality = render_quality_html(qualities)
-    return html.replace("<body>", "<body>" + summary + quality, 1)
+    roam = render_roam_html(_collect_risks(config, log=log))
+    return html.replace("<body>", "<body>" + summary + quality + roam, 1)
 
 
 def render_pdf(
@@ -526,6 +576,9 @@ def render_pdf(
     pages = [summary_figure(summaries, target_ct=target_ct)] + figures
     if qualities:
         pages.insert(1, quality_figure(qualities))
+    risk_entries = _collect_risks(config, log=log)
+    if risk_entries:
+        pages.insert(2 if qualities else 1, roam_figure(risk_entries))
     export_pdf(pages, Path(output_path))
     log(f"PDF written to: {output_path}")
     return True

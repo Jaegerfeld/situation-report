@@ -99,7 +99,8 @@ python -m testdata_generator --scenario portfolio --output demo/ --seed 42
 Erzeugt in einem Schritt ein vollständiges, konsistentes Demo-Portfolio: zwei
 Solutions mit je drei ARTs, inklusive aller Artefakte der Verarbeitungskette —
 Workflow-Dateien, Roh-Jira-JSON, `IssueTimes`/`CFD`/`Transitions`-Arbeitsmappen,
-zwei Solution-Configs (Solution Beta mit eigener `stage_map`, Schema 2), eine
+zwei Solution-Configs (Solution Beta mit eigener `stage_map`, Schema 2), je
+Solution ein ROAM-Risiko-Register (`risks_alpha.json`/`risks_beta.json`), eine
 Portfolio-Config, eine PI-Config und ein README mit den eingebauten Geschichten.
 Das Datenfenster liegt relativ zum Erzeugungsdatum, damit die Qualitäts-Ampel
 des Portfolio-Reports die Quellen als aktuell einstuft.
@@ -113,6 +114,9 @@ Eingebaute Geschichten (deterministisch je Seed):
   Abdeckung unter 100 %.
 - **Solution Beta** poolt über eine eigene `stage_map`; Solution Alpha nutzt
   den Default-Klassifikationspfad.
+- **ROAM-Board**: beide Register zusammen enthalten neun Risiken; zwei
+  Owned-Risiken sind bewusst alt (45/50 Tage) — die Aging-Hervorhebung
+  springt an.
 
 Der Ordner ist direkt verwendbar: `python -m portfolio demo/portfolio.json`
 erzeugt den Portfolio-Report; die Solution-Configs funktionieren auch einzeln.

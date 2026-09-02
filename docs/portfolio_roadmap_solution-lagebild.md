@@ -80,10 +80,11 @@ Nicht nach „Feature-Wunschliste", sondern nach **Datenherkunft** (das BGS-Prin
 - **Warum:** Architektonische Schuld sichtbar & steuerbar machen (sonst „detoniert ungeplant"). Direkt aus dem A-ESA-/SAFe-NFR-Denken.
 - **Aufwand:** M.
 
-### B3 · ROAM-Risk-Board
+### B3 · ROAM-Risk-Board ✅ (umgesetzt 02.09.2026)
 - **Was:** JSON mit Risiken (Resolved/Owned/Accepted/Mitigated + Owner/Impact); Report als **ROAM-Board**.
 - **Warum:** Macht das Lagebild zur Governance-Basis statt bloßer Beobachtung (Ebene 3 – D „ROAM-Risk-Board").
 - **Aufwand:** S–M.
+- **Ist-Stand:** `portfolio/risks_config.py` (Schema v1: id/title/roam/owner/impact/status_since/notes), Board unter der Qualitätstabelle (PDF: eigene Seite), R-O-A-M-Gruppierung mit Farb-Zellen, Aging-Hervorhebung für Owned > 30 Tage, Portfolio aggregiert Member-Register mit Solution-Spalte; Owner = Teams; Szenario liefert je Solution ein Register mit (DoD erfüllt).
 
 ### B4 · Decision-/Assumption-Log
 - **Was:** JSON mit Architektur-/Solution-Entscheidungen + Annahmen (ADR-artig, leichtgewichtig); im Report verlinkt.
