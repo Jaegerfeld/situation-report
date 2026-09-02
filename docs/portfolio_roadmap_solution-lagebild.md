@@ -75,10 +75,11 @@ Nicht nach „Feature-Wunschliste", sondern nach **Datenherkunft** (das BGS-Prin
 - **Warum:** Capabilities sind die *Sprache* der EA (alle vier EA-Bücher). Bindet Solution-Fortschritt an Strategie/Wert (Abschnitt 5 „Capability-Denken → Capability-Health").
 - **Aufwand:** M.
 
-### B2 · NFR-/Architecture-Runway-Register
+### B2 · NFR-/Architecture-Runway-Register ✅ (umgesetzt 02.09.2026)
 - **Was:** JSON mit NFRs (Ziel/Ist/Status) und Runway-Elementen je Solution; Report als **NFR-/Compliance-Dashboard + Runway-Ampel**.
 - **Warum:** Architektonische Schuld sichtbar & steuerbar machen (sonst „detoniert ungeplant"). Direkt aus dem A-ESA-/SAFe-NFR-Denken.
 - **Aufwand:** M.
+- **Ist-Stand:** `portfolio/nfr_config.py` (Schema v1: nfrs mit target/actual/status met|at_risk|violated, runway mit status in_place|building|gap + needed_by), Dashboard unter dem ROAM-Board (PDF: eigene Seite, beide Tabellen gestapelt), Verletzt/Lücken zuerst, Overdue-Hervorhebung (needed_by verstrichen ∧ nicht in place), Status von Menschen gepflegt (Werkzeug rechnet Ziel/Ist nicht), Portfolio aggregiert Member-Register mit Solution-Spalte; Szenario liefert je Solution ein Register mit (DoD erfüllt).
 
 ### B3 · ROAM-Risk-Board ✅ (umgesetzt 02.09.2026)
 - **Was:** JSON mit Risiken (Resolved/Owned/Accepted/Mitigated + Owner/Impact); Report als **ROAM-Board**.

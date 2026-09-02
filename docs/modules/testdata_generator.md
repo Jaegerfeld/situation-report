@@ -100,7 +100,8 @@ Creates a complete, consistent demo portfolio in one step: two solutions with
 three ARTs each, including every artifact of the processing chain — workflow
 files, raw Jira JSON, `IssueTimes`/`CFD`/`Transitions` workbooks, two solution
 configs (Solution Beta with its own `stage_map`, schema 2), a ROAM risk
-register per solution (`risks_alpha.json`/`risks_beta.json`), a portfolio
+register per solution (`risks_alpha.json`/`risks_beta.json`), an NFR/runway
+register per solution (`nfr_alpha.json`/`nfr_beta.json`), a portfolio
 config, a PI config, and a README describing the built-in stories. The data window is
 placed relative to the generation date so the portfolio report's quality
 traffic light rates the sources as current.
@@ -115,6 +116,8 @@ Built-in stories (deterministic per seed):
   default classification path.
 - **ROAM board**: both risk registers together hold nine risks; two owned
   risks are deliberately old (45/50 days) — the aging highlight fires.
+- **NFR & runway**: six NFRs and four runway elements; Beta's API NFR is
+  violated and one runway element is an overdue gap — the dashboard shows red.
 
 The folder is directly usable: `python -m portfolio demo/portfolio.json`
 builds the portfolio report; the solution configs also work individually.

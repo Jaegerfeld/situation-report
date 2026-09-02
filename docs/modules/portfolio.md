@@ -106,6 +106,47 @@ The title counts total, owned, and aging risks. `owner` names a **team, not a
 person**. A missing or invalid risks file is logged and skipped — governance
 data never breaks the flow report.
 
+## NFR / architecture-runway dashboard (optional)
+
+A solution config may reference an NFR register via `"nfr": "path/to/nfr.json"`;
+the report then renders an **NFR & Architecture Runway** dashboard below the
+ROAM board (PDF: own page, both tables stacked). A portfolio aggregates the
+registers of all member solutions and adds a **Solution** column. The register:
+
+```json
+{
+  "nfrs": [
+    {
+      "id": "N-1",
+      "title": "API response time",
+      "target": "p95 < 200 ms",
+      "actual": "p95 = 340 ms",
+      "status": "violated",
+      "owner": "ART Beta-1"
+    }
+  ],
+  "runway": [
+    {
+      "id": "RW-1",
+      "title": "Automated failover",
+      "status": "gap",
+      "needed_by": "2026-08-13",
+      "owner": "ART Beta-2"
+    }
+  ]
+}
+```
+
+NFR `status` is one of `met` / `at_risk` / `violated`, runway `status` one of
+`in_place` / `building` / `gap` — **assessed by people** in PI planning/review;
+the tool deliberately does not compute target vs. actual ("the LLM writes, it
+does not calculate" applies to the tool as well). Violated NFRs and runway gaps
+sort first with coloured status cells; a runway element whose `needed_by` has
+passed while it is not in place renders as **overdue** (red date cell). The
+title counts NFRs (violated/at risk) and runway elements (gaps/overdue).
+`owner` names a team, not a person. Missing or invalid files are logged and
+skipped.
+
 ## Custom stage map (optional, config schema 2)
 
 By default, differing ART workflows pool into the three canonical groups
@@ -136,8 +177,9 @@ portfolio/
 ├── cli.py             run_solution_report() + argparse CLI
 ├── solution_config.py Solution/Portfolio config (members, mode, terminology)
 ├── risks_config.py    ROAM risk register (B3): schema, parse/load/save
+├── nfr_config.py      NFR/runway register (B2): schema, parse/load/save
 ├── aggregator.py      Record-level pooling + rendering (HTML/PDF)
-└── summary.py         Management summary + data quality/confidence (A1/A2), outliers (A3), ROAM board (B3)
+└── summary.py         Management summary + data quality (A1/A2), outliers (A3), ROAM board (B3), NFR dashboard (B2)
 ```
 
 Reuses `build_reports` (loader, metrics, export). Aggregation is done by

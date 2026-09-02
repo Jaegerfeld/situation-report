@@ -26,8 +26,9 @@ from typing import Any
 
 # v2 (02.09.2026): optionaler "stage_map"-Block (A4). v1-Dateien ohne den
 # Block laden unveraendert; der Parser prueft das Schemafeld bewusst nicht.
-# Seit B3 zusaetzlich das optionale "risks"-Feld (Pfad zur ROAM-risks.json) —
-# additiv, daher kein Schema-Bump.
+# Seit B3 zusaetzlich das optionale "risks"-Feld (Pfad zur ROAM-risks.json),
+# seit B2 das optionale "nfr"-Feld (Pfad zur NFR-/Runway-nfr.json) —
+# beides additiv, daher kein Schema-Bump.
 SCHEMA_VERSION = 2
 APP_NAME = "situation_report"
 
@@ -153,6 +154,8 @@ class SolutionConfig:
                     the fixed three-group pooling.
         risks:      Optional path to a ROAM risks JSON (B3); "" means no
                     risk register.
+        nfr:        Optional path to an NFR/architecture-runway JSON (B2);
+                    "" means no NFR register.
     """
     name: str
     kind: str = KIND_SOLUTION
@@ -164,6 +167,7 @@ class SolutionConfig:
     modes: list[str] = field(default_factory=lambda: ["pooled"])
     stage_map: StageMap | None = None
     risks: str = ""
+    nfr: str = ""
 
 
 def _parse_date(value: Any) -> date | None:
@@ -247,6 +251,7 @@ def parse_solution_config(data: dict[str, Any]) -> SolutionConfig:
         modes=list(report.get("modes", ["pooled"])) or ["pooled"],
         stage_map=parse_stage_map(data.get("stage_map")),
         risks=str(data.get("risks", "")).strip(),
+        nfr=str(data.get("nfr", "")).strip(),
     )
 
 
@@ -313,6 +318,8 @@ def to_dict(config: SolutionConfig) -> dict[str, Any]:
         }
     if config.risks:
         out["risks"] = config.risks
+    if config.nfr:
+        out["nfr"] = config.nfr
     return out
 
 

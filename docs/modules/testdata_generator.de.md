@@ -100,7 +100,8 @@ Erzeugt in einem Schritt ein vollständiges, konsistentes Demo-Portfolio: zwei
 Solutions mit je drei ARTs, inklusive aller Artefakte der Verarbeitungskette —
 Workflow-Dateien, Roh-Jira-JSON, `IssueTimes`/`CFD`/`Transitions`-Arbeitsmappen,
 zwei Solution-Configs (Solution Beta mit eigener `stage_map`, Schema 2), je
-Solution ein ROAM-Risiko-Register (`risks_alpha.json`/`risks_beta.json`), eine
+Solution ein ROAM-Risiko-Register (`risks_alpha.json`/`risks_beta.json`) und
+ein NFR-/Runway-Register (`nfr_alpha.json`/`nfr_beta.json`), eine
 Portfolio-Config, eine PI-Config und ein README mit den eingebauten Geschichten.
 Das Datenfenster liegt relativ zum Erzeugungsdatum, damit die Qualitäts-Ampel
 des Portfolio-Reports die Quellen als aktuell einstuft.
@@ -117,6 +118,9 @@ Eingebaute Geschichten (deterministisch je Seed):
 - **ROAM-Board**: beide Register zusammen enthalten neun Risiken; zwei
   Owned-Risiken sind bewusst alt (45/50 Tage) — die Aging-Hervorhebung
   springt an.
+- **NFR & Runway**: sechs NFRs und vier Runway-Elemente; Betas API-NFR ist
+  verletzt und ein Runway-Element eine überfällige Lücke — das Dashboard
+  zeigt Rot.
 
 Der Ordner ist direkt verwendbar: `python -m portfolio demo/portfolio.json`
 erzeugt den Portfolio-Report; die Solution-Configs funktionieren auch einzeln.

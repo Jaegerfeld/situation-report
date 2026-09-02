@@ -21,6 +21,13 @@ from dataclasses import dataclass
 from datetime import date
 
 from build_reports.loader import ReportData
+from portfolio.nfr_config import (
+    NFR_STATUS_ORDER,
+    RUNWAY_IN_PLACE,
+    RUNWAY_STATUS_ORDER,
+    Nfr,
+    RunwayItem,
+)
 from portfolio.risks_config import (
     IMPACT_HIGH,
     IMPACT_LOW,
@@ -634,4 +641,252 @@ def roam_figure(
         cells=dict(values=columns, align="left", fill_color=fill_colors),
     ))
     fig.update_layout(title=title, title_font_size=14, margin=dict(t=40, b=10))
+    return fig
+
+
+# ---------------------------------------------------------------------------
+# NFR / architecture-runway dashboard (B2)
+# ---------------------------------------------------------------------------
+
+#: Cell background per NFR status (traffic light).
+_NFR_STATUS_COLORS = {
+    "met": "#e6f4e6",
+    "at_risk": "#fff3cd",
+    "violated": "#f8d7da",
+}
+
+#: Cell background per runway status.
+_RUNWAY_COLORS = {
+    "in_place": "#e6f4e6",
+    "building": "#fff3cd",
+    "gap": "#f8d7da",
+}
+
+#: A runway element whose needed_by lies in the past while it is not in place
+#: renders as overdue (red date cell) — the runway detonates on a date.
+_OVERDUE_COLOR = "#f8d7da"
+
+#: Human-readable status labels (the JSON keys stay machine-friendly).
+_STATUS_LABELS = {
+    "met": "met",
+    "at_risk": "at risk",
+    "violated": "violated",
+    "in_place": "in place",
+    "building": "building",
+    "gap": "gap",
+}
+
+
+def _runway_is_overdue(item: RunwayItem, reference: date | None = None) -> bool:
+    """True when needed_by has passed and the element is not in place."""
+    return (item.needed_by is not None
+            and item.status != RUNWAY_IN_PLACE
+            and item.needed_by < (reference or date.today()))
+
+
+def _sorted_nfrs(entries: list[tuple[str, Nfr]]) -> list[tuple[str, Nfr]]:
+    """Dashboard order: violated first, then at risk, then met; then source."""
+    return sorted(entries, key=lambda e: (
+        NFR_STATUS_ORDER.index(e[1].status), e[0], e[1].nfr_id))
+
+
+def _sorted_runway(
+    entries: list[tuple[str, RunwayItem]]
+) -> list[tuple[str, RunwayItem]]:
+    """Dashboard order: gaps first, then building, then in place; then source."""
+    return sorted(entries, key=lambda e: (
+        RUNWAY_STATUS_ORDER.index(e[1].status), e[0], e[1].item_id))
+
+
+def _nfr_headers(include_source: bool) -> list[str]:
+    """Column headers for the NFR table (shared by HTML and PDF)."""
+    head = ["NFR", "Target", "Actual", "Status", "Owner (team)"]
+    return (["Solution"] + head) if include_source else head
+
+
+def _nfr_cells(source: str, nfr: Nfr, include_source: bool) -> list[str]:
+    """Row values for one NFR, in the _nfr_headers() order."""
+    row = [f"{nfr.nfr_id}: {nfr.title}", nfr.target, nfr.actual or "–",
+           _STATUS_LABELS[nfr.status], nfr.owner or "–"]
+    return ([source] + row) if include_source else row
+
+
+def _runway_headers(include_source: bool) -> list[str]:
+    """Column headers for the runway table (shared by HTML and PDF)."""
+    head = ["Runway element", "Status", "Needed by", "Owner (team)"]
+    return (["Solution"] + head) if include_source else head
+
+
+def _runway_cells(
+    source: str, item: RunwayItem, include_source: bool,
+    reference: date | None = None,
+) -> list[str]:
+    """Row values for one runway element, in the _runway_headers() order."""
+    needed = item.needed_by.strftime("%d.%m.%Y") if item.needed_by else "–"
+    if _runway_is_overdue(item, reference):
+        needed += " (overdue)"
+    row = [f"{item.item_id}: {item.title}", _STATUS_LABELS[item.status],
+           needed, item.owner or "–"]
+    return ([source] + row) if include_source else row
+
+
+def _nfr_title(
+    nfrs: list[tuple[str, Nfr]],
+    runway: list[tuple[str, RunwayItem]],
+    title: str,
+    reference: date | None = None,
+) -> str:
+    """Append NFR/runway counts (violated, at risk, gaps, overdue) to the title."""
+    parts = []
+    if nfrs:
+        violated = sum(1 for _, n in nfrs if n.status == "violated")
+        at_risk = sum(1 for _, n in nfrs if n.status == "at_risk")
+        parts.append(f"{len(nfrs)} NFRs ({violated} violated, {at_risk} at risk)")
+    if runway:
+        gaps = sum(1 for _, r in runway if r.status == "gap")
+        overdue = sum(1 for _, r in runway if _runway_is_overdue(r, reference))
+        seg = f"{len(runway)} runway elements ({gaps} gaps"
+        seg += f", {overdue} overdue)" if overdue else ")"
+        parts.append(seg)
+    return f"{title} — " + " · ".join(parts)
+
+
+def _nfr_include_source(
+    nfrs: list[tuple[str, Nfr]], runway: list[tuple[str, RunwayItem]]
+) -> bool:
+    """Show the Solution column only when entries stem from several sources."""
+    return len({source for source, _ in nfrs + runway}) > 1
+
+
+def render_nfr_html(
+    nfrs: list[tuple[str, Nfr]],
+    runway: list[tuple[str, RunwayItem]],
+    title: str = "NFR & Architecture Runway",
+    reference: date | None = None,
+) -> str:
+    """
+    Render the NFR/runway dashboard as an HTML fragment.
+
+    Two tables under one heading: the NFRs (violated first, coloured status
+    cells) and the runway elements (gaps first, coloured status cells, overdue
+    needed-by highlighted). A Solution column is prepended when the entries
+    stem from more than one source (portfolio mode).
+
+    Args:
+        nfrs:      (source label, Nfr) pairs, unordered.
+        runway:    (source label, RunwayItem) pairs, unordered.
+        title:     Heading shown above the dashboard.
+        reference: Overdue reference date (default: today) — injectable for tests.
+
+    Returns:
+        An HTML fragment, or "" when both lists are empty.
+    """
+    if not nfrs and not runway:
+        return ""
+
+    include_source = _nfr_include_source(nfrs, runway)
+    offset = 1 if include_source else 0
+    heading = _nfr_title(nfrs, runway, title, reference)
+    html = f"<h2 class='metric-heading'>{_html.escape(heading)}</h2>"
+
+    if nfrs:
+        head = "".join(f"<th>{_html.escape(h)}</th>"
+                       for h in _nfr_headers(include_source))
+        rows = ""
+        for source, nfr in _sorted_nfrs(nfrs):
+            cells = [_html.escape(c)
+                     for c in _nfr_cells(source, nfr, include_source)]
+            tds = []
+            for col, c in enumerate(cells):
+                if col == offset + 3:  # status
+                    color = _NFR_STATUS_COLORS.get(nfr.status, "#ffffff")
+                    tds.append(f"<td style='background:{color};font-weight:600'>{c}</td>")
+                else:
+                    tds.append(f"<td>{c}</td>")
+            rows += f"<tr>{''.join(tds)}</tr>"
+        html += f"<table class='sr-summary'><tr>{head}</tr>{rows}</table>"
+
+    if runway:
+        head = "".join(f"<th>{_html.escape(h)}</th>"
+                       for h in _runway_headers(include_source))
+        rows = ""
+        for source, item in _sorted_runway(runway):
+            cells = [_html.escape(c)
+                     for c in _runway_cells(source, item, include_source, reference)]
+            tds = []
+            for col, c in enumerate(cells):
+                if col == offset + 1:  # status
+                    color = _RUNWAY_COLORS.get(item.status, "#ffffff")
+                    tds.append(f"<td style='background:{color};font-weight:600'>{c}</td>")
+                elif col == offset + 2 and _runway_is_overdue(item, reference):
+                    tds.append(f"<td style='background:{_OVERDUE_COLOR};font-weight:600'>{c}</td>")
+                else:
+                    tds.append(f"<td>{c}</td>")
+            rows += f"<tr>{''.join(tds)}</tr>"
+        html += f"<table class='sr-summary'><tr>{head}</tr>{rows}</table>"
+
+    return html
+
+
+def nfr_figure(
+    nfrs: list[tuple[str, Nfr]],
+    runway: list[tuple[str, RunwayItem]],
+    title: str = "NFR & Architecture Runway",
+    reference: date | None = None,
+):
+    """
+    Render the NFR/runway dashboard as a plotly figure (for the PDF export).
+
+    Mirrors render_nfr_html(): both tables stacked on one page, coloured
+    status columns, overdue highlight.
+
+    Args:
+        nfrs:      (source label, Nfr) pairs, unordered.
+        runway:    (source label, RunwayItem) pairs, unordered.
+        title:     Figure title.
+        reference: Overdue reference date (default: today).
+
+    Returns:
+        A plotly Figure containing one Table trace per non-empty block.
+    """
+    import plotly.graph_objects as go
+    from plotly.subplots import make_subplots
+
+    include_source = _nfr_include_source(nfrs, runway)
+    offset = 1 if include_source else 0
+    blocks = []
+
+    if nfrs:
+        ordered_n = _sorted_nfrs(nfrs)
+        headers = _nfr_headers(include_source)
+        rows = [_nfr_cells(source, nfr, include_source)
+                for source, nfr in ordered_n]
+        fills = [["white"] * len(rows) for _ in headers]
+        fills[offset + 3] = [_NFR_STATUS_COLORS.get(n.status, "#ffffff")
+                             for _, n in ordered_n]
+        blocks.append((headers, rows, fills))
+
+    if runway:
+        ordered_r = _sorted_runway(runway)
+        headers = _runway_headers(include_source)
+        rows = [_runway_cells(source, item, include_source, reference)
+                for source, item in ordered_r]
+        fills = [["white"] * len(rows) for _ in headers]
+        fills[offset + 1] = [_RUNWAY_COLORS.get(r.status, "#ffffff")
+                             for _, r in ordered_r]
+        fills[offset + 2] = [_OVERDUE_COLOR if _runway_is_overdue(r, reference)
+                             else "white" for _, r in ordered_r]
+        blocks.append((headers, rows, fills))
+
+    fig = make_subplots(
+        rows=len(blocks), cols=1,
+        specs=[[{"type": "table"}]] * len(blocks))
+    for i, (headers, rows, fills) in enumerate(blocks, start=1):
+        columns = [[row[c] for row in rows] for c in range(len(headers))]
+        fig.add_trace(go.Table(
+            header=dict(values=headers, fill_color="#f2f2f2", align="left"),
+            cells=dict(values=columns, align="left", fill_color=fills),
+        ), row=i, col=1)
+    fig.update_layout(title=_nfr_title(nfrs, runway, title, reference),
+                      title_font_size=14, margin=dict(t=40, b=10))
     return fig
