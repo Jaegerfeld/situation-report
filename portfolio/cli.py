@@ -3,14 +3,14 @@
 # Repository:     https://github.com/Jaegerfeld/situation-report
 # KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
 # Erstellt:       22.06.2026
-# Geändert:       22.06.2026
+# Geändert:       02.09.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
-#   Kommandozeileninterface für aggregierte Solution-/Portfolio-Reports
-#   (Phase 1, Modus "pooled"). Liest eine Solution-Konfiguration, führt die
-#   referenzierten ARTs zusammen und schreibt einen gepoolten HTML-Report mit
-#   den datums-getriebenen Metriken Flow Velocity und Flow Time.
+#   Kommandozeileninterface für aggregierte Solution-/Portfolio-Reports in
+#   beiden Modi: "pooled" (Solution als ein System) und "comparison" (Einheiten
+#   nebeneinander). Liest eine Solution-Konfiguration, aggregiert die
+#   referenzierten ARTs und schreibt HTML- und/oder PDF-Reports.
 # =============================================================================
 
 from __future__ import annotations

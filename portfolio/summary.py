@@ -248,10 +248,15 @@ def render_summary_html(
 
     head_html = "".join(f"<th>{_html.escape(h)}</th>" for h in _summary_headers(target_ct))
 
+    outliers = _outlier_cells(summaries)
     rows_html = ""
-    for s in summaries:
+    for row, s in enumerate(summaries):
         cells = [_html.escape(c) for c in _summary_cells(s)]
-        rows_html += "<tr>" + "".join(f"<td>{c}</td>" for c in cells) + "</tr>"
+        tds = "".join(
+            (f"<td style='background:{_OUTLIER_COLOR};font-weight:600'>{c}</td>"
+             if (row, col) in outliers else f"<td>{c}</td>")
+            for col, c in enumerate(cells))
+        rows_html += f"<tr>{tds}</tr>"
 
     style = (
         "<style>"
@@ -267,6 +272,39 @@ def render_summary_html(
         f"<h2 class='metric-heading'>{_html.escape(title)}</h2>"
         f"<table class='sr-summary'><tr>{head_html}</tr>{rows_html}</table>"
     )
+
+
+#: Outlier highlighting (comparison mode): a Median-CT or 95th-percentile cell
+#: is flagged when its value exceeds _OUTLIER_FACTOR x the median of that column
+#: across all rows. Requires at least _OUTLIER_MIN_ROWS rows — with fewer there
+#: is no group to be an outlier of.
+_OUTLIER_FACTOR = 1.5
+_OUTLIER_MIN_ROWS = 3
+_OUTLIER_COLOR = "#f8d7da"
+
+
+def _outlier_cells(summaries: list[Summary]) -> set[tuple[int, int]]:
+    """
+    Identify outlier cells for the comparison summary.
+
+    Checked columns: Median CT (index 4) and 95th percentile (index 6) in the
+    _summary_cells() order. Returns a set of (row_index, column_index) pairs.
+    """
+    if len(summaries) < _OUTLIER_MIN_ROWS:
+        return set()
+    flagged: set[tuple[int, int]] = set()
+    for col, attr in ((4, "median_ct"), (6, "p95_ct")):
+        values = [getattr(s, attr) for s in summaries]
+        present = sorted(v for v in values if v is not None)
+        if not present:
+            continue
+        threshold = _OUTLIER_FACTOR * (_percentile(present, 50) or 0)
+        if threshold <= 0:
+            continue
+        for row, value in enumerate(values):
+            if value is not None and value > threshold:
+                flagged.add((row, col))
+    return flagged
 
 
 #: Cell background per confidence level (traffic light).
@@ -401,9 +439,12 @@ def summary_figure(
     headers = _summary_headers(target_ct)
     rows = [_summary_cells(s) for s in summaries]
     columns = [[row[c] for row in rows] for c in range(len(headers))]
+    outliers = _outlier_cells(summaries)
+    fill = [["white" if (r, c) not in outliers else _OUTLIER_COLOR
+             for r in range(len(rows))] for c in range(len(headers))]
     fig = go.Figure(go.Table(
         header=dict(values=headers, fill_color="#f2f2f2", align="left"),
-        cells=dict(values=columns, align="left"),
+        cells=dict(values=columns, align="left", fill_color=fill),
     ))
     fig.update_layout(title=title, title_font_size=14, margin=dict(t=40, b=10))
     return fig

@@ -21,12 +21,14 @@ from portfolio.summary import (
     CONFIDENCE_LOW,
     CONFIDENCE_MEDIUM,
     Summary,
+    _outlier_cells,
     _percentile,
     assess_quality,
     compute_summary,
     quality_figure,
     render_quality_html,
     render_summary_html,
+    summary_figure,
 )
 
 
@@ -300,3 +302,50 @@ class TestShareAndCoverage:
         headers = list(fig.data[0].header.values)
         assert "Share" in headers
         assert "1/1 sources delivered data" in fig.layout.title.text
+
+
+# ---------------------------------------------------------------------------
+# A3: outlier highlighting in the comparison summary
+# ---------------------------------------------------------------------------
+
+def _summary_with_ct(label: str, median: float | None, p95: float | None) -> Summary:
+    return Summary(label=label, items=10, completed=8, median_ct=median,
+                   p85_ct=None, p95_ct=p95)
+
+
+class TestOutlierHighlighting:
+    def test_no_flags_below_minimum_rows(self) -> None:
+        rows = [_summary_with_ct("A", 10, 20), _summary_with_ct("B", 100, 200)]
+        assert _outlier_cells(rows) == set()
+
+    def test_flags_median_and_p95_of_the_outlier(self) -> None:
+        rows = [_summary_with_ct("A", 10, 20), _summary_with_ct("B", 12, 22),
+                _summary_with_ct("C", 40, 90)]
+        flagged = _outlier_cells(rows)
+        assert (2, 4) in flagged   # C's median (40 > 1.5 x 12)
+        assert (2, 6) in flagged   # C's p95    (90 > 1.5 x 22)
+        assert not any(row != 2 for row, _ in flagged)
+
+    def test_none_values_are_ignored(self) -> None:
+        rows = [_summary_with_ct("A", None, None), _summary_with_ct("B", 10, 20),
+                _summary_with_ct("C", 11, 21)]
+        assert _outlier_cells(rows) == set()
+
+    def test_html_marks_outlier_cell(self) -> None:
+        rows = [_summary_with_ct("A", 10, 20), _summary_with_ct("B", 12, 22),
+                _summary_with_ct("C", 40, 90)]
+        html = render_summary_html(rows)
+        assert html.count("#f8d7da") == 2  # exactly the two outlier cells
+
+    def test_pooled_single_row_is_never_highlighted(self) -> None:
+        html = render_summary_html([_summary_with_ct("Solution", 40, 90)])
+        assert "#f8d7da" not in html
+
+    def test_figure_fill_matrix_marks_outlier(self) -> None:
+        rows = [_summary_with_ct("A", 10, 20), _summary_with_ct("B", 12, 22),
+                _summary_with_ct("C", 40, 90)]
+        fig = summary_figure(rows)
+        fill = fig.data[0].cells.fill.color
+        assert fill[4][2] == "#f8d7da"   # column Median CT, row C
+        assert fill[6][2] == "#f8d7da"   # column 95th %, row C
+        assert fill[4][0] == "white"
