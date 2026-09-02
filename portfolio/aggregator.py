@@ -59,6 +59,7 @@ _CANON_STAGES = [GROUP_TODO, GROUP_IN_PROGRESS, GROUP_DONE]
 
 from project_template import MODULE_BUILD_REPORTS, get_section, load_template
 
+from .capability_config import Capability, load_capabilities
 from .nfr_config import Nfr, RunwayItem, load_nfr
 from .risks_config import Risk, load_risks
 from .solution_config import (
@@ -74,9 +75,11 @@ from .solution_config import (
 from .summary import (
     SourceQuality,
     assess_quality,
+    capability_figure,
     compute_summary,
     nfr_figure,
     quality_figure,
+    render_capabilities_html,
     render_nfr_html,
     render_quality_html,
     render_roam_html,
@@ -503,6 +506,45 @@ def _governance_sources(
     return sources
 
 
+def _collect_capabilities(
+    config: SolutionConfig,
+    log: Callable[[str], None] = print,
+) -> list[tuple[str, Capability]]:
+    """
+    Collect capabilities for the report (B1).
+
+    Same resolution rules as the other governance registers: a solution loads
+    its own ``capabilities`` file, a portfolio aggregates its member
+    solutions' maps; broken or missing files are logged and skipped. An ART
+    name in a capability that is not among the solution's members is logged
+    as a warning (the map and the member list drifted apart) but kept.
+
+    Args:
+        config: The solution or portfolio configuration.
+        log:    Progress/warning callback.
+
+    Returns:
+        (source label, Capability) pairs; empty when no map is referenced.
+    """
+    entries: list[tuple[str, Capability]] = []
+    for label, sub in _governance_sources(config, log):
+        if not sub.capabilities:
+            continue
+        try:
+            cap_map = load_capabilities(Path(sub.capabilities))
+        except (OSError, ValueError, json.JSONDecodeError) as exc:
+            log(f"  WARNING [{label}]: capabilities file skipped ({exc})")
+            continue
+        known = {m.name for m in sub.members}
+        for cap in cap_map.capabilities:
+            unknown = [a for a in cap.arts if a not in known]
+            if unknown:
+                log(f"  WARNING [{label}]: capability '{cap.cap_id}' maps "
+                    f"unknown ARTs {unknown}")
+            entries.append((label, cap))
+    return entries
+
+
 def _collect_risks(
     config: SolutionConfig,
     log: Callable[[str], None] = print,
@@ -597,9 +639,11 @@ def render_html(
         [compute_summary(u, u.source_prefix, target_ct) for u in units],
         target_ct=target_ct)
     quality = render_quality_html(qualities)
+    caps = render_capabilities_html(_collect_capabilities(config, log=log))
     roam = render_roam_html(_collect_risks(config, log=log))
     nfr = render_nfr_html(*_collect_nfr(config, log=log))
-    return html.replace("<body>", "<body>" + summary + quality + roam + nfr, 1)
+    return html.replace("<body>",
+                        "<body>" + summary + quality + caps + roam + nfr, 1)
 
 
 def render_pdf(
@@ -632,6 +676,9 @@ def render_pdf(
     extra = []
     if qualities:
         extra.append(quality_figure(qualities))
+    cap_entries = _collect_capabilities(config, log=log)
+    if cap_entries:
+        extra.append(capability_figure(cap_entries))
     risk_entries = _collect_risks(config, log=log)
     if risk_entries:
         extra.append(roam_figure(risk_entries))

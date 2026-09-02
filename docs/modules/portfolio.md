@@ -74,11 +74,46 @@ In **comparison** mode, Median-CT and 95th-percentile cells are highlighted
 red when they exceed 1.5× the column median (three rows minimum) — the
 "which unit is the outlier?" question answers itself.
 
+## Capability map & health (optional)
+
+A solution config may reference a capability map via
+`"capabilities": "path/to/capabilities.json"`; the report then renders a
+**Capability Map & Health** table below the quality table (PDF: own page). A
+portfolio aggregates the maps of all member solutions and adds a **Solution**
+column. The map:
+
+```json
+{
+  "capabilities": [
+    {
+      "id": "C-1",
+      "title": "Data insights & reporting",
+      "health": "critical",
+      "arts": ["ART Beta-3"],
+      "owner": "ART Beta-3",
+      "assessed_on": "2026-08-26",
+      "notes": "optional"
+    }
+  ]
+}
+```
+
+`health` is one of `healthy` / `at_risk` / `critical` — **assessed by people**
+in PI planning/review (`assessed_on` records when). `arts` names the member
+ARTs contributing to the capability; a capability with no contributing ARTs is
+flagged as **uncovered** (business value nobody delivers), and an ART name
+that is not among the solution's members is logged as a drift warning.
+Critical capabilities sort first with coloured health cells; the title counts
+critical/at-risk/uncovered. `owner` names a team, not a person. The capability
+map (business capabilities) is deliberately **not** the `stage_map` (workflow
+stages) — different dimension, different source. Missing or invalid files are
+logged and skipped.
+
 ## ROAM risk board (optional)
 
 A solution config may reference a risk register via `"risks": "path/to/risks.json"`;
-the report then renders a **ROAM board** below the quality table (PDF: its own
-page). A portfolio aggregates the registers of all member solutions and adds a
+the report then renders a **ROAM board** below the quality table and the
+capability map (PDF: its own page). A portfolio aggregates the registers of all member solutions and adds a
 **Solution** column. The register:
 
 ```json
@@ -178,6 +213,7 @@ portfolio/
 ├── solution_config.py Solution/Portfolio config (members, mode, terminology)
 ├── risks_config.py    ROAM risk register (B3): schema, parse/load/save
 ├── nfr_config.py      NFR/runway register (B2): schema, parse/load/save
+├── capability_config.py Capability map (B1): schema, parse/load/save
 ├── aggregator.py      Record-level pooling + rendering (HTML/PDF)
 └── summary.py         Management summary + data quality (A1/A2), outliers (A3), ROAM board (B3), NFR dashboard (B2)
 ```

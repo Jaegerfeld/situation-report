@@ -460,6 +460,21 @@ def content_de(st: dict) -> list:
            "Owner sind Teams, keine Personen.", st),
         _SP(6),
 
+        _H2("5.9  Capability-Map & -Health (optional)", st),
+        _P("Verweist die Solution-Konfiguration über das Feld <font name='Courier'>"
+           "capabilities</font> auf eine Capability-Map (JSON mit id, title, "
+           "health, arts, owner, assessed_on), rendert der Report eine Tabelle "
+           "der Geschäftsfähigkeiten: Health-Ampel healthy/at_risk/critical "
+           "(kritisch zuerst, von Menschen im PI-Planning/-Review bewertet) und "
+           "die beitragenden ARTs. Eine Capability ohne beitragenden ART wird "
+           "als uncovered markiert — Geschäftswert, den niemand liefert; "
+           "unbekannte ART-Namen erzeugen eine Drift-Warnung im Log. Ein "
+           "Portfolio aggregiert die Maps aller Member-Solutions mit "
+           "Solution-Spalte. Die Capability-Map (Geschäftsfähigkeiten) ist "
+           "nicht die stage_map (Workflow-Status) — andere Dimension, andere "
+           "Quelle. Owner sind Teams, keine Personen.", st),
+        _SP(6),
+
         _H1("6. Kommandozeile (CLI)", st), _hr(st),
         _P("Für Automatisierung und reproduzierbare Reports:", st),
         _CD("python -m portfolio meine_solution.json --output report.html", st),
@@ -684,6 +699,21 @@ def content_en(st: dict) -> list:
            "column. Owners are teams, not persons.", st),
         _SP(6),
 
+        _H2("5.9  Capability map & health (optional)", st),
+        _P("When the solution configuration references a capability map via the "
+           "<font name='Courier'>capabilities</font> field (JSON with id, "
+           "title, health, arts, owner, assessed_on), the report renders a "
+           "table of the business capabilities: a health traffic light "
+           "healthy/at_risk/critical (critical first, assessed by people in PI "
+           "planning/review) and the contributing ARTs. A capability with no "
+           "contributing ART is flagged as uncovered — business value nobody "
+           "delivers; unknown ART names produce a drift warning in the log. A "
+           "portfolio aggregates the maps of all member solutions with a "
+           "Solution column. The capability map (business capabilities) is not "
+           "the stage_map (workflow stages) — different dimension, different "
+           "source. Owners are teams, not persons.", st),
+        _SP(6),
+
         _H1("6. Command line (CLI)", st), _hr(st),
         _P("For automation and reproducible reports:", st),
         _CD("python -m portfolio my_solution.json --output report.html", st),
@@ -905,6 +935,22 @@ def content_ro(st: dict) -> list:
            "needed_by depasit care nu este in place apare ca intarziat (celula "
            "de data rosie). Un portofoliu agrega registrele tuturor solutiilor "
            "membre cu o coloana Solution. Ownerii sunt echipe, nu persoane.", st),
+        _SP(6),
+
+        _H2("5.9  Capability map si health (optional)", st),
+        _P("Daca configuratia solutiei face referire la o capability map prin "
+           "campul <font name='Courier'>capabilities</font> (JSON cu id, title, "
+           "health, arts, owner, assessed_on), raportul afiseaza un tabel al "
+           "capabilitatilor de business: un semafor de sanatate "
+           "healthy/at_risk/critical (critical primul, evaluat de oameni in PI "
+           "planning/review) si ART-urile contribuitoare. O capabilitate fara "
+           "ART contribuitor este marcata ca uncovered — valoare de business pe "
+           "care nimeni nu o livreaza; numele de ART necunoscute produc un "
+           "avertisment de drift in log. Un portofoliu agrega hartile tuturor "
+           "solutiilor membre cu o coloana Solution. Capability map "
+           "(capabilitati de business) nu este stage_map (statusuri de "
+           "workflow) — alta dimensiune, alta sursa. Ownerii sunt echipe, nu "
+           "persoane.", st),
         _SP(6),
 
         _H1("6. Linia de comanda (CLI)", st), _hr(st),
@@ -1131,6 +1177,21 @@ def content_pt(st: dict) -> list:
            "nao pessoas.", st),
         _SP(6),
 
+        _H2("5.9  Capability map e health (opcional)", st),
+        _P("Se a configuracao da solution referenciar uma capability map "
+           "atraves do campo <font name='Courier'>capabilities</font> (JSON com "
+           "id, title, health, arts, owner, assessed_on), o relatorio mostra "
+           "uma tabela das capacidades de negocio: um semaforo de saude "
+           "healthy/at_risk/critical (critical primeiro, avaliado por pessoas "
+           "no PI planning/review) e os ARTs contribuintes. Uma capacidade sem "
+           "ART contribuinte e marcada como uncovered — valor de negocio que "
+           "ninguem entrega; nomes de ART desconhecidos produzem um aviso de "
+           "drift no log. Um portfolio agrega os mapas de todas as solutions "
+           "membros com uma coluna Solution. A capability map (capacidades de "
+           "negocio) nao e a stage_map (estados de workflow) — outra dimensao, "
+           "outra fonte. Os owners sao equipas, nao pessoas.", st),
+        _SP(6),
+
         _H1("6. Linha de comandos (CLI)", st), _hr(st),
         _P("Para automacao e relatorios reproduziveis:", st),
         _CD("python -m portfolio a_minha_solucao.json --output report.html", st),
@@ -1355,6 +1416,22 @@ def content_fr(st: dict) -> list:
            "retard (cellule de date rouge). Un portefeuille agrege les registres "
            "de toutes les solutions membres avec une colonne Solution. Les "
            "owners sont des equipes, pas des personnes.", st),
+        _SP(6),
+
+        _H2("5.9  Capability map et health (optionnel)", st),
+        _P("Si la configuration de la solution reference une capability map via "
+           "le champ <font name='Courier'>capabilities</font> (JSON avec id, "
+           "title, health, arts, owner, assessed_on), le rapport affiche un "
+           "tableau des capacites metier : un feu de sante "
+           "healthy/at_risk/critical (critical en premier, evalue par des "
+           "personnes en PI planning/review) et les ARTs contributeurs. Une "
+           "capacite sans ART contributeur est marquee uncovered — de la valeur "
+           "metier que personne ne livre ; des noms d'ART inconnus produisent "
+           "un avertissement de derive dans le log. Un portefeuille agrege les "
+           "cartes de toutes les solutions membres avec une colonne Solution. "
+           "La capability map (capacites metier) n'est pas la stage_map "
+           "(statuts de workflow) — autre dimension, autre source. Les owners "
+           "sont des equipes, pas des personnes.", st),
         _SP(6),
 
         _H1("6. Ligne de commande (CLI)", st), _hr(st),

@@ -76,11 +76,46 @@ Im **Comparison**-Modus werden Median-CT- und 95.-Perzentil-Zellen rot
 hervorgehoben, wenn sie das 1,5-fache des Spalten-Medians übersteigen (ab drei
 Zeilen) — die Frage „welche Einheit ist der Ausreißer?" beantwortet sich selbst.
 
+## Capability-Map & -Health (optional)
+
+Eine Solution-Config kann über `"capabilities": "pfad/zu/capabilities.json"`
+auf eine Capability-Map verweisen; der Report rendert dann unter der
+Qualitätstabelle eine **Capability Map & Health**-Tabelle (PDF: eigene Seite).
+Ein Portfolio aggregiert die Maps aller Member-Solutions und ergänzt eine
+**Solution**-Spalte. Die Map:
+
+```json
+{
+  "capabilities": [
+    {
+      "id": "C-1",
+      "title": "Data Insights & Reporting",
+      "health": "critical",
+      "arts": ["ART Beta-3"],
+      "owner": "ART Beta-3",
+      "assessed_on": "2026-08-26",
+      "notes": "optional"
+    }
+  ]
+}
+```
+
+`health` ist einer von `healthy` / `at_risk` / `critical` — **von Menschen
+bewertet** im PI-Planning/-Review (`assessed_on` hält fest, wann). `arts`
+benennt die beitragenden Member-ARTs; eine Capability ohne beitragenden ART
+wird als **uncovered** markiert (Geschäftswert, den niemand liefert), und ein
+ART-Name, der nicht unter den Members der Solution ist, erzeugt eine
+Drift-Warnung im Log. Kritische Capabilities sortieren nach oben,
+Health-Zellen sind farbig; der Titel zählt critical/at risk/uncovered. `owner`
+benennt ein **Team, keine Person**. Die Capability-Map (Geschäftsfähigkeiten)
+ist bewusst **nicht** die `stage_map` (Workflow-Status) — andere Dimension,
+andere Quelle. Fehlende oder defekte Dateien werden geloggt und übersprungen.
+
 ## ROAM-Risk-Board (optional)
 
 Eine Solution-Config kann über `"risks": "pfad/zu/risks.json"` auf ein
-Risiko-Register verweisen; der Report rendert dann unter der Qualitätstabelle
-ein **ROAM-Board** (PDF: eigene Seite). Ein Portfolio aggregiert die Register
+Risiko-Register verweisen; der Report rendert dann unter Qualitätstabelle und
+Capability-Map ein **ROAM-Board** (PDF: eigene Seite). Ein Portfolio aggregiert die Register
 aller Member-Solutions und ergänzt eine **Solution**-Spalte. Das Register:
 
 ```json
@@ -183,6 +218,7 @@ portfolio/
 ├── solution_config.py Solution-/Portfolio-Konfiguration (Mitglieder, Modus, Terminologie)
 ├── risks_config.py    ROAM-Risiko-Register (B3): Schema, parse/load/save
 ├── nfr_config.py      NFR-/Runway-Register (B2): Schema, parse/load/save
+├── capability_config.py Capability-Map (B1): Schema, parse/load/save
 ├── aggregator.py      Zusammenführung auf Datensatz-Ebene + Rendering (HTML/PDF)
 └── summary.py         Management-Summary + Datenqualität (A1/A2), Ausreißer (A3), ROAM-Board (B3), NFR-Dashboard (B2)
 ```
