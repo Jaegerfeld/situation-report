@@ -25,6 +25,12 @@ from portfolio.capability_config import (
     HEALTH_ORDER,
     Capability,
 )
+from portfolio.decision_config import (
+    ASSUMPTION_OPEN,
+    KIND_ASSUMPTION,
+    KIND_DECISION,
+    LogEntry,
+)
 from portfolio.dependency_config import (
     DEP_BLOCKED,
     DEP_DONE,
@@ -1290,5 +1296,184 @@ def dependency_figure(
             cells=dict(values=columns, align="left", fill_color=fills),
         ), row=i, col=1)
     fig.update_layout(title=_dep_title(entries, title, reference),
+                      title_font_size=14, margin=dict(t=40, b=10))
+    return fig
+
+
+# ---------------------------------------------------------------------------
+# Decision / assumption log (B4)
+# ---------------------------------------------------------------------------
+
+#: Cell background per log-entry status (decision and assumption sets).
+_LOG_STATUS_COLORS = {
+    "proposed": "#fff3cd",
+    "accepted": "#e6f4e6",
+    "superseded": "#e2e3e5",
+    "open": "#fff3cd",
+    "confirmed": "#e6f4e6",
+    "invalidated": "#f8d7da",
+}
+
+#: Display order: overdue assumptions surface via _sorted_log_entries; among
+#: statuses the actionable ones come first, history last.
+_LOG_STATUS_RANK = {
+    "open": 0,
+    "proposed": 1,
+    "accepted": 2,
+    "confirmed": 3,
+    "invalidated": 4,
+    "superseded": 5,
+}
+
+
+def _entry_review_due(entry: LogEntry, reference: date | None = None) -> bool:
+    """True when an open assumption's review date has passed."""
+    return (entry.kind == KIND_ASSUMPTION
+            and entry.status == ASSUMPTION_OPEN
+            and entry.review_by is not None
+            and entry.review_by < (reference or date.today()))
+
+
+def _sorted_log_entries(
+    entries: list[tuple[str, LogEntry]], reference: date | None = None
+) -> list[tuple[str, LogEntry]]:
+    """Display order: review-due assumptions first, then by status, source, id."""
+    return sorted(entries, key=lambda e: (
+        0 if _entry_review_due(e[1], reference) else 1,
+        _LOG_STATUS_RANK.get(e[1].status, 9), e[0], e[1].entry_id))
+
+
+def _log_headers(include_source: bool) -> list[str]:
+    """Column headers for the decision-log table (shared by HTML and PDF)."""
+    head = ["Type", "Entry", "Status", "Owner (team)", "Logged", "Review by"]
+    return (["Solution"] + head) if include_source else head
+
+
+def _log_cells(
+    source: str, entry: LogEntry, include_source: bool,
+    reference: date | None = None,
+) -> list[str]:
+    """Row values for one log entry, in the _log_headers() order."""
+    text = f"{entry.entry_id}: {entry.title}"
+    if entry.supersedes:
+        text += f" (supersedes {entry.supersedes})"
+    logged = entry.logged_on.strftime("%d.%m.%Y") if entry.logged_on else "–"
+    review = entry.review_by.strftime("%d.%m.%Y") if entry.review_by else "–"
+    if _entry_review_due(entry, reference):
+        review += " (review due)"
+    row = [entry.kind, text, entry.status, entry.owner or "–", logged, review]
+    return ([source] + row) if include_source else row
+
+
+def _log_title(
+    entries: list[tuple[str, LogEntry]], title: str,
+    reference: date | None = None,
+) -> str:
+    """Append entry counts (decisions, assumptions, due for review)."""
+    decisions = sum(1 for _, e in entries if e.kind == KIND_DECISION)
+    assumptions = sum(1 for _, e in entries if e.kind == KIND_ASSUMPTION)
+    suffix = f"{decisions} decisions, {assumptions} assumptions"
+    due = sum(1 for _, e in entries if _entry_review_due(e, reference))
+    if due:
+        suffix += f" ({due} due for review)"
+    return f"{title} — {suffix}"
+
+
+def _log_include_source(entries: list[tuple[str, LogEntry]]) -> bool:
+    """Show the Solution column only when entries stem from several sources."""
+    return len({source for source, _ in entries}) > 1
+
+
+def render_decisions_html(
+    entries: list[tuple[str, LogEntry]],
+    title: str = "Decision & Assumption Log",
+    reference: date | None = None,
+) -> str:
+    """
+    Render the decision/assumption log as an HTML fragment.
+
+    Open assumptions whose review date has passed sort first with a red
+    Review-by cell; otherwise actionable statuses (open/proposed) precede
+    history (superseded). A Solution column is prepended when the entries
+    stem from more than one source (portfolio mode).
+
+    Args:
+        entries:   (source label, LogEntry) pairs, unordered.
+        title:     Heading shown above the table.
+        reference: Review-due reference date (default: today) — injectable
+                   for tests.
+
+    Returns:
+        An HTML fragment (heading + styled table), or "" if entries is empty.
+    """
+    if not entries:
+        return ""
+
+    include_source = _log_include_source(entries)
+    offset = 1 if include_source else 0
+    heading = _log_title(entries, title, reference)
+    head_html = "".join(f"<th>{_html.escape(h)}</th>"
+                        for h in _log_headers(include_source))
+
+    rows_html = ""
+    for source, entry in _sorted_log_entries(entries, reference):
+        cells = [_html.escape(c)
+                 for c in _log_cells(source, entry, include_source, reference)]
+        tds = []
+        for col, c in enumerate(cells):
+            if col == offset + 2:  # status
+                color = _LOG_STATUS_COLORS.get(entry.status, "#ffffff")
+                tds.append(f"<td style='background:{color};font-weight:600'>{c}</td>")
+            elif col == offset + 5 and _entry_review_due(entry, reference):
+                tds.append(f"<td style='background:{_OVERDUE_COLOR};font-weight:600'>{c}</td>")
+            else:
+                tds.append(f"<td>{c}</td>")
+        rows_html += f"<tr>{''.join(tds)}</tr>"
+
+    return (
+        f"<h2 class='metric-heading'>{_html.escape(heading)}</h2>"
+        f"<table class='sr-summary'><tr>{head_html}</tr>{rows_html}</table>"
+    )
+
+
+def decisions_figure(
+    entries: list[tuple[str, LogEntry]],
+    title: str = "Decision & Assumption Log",
+    reference: date | None = None,
+):
+    """
+    Render the decision/assumption log as a plotly Table figure (PDF export).
+
+    Mirrors render_decisions_html(): coloured status column, review-due
+    highlight in the Review-by column.
+
+    Args:
+        entries:   (source label, LogEntry) pairs, unordered.
+        title:     Figure title.
+        reference: Review-due reference date (default: today).
+
+    Returns:
+        A plotly Figure containing a single Table trace.
+    """
+    import plotly.graph_objects as go
+
+    include_source = _log_include_source(entries)
+    offset = 1 if include_source else 0
+    ordered = _sorted_log_entries(entries, reference)
+    headers = _log_headers(include_source)
+    rows = [_log_cells(source, entry, include_source, reference)
+            for source, entry in ordered]
+    columns = [[row[c] for row in rows] for c in range(len(headers))]
+
+    fill_colors: list[list[str]] = [["white"] * len(rows) for _ in headers]
+    fill_colors[offset + 2] = [_LOG_STATUS_COLORS.get(e.status, "#ffffff")
+                               for _, e in ordered]
+    fill_colors[offset + 5] = [_OVERDUE_COLOR if _entry_review_due(e, reference)
+                               else "white" for _, e in ordered]
+    fig = go.Figure(go.Table(
+        header=dict(values=headers, fill_color="#f2f2f2", align="left"),
+        cells=dict(values=columns, align="left", fill_color=fill_colors),
+    ))
+    fig.update_layout(title=_log_title(entries, title, reference),
                       title_font_size=14, margin=dict(t=40, b=10))
     return fig

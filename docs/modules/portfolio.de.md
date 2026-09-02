@@ -223,6 +223,47 @@ Solution, einen Lieferanten oder ein Fremdsystem zeigen
 (Cross-Solution-Abhängigkeiten werden im Portfolio-Report sichtbar).
 Fehlende oder defekte Dateien werden geloggt und übersprungen.
 
+## Decision-/Assumption-Log (optional)
+
+Eine Solution-Config kann über `"decisions": "pfad/zu/decisions.json"` auf ein
+Entscheidungs-Log verweisen; der Report rendert dann unter der
+Dependency-Heatmap eine **Decision & Assumption Log**-Tabelle (PDF: eigene
+Seite). Ein Portfolio aggregiert die Logs aller Member-Solutions und ergänzt
+eine **Solution**-Spalte. Das Log — leichtgewichtig, ADR-artig:
+
+```json
+{
+  "entries": [
+    {
+      "id": "ADR-1",
+      "kind": "decision",
+      "title": "Vendor-Sync-Service kaufen statt bauen",
+      "status": "accepted",
+      "owner": "ART Beta-1",
+      "logged_on": "2026-04-05",
+      "supersedes": "ADR-0",
+      "notes": "optional"
+    },
+    {
+      "id": "AS-1",
+      "kind": "assumption",
+      "title": "Datenqualität bessert sich mit dem nächsten Rollout",
+      "status": "open",
+      "review_by": "2026-08-23"
+    }
+  ]
+}
+```
+
+`kind` ist `decision` (Status `proposed` / `accepted` / `superseded`) oder
+`assumption` (Status `open` / `confirmed` / `invalidated`) — der Parser
+erzwingt das passende Status-Set. `supersedes` muss einen Eintrag desselben
+Logs benennen; so bleibt die Trade-off-Spur intakt. `review_by` gibt einer
+Annahme ihr Verfallsdatum: eine **offene Annahme mit überschrittenem
+Prüfdatum** sortiert nach oben und bekommt eine rote „review due"-Zelle — der
+Anschlusspunkt für Red-Team-/Premortem-Sitzungen. `owner` benennt ein **Team,
+keine Person**. Fehlende oder defekte Dateien werden geloggt und übersprungen.
+
 ## Eigene Stage-Map (optional, Config-Schema 2)
 
 Standardmäßig poolen unterschiedliche ART-Workflows in die drei kanonischen
@@ -256,6 +297,7 @@ portfolio/
 ├── nfr_config.py      NFR-/Runway-Register (B2): Schema, parse/load/save
 ├── capability_config.py Capability-Map (B1): Schema, parse/load/save
 ├── dependency_config.py Dependency-Register (B5): Schema, parse/load/save
+├── decision_config.py Decision-/Assumption-Log (B4): Schema, parse/load/save
 ├── aggregator.py      Zusammenführung auf Datensatz-Ebene + Rendering (HTML/PDF)
 └── summary.py         Management-Summary + Datenqualität (A1/A2), Ausreißer (A3), ROAM-Board (B3), NFR-Dashboard (B2)
 ```

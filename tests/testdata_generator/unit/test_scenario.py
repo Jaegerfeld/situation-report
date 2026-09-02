@@ -45,6 +45,7 @@ class TestArtifacts:
                     "risks_alpha", "risks_beta", "nfr_alpha", "nfr_beta",
                     "capabilities_alpha", "capabilities_beta",
                     "dependencies_alpha", "dependencies_beta",
+                    "decisions_alpha", "decisions_beta",
                     "pi_config", "readme"):
             assert paths[key].exists(), key
         assert len(list((out / "arts").glob("*_IssueTimes.xlsx"))) == 6
@@ -212,6 +213,35 @@ class TestBuiltInStories:
         _, paths = scenario
         cfg = load_solution_config(paths["portfolio"])
         entries = _collect_dependencies(cfg, log=lambda m: None)
+        assert {source for source, _ in entries} == {"Solution Alpha", "Solution Beta"}
+        assert len(entries) == 5
+
+    def test_decision_logs_load_and_tell_their_story(self, scenario) -> None:
+        from portfolio.decision_config import (
+            ASSUMPTION_OPEN,
+            KIND_ASSUMPTION,
+            load_decisions,
+        )
+        _, paths = scenario
+        alpha = load_decisions(paths["decisions_alpha"])
+        beta = load_decisions(paths["decisions_beta"])
+        assert alpha.entries and beta.entries
+        # Die Geschichte: genau eine offene Annahme mit überschrittenem
+        # Prüfdatum (Beta) — und Alphas supersedes-Kette ist intakt.
+        stale = [e for e in alpha.entries + beta.entries
+                 if e.kind == KIND_ASSUMPTION and e.status == ASSUMPTION_OPEN
+                 and e.review_by is not None and e.review_by < REF]
+        assert len(stale) == 1
+        assert stale[0].entry_id == "AS-B1"
+        chained = [e for e in alpha.entries if e.supersedes]
+        assert len(chained) == 1
+        assert chained[0].supersedes in {e.entry_id for e in alpha.entries}
+
+    def test_portfolio_collects_decisions_from_both_solutions(self, scenario) -> None:
+        from portfolio.aggregator import _collect_decisions
+        _, paths = scenario
+        cfg = load_solution_config(paths["portfolio"])
+        entries = _collect_decisions(cfg, log=lambda m: None)
         assert {source for source, _ in entries} == {"Solution Alpha", "Solution Beta"}
         assert len(entries) == 5
 

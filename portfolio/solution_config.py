@@ -29,7 +29,8 @@ from typing import Any
 # Seit B3 zusaetzlich das optionale "risks"-Feld (Pfad zur ROAM-risks.json),
 # seit B2 das optionale "nfr"-Feld (Pfad zur NFR-/Runway-nfr.json), seit B1
 # das optionale "capabilities"-Feld (Pfad zur Capability-Map-JSON), seit B5
-# das optionale "dependencies"-Feld (Pfad zum Dependency-Register) —
+# das optionale "dependencies"-Feld (Pfad zum Dependency-Register), seit B4
+# das optionale "decisions"-Feld (Pfad zum Decision-/Assumption-Log) —
 # alles additiv, daher kein Schema-Bump.
 SCHEMA_VERSION = 2
 APP_NAME = "situation_report"
@@ -162,6 +163,8 @@ class SolutionConfig:
                     no capability map.
         dependencies: Optional path to a dependency-register JSON (B5); ""
                     means no dependency register.
+        decisions:  Optional path to a decision/assumption-log JSON (B4);
+                    "" means no decision log.
     """
     name: str
     kind: str = KIND_SOLUTION
@@ -176,6 +179,7 @@ class SolutionConfig:
     nfr: str = ""
     capabilities: str = ""
     dependencies: str = ""
+    decisions: str = ""
 
 
 def _parse_date(value: Any) -> date | None:
@@ -262,6 +266,7 @@ def parse_solution_config(data: dict[str, Any]) -> SolutionConfig:
         nfr=str(data.get("nfr", "")).strip(),
         capabilities=str(data.get("capabilities", "")).strip(),
         dependencies=str(data.get("dependencies", "")).strip(),
+        decisions=str(data.get("decisions", "")).strip(),
     )
 
 
@@ -334,6 +339,8 @@ def to_dict(config: SolutionConfig) -> dict[str, Any]:
         out["capabilities"] = config.capabilities
     if config.dependencies:
         out["dependencies"] = config.dependencies
+    if config.decisions:
+        out["decisions"] = config.decisions
     return out
 
 

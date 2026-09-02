@@ -8,6 +8,23 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- Portfolio: **decision / assumption log** (roadmap B4) — a solution config
+  can reference a lightweight ADR-style log
+  (`"decisions": "decisions.json"`; new module
+  `portfolio/decision_config.py`, schema v1: id, kind decision/assumption,
+  title, status, owner, logged_on, review_by, supersedes, notes). Decisions
+  carry proposed/accepted/superseded, assumptions open/confirmed/invalidated
+  — the parser enforces the matching status set and validates that
+  `supersedes` names an entry of the same log. The report renders the table
+  below the dependency heatmap (PDF: own page): an open assumption whose
+  `review_by` date has passed sorts first with a red "review due" cell (the
+  hook for red-team/premortem sessions); the title counts
+  decisions/assumptions/due-for-review. A portfolio aggregates
+  member-solution logs with a Solution column; owners are teams, not
+  persons; broken files are logged and skipped. The demo scenario ships a
+  log per solution (three decisions, two assumptions; Alpha's stage-map
+  decision supersedes an older one, Beta's open assumption is past its
+  review date); manual section 5.11 in all five languages.
 - Portfolio: **dependency / integration heatmap** (roadmap B5) — a solution
   config can reference a dependency register
   (`"dependencies": "dependencies.json"`; new module

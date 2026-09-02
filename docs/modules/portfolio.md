@@ -217,6 +217,47 @@ points may target another solution's ART, a vendor, or an external system
 (cross-solution dependencies become visible in the portfolio report). Missing
 or invalid files are logged and skipped.
 
+## Decision / assumption log (optional)
+
+A solution config may reference a decision log via
+`"decisions": "path/to/decisions.json"`; the report then renders a
+**Decision & Assumption Log** table below the dependency heatmap (PDF: own
+page). A portfolio aggregates the logs of all member solutions and adds a
+**Solution** column. The log — lightweight, ADR-style:
+
+```json
+{
+  "entries": [
+    {
+      "id": "ADR-1",
+      "kind": "decision",
+      "title": "Buy vendor sync service instead of building",
+      "status": "accepted",
+      "owner": "ART Beta-1",
+      "logged_on": "2026-04-05",
+      "supersedes": "ADR-0",
+      "notes": "optional"
+    },
+    {
+      "id": "AS-1",
+      "kind": "assumption",
+      "title": "Data quality improves with the next rollout",
+      "status": "open",
+      "review_by": "2026-08-23"
+    }
+  ]
+}
+```
+
+`kind` is `decision` (status `proposed` / `accepted` / `superseded`) or
+`assumption` (status `open` / `confirmed` / `invalidated`) — the parser
+enforces the matching status set. `supersedes` must name an entry in the same
+log, keeping the trade-off trail intact. `review_by` gives an assumption its
+expiry: an **open assumption whose review date has passed** sorts first and
+gets a red "review due" cell — the hook for red-team/premortem sessions.
+`owner` names a team, not a person. Missing or invalid files are logged and
+skipped.
+
 ## Custom stage map (optional, config schema 2)
 
 By default, differing ART workflows pool into the three canonical groups
@@ -250,6 +291,7 @@ portfolio/
 ├── nfr_config.py      NFR/runway register (B2): schema, parse/load/save
 ├── capability_config.py Capability map (B1): schema, parse/load/save
 ├── dependency_config.py Dependency register (B5): schema, parse/load/save
+├── decision_config.py Decision/assumption log (B4): schema, parse/load/save
 ├── aggregator.py      Record-level pooling + rendering (HTML/PDF)
 └── summary.py         Management summary + data quality (A1/A2), outliers (A3), ROAM board (B3), NFR dashboard (B2)
 ```

@@ -60,6 +60,7 @@ _CANON_STAGES = [GROUP_TODO, GROUP_IN_PROGRESS, GROUP_DONE]
 from project_template import MODULE_BUILD_REPORTS, get_section, load_template
 
 from .capability_config import Capability, load_capabilities
+from .decision_config import LogEntry, load_decisions
 from .dependency_config import Dependency, load_dependencies
 from .nfr_config import Nfr, RunwayItem, load_nfr
 from .risks_config import Risk, load_risks
@@ -78,10 +79,12 @@ from .summary import (
     assess_quality,
     capability_figure,
     compute_summary,
+    decisions_figure,
     dependency_figure,
     nfr_figure,
     quality_figure,
     render_capabilities_html,
+    render_decisions_html,
     render_dependencies_html,
     render_nfr_html,
     render_quality_html,
@@ -548,6 +551,37 @@ def _collect_capabilities(
     return entries
 
 
+def _collect_decisions(
+    config: SolutionConfig,
+    log: Callable[[str], None] = print,
+) -> list[tuple[str, LogEntry]]:
+    """
+    Collect decision/assumption-log entries for the report (B4).
+
+    Same resolution rules as the other governance registers: a solution loads
+    its own ``decisions`` file, a portfolio aggregates its member solutions'
+    logs; broken or missing files are logged and skipped.
+
+    Args:
+        config: The solution or portfolio configuration.
+        log:    Progress/warning callback.
+
+    Returns:
+        (source label, LogEntry) pairs; empty when no log is referenced.
+    """
+    entries: list[tuple[str, LogEntry]] = []
+    for label, sub in _governance_sources(config, log):
+        if not sub.decisions:
+            continue
+        try:
+            decision_log = load_decisions(Path(sub.decisions))
+        except (OSError, ValueError, json.JSONDecodeError) as exc:
+            log(f"  WARNING [{label}]: decisions file skipped ({exc})")
+            continue
+        entries.extend((label, entry) for entry in decision_log.entries)
+    return entries
+
+
 def _collect_dependencies(
     config: SolutionConfig,
     log: Callable[[str], None] = print,
@@ -680,8 +714,10 @@ def render_html(
     roam = render_roam_html(_collect_risks(config, log=log))
     nfr = render_nfr_html(*_collect_nfr(config, log=log))
     deps = render_dependencies_html(_collect_dependencies(config, log=log))
+    decisions = render_decisions_html(_collect_decisions(config, log=log))
     return html.replace(
-        "<body>", "<body>" + summary + quality + caps + roam + nfr + deps, 1)
+        "<body>",
+        "<body>" + summary + quality + caps + roam + nfr + deps + decisions, 1)
 
 
 def render_pdf(
@@ -726,6 +762,9 @@ def render_pdf(
     dep_entries = _collect_dependencies(config, log=log)
     if dep_entries:
         extra.append(dependency_figure(dep_entries))
+    log_entries = _collect_decisions(config, log=log)
+    if log_entries:
+        extra.append(decisions_figure(log_entries))
     pages[1:1] = extra
     export_pdf(pages, Path(output_path))
     log(f"PDF written to: {output_path}")

@@ -28,6 +28,8 @@
 #     Data-Insights-Capability ist kritisch, eine Alpha-Capability uncovered.
 #   - Beide Solutions bringen ein Dependency-Register mit (B5); Alpha-1 →
 #     Alpha-3 blockiert + überfällig, Beta-1 → Alpha-1 Cross-Solution.
+#   - Beide Solutions bringen ein Decision-/Assumption-Log mit (B4); Betas
+#     offene Annahme hat ihr Prüfdatum überschritten → „review due" rot.
 # =============================================================================
 
 from __future__ import annotations
@@ -45,6 +47,17 @@ from portfolio.capability_config import (
     Capability,
     CapabilityMap,
     save_capabilities,
+)
+from portfolio.decision_config import (
+    ASSUMPTION_CONFIRMED,
+    ASSUMPTION_OPEN,
+    DECISION_ACCEPTED,
+    DECISION_SUPERSEDED,
+    KIND_ASSUMPTION,
+    KIND_DECISION,
+    DecisionLog,
+    LogEntry,
+    save_decisions,
 )
 from portfolio.dependency_config import (
     DEP_AT_RISK,
@@ -235,6 +248,46 @@ def _beta_capabilities(reference: date) -> CapabilityMap:
     ])
 
 
+def _alpha_decisions(reference: date) -> DecisionLog:
+    """Decision log of Solution Alpha: a superseded chain plus a confirmed assumption."""
+    return DecisionLog(entries=[
+        LogEntry("ADR-A2", KIND_DECISION,
+                 "Pool ARTs via fixed three-group mapping",
+                 DECISION_SUPERSEDED, owner="System Team",
+                 logged_on=reference - timedelta(days=120)),
+        LogEntry("ADR-A1", KIND_DECISION,
+                 "Pool ARTs via custom stage map (schema 2)",
+                 DECISION_ACCEPTED, owner="System Team",
+                 logged_on=reference - timedelta(days=60),
+                 supersedes="ADR-A2",
+                 notes="Keeps heterogeneous workflows comparable."),
+        LogEntry("AS-A1", KIND_ASSUMPTION,
+                 "All ARTs keep exporting weekly Jira snapshots",
+                 ASSUMPTION_CONFIRMED, owner="ART Alpha-1",
+                 logged_on=reference - timedelta(days=90),
+                 review_by=reference + timedelta(days=90)),
+    ])
+
+
+def _beta_decisions(reference: date) -> DecisionLog:
+    """Decision log of Solution Beta: the overdue open assumption lives here."""
+    return DecisionLog(entries=[
+        LogEntry("ADR-B1", KIND_DECISION,
+                 "Buy vendor sync service instead of building",
+                 DECISION_ACCEPTED, owner="ART Beta-1",
+                 logged_on=reference - timedelta(days=150),
+                 notes="Trade-off: rate limits accepted (see dependency BD-1)."),
+        # Die Geschichte: eine offene Annahme mit überschrittenem Prüfdatum —
+        # genau die Sorte Selbstberuhigung, die ein Premortem aufdecken soll.
+        LogEntry("AS-B1", KIND_ASSUMPTION,
+                 "Beta-3 data quality will fix itself with the next Jira rollout",
+                 ASSUMPTION_OPEN, owner="ART Beta-3",
+                 logged_on=reference - timedelta(days=70),
+                 review_by=reference - timedelta(days=10),
+                 notes="Review due: matches the weak-source story."),
+    ])
+
+
 def _alpha_dependencies(reference: date) -> DependencyRegister:
     """Dependencies of Solution Alpha: the overdue blocked one lives here."""
     return DependencyRegister(dependencies=[
@@ -420,19 +473,25 @@ def build_portfolio_scenario(
     save_dependencies(deps_alpha, _alpha_dependencies(reference))
     deps_beta = out / "dependencies_beta.json"
     save_dependencies(deps_beta, _beta_dependencies(reference))
+    decisions_alpha = out / "decisions_alpha.json"
+    save_decisions(decisions_alpha, _alpha_decisions(reference))
+    decisions_beta = out / "decisions_beta.json"
+    save_decisions(decisions_beta, _beta_decisions(reference))
 
     solution_alpha = out / "solution_alpha.json"
     save_solution_config(solution_alpha, SolutionConfig(
         name="Solution Alpha", members=members["alpha"],
         from_date=reference - timedelta(days=window_days), to_date=reference,
         risks=str(risks_alpha), nfr=str(nfr_alpha),
-        capabilities=str(caps_alpha), dependencies=str(deps_alpha)))
+        capabilities=str(caps_alpha), dependencies=str(deps_alpha),
+        decisions=str(decisions_alpha)))
     solution_beta = out / "solution_beta.json"
     save_solution_config(solution_beta, SolutionConfig(
         name="Solution Beta", members=members["beta"],
         from_date=reference - timedelta(days=window_days), to_date=reference,
         stage_map=_BETA_STAGE_MAP, risks=str(risks_beta), nfr=str(nfr_beta),
-        capabilities=str(caps_beta), dependencies=str(deps_beta)))
+        capabilities=str(caps_beta), dependencies=str(deps_beta),
+        decisions=str(decisions_beta)))
 
     portfolio_cfg = out / "portfolio.json"
     save_solution_config(portfolio_cfg, SolutionConfig(
@@ -490,6 +549,11 @@ def build_portfolio_scenario(
         "  `dependencies_beta.json`); Alpha-1 → Alpha-3 ist blockiert und",
         "  überfällig (der Ausreißer liefert nicht), Beta-1 → Alpha-1 ist eine",
         "  Cross-Solution-Integration — im Portfolio-Report sichtbar.",
+        "- **Decision-Log**: beide Solutions bringen ein Decision-/",
+        "  Assumption-Log mit (`decisions_alpha.json`/`decisions_beta.json`);",
+        "  Alphas Stage-Map-Entscheidung ersetzt eine ältere (supersedes),",
+        "  Betas offene Annahme „Beta-3 heilt sich selbst\" hat ihr Prüfdatum",
+        "  überschritten — im Log rot als „review due\" markiert.",
         "",
         "Die Pfade in den Configs sind absolut — nach dem Verschieben des",
         "Ordners das Szenario neu erzeugen.",
@@ -501,5 +565,6 @@ def build_portfolio_scenario(
             "risks_beta": risks_beta, "nfr_alpha": nfr_alpha,
             "nfr_beta": nfr_beta, "capabilities_alpha": caps_alpha,
             "capabilities_beta": caps_beta, "dependencies_alpha": deps_alpha,
-            "dependencies_beta": deps_beta, "pi_config": pi_cfg,
+            "dependencies_beta": deps_beta, "decisions_alpha": decisions_alpha,
+            "decisions_beta": decisions_beta, "pi_config": pi_cfg,
             "readme": readme}
