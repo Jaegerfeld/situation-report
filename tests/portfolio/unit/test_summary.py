@@ -13,13 +13,19 @@
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import date, datetime
 
 from build_reports.loader import IssueRecord, ReportData
 from portfolio.summary import (
+    CONFIDENCE_HIGH,
+    CONFIDENCE_LOW,
+    CONFIDENCE_MEDIUM,
     Summary,
     _percentile,
+    assess_quality,
     compute_summary,
+    quality_figure,
+    render_quality_html,
     render_summary_html,
 )
 
@@ -125,3 +131,105 @@ class TestSummaryFigure:
         assert fig.data[0].type == "table"
         # the label cell is present in the table's first column
         assert "Sol A" in list(fig.data[0].cells.values[0])
+
+
+# ---------------------------------------------------------------------------
+# A1: data quality / confidence flag per source
+# ---------------------------------------------------------------------------
+
+def _quality_data(n_with_first: int, n_without_first: int,
+                  cfd_days: int = 0) -> ReportData:
+    """Build ReportData with a given first-date coverage and optional CFD."""
+    from datetime import date as _date
+    from datetime import timedelta
+
+    from build_reports.loader import CfdRecord
+    issues = [_issue(f"Q-{i}", 1, 5) for i in range(n_with_first)]
+    issues += [_issue(f"QN-{i}", None, None) for i in range(n_without_first)]
+    cfd = [CfdRecord(day=_date(2025, 1, 1) + timedelta(days=i), stage_counts={})
+           for i in range(cfd_days)]
+    return ReportData(issues=issues, cfd=cfd, source_prefix="ART X")
+
+
+class TestAssessQuality:
+    REF = date(2025, 1, 10)
+
+    def test_counts_and_percentages(self) -> None:
+        q = assess_quality(_quality_data(8, 2, cfd_days=3), "ART X", reference=self.REF)
+        assert q.records == 10
+        assert q.pct_missing_first == 20.0
+        assert q.pct_open == 20.0
+        assert q.has_cfd is True
+
+    def test_data_as_of_is_newest_record_date(self) -> None:
+        q = assess_quality(_quality_data(3, 0, cfd_days=4), "ART X", reference=self.REF)
+        # newest issue date: closed 05.01.; newest CFD day: 04.01. -> 05.01.
+        assert q.data_as_of == date(2025, 1, 5)
+        assert q.age_days == 5
+
+    def test_empty_source_is_low(self) -> None:
+        q = assess_quality(_quality_data(0, 0), "ART X", reference=self.REF)
+        assert q.records == 0
+        assert q.confidence == CONFIDENCE_LOW
+
+    def test_majority_missing_first_is_low(self) -> None:
+        q = assess_quality(_quality_data(4, 6, cfd_days=1), "ART X", reference=self.REF)
+        assert q.confidence == CONFIDENCE_LOW
+
+    def test_some_missing_first_is_medium(self) -> None:
+        q = assess_quality(_quality_data(8, 2, cfd_days=1), "ART X", reference=self.REF)
+        assert q.confidence == CONFIDENCE_MEDIUM
+
+    def test_missing_cfd_is_medium(self) -> None:
+        q = assess_quality(_quality_data(10, 0, cfd_days=0), "ART X", reference=self.REF)
+        assert q.confidence == CONFIDENCE_MEDIUM
+
+    def test_stale_data_is_medium(self) -> None:
+        q = assess_quality(_quality_data(10, 0, cfd_days=1), "ART X",
+                           reference=date(2025, 3, 1))
+        assert q.confidence == CONFIDENCE_MEDIUM
+
+    def test_fresh_complete_source_is_high(self) -> None:
+        q = assess_quality(_quality_data(10, 0, cfd_days=1), "ART X", reference=self.REF)
+        assert q.confidence == CONFIDENCE_HIGH
+
+
+class TestRenderQualityHtml:
+    def test_empty_returns_empty_string(self) -> None:
+        assert render_quality_html([]) == ""
+
+    def test_confidence_cell_is_colored_and_labelled(self) -> None:
+        q = assess_quality(_quality_data(10, 0, cfd_days=1), "ART X",
+                           reference=date(2025, 1, 10))
+        html = render_quality_html([q])
+        assert "Data Quality per Source" in html
+        assert "ART X" in html
+        assert ">high<" in html
+        assert "#e6f4e6" in html  # green fill on the confidence cell
+
+    def test_low_confidence_uses_red_fill(self) -> None:
+        q = assess_quality(_quality_data(0, 0), "Empty ART",
+                           reference=date(2025, 1, 10))
+        html = render_quality_html([q])
+        assert ">low<" in html
+        assert "#f8d7da" in html
+
+    def test_payload_label_is_escaped(self) -> None:
+        data = _quality_data(1, 0, cfd_days=1)
+        q = assess_quality(data, "<script>alert(1)</script>",
+                           reference=date(2025, 1, 10))
+        html = render_quality_html([q])
+        assert "<script>" not in html
+        assert "&lt;script&gt;" in html
+
+
+class TestQualityFigure:
+    def test_builds_table_with_confidence_fill(self) -> None:
+        q_high = assess_quality(_quality_data(10, 0, cfd_days=1), "A",
+                                reference=date(2025, 1, 10))
+        q_low = assess_quality(_quality_data(0, 0), "B",
+                               reference=date(2025, 1, 10))
+        fig = quality_figure([q_high, q_low])
+        assert fig.data[0].type == "table"
+        conf_col = fig.data[0].cells.values[-1]
+        assert list(conf_col) == ["high", "low"]
