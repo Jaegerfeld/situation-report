@@ -340,3 +340,37 @@ class TestWriteIssueTimes:
         row = dict(zip(header, data[0]))
         assert row["Created Date"] == "01.06.2025 08:00:00"
         assert row["First Date"] == "03.06.2025 10:00:00"
+
+
+class TestFormulaInjectionHardening:
+    """XLSX outputs must never contain live formulas (CWE-1236).
+
+    openpyxl turns any string value starting with "=" into a formula cell.
+    Jira free-text fields (resolution, component, ...) are attacker-influenced,
+    so the writers coerce such cells back to plain text while keeping the
+    value byte-identical.
+    """
+
+    PAYLOAD = '=HYPERLINK("http://evil.example","click")'
+
+    def test_issue_times_payload_stays_text(self, workflow, tmp_path):
+        d = _dt(date(2025, 1, 1))
+        record = _full_record("T-1", d, {"Funnel": 0, "Analysis": 0, "Done": 0},
+                              resolution=self.PAYLOAD)
+        out = tmp_path / "IT.xlsx"
+        write_issue_times([record], workflow, out)
+        ws = openpyxl.load_workbook(out).active
+        header = [c.value for c in ws[1]]
+        cell = ws.cell(row=2, column=header.index("Resolution") + 1)
+        assert cell.value == self.PAYLOAD
+        assert cell.data_type == "s", "payload must be stored as text, not as a formula"
+
+    def test_transitions_payload_stays_text(self, tmp_path):
+        d = _dt(date(2025, 1, 1))
+        record = _record("=1+1", d, "Funnel", [("=CMD()", d)])
+        out = tmp_path / "TR.xlsx"
+        write_transitions([record], out)
+        ws = openpyxl.load_workbook(out).active
+        for row in ws.iter_rows(min_row=2):
+            for cell in row:
+                assert cell.data_type != "f", f"formula cell leaked: {cell.value!r}"

@@ -62,3 +62,6 @@ transform_data/*.json
 build_reports/*.pdf
 build_reports/prototype screens/
 build_reports/steckbrief_*.txt
+
+# OneDrive sync-conflict copies (never commit)
+*-AMD-R9-DARKSTAR.py
