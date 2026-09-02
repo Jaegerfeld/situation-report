@@ -51,7 +51,8 @@ python -m testdata_generator \
 
 | Parameter | Standard | Beschreibung |
 |-----------|---------|-------------|
-| `--workflow FILE` | (Pflicht) | Workflow-Definitionsdatei |
+| `--scenario portfolio` | (keiner) | Erzeugt das komplette Demo-Portfolio statt einer einzelnen JSON (siehe unten) |
+| `--workflow FILE` | (Pflicht ohne `--scenario`) | Workflow-Definitionsdatei |
 | `--output FILE.json` | `<project>_generated.json` | Ausgabedatei |
 | `--project KEY` | `TEST` | Jira-Projekt-Key |
 | `--issues N` | `100` | Anzahl zu generierender Issues |
@@ -88,6 +89,33 @@ python -m testdata_generator \
     --std-cycle-days 10 \
     --output triangle.json
 ```
+
+## Portfolio-Szenario
+
+```bash
+python -m testdata_generator --scenario portfolio --output demo/ --seed 42
+```
+
+Erzeugt in einem Schritt ein vollständiges, konsistentes Demo-Portfolio: zwei
+Solutions mit je drei ARTs, inklusive aller Artefakte der Verarbeitungskette —
+Workflow-Dateien, Roh-Jira-JSON, `IssueTimes`/`CFD`/`Transitions`-Arbeitsmappen,
+zwei Solution-Configs (Solution Beta mit eigener `stage_map`, Schema 2), eine
+Portfolio-Config, eine PI-Config und ein README mit den eingebauten Geschichten.
+Das Datenfenster liegt relativ zum Erzeugungsdatum, damit die Qualitäts-Ampel
+des Portfolio-Reports die Quellen als aktuell einstuft.
+
+Eingebaute Geschichten (deterministisch je Seed):
+
+- **ART Alpha-3** ist der Ausreißer (ca. 3× Cycle Time) — im Comparison-Report
+  der Solution Alpha rot hervorgehoben.
+- **ART Beta-3** liefert schwache Daten (kein CFD, kaum begonnene Issues,
+  Datenstand 60 Tage alt) — Konfidenz `low` in der Qualitätstabelle,
+  Abdeckung unter 100 %.
+- **Solution Beta** poolt über eine eigene `stage_map`; Solution Alpha nutzt
+  den Default-Klassifikationspfad.
+
+Der Ordner ist direkt verwendbar: `python -m portfolio demo/portfolio.json`
+erzeugt den Portfolio-Report; die Solution-Configs funktionieren auch einzeln.
 
 ## Workflow-Datei
 
@@ -128,6 +156,7 @@ testdata_generator/
 ├── __main__.py          Dispatcher: GUI ohne Argumente, CLI mit Argumenten
 ├── cli.py               run_generate() + argparse CLI
 ├── generator.py         Kernlogik: Issue-Simulation
+├── scenario.py          Portfolio-Szenario (2 Solutions × 3 ARTs, alle Artefakte)
 └── workflow_parser.py   Re-Export von transform_data.workflow
 ```
 

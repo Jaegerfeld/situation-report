@@ -5,6 +5,25 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [Unreleased]
+
+### Added
+- Testdata generator: **portfolio scenario** (`--scenario portfolio`) — one
+  command generates a complete, consistent demo portfolio: two solutions with
+  three ARTs each, including every artifact of the processing chain (workflow
+  files, raw Jira JSON, IssueTimes/CFD/Transitions workbooks, solution configs,
+  portfolio config, PI config, README). Solution Beta carries its own
+  `stage_map` (schema 2); the data window is placed relative to the generation
+  date so the quality traffic light rates the sources as current. Built-in
+  stories: ART Alpha-3 as cycle-time outlier (comparison highlighting),
+  ART Beta-3 as weak source (no CFD, few First Dates, 60-day-old data →
+  confidence `low`), Solution Beta pooling via custom stage map. Deterministic
+  per seed; `--workflow` is now only required without `--scenario`.
+  New module `testdata_generator/scenario.py` with
+  `build_portfolio_scenario()`; manual chapter 5b in all five languages.
+
+---
+
 ## [0.18.0] – 2026-09-02
 
 ### Added

@@ -538,6 +538,42 @@ def content_de(st: dict) -> list:
                   "- Gelegentliche Rückschritte (backflow-prob 0.08 = ca. 8 %)", st)]
 
     story += [PageBreak(),
+              H1("5b  Das Portfolio-Szenario", st), HR(),
+              P("Mit <font name='Courier'>--scenario portfolio</font> erzeugt der Generator "
+                "in einem Schritt ein komplettes Demo-Portfolio: zwei Solutions mit je drei "
+                "ARTs, inklusive aller Artefakte der Verarbeitungskette.", st),
+              PRE("python -m testdata_generator --scenario portfolio \\\n"
+                  "    --output demo/ --seed 42", st),
+              P("Der Zielordner enthält danach:", st),
+              tbl(["Artefakt", "Inhalt"],
+                  [["workflows/", "zwei Workflow-Dateien (Alpha- und Beta-Stages)"],
+                   ["raw/", "sechs Jira-JSON-Exporte (ein Generatorlauf je ART)"],
+                   ["arts/", "IssueTimes-, CFD- und Transitions-Dateien je ART"],
+                   ["solution_alpha.json", "Solution-Config ohne stage_map (Default-Pfad)"],
+                   ["solution_beta.json", "Solution-Config mit eigener stage_map (Schema 2)"],
+                   ["portfolio.json", "Portfolio-Config über beide Solutions"],
+                   ["pi_config.json", "PI-Intervalle über den Datenzeitraum"],
+                   ["README.md", "Beschreibung der eingebauten Geschichten"]],
+                  col_widths=[4.5 * cm, 11 * cm]),
+              SP(6),
+              P("Die Daten liegen relativ zum Erzeugungsdatum, damit die Qualitäts-Ampel "
+                "des Portfolio-Reports sie als aktuell einstuft. Drei Geschichten sind "
+                "fest eingebaut:", st),
+              box("<b>Eingebaute Geschichten:</b><br/>"
+                  "- <b>ART Alpha-3</b> ist der Ausreißer (ca. dreifache Cycle Time) — im "
+                  "Comparison-Report der Solution Alpha rot hervorgehoben.<br/>"
+                  "- <b>ART Beta-3</b> liefert schwache Daten (kein CFD, kaum begonnene "
+                  "Issues, Datenstand 60 Tage alt) — Konfidenz 'low' in der "
+                  "Qualitätstabelle.<br/>"
+                  "- <b>Solution Beta</b> poolt über eine eigene stage_map "
+                  "(Vorlauf/Umsetzung/Fertig); Solution Alpha nutzt den Default-Pfad.", st),
+              SP(6),
+              P("Der Ordner ist direkt verwendbar: "
+                "<font name='Courier'>python -m portfolio demo/portfolio.json</font> erzeugt "
+                "den Portfolio-Report; die Solution-Configs funktionieren auch einzeln. "
+                "Gleicher Seed ergibt am selben Tag identische Daten.", st)]
+
+    story += [PageBreak(),
               H1("6  Häufige Fragen (FAQ)", st), HR(),
               H2("Unterschied zwischen Testdaten und echten Daten?", st),
               P("Für Demos, Schulungen und Installationstests sind Testdaten die bessere "
@@ -808,6 +844,41 @@ def content_en(st: dict) -> list:
                   "- Occasional backward transitions (~8 %)", st)]
 
     story += [PageBreak(),
+              H1("5b  The Portfolio Scenario", st), HR(),
+              P("With <font name='Courier'>--scenario portfolio</font> the generator "
+                "creates a complete demo portfolio in one step: two solutions with three "
+                "ARTs each, including every artifact of the processing chain.", st),
+              PRE("python -m testdata_generator --scenario portfolio \\\n"
+                  "    --output demo/ --seed 42", st),
+              P("The target folder then contains:", st),
+              tbl(["Artifact", "Content"],
+                  [["workflows/", "two workflow files (Alpha and Beta stages)"],
+                   ["raw/", "six Jira JSON exports (one generator run per ART)"],
+                   ["arts/", "IssueTimes, CFD, and Transitions files per ART"],
+                   ["solution_alpha.json", "solution config without stage_map (default path)"],
+                   ["solution_beta.json", "solution config with its own stage_map (schema 2)"],
+                   ["portfolio.json", "portfolio config covering both solutions"],
+                   ["pi_config.json", "PI intervals across the data window"],
+                   ["README.md", "description of the built-in stories"]],
+                  col_widths=[4.5 * cm, 11 * cm]),
+              SP(6),
+              P("The data is placed relative to the generation date so the portfolio "
+                "report's quality traffic light rates it as current. Three stories are "
+                "built in:", st),
+              box("<b>Built-in stories:</b><br/>"
+                  "- <b>ART Alpha-3</b> is the outlier (about three times the cycle "
+                  "time) — highlighted red in Solution Alpha's comparison report.<br/>"
+                  "- <b>ART Beta-3</b> delivers weak data (no CFD, few started issues, "
+                  "data 60 days old) — confidence 'low' in the quality table.<br/>"
+                  "- <b>Solution Beta</b> pools via its own stage_map "
+                  "(Vorlauf/Umsetzung/Fertig); Solution Alpha uses the default path.", st),
+              SP(6),
+              P("The folder is directly usable: "
+                "<font name='Courier'>python -m portfolio demo/portfolio.json</font> builds "
+                "the portfolio report; the solution configs also work individually. "
+                "The same seed yields identical data on the same day.", st)]
+
+    story += [PageBreak(),
               H1("6  Frequently Asked Questions (FAQ)", st), HR(),
               H2("Difference between test data and real data?", st),
               P("For demos, training, and installation tests, test data is the better "
@@ -1021,6 +1092,43 @@ def content_ro(st: dict) -> list:
                   "    --workflow testdata_generator/workflow_ART_A.txt", st),
               H2("Pasul 3: Creare raport cu build_reports", st),
               PRE("python -m build_reports", st)]
+
+    story += [PageBreak(),
+              H1("5b  Scenariul de portofoliu", st), HR(),
+              P("Cu <font name='Courier'>--scenario portfolio</font> generatorul creează "
+                "într-un singur pas un portofoliu demo complet: două soluții cu câte trei "
+                "ART-uri, inclusiv toate artefactele lanțului de procesare.", st),
+              PRE("python -m testdata_generator --scenario portfolio \\\n"
+                  "    --output demo/ --seed 42", st),
+              P("Directorul țintă conține apoi:", st),
+              tbl(["Artefact", "Conținut"],
+                  [["workflows/", "două fișiere de flux de lucru (etape Alpha și Beta)"],
+                   ["raw/", "șase exporturi JSON Jira (o rulare de generator per ART)"],
+                   ["arts/", "fișiere IssueTimes, CFD și Transitions per ART"],
+                   ["solution_alpha.json", "config de soluție fără stage_map (cale implicită)"],
+                   ["solution_beta.json", "config de soluție cu stage_map propriu (schema 2)"],
+                   ["portfolio.json", "config de portofoliu peste ambele soluții"],
+                   ["pi_config.json", "intervale PI pe fereastra de date"],
+                   ["README.md", "descrierea poveștilor încorporate"]],
+                  col_widths=[4.5 * cm, 11 * cm]),
+              SP(6),
+              P("Datele sunt plasate relativ la data generării, astfel încât semaforul "
+                "de calitate al raportului de portofoliu să le evalueze ca actuale. Trei "
+                "povești sunt încorporate:", st),
+              box("<b>Povești încorporate:</b><br/>"
+                  "- <b>ART Alpha-3</b> este valoarea aberantă (cycle time de circa trei "
+                  "ori mai mare) — evidențiat cu roșu în raportul de comparație al "
+                  "Solution Alpha.<br/>"
+                  "- <b>ART Beta-3</b> livrează date slabe (fără CFD, puține issue-uri "
+                  "începute, date vechi de 60 de zile) — încredere 'low' în tabelul de "
+                  "calitate.<br/>"
+                  "- <b>Solution Beta</b> agregă printr-un stage_map propriu "
+                  "(Vorlauf/Umsetzung/Fertig); Solution Alpha folosește calea implicită.", st),
+              SP(6),
+              P("Directorul este direct utilizabil: "
+                "<font name='Courier'>python -m portfolio demo/portfolio.json</font> "
+                "construiește raportul de portofoliu; configurile de soluție funcționează "
+                "și individual. Același seed produce date identice în aceeași zi.", st)]
 
     story += [PageBreak(),
               H1("6  Întrebări frecvente (FAQ)", st), HR(),
@@ -1238,6 +1346,44 @@ def content_pt(st: dict) -> list:
                   "    --workflow testdata_generator/workflow_ART_A.txt", st),
               H2("Passo 3: Criar relatório com build_reports", st),
               PRE("python -m build_reports", st)]
+
+    story += [PageBreak(),
+              H1("5b  O cenário de portfólio", st), HR(),
+              P("Com <font name='Courier'>--scenario portfolio</font> o gerador cria num "
+                "único passo um portfólio de demonstração completo: duas solutions com "
+                "três ARTs cada, incluindo todos os artefactos da cadeia de "
+                "processamento.", st),
+              PRE("python -m testdata_generator --scenario portfolio \\\n"
+                  "    --output demo/ --seed 42", st),
+              P("A pasta de destino contém depois:", st),
+              tbl(["Artefacto", "Conteúdo"],
+                  [["workflows/", "dois ficheiros de fluxo de trabalho (etapas Alpha e Beta)"],
+                   ["raw/", "seis exports JSON do Jira (uma execução do gerador por ART)"],
+                   ["arts/", "ficheiros IssueTimes, CFD e Transitions por ART"],
+                   ["solution_alpha.json", "config de solution sem stage_map (caminho padrão)"],
+                   ["solution_beta.json", "config de solution com stage_map próprio (schema 2)"],
+                   ["portfolio.json", "config de portfólio sobre ambas as solutions"],
+                   ["pi_config.json", "intervalos PI sobre a janela de dados"],
+                   ["README.md", "descrição das histórias incorporadas"]],
+                  col_widths=[4.5 * cm, 11 * cm]),
+              SP(6),
+              P("Os dados são colocados relativamente à data de geração, para que o "
+                "semáforo de qualidade do relatório de portfólio os avalie como atuais. "
+                "Três histórias estão incorporadas:", st),
+              box("<b>Histórias incorporadas:</b><br/>"
+                  "- <b>ART Alpha-3</b> é o outlier (cycle time cerca de três vezes "
+                  "maior) — destacado a vermelho no relatório de comparação da Solution "
+                  "Alpha.<br/>"
+                  "- <b>ART Beta-3</b> fornece dados fracos (sem CFD, poucos issues "
+                  "iniciados, dados com 60 dias) — confiança 'low' na tabela de "
+                  "qualidade.<br/>"
+                  "- <b>Solution Beta</b> agrega através de um stage_map próprio "
+                  "(Vorlauf/Umsetzung/Fertig); a Solution Alpha usa o caminho padrão.", st),
+              SP(6),
+              P("A pasta é diretamente utilizável: "
+                "<font name='Courier'>python -m portfolio demo/portfolio.json</font> gera "
+                "o relatório de portfólio; as configs de solution também funcionam "
+                "individualmente. A mesma seed produz dados idênticos no mesmo dia.", st)]
 
     story += [PageBreak(),
               H1("6  Perguntas frequentes (FAQ)", st), HR(),
@@ -1458,6 +1604,46 @@ def content_fr(st: dict) -> list:
                   "    --workflow testdata_generator/workflow_ART_A.txt", st),
               H2("Étape 3 : Créer le rapport avec build_reports", st),
               PRE("python -m build_reports", st)]
+
+    story += [PageBreak(),
+              H1("5b  Le scénario de portefeuille", st), HR(),
+              P("Avec <font name='Courier'>--scenario portfolio</font>, le générateur "
+                "crée en une seule étape un portefeuille de démonstration complet : deux "
+                "solutions de trois ARTs chacune, avec tous les artefacts de la chaîne "
+                "de traitement.", st),
+              PRE("python -m testdata_generator --scenario portfolio \\\n"
+                  "    --output demo/ --seed 42", st),
+              P("Le dossier cible contient ensuite :", st),
+              tbl(["Artefact", "Contenu"],
+                  [["workflows/", "deux fichiers de flux de travail (étapes Alpha et Beta)"],
+                   ["raw/", "six exports JSON Jira (une exécution du générateur par ART)"],
+                   ["arts/", "fichiers IssueTimes, CFD et Transitions par ART"],
+                   ["solution_alpha.json", "config de solution sans stage_map (chemin par défaut)"],
+                   ["solution_beta.json", "config de solution avec stage_map propre (schéma 2)"],
+                   ["portfolio.json", "config de portefeuille couvrant les deux solutions"],
+                   ["pi_config.json", "intervalles PI sur la fenêtre de données"],
+                   ["README.md", "description des histoires intégrées"]],
+                  col_widths=[4.5 * cm, 11 * cm]),
+              SP(6),
+              P("Les données sont placées relativement à la date de génération, afin que "
+                "le feu de qualité du rapport de portefeuille les évalue comme actuelles. "
+                "Trois histoires sont intégrées :", st),
+              box("<b>Histoires intégrées :</b><br/>"
+                  "- <b>ART Alpha-3</b> est la valeur aberrante (cycle time environ "
+                  "triplé) — surligné en rouge dans le rapport de comparaison de la "
+                  "Solution Alpha.<br/>"
+                  "- <b>ART Beta-3</b> fournit des données faibles (pas de CFD, peu "
+                  "d'issues commencées, données vieilles de 60 jours) — confiance 'low' "
+                  "dans le tableau de qualité.<br/>"
+                  "- <b>Solution Beta</b> agrège via son propre stage_map "
+                  "(Vorlauf/Umsetzung/Fertig) ; la Solution Alpha utilise le chemin par "
+                  "défaut.", st),
+              SP(6),
+              P("Le dossier est directement utilisable : "
+                "<font name='Courier'>python -m portfolio demo/portfolio.json</font> "
+                "génère le rapport de portefeuille ; les configs de solution "
+                "fonctionnent aussi individuellement. La même graine produit des données "
+                "identiques le même jour.", st)]
 
     story += [PageBreak(),
               H1("6  Foire aux questions (FAQ)", st), HR(),

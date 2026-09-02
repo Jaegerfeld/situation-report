@@ -190,8 +190,14 @@ def main() -> None:
         prog="python -m testdata_generator",
         description="Generate synthetic Jira issue data in REST API JSON format.",
     )
-    parser.add_argument("--workflow", required=True, type=Path,
-                        help="Workflow definition file (.txt) — defines stages and boundaries.")
+    parser.add_argument("--workflow", type=Path, default=None,
+                        help="Workflow definition file (.txt) — defines stages and boundaries. "
+                             "Required unless --scenario is used.")
+    parser.add_argument("--scenario", choices=["portfolio"], default=None,
+                        help="Generate a complete demo scenario instead of a single "
+                             "project: 'portfolio' builds 2 solutions x 3 ARTs with "
+                             "IssueTimes/CFD/Transitions, solution/portfolio configs "
+                             "(one with a stage_map), and a PI config into --output.")
     parser.add_argument("--output", type=Path, default=None,
                         help="Output JSON file path (default: <project>_generated.json).")
     parser.add_argument("--project", default="TEST", dest="project_key",
@@ -229,6 +235,15 @@ def main() -> None:
                         help="Pattern intensity 0–100 (0=subtle, 50=default, 100=strong).")
 
     args = parser.parse_args()
+
+    if args.scenario == "portfolio":
+        from .scenario import build_portfolio_scenario
+        out_dir = args.output if args.output else Path("demo_portfolio")
+        build_portfolio_scenario(Path(out_dir), seed=args.seed if args.seed is not None else 42)
+        return
+
+    if args.workflow is None:
+        parser.error("--workflow is required (unless --scenario is used).")
 
     issue_types: dict[str, float] | None = None
     if args.issue_types:
