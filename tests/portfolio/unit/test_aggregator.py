@@ -18,7 +18,7 @@ from datetime import date, datetime
 
 from build_reports.loader import CfdRecord, IssueRecord, ReportData
 from portfolio import aggregator
-from portfolio.solution_config import KIND_PORTFOLIO, Member, SolutionConfig
+from portfolio.solution_config import KIND_PORTFOLIO, Member, SolutionConfig, StageMap
 
 
 def _issue(project: str, key: str, first_day: int, closed_day: int) -> IssueRecord:
@@ -300,3 +300,59 @@ def test_comparison_html_groups_by_solution(monkeypatch) -> None:
     html = aggregator.render_comparison_html(portfolio, log=lambda *_: None)
     assert html
     assert "Solution A" in html and "Solution B" in html
+
+
+# ---------------------------------------------------------------------------
+# A4: pooling with a custom stage map
+# ---------------------------------------------------------------------------
+
+def _cfd_data(prefix: str, stages: list[str], counts: dict[str, int]) -> ReportData:
+    from datetime import date
+
+    from build_reports.loader import CfdRecord
+    return ReportData(
+        issues=[], stages=stages, source_prefix=prefix,
+        cfd=[CfdRecord(day=date(2025, 1, 1), stage_counts=counts)])
+
+
+class TestPoolCfdWithStageMap:
+    def _map(self) -> StageMap:
+        return StageMap(
+            stages={"Backlog": ["Funnel"], "In Arbeit": ["Doing", "Review"],
+                    "Fertig": ["Done"]},
+            first_stage="In Arbeit", closed_stage="Fertig")
+
+    def test_counts_sum_into_custom_stages(self) -> None:
+        a = _cfd_data("A", ["Funnel", "Doing", "Done"],
+                      {"Funnel": 2, "Doing": 3, "Done": 1})
+        b = _cfd_data("B", ["Review", "Done"], {"Review": 4, "Done": 5})
+        records = aggregator._pool_cfd([a, b], stage_map=self._map(),
+                                       log=lambda m: None)
+        assert records[0].stage_counts == {"Backlog": 2, "In Arbeit": 7, "Fertig": 6}
+
+    def test_unmapped_stage_falls_back_with_single_warning(self) -> None:
+        a = _cfd_data("A", ["Mystery"], {"Mystery": 3})
+        b = _cfd_data("B", ["Mystery"], {"Mystery": 2})
+        warnings: list[str] = []
+        records = aggregator._pool_cfd([a, b], stage_map=self._map(),
+                                       log=warnings.append)
+        assert records[0].stage_counts["In Arbeit"] == 5
+        assert sum("Mystery" in w for w in warnings) == 1
+
+    def test_pooled_report_carries_custom_stages_and_markers(self, monkeypatch) -> None:
+        data = _cfd_data("A", ["Funnel", "Done"], {"Funnel": 1, "Done": 2})
+        monkeypatch.setattr(aggregator, "_load_member", lambda m: data)
+        cfg = SolutionConfig(
+            name="Sol", members=[Member("A", issue_times="A.xlsx")],
+            stage_map=self._map())
+        pooled = aggregator.build_pooled_report_data(cfg, log=lambda m: None)
+        assert pooled.stages == ["Backlog", "In Arbeit", "Fertig"]
+        assert pooled.first_stage == "In Arbeit"
+        assert pooled.closed_stage == "Fertig"
+
+    def test_without_map_keeps_three_groups(self, monkeypatch) -> None:
+        data = _cfd_data("A", ["Funnel", "Done"], {"Funnel": 1, "Done": 2})
+        monkeypatch.setattr(aggregator, "_load_member", lambda m: data)
+        cfg = SolutionConfig(name="Sol", members=[Member("A", issue_times="A.xlsx")])
+        pooled = aggregator.build_pooled_report_data(cfg, log=lambda m: None)
+        assert len(pooled.stages) == 3

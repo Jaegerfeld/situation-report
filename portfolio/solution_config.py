@@ -24,7 +24,9 @@ from datetime import date
 from pathlib import Path
 from typing import Any
 
-SCHEMA_VERSION = 1
+# v2 (02.09.2026): optionaler "stage_map"-Block (A4). v1-Dateien ohne den
+# Block laden unveraendert; der Parser prueft das Schemafeld bewusst nicht.
+SCHEMA_VERSION = 2
 APP_NAME = "situation_report"
 
 KIND_SOLUTION = "solution"
@@ -40,6 +42,78 @@ FRAMEWORK_NEXUS = "Nexus"
 #: Report terminology (matches build_reports.terminology SAFE/GLOBAL values).
 TERMINOLOGY_SAFE = "SAFe"
 TERMINOLOGY_GLOBAL = "Global"
+
+
+@dataclass
+class StageMap:
+    """
+    Optional custom canonical stage mapping for pooling heterogeneous workflows.
+
+    ``stages`` maps each canonical stage name (insertion order = display order)
+    to the ART stage names it absorbs. ``first_stage``/``closed_stage`` name the
+    canonical stages that mark work start and completion for the pooled CFD
+    boundaries. Without a StageMap the pooled report keeps the fixed three-group
+    mapping (To Do / In Progress / Done via classify_stages).
+    """
+    stages: dict[str, list[str]]
+    first_stage: str
+    closed_stage: str
+
+    def lookup(self) -> dict[str, str]:
+        """Flatten to a source-stage -> canonical-stage dict (exact match)."""
+        return {src: canon for canon, sources in self.stages.items() for src in sources}
+
+
+def parse_stage_map(data: Any) -> StageMap | None:
+    """
+    Parse and validate the optional ``stage_map`` block.
+
+    Args:
+        data: The raw JSON value of the "stage_map" key (or None).
+
+    Returns:
+        A validated StageMap, or None when the block is absent.
+
+    Raises:
+        ValueError: On structural errors — empty mapping, non-list group,
+                    duplicate source stage, unknown or identical boundary markers.
+    """
+    if data is None:
+        return None
+    if not isinstance(data, dict):
+        raise ValueError("'stage_map' must be an object.")
+
+    raw_stages = data.get("stages")
+    if not isinstance(raw_stages, dict) or not raw_stages:
+        raise ValueError("'stage_map.stages' must be a non-empty object.")
+
+    stages: dict[str, list[str]] = {}
+    seen: dict[str, str] = {}
+    for canon, sources in raw_stages.items():
+        canon = str(canon).strip()
+        if not canon:
+            raise ValueError("'stage_map.stages' contains an empty canonical name.")
+        if not isinstance(sources, list) or not sources:
+            raise ValueError(f"Canonical stage '{canon}' needs a non-empty list "
+                             f"of source stages.")
+        cleaned = [str(s).strip() for s in sources if str(s).strip()]
+        for s in cleaned:
+            if s in seen:
+                raise ValueError(f"Source stage '{s}' is mapped to both "
+                                 f"'{seen[s]}' and '{canon}'.")
+            seen[s] = canon
+        stages[canon] = cleaned
+
+    first = str(data.get("first_stage", "")).strip()
+    closed = str(data.get("closed_stage", "")).strip()
+    for label, value in (("first_stage", first), ("closed_stage", closed)):
+        if value not in stages:
+            raise ValueError(f"'stage_map.{label}' must name one of the canonical "
+                             f"stages (got '{value}').")
+    if first == closed:
+        raise ValueError("'stage_map.first_stage' and 'closed_stage' must differ "
+                         "(the CFD needs distinct work-start and completion stages).")
+    return StageMap(stages=stages, first_stage=first, closed_stage=closed)
 
 
 @dataclass
@@ -72,7 +146,9 @@ class SolutionConfig:
         members:    List of Member references to aggregate.
         from_date:  Optional solution-level report start date.
         to_date:    Optional solution-level report end date.
-        modes:      Requested report modes (Phase 1 supports only "pooled").
+        modes:      Requested report modes ("pooled" / "comparison").
+        stage_map:  Optional custom canonical stage mapping (A4); None keeps
+                    the fixed three-group pooling.
     """
     name: str
     kind: str = KIND_SOLUTION
@@ -82,6 +158,7 @@ class SolutionConfig:
     from_date: date | None = None
     to_date: date | None = None
     modes: list[str] = field(default_factory=lambda: ["pooled"])
+    stage_map: StageMap | None = None
 
 
 def _parse_date(value: Any) -> date | None:
@@ -163,6 +240,7 @@ def parse_solution_config(data: dict[str, Any]) -> SolutionConfig:
         from_date=_parse_date(report.get("from_date")),
         to_date=_parse_date(report.get("to_date")),
         modes=list(report.get("modes", ["pooled"])) or ["pooled"],
+        stage_map=parse_stage_map(data.get("stage_map")),
     )
 
 
@@ -195,7 +273,7 @@ def to_dict(config: SolutionConfig) -> dict[str, Any]:
         config: The configuration to serialise.
 
     Returns:
-        JSON-serialisable dict in the schema-v1 shape.
+        JSON-serialisable dict in the schema-v2 shape (stage_map only when set).
     """
     members: list[dict[str, Any]] = []
     for m in config.members:
@@ -212,7 +290,7 @@ def to_dict(config: SolutionConfig) -> dict[str, Any]:
     if config.to_date is not None:
         report["to_date"] = config.to_date.isoformat()
 
-    return {
+    out: dict[str, Any] = {
         "schema": SCHEMA_VERSION,
         "app": APP_NAME,
         "kind": config.kind,
@@ -221,6 +299,13 @@ def to_dict(config: SolutionConfig) -> dict[str, Any]:
         "members": members,
         "report": report,
     }
+    if config.stage_map is not None:
+        out["stage_map"] = {
+            "stages": {k: list(v) for k, v in config.stage_map.stages.items()},
+            "first_stage": config.stage_map.first_stage,
+            "closed_stage": config.stage_map.closed_stage,
+        }
+    return out
 
 
 def save_solution_config(path: Path, config: SolutionConfig) -> None:

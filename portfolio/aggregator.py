@@ -65,6 +65,7 @@ from .solution_config import (
     MODE_POOLED,
     Member,
     SolutionConfig,
+    StageMap,
     load_solution_config,
 )
 from .summary import (
@@ -211,37 +212,59 @@ def _make_plugins(
     return plugins
 
 
-def _pool_cfd(member_datas: list[ReportData]) -> list[CfdRecord]:
+def _pool_cfd(
+    member_datas: list[ReportData],
+    stage_map: StageMap | None = None,
+    log: Callable[[str], None] = print,
+) -> list[CfdRecord]:
     """
-    Merge per-ART CFDs into one canonical CFD via the shared stage mapping.
+    Merge per-ART CFDs into one canonical CFD.
 
-    Each ART stage is classified into To Do / In Progress / Done
-    (build_reports.classify_stages), and the daily entry counts are summed per
-    canonical group across all ARTs. ARTs without CFD data contribute nothing.
-    Collapsing to the three groups is what makes a CFD poolable across ARTs with
-    different workflows (their stage names are otherwise incomparable).
+    Without a StageMap, each ART stage is classified into To Do / In Progress /
+    Done (build_reports.classify_stages) — collapsing to the three groups is
+    what makes a CFD poolable across ARTs with different workflows. With a
+    StageMap (A4), the solution config defines its own canonical stages and the
+    exact source-stage assignment; source stages the map does not mention fall
+    into the map's first_stage and are warned about once per name.
 
     Args:
         member_datas: Per-ART ReportData (each with its own stages and CFD).
+        stage_map:    Optional custom canonical mapping from the solution config.
+        log:          Progress callback (unmapped-stage warnings).
 
     Returns:
-        CFD records keyed by the three canonical stages, ordered by day; empty
-        when no member supplied CFD data.
+        CFD records keyed by the canonical stages, ordered by day; empty when
+        no member supplied CFD data.
     """
+    canon = list(stage_map.stages.keys()) if stage_map else _CANON_STAGES
+    custom_lookup = stage_map.lookup() if stage_map else None
+    warned: set[str] = set()
+
     by_day: dict = {}
     for data in member_datas:
         if not data.cfd or not data.stages:
             continue
-        # Mirror the CFD metric's own boundary fallback: when the workflow
-        # markers are absent, treat the first/last stage as the In/Out boundary
-        # so the Done group is still populated instead of collapsing to one group.
-        first = data.first_stage if data.first_stage in data.stages else data.stages[0]
-        closed = data.closed_stage if data.closed_stage in data.stages else data.stages[-1]
-        mapping = classify_stages(data.stages, first, closed)
+        if stage_map is None:
+            # Mirror the CFD metric's own boundary fallback: when the workflow
+            # markers are absent, treat the first/last stage as the In/Out
+            # boundary so the Done group is still populated.
+            first = data.first_stage if data.first_stage in data.stages else data.stages[0]
+            closed = data.closed_stage if data.closed_stage in data.stages else data.stages[-1]
+            mapping = classify_stages(data.stages, first, closed)
+            fallback = GROUP_IN_PROGRESS
+        else:
+            mapping = custom_lookup or {}
+            fallback = stage_map.first_stage
         for rec in data.cfd:
-            bucket = by_day.setdefault(rec.day, {g: 0 for g in _CANON_STAGES})
+            bucket = by_day.setdefault(rec.day, {g: 0 for g in canon})
             for stage, count in rec.stage_counts.items():
-                group = mapping.get(stage, GROUP_IN_PROGRESS)
+                group = mapping.get(stage)
+                if group is None:
+                    group = fallback
+                    if custom_lookup is not None and stage not in warned:
+                        warned.add(stage)
+                        log(f"  WARNING: stage '{stage}' is not in the stage_map — "
+                            f"counted as '{fallback}'.")
                 bucket[group] += count
     return [CfdRecord(day=day, stage_counts=dict(by_day[day]))
             for day in sorted(by_day)]
@@ -287,20 +310,29 @@ def build_pooled_report_data(
             quality_sink.append(assess_quality(data, member.name))
         pooled_issues.extend(data.issues)
 
-    cfd_records = _pool_cfd(member_datas)
+    cfd_records = _pool_cfd(member_datas, stage_map=config.stage_map, log=log)
     log(f"Pooled total: {len(pooled_issues)} issues from {len(art_members)} ART(s); "
         f"{len(cfd_records)} canonical CFD day(s)")
-    # Stages are the canonical To Do / In Progress / Done groups so the pooled
-    # CFD renders across heterogeneous workflows; the issue-based metrics
-    # (Flow Velocity/Time/Distribution) do not depend on this stage list.
+    # Stages are the canonical groups so the pooled CFD renders across
+    # heterogeneous workflows — the fixed three (To Do / In Progress / Done) or,
+    # with a config stage_map (A4), its custom canonical stages. The issue-based
+    # metrics (Flow Velocity/Time/Distribution) do not depend on this stage list.
+    if config.stage_map is not None:
+        stages = list(config.stage_map.stages.keys())
+        first_stage = config.stage_map.first_stage
+        closed_stage = config.stage_map.closed_stage
+    else:
+        stages = list(_CANON_STAGES)
+        first_stage = GROUP_IN_PROGRESS
+        closed_stage = GROUP_DONE
     return ReportData(
         issues=pooled_issues,
         cfd=cfd_records,
         transitions=[],
-        stages=list(_CANON_STAGES),
+        stages=stages,
         source_prefix=config.name,
-        first_stage=GROUP_IN_PROGRESS,
-        closed_stage=GROUP_DONE,
+        first_stage=first_stage,
+        closed_stage=closed_stage,
     )
 
 
