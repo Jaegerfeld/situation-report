@@ -51,7 +51,8 @@ python -m testdata_generator \
 
 | Parameter | Default | Description |
 |-----------|---------|-------------|
-| `--workflow FILE` | (required) | Workflow definition file |
+| `--scenario portfolio` | (none) | Generate the complete demo portfolio instead of a single JSON (see below) |
+| `--workflow FILE` | (required without `--scenario`) | Workflow definition file |
 | `--output FILE.json` | `<project>_generated.json` | Output file |
 | `--project KEY` | `TEST` | Jira project key |
 | `--issues N` | `100` | Number of issues to generate |
@@ -88,6 +89,32 @@ python -m testdata_generator \
     --std-cycle-days 10 \
     --output triangle.json
 ```
+
+## Portfolio scenario
+
+```bash
+python -m testdata_generator --scenario portfolio --output demo/ --seed 42
+```
+
+Creates a complete, consistent demo portfolio in one step: two solutions with
+three ARTs each, including every artifact of the processing chain — workflow
+files, raw Jira JSON, `IssueTimes`/`CFD`/`Transitions` workbooks, two solution
+configs (Solution Beta with its own `stage_map`, schema 2), a portfolio config,
+a PI config, and a README describing the built-in stories. The data window is
+placed relative to the generation date so the portfolio report's quality
+traffic light rates the sources as current.
+
+Built-in stories (deterministic per seed):
+
+- **ART Alpha-3** is the outlier (~3× cycle time) — highlighted red in
+  Solution Alpha's comparison report.
+- **ART Beta-3** delivers weak data (no CFD, few started issues, data 60 days
+  old) — confidence `low` in the quality table, coverage below 100 %.
+- **Solution Beta** pools via its own `stage_map`; Solution Alpha uses the
+  default classification path.
+
+The folder is directly usable: `python -m portfolio demo/portfolio.json`
+builds the portfolio report; the solution configs also work individually.
 
 ## Workflow file
 
@@ -127,6 +154,7 @@ testdata_generator/
 ├── __main__.py          Dispatcher: GUI without arguments, CLI with arguments
 ├── cli.py               run_generate() + argparse CLI
 ├── generator.py         Core logic: issue simulation
+├── scenario.py          Portfolio scenario (2 solutions × 3 ARTs, all artifacts)
 └── workflow_parser.py   Re-export from transform_data.workflow
 ```
 

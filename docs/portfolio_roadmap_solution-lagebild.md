@@ -68,6 +68,8 @@ Nicht nach „Feature-Wunschliste", sondern nach **Datenherkunft** (das BGS-Prin
 
 **Gemeinsames Muster je Item:** `portfolio/<name>_config.py` (Dataclass + `parse_*`/`load_*`, `SCHEMA_VERSION`) → Render-Funktion in `summary.py`/`aggregator.py` → GUI-Feld zum Verweisen auf die Datei.
 
+**Definition of Done (Testdaten, seit dem Portfolio-Szenario):** Jedes B-Feature liefert im selben Branch seine Testdaten-Erzeugung mit — Schema + Renderer + Tests + Erweiterung des Portfolio-Szenarios (`testdata_generator --scenario portfolio`) inkl. Roundtrip-Test (erzeugte Datei lädt fehlerfrei durch den eigenen Parser) + Manual-Abschnitt. Ein B-Feature ohne erzeugbare Testdaten gilt als unfertig; so bleibt das Demo-Portfolio automatisch vollständig.
+
 ### B1 · Capability-Map & -Health
 - **Was:** JSON, das Solution-**Capabilities** (Geschäftsfähigkeiten) definiert und ARTs/Members auf Capabilities mappt; Report zeigt **Capability-Status/-Health** statt nur Ticket-Zahlen.
 - **Warum:** Capabilities sind die *Sprache* der EA (alle vier EA-Bücher). Bindet Solution-Fortschritt an Strategie/Wert (Abschnitt 5 „Capability-Denken → Capability-Health").
