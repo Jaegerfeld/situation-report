@@ -21,6 +21,10 @@ from dataclasses import dataclass
 from datetime import date
 
 from build_reports.loader import ReportData
+from portfolio.capability_config import (
+    HEALTH_ORDER,
+    Capability,
+)
 from portfolio.nfr_config import (
     NFR_STATUS_ORDER,
     RUNWAY_IN_PLACE,
@@ -888,5 +892,163 @@ def nfr_figure(
             cells=dict(values=columns, align="left", fill_color=fills),
         ), row=i, col=1)
     fig.update_layout(title=_nfr_title(nfrs, runway, title, reference),
+                      title_font_size=14, margin=dict(t=40, b=10))
+    return fig
+
+
+# ---------------------------------------------------------------------------
+# Capability map & health (B1)
+# ---------------------------------------------------------------------------
+
+#: Cell background per capability health (traffic light).
+_HEALTH_COLORS = {
+    "healthy": "#e6f4e6",
+    "at_risk": "#fff3cd",
+    "critical": "#f8d7da",
+}
+
+#: A capability no ART contributes to is uncovered — business value nobody
+#: delivers. Its ARTs cell is flagged yellow.
+_UNCOVERED_COLOR = "#fff3cd"
+
+#: Human-readable health labels (the JSON keys stay machine-friendly).
+_HEALTH_LABELS = {
+    "healthy": "healthy",
+    "at_risk": "at risk",
+    "critical": "critical",
+}
+
+
+def _sorted_capabilities(
+    entries: list[tuple[str, Capability]]
+) -> list[tuple[str, Capability]]:
+    """Display order: critical first, then at risk, then healthy; then source."""
+    return sorted(entries, key=lambda e: (
+        HEALTH_ORDER.index(e[1].health), e[0], e[1].cap_id))
+
+
+def _capability_headers(include_source: bool) -> list[str]:
+    """Column headers for the capability table (shared by HTML and PDF)."""
+    head = ["Capability", "Health", "Contributing ARTs", "Owner (team)",
+            "Assessed"]
+    return (["Solution"] + head) if include_source else head
+
+
+def _capability_cells(
+    source: str, cap: Capability, include_source: bool
+) -> list[str]:
+    """Row values for one capability, in the _capability_headers() order."""
+    assessed = cap.assessed_on.strftime("%d.%m.%Y") if cap.assessed_on else "–"
+    row = [f"{cap.cap_id}: {cap.title}", _HEALTH_LABELS[cap.health],
+           ", ".join(cap.arts) if cap.arts else "–",
+           cap.owner or "–", assessed]
+    return ([source] + row) if include_source else row
+
+
+def _capability_title(
+    entries: list[tuple[str, Capability]], title: str
+) -> str:
+    """Append capability counts (critical, at risk, uncovered) to the title."""
+    critical = sum(1 for _, c in entries if c.health == "critical")
+    at_risk = sum(1 for _, c in entries if c.health == "at_risk")
+    suffix = f"{len(entries)} capabilities ({critical} critical, {at_risk} at risk)"
+    uncovered = sum(1 for _, c in entries if not c.arts)
+    if uncovered:
+        suffix += f", {uncovered} uncovered"
+    return f"{title} — {suffix}"
+
+
+def render_capabilities_html(
+    entries: list[tuple[str, Capability]],
+    title: str = "Capability Map & Health",
+) -> str:
+    """
+    Render the capability map as an HTML fragment.
+
+    Rows sort critical first with coloured health cells; a capability without
+    contributing ARTs gets a flagged ARTs cell (uncovered business value). A
+    Solution column is prepended when the entries stem from more than one
+    source (portfolio mode).
+
+    Args:
+        entries: (source label, Capability) pairs, unordered.
+        title:   Heading shown above the table.
+
+    Returns:
+        An HTML fragment (heading + styled table), or "" if entries is empty.
+    """
+    if not entries:
+        return ""
+
+    include_source = _capability_include_source(entries)
+    offset = 1 if include_source else 0
+    heading = _capability_title(entries, title)
+    head_html = "".join(
+        f"<th>{_html.escape(h)}</th>"
+        for h in _capability_headers(include_source))
+
+    rows_html = ""
+    for source, cap in _sorted_capabilities(entries):
+        cells = [_html.escape(c)
+                 for c in _capability_cells(source, cap, include_source)]
+        tds = []
+        for col, c in enumerate(cells):
+            if col == offset + 1:  # health
+                color = _HEALTH_COLORS.get(cap.health, "#ffffff")
+                tds.append(f"<td style='background:{color};font-weight:600'>{c}</td>")
+            elif col == offset + 2 and not cap.arts:  # uncovered
+                tds.append(f"<td style='background:{_UNCOVERED_COLOR};font-weight:600'>{c}</td>")
+            else:
+                tds.append(f"<td>{c}</td>")
+        rows_html += f"<tr>{''.join(tds)}</tr>"
+
+    return (
+        f"<h2 class='metric-heading'>{_html.escape(heading)}</h2>"
+        f"<table class='sr-summary'><tr>{head_html}</tr>{rows_html}</table>"
+    )
+
+
+def _capability_include_source(entries: list[tuple[str, Capability]]) -> bool:
+    """Show the Solution column only when entries stem from several sources."""
+    return len({source for source, _ in entries}) > 1
+
+
+def capability_figure(
+    entries: list[tuple[str, Capability]],
+    title: str = "Capability Map & Health",
+):
+    """
+    Render the capability map as a plotly Table figure (for the PDF export).
+
+    Mirrors render_capabilities_html(): coloured health column, flagged ARTs
+    cell for uncovered capabilities.
+
+    Args:
+        entries: (source label, Capability) pairs, unordered.
+        title:   Figure title.
+
+    Returns:
+        A plotly Figure containing a single Table trace.
+    """
+    import plotly.graph_objects as go
+
+    include_source = _capability_include_source(entries)
+    offset = 1 if include_source else 0
+    ordered = _sorted_capabilities(entries)
+    headers = _capability_headers(include_source)
+    rows = [_capability_cells(source, cap, include_source)
+            for source, cap in ordered]
+    columns = [[row[c] for row in rows] for c in range(len(headers))]
+
+    fill_colors: list[list[str]] = [["white"] * len(rows) for _ in headers]
+    fill_colors[offset + 1] = [_HEALTH_COLORS.get(c.health, "#ffffff")
+                               for _, c in ordered]
+    fill_colors[offset + 2] = [_UNCOVERED_COLOR if not c.arts else "white"
+                               for _, c in ordered]
+    fig = go.Figure(go.Table(
+        header=dict(values=headers, fill_color="#f2f2f2", align="left"),
+        cells=dict(values=columns, align="left", fill_color=fill_colors),
+    ))
+    fig.update_layout(title=_capability_title(entries, title),
                       title_font_size=14, margin=dict(t=40, b=10))
     return fig

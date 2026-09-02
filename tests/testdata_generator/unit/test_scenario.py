@@ -43,6 +43,7 @@ class TestArtifacts:
         out, paths = scenario
         for key in ("portfolio", "solution_alpha", "solution_beta",
                     "risks_alpha", "risks_beta", "nfr_alpha", "nfr_beta",
+                    "capabilities_alpha", "capabilities_beta",
                     "pi_config", "readme"):
             assert paths[key].exists(), key
         assert len(list((out / "arts").glob("*_IssueTimes.xlsx"))) == 6
@@ -158,6 +159,33 @@ class TestBuiltInStories:
         assert {source for source, _ in nfrs} == {"Solution Alpha", "Solution Beta"}
         assert len(nfrs) == 6
         assert len(runway) == 4
+
+    def test_capability_maps_load_and_tell_their_story(self, scenario) -> None:
+        from portfolio.capability_config import HEALTH_CRITICAL, load_capabilities
+        _, paths = scenario
+        alpha = load_capabilities(paths["capabilities_alpha"])
+        beta = load_capabilities(paths["capabilities_beta"])
+        assert alpha.capabilities and beta.capabilities
+        # Die Geschichte: genau eine kritische Capability (Beta, schwache
+        # Quelle) und genau eine uncovered Capability (Alpha, kein ART).
+        assert not any(c.health == HEALTH_CRITICAL for c in alpha.capabilities)
+        critical = [c for c in beta.capabilities if c.health == HEALTH_CRITICAL]
+        assert len(critical) == 1
+        assert "ART Beta-3" in critical[0].arts
+        uncovered = [c for c in alpha.capabilities + beta.capabilities
+                     if not c.arts]
+        assert len(uncovered) == 1
+
+    def test_portfolio_collects_capabilities_without_warnings(self, scenario) -> None:
+        from portfolio.aggregator import _collect_capabilities
+        _, paths = scenario
+        cfg = load_solution_config(paths["portfolio"])
+        warnings: list[str] = []
+        entries = _collect_capabilities(cfg, log=warnings.append)
+        assert {source for source, _ in entries} == {"Solution Alpha", "Solution Beta"}
+        assert len(entries) == 6
+        # Alle gemappten ART-Namen existieren als Member — keine Drift-Warnung.
+        assert warnings == []
 
     def test_outlier_art_has_clearly_higher_cycle_time(self, scenario) -> None:
         from portfolio.aggregator import load_members

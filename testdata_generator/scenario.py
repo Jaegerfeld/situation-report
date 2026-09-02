@@ -24,6 +24,8 @@
 #     Owned-Risiken sind bewusst alt → Aging-Hervorhebung im Board.
 #   - Beide Solutions bringen ein NFR-/Runway-Register mit (B2); Betas
 #     API-NFR ist verletzt, ein Runway-Element überfällige Lücke → Ampel rot.
+#   - Beide Solutions bringen eine Capability-Map mit (B1); Betas
+#     Data-Insights-Capability ist kritisch, eine Alpha-Capability uncovered.
 # =============================================================================
 
 from __future__ import annotations
@@ -34,6 +36,14 @@ from dataclasses import dataclass
 from datetime import UTC, date, datetime, timedelta
 from pathlib import Path
 
+from portfolio.capability_config import (
+    HEALTH_AT_RISK,
+    HEALTH_CRITICAL,
+    HEALTH_HEALTHY,
+    Capability,
+    CapabilityMap,
+    save_capabilities,
+)
 from portfolio.nfr_config import (
     RUNWAY_BUILDING,
     RUNWAY_GAP,
@@ -180,6 +190,40 @@ def _beta_risks(reference: date) -> RiskRegister:
     ])
 
 
+def _alpha_capabilities(reference: date) -> CapabilityMap:
+    """Capability map of Solution Alpha: solid, one uncovered capability."""
+    return CapabilityMap(capabilities=[
+        Capability("AC-1", "Order management", HEALTH_HEALTHY,
+                   arts=["ART Alpha-1", "ART Alpha-2"], owner="ART Alpha-1",
+                   assessed_on=reference - timedelta(days=14)),
+        Capability("AC-2", "Billing & invoicing", HEALTH_AT_RISK,
+                   arts=["ART Alpha-3"], owner="ART Alpha-3",
+                   assessed_on=reference - timedelta(days=14),
+                   notes="Depends on the outlier ART's delivery pace."),
+        # Uncovered: business value nobody delivers — the ARTs cell is flagged.
+        Capability("AC-3", "Partner self-service", HEALTH_HEALTHY,
+                   arts=[], owner="System Team",
+                   assessed_on=reference - timedelta(days=45),
+                   notes="Planned; no ART assigned yet."),
+    ])
+
+
+def _beta_capabilities(reference: date) -> CapabilityMap:
+    """Capability map of Solution Beta: the critical capability lives here."""
+    return CapabilityMap(capabilities=[
+        Capability("BC-1", "Data insights & reporting", HEALTH_CRITICAL,
+                   arts=["ART Beta-3"], owner="ART Beta-3",
+                   assessed_on=reference - timedelta(days=7),
+                   notes="Matches the weak-source story: data quality blocks it."),
+        Capability("BC-2", "Customer onboarding", HEALTH_HEALTHY,
+                   arts=["ART Beta-1", "ART Beta-2"], owner="ART Beta-1",
+                   assessed_on=reference - timedelta(days=7)),
+        Capability("BC-3", "Payment processing", HEALTH_HEALTHY,
+                   arts=["ART Beta-2"], owner="ART Beta-2",
+                   assessed_on=reference - timedelta(days=7)),
+    ])
+
+
 def _alpha_nfr(reference: date) -> NfrRegister:
     """NFR/runway register of Solution Alpha: healthy, one NFR at risk."""
     return NfrRegister(
@@ -323,17 +367,23 @@ def build_portfolio_scenario(
     save_nfr(nfr_alpha, _alpha_nfr(reference))
     nfr_beta = out / "nfr_beta.json"
     save_nfr(nfr_beta, _beta_nfr(reference))
+    caps_alpha = out / "capabilities_alpha.json"
+    save_capabilities(caps_alpha, _alpha_capabilities(reference))
+    caps_beta = out / "capabilities_beta.json"
+    save_capabilities(caps_beta, _beta_capabilities(reference))
 
     solution_alpha = out / "solution_alpha.json"
     save_solution_config(solution_alpha, SolutionConfig(
         name="Solution Alpha", members=members["alpha"],
         from_date=reference - timedelta(days=window_days), to_date=reference,
-        risks=str(risks_alpha), nfr=str(nfr_alpha)))
+        risks=str(risks_alpha), nfr=str(nfr_alpha),
+        capabilities=str(caps_alpha)))
     solution_beta = out / "solution_beta.json"
     save_solution_config(solution_beta, SolutionConfig(
         name="Solution Beta", members=members["beta"],
         from_date=reference - timedelta(days=window_days), to_date=reference,
-        stage_map=_BETA_STAGE_MAP, risks=str(risks_beta), nfr=str(nfr_beta)))
+        stage_map=_BETA_STAGE_MAP, risks=str(risks_beta), nfr=str(nfr_beta),
+        capabilities=str(caps_beta)))
 
     portfolio_cfg = out / "portfolio.json"
     save_solution_config(portfolio_cfg, SolutionConfig(
@@ -382,6 +432,10 @@ def build_portfolio_scenario(
         "- **NFR & Runway**: beide Solutions bringen ein NFR-Register mit",
         "  (`nfr_alpha.json`/`nfr_beta.json`); Betas API-NFR ist verletzt und",
         "  ein Runway-Element ist eine überfällige Lücke — Dashboard-Ampel rot.",
+        "- **Capability-Map**: beide Solutions bringen eine Capability-Map mit",
+        "  (`capabilities_alpha.json`/`capabilities_beta.json`); Betas",
+        "  Data-Insights-Capability ist kritisch (schwache Quelle) und Alphas",
+        "  Partner-Self-Service hat keinen beitragenden ART (uncovered).",
         "",
         "Die Pfade in den Configs sind absolut — nach dem Verschieben des",
         "Ordners das Szenario neu erzeugen.",
@@ -391,4 +445,6 @@ def build_portfolio_scenario(
     return {"portfolio": portfolio_cfg, "solution_alpha": solution_alpha,
             "solution_beta": solution_beta, "risks_alpha": risks_alpha,
             "risks_beta": risks_beta, "nfr_alpha": nfr_alpha,
-            "nfr_beta": nfr_beta, "pi_config": pi_cfg, "readme": readme}
+            "nfr_beta": nfr_beta, "capabilities_alpha": caps_alpha,
+            "capabilities_beta": caps_beta, "pi_config": pi_cfg,
+            "readme": readme}

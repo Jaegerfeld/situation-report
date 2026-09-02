@@ -553,6 +553,7 @@ def content_de(st: dict) -> list:
                    ["solution_beta.json", "Solution-Config mit eigener stage_map (Schema 2)"],
                    ["risks_*.json", "ROAM-Risiko-Register je Solution"],
                    ["nfr_*.json", "NFR-/Runway-Register je Solution"],
+                   ["capabilities_*.json", "Capability-Map je Solution"],
                    ["portfolio.json", "Portfolio-Config über beide Solutions"],
                    ["pi_config.json", "PI-Intervalle über den Datenzeitraum"],
                    ["README.md", "Beschreibung der eingebauten Geschichten"]],
@@ -572,7 +573,9 @@ def content_de(st: dict) -> list:
                   "- <b>ROAM-Board</b>: zwei Owned-Risiken sind bewusst alt "
                   "(45/50 Tage) — die Aging-Hervorhebung springt an.<br/>"
                   "- <b>NFR &amp; Runway</b>: Betas API-NFR ist verletzt, ein "
-                  "Runway-Element eine überfällige Lücke — das Dashboard zeigt Rot.", st),
+                  "Runway-Element eine überfällige Lücke — das Dashboard zeigt Rot.<br/>"
+                  "- <b>Capability-Map</b>: Betas Data-Insights-Capability ist "
+                  "kritisch, eine Alpha-Capability ohne ART (uncovered).", st),
               SP(6),
               P("Der Ordner ist direkt verwendbar: "
                 "<font name='Courier'>python -m portfolio demo/portfolio.json</font> erzeugt "
@@ -865,6 +868,7 @@ def content_en(st: dict) -> list:
                    ["solution_beta.json", "solution config with its own stage_map (schema 2)"],
                    ["risks_*.json", "ROAM risk register per solution"],
                    ["nfr_*.json", "NFR/runway register per solution"],
+                   ["capabilities_*.json", "capability map per solution"],
                    ["portfolio.json", "portfolio config covering both solutions"],
                    ["pi_config.json", "PI intervals across the data window"],
                    ["README.md", "description of the built-in stories"]],
@@ -883,7 +887,9 @@ def content_en(st: dict) -> list:
                   "- <b>ROAM board</b>: two owned risks are deliberately old "
                   "(45/50 days) — the aging highlight fires.<br/>"
                   "- <b>NFR &amp; runway</b>: Beta's API NFR is violated and one "
-                  "runway element is an overdue gap — the dashboard shows red.", st),
+                  "runway element is an overdue gap — the dashboard shows red.<br/>"
+                  "- <b>Capability map</b>: Beta's data-insights capability is "
+                  "critical, one Alpha capability has no ART (uncovered).", st),
               SP(6),
               P("The folder is directly usable: "
                 "<font name='Courier'>python -m portfolio demo/portfolio.json</font> builds "
@@ -1121,6 +1127,7 @@ def content_ro(st: dict) -> list:
                    ["solution_beta.json", "config de soluție cu stage_map propriu (schema 2)"],
                    ["risks_*.json", "registru de riscuri ROAM per soluție"],
                    ["nfr_*.json", "registru NFR/runway per soluție"],
+                   ["capabilities_*.json", "capability map per soluție"],
                    ["portfolio.json", "config de portofoliu peste ambele soluții"],
                    ["pi_config.json", "intervale PI pe fereastra de date"],
                    ["README.md", "descrierea poveștilor încorporate"]],
@@ -1142,7 +1149,10 @@ def content_ro(st: dict) -> list:
                   "(45/50 de zile) — evidențierea aging se activează.<br/>"
                   "- <b>NFR &amp; runway</b>: NFR-ul API al soluției Beta este "
                   "încălcat, iar un element runway este o lacună întârziată — "
-                  "dashboard-ul arată roșu.", st),
+                  "dashboard-ul arată roșu.<br/>"
+                  "- <b>Capability map</b>: capabilitatea data-insights a "
+                  "soluției Beta este critică, o capabilitate Alpha nu are ART "
+                  "(uncovered).", st),
               SP(6),
               P("Directorul este direct utilizabil: "
                 "<font name='Courier'>python -m portfolio demo/portfolio.json</font> "
@@ -1383,6 +1393,7 @@ def content_pt(st: dict) -> list:
                    ["solution_beta.json", "config de solution com stage_map próprio (schema 2)"],
                    ["risks_*.json", "registo de riscos ROAM por solution"],
                    ["nfr_*.json", "registo NFR/runway por solution"],
+                   ["capabilities_*.json", "capability map por solution"],
                    ["portfolio.json", "config de portfólio sobre ambas as solutions"],
                    ["pi_config.json", "intervalos PI sobre a janela de dados"],
                    ["README.md", "descrição das histórias incorporadas"]],
@@ -1404,7 +1415,9 @@ def content_pt(st: dict) -> list:
                   "(45/50 dias) — o realce de aging dispara.<br/>"
                   "- <b>NFR &amp; runway</b>: o NFR de API da Beta está violado e um "
                   "elemento runway é uma lacuna atrasada — o dashboard mostra "
-                  "vermelho.", st),
+                  "vermelho.<br/>"
+                  "- <b>Capability map</b>: a capacidade data-insights da Beta é "
+                  "crítica, uma capacidade Alpha não tem ART (uncovered).", st),
               SP(6),
               P("A pasta é diretamente utilizável: "
                 "<font name='Courier'>python -m portfolio demo/portfolio.json</font> gera "
@@ -1648,6 +1661,7 @@ def content_fr(st: dict) -> list:
                    ["solution_beta.json", "config de solution avec stage_map propre (schéma 2)"],
                    ["risks_*.json", "registre de risques ROAM par solution"],
                    ["nfr_*.json", "registre NFR/runway par solution"],
+                   ["capabilities_*.json", "capability map par solution"],
                    ["portfolio.json", "config de portefeuille couvrant les deux solutions"],
                    ["pi_config.json", "intervalles PI sur la fenêtre de données"],
                    ["README.md", "description des histoires intégrées"]],
@@ -1670,7 +1684,9 @@ def content_fr(st: dict) -> list:
                   "anciens (45/50 jours) — le surlignage aging se déclenche.<br/>"
                   "- <b>NFR &amp; runway</b> : le NFR d'API de Beta est viole et un "
                   "element runway est une lacune en retard — le dashboard montre "
-                  "du rouge.", st),
+                  "du rouge.<br/>"
+                  "- <b>Capability map</b> : la capacite data-insights de Beta "
+                  "est critique, une capacite Alpha n'a pas d'ART (uncovered).", st),
               SP(6),
               P("Le dossier est directement utilisable : "
                 "<font name='Courier'>python -m portfolio demo/portfolio.json</font> "

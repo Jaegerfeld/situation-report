@@ -8,6 +8,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- Portfolio: **capability map & health** (roadmap B1) — a solution config can
+  reference a capability map (`"capabilities": "capabilities.json"`; new
+  module `portfolio/capability_config.py`, schema v1: id, title, health
+  healthy/at_risk/critical, arts, owner, assessed_on, notes). The report
+  renders the table below the quality table (PDF: own page): critical
+  capabilities sort first with coloured health cells; a capability with no
+  contributing ART is flagged as **uncovered** (business value nobody
+  delivers); an ART name that is not among the solution's members produces a
+  drift warning in the log. Health is assessed by people in PI
+  planning/review; the capability map (business capabilities) is deliberately
+  not the stage_map (workflow stages). A portfolio aggregates member-solution
+  maps with a Solution column; owners are teams, not persons. The demo
+  scenario ships a map per solution (six capabilities; Beta's data-insights
+  capability critical, one Alpha capability uncovered); manual section 5.9 in
+  all five languages.
 - Portfolio: **NFR / architecture-runway dashboard** (roadmap B2) — a solution
   config can reference an NFR register (`"nfr": "nfr.json"`; new module
   `portfolio/nfr_config.py`, schema v1 with `nfrs` — id, title, target,

@@ -70,10 +70,11 @@ Nicht nach „Feature-Wunschliste", sondern nach **Datenherkunft** (das BGS-Prin
 
 **Definition of Done (Testdaten, seit dem Portfolio-Szenario):** Jedes B-Feature liefert im selben Branch seine Testdaten-Erzeugung mit — Schema + Renderer + Tests + Erweiterung des Portfolio-Szenarios (`testdata_generator --scenario portfolio`) inkl. Roundtrip-Test (erzeugte Datei lädt fehlerfrei durch den eigenen Parser) + Manual-Abschnitt. Ein B-Feature ohne erzeugbare Testdaten gilt als unfertig; so bleibt das Demo-Portfolio automatisch vollständig.
 
-### B1 · Capability-Map & -Health
+### B1 · Capability-Map & -Health ✅ (umgesetzt 02.09.2026)
 - **Was:** JSON, das Solution-**Capabilities** (Geschäftsfähigkeiten) definiert und ARTs/Members auf Capabilities mappt; Report zeigt **Capability-Status/-Health** statt nur Ticket-Zahlen.
 - **Warum:** Capabilities sind die *Sprache* der EA (alle vier EA-Bücher). Bindet Solution-Fortschritt an Strategie/Wert (Abschnitt 5 „Capability-Denken → Capability-Health").
 - **Aufwand:** M.
+- **Ist-Stand:** `portfolio/capability_config.py` (Schema v1: id/title/health healthy|at_risk|critical, arts, owner, assessed_on), Tabelle unter der Qualitätstabelle (PDF: eigene Seite), kritisch zuerst, **Uncovered-Markierung** für Capabilities ohne beitragenden ART, **Drift-Warnung** bei ART-Namen außerhalb der Member-Liste, Health von Menschen bewertet, Portfolio aggregiert Member-Maps mit Solution-Spalte; Capability-Map ≠ stage_map (bewusst getrennte Dimensionen); Szenario liefert je Solution eine Map mit (DoD erfüllt). **Damit sind B1/B2/B3 komplett — der lokale Input-Contract der Phase B steht.**
 
 ### B2 · NFR-/Architecture-Runway-Register ✅ (umgesetzt 02.09.2026)
 - **Was:** JSON mit NFRs (Ziel/Ist/Status) und Runway-Elementen je Solution; Report als **NFR-/Compliance-Dashboard + Runway-Ampel**.
