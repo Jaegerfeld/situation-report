@@ -56,7 +56,9 @@ Without `--narrate` the briefing is exactly the deterministic D2 output
 **Narration (Entwurf)**; Markdown output additionally writes
 `<output>.narration.md` — the draft a human edits and approves. In the
 GUI: checkbox *AI narration (draft)* plus provider picker; the test-data
-generator demos the flow via `mock`.
+generator demos the flow on the demo portfolio with a selectable
+provider (default `mock` — no installation; switch to `ollama`/`claude`
+for the real thing).
 
 The model only ever sees the delta briefing's Markdown contract — which
 by construction names teams, ARTs and solutions, never persons (enforced

@@ -5,6 +5,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [Unreleased]
+
+### Added
+- **Selectable LLM provider for the demo narration** — the test-data
+  generator's *Open AI Narration (Demo)* button gains a provider
+  dropdown (from the llm discovery) instead of always using `mock`:
+  default stays `mock` so the demo keeps working without any model or
+  installation, but it can now be switched to `ollama` (local
+  mistral-nemo) or `claude` to run the real narration on the demo
+  portfolio. The log names the chosen provider; labeling, numbers guard
+  and the `llm_audit.jsonl` evidence next to the snapshots apply
+  unchanged to every provider.
+
 ## [0.23.0] – 2026-09-03
 
 ### Added
