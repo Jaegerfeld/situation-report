@@ -75,6 +75,8 @@ nav:
     - get_data: modules/get_data.md
     - sources: modules/sources.md
     - simulate: modules/simulate.md
+  - Tutorials:
+    - Attach a data source: tutorials/attach-a-source.md
   - Memoranda: denkschriften/index.md
   - Architecture: architecture.md
   - Development: development.md

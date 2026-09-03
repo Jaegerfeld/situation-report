@@ -69,6 +69,17 @@ Performance (DORA) & Code Quality** (Tier je Kennzahl an den
 veröffentlichten DORA-Schwellen, Unit-Tier = schwächste Kennzahl;
 Qualitätstabelle darunter).
 
+## Tutorial
+
+Zum ersten Mal? Das Schritt-für-Schritt-Tutorial **[Eine eigene
+Datenquelle anbinden](../tutorials/attach-a-source.md)** baut einen
+kompletten CSV-Provider von null (keine externen Systeme nötig, läuft
+gegen das Demo-Szenario) und zeigt danach Austauschen, Kombinieren und
+den Verwaltungs-Alltag — jeder Schritt mit Beispiel. Auch als PDF:
+[DE](../sources_Tutorial_DE.pdf) / [EN](../sources_Tutorial_EN.pdf).
+Der mitgelieferte `csv`-Provider (`sources/providers/csv_slo.py`) ist die
+lebende Referenzlösung des Tutorials.
+
 ## Rezept: eigene Quelle in ~30 Zeilen
 
 `sources/providers/mein_system.py` anlegen:

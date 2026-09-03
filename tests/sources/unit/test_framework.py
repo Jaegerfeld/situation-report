@@ -35,8 +35,8 @@ from sources.providers.file_source import PROVIDER as FILE_PROVIDER
 class TestDiscovery:
     def test_finds_all_shipped_providers_with_their_kinds(self) -> None:
         providers = discover_providers()
-        assert set(providers) == {"file", "prometheus", "github", "gitlab",
-                                  "sonarqube"}
+        assert set(providers) == {"file", "csv", "prometheus", "github",
+                                  "gitlab", "sonarqube"}
         assert providers["file"].kinds == (KIND_SLO, KIND_DORA, "quality")
         assert providers["github"].kinds == (KIND_DORA,)
         assert providers["prometheus"].kinds == (KIND_SLO,)

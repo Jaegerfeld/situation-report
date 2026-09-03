@@ -496,7 +496,60 @@ def content_de(st: dict) -> list:
                  "JIRA_TOKEN), die GUI hält es nur im Speicher.", st),
               SP(6),
 
-              H1("3  Häufige Fragen (FAQ)", st), HR(),
+              H1("3  Kennzahlen-Quellen verwalten (sources)", st), HR(),
+              P("Neben den Jira-Rohdaten holt SituationReport auch externe "
+                "Kennzahlen (SLO/SLI, DORA, Code-Qualität) — über das "
+                "steckbare <b>sources</b>-Framework. Drei Begriffe genügen: "
+                "Ein <b>Provider</b> übersetzt ein Fremdsystem in normierte "
+                "<b>Records</b>; ein Abruf schreibt sie als <b>Register</b> "
+                "(JSON), das die Solution-Config referenziert. Der Report "
+                "sieht nie einen Hersteller, und die Urteile (breached, "
+                "Tier low, …) fallen zentral — für jede Quelle gleich.", st),
+              H2("3.1  Quellen ansehen und abrufen", st),
+              PRE("python -m sources providers\n"
+                  "python -m sources fetch --kind slo --config quellen.json "
+                  "--output slo.json", st),
+              P("<font name='Courier'>providers</font> ist das Inventar: "
+                "Mitgeliefert sind file und csv (Datei-Wege, ohne jede "
+                "API-Freigabe), prometheus (SLO/SLI), github und gitlab "
+                "(DORA) sowie sonarqube (Qualität). Tokens kommen "
+                "ausschließlich aus Umgebungsvariablen (PROMETHEUS_TOKEN, "
+                "GITHUB_TOKEN, GITLAB_TOKEN, SONAR_TOKEN) und werden nie "
+                "gespeichert oder geloggt.", st),
+              H2("3.2  Eine Quelle austauschen", st),
+              P("Austauschen heißt: nur die Abruf-Config ändern. Beispiel — "
+                "solange die Prometheus-Freigabe fehlt, liefert eine "
+                "CSV-Datei; am Tag der Freigabe wird aus "
+                "<font name='Courier'>{\"provider\": \"csv\", \"path\": "
+                "\"team_slos.csv\"}</font> die Prometheus-Config — derselbe "
+                "fetch-Befehl, dasselbe Register, Report unverändert; nur "
+                "die Spalte „Data source“ zeigt die neue Herkunft.", st),
+              H2("3.3  Quellen kombinieren", st),
+              PRE("{\"sources\": [\n"
+                  "  {\"provider\": \"prometheus\", \"base_url\": \"https://prom.intern\",\n"
+                  "   \"services\": [ ... ]},\n"
+                  "  {\"provider\": \"csv\", \"path\": \"team_slos.csv\"}\n"
+                  "]}", st),
+              P("Mehrere Quellen füllen EIN Register; jede Zeile behält "
+                "ihre Herkunft. Typisch: das meiste im Monitoring, zwei "
+                "Altsysteme in einer Tabelle.", st),
+              H2("3.4  Eine neue Quelle anbinden", st),
+              P("Eine neue Quelle ist EINE Datei in "
+                "<font name='Courier'>sources/providers/</font> mit einem "
+                "PROVIDER-Objekt (provider_id, kinds, fetch()) — die "
+                "Auto-Discovery findet sie ohne weitere Registrierung. Das "
+                "vollständige Schritt-für-Schritt-<b>Tutorial</b> (mit "
+                "CSV-Beispiel von null, REST-Muster, Tests) liegt als "
+                "sources_Tutorial_DE.pdf neben diesem Handbuch und online "
+                "unter Tutorials → „Attach a data source“; die lebende "
+                "Referenzlösung ist sources/providers/csv_slo.py.", st),
+              HI("Faustregeln: Provider übersetzen, sie urteilen nie; nicht "
+                 "Gemessenes ist None, keine Schätzung; bei 401/403 nennt "
+                 "die Fehlermeldung die fehlende Freigabe und den Datei-Weg "
+                 "als Ausweichroute.", st),
+              SP(6),
+
+              H1("4  Häufige Fragen (FAQ)", st), HR(),
 
               H2("Was passiert, wenn expand=changelog fehlt?", st),
               P("transform_data findet keine Statusübergänge und gibt für alle Issues "
@@ -531,7 +584,7 @@ def content_de(st: dict) -> list:
                 "den tatsächlichen Workflow-Zustand wider.", st)]
 
     story += [PageBreak(),
-              H1("4  Glossar", st), HR(),
+              H1("5  Glossar", st), HR(),
               tbl(["Begriff", "Erklärung"],
                   [["ART",       "Agile Release Train — ein Team aus mehreren Scrum-Teams in SAFe"],
                    ["API",       "Application Programming Interface — Programmierschnittstelle"],
@@ -789,7 +842,60 @@ def content_en(st: dict) -> list:
                  "JIRA_TOKEN), the GUI keeps it in memory only.", st),
               SP(6),
 
-              H1("3  Frequently Asked Questions (FAQ)", st), HR(),
+              H1("3  Managing metric sources (sources)", st), HR(),
+              P("Besides the raw Jira data, SituationReport also fetches "
+                "external metrics (SLO/SLI, DORA, code quality) — via the "
+                "pluggable <b>sources</b> framework. Three terms suffice: a "
+                "<b>provider</b> translates a foreign system into "
+                "normalised <b>records</b>; a fetch writes them as a "
+                "<b>register</b> (JSON) the solution config references. The "
+                "report never sees a vendor, and judgements (breached, tier "
+                "low, …) are made centrally — the same for every source.", st),
+              H2("3.1  Listing and fetching sources", st),
+              PRE("python -m sources providers\n"
+                  "python -m sources fetch --kind slo --config sources.json "
+                  "--output slo.json", st),
+              P("<font name='Courier'>providers</font> is the inventory: "
+                "shipped are file and csv (file paths, no API approval "
+                "needed at all), prometheus (SLO/SLI), github and gitlab "
+                "(DORA) and sonarqube (quality). Tokens come exclusively "
+                "from environment variables (PROMETHEUS_TOKEN, "
+                "GITHUB_TOKEN, GITLAB_TOKEN, SONAR_TOKEN) and are never "
+                "stored or logged.", st),
+              H2("3.2  Swapping a source", st),
+              P("Swapping means: change only the fetch config. Example — "
+                "while the Prometheus approval is pending, a CSV file "
+                "delivers; the day approval lands, "
+                "<font name='Courier'>{\"provider\": \"csv\", \"path\": "
+                "\"team_slos.csv\"}</font> becomes the Prometheus config — "
+                "same fetch command, same register, report untouched; only "
+                "the 'Data source' column shows the new origin.", st),
+              H2("3.3  Combining sources", st),
+              PRE("{\"sources\": [\n"
+                  "  {\"provider\": \"prometheus\", \"base_url\": \"https://prom.intern\",\n"
+                  "   \"services\": [ ... ]},\n"
+                  "  {\"provider\": \"csv\", \"path\": \"team_slos.csv\"}\n"
+                  "]}", st),
+              P("Several sources fill ONE register; each row keeps its "
+                "origin. Typical: most services in monitoring, two legacy "
+                "systems in a spreadsheet.", st),
+              H2("3.4  Attaching a new source", st),
+              P("A new source is ONE file in <font name='Courier'>"
+                "sources/providers/</font> with a PROVIDER object "
+                "(provider_id, kinds, fetch()) — auto-discovery finds it "
+                "without any further registration. The full step-by-step "
+                "<b>tutorial</b> (CSV example from zero, REST pattern, "
+                "tests) ships as sources_Tutorial_EN.pdf next to this "
+                "manual and online under Tutorials → 'Attach a data "
+                "source'; the living reference solution is "
+                "sources/providers/csv_slo.py.", st),
+              HI("Rules of thumb: providers translate, they never judge; "
+                 "unmeasured values are None, not a guess; on 401/403 the "
+                 "error message names the missing approval and the file "
+                 "path as fallback.", st),
+              SP(6),
+
+              H1("4  Frequently Asked Questions (FAQ)", st), HR(),
 
               H2("What happens if expand=changelog is missing?", st),
               P("transform_data finds no status transitions and outputs empty time values "
@@ -819,7 +925,7 @@ def content_en(st: dict) -> list:
                 "and decisions, actual Jira data reflects the true workflow state.", st)]
 
     story += [PageBreak(),
-              H1("4  Glossary", st), HR(),
+              H1("5  Glossary", st), HR(),
               tbl(["Term", "Explanation"],
                   [["ART",       "Agile Release Train — a team-of-teams structure in SAFe"],
                    ["API",       "Application Programming Interface — programming interface"],
@@ -1075,7 +1181,32 @@ def content_ro(st: dict) -> list:
                  "JIRA_TOKEN), GUI îl ține doar în memorie.", st),
               SP(6),
 
-              H1("3  Întrebări frecvente (FAQ)", st), HR(),
+              H1("3  Gestionarea surselor de metrici (sources)", st), HR(),
+              P("Pe lângă datele brute din Jira, SituationReport preia și "
+                "metrici externe (SLO/SLI, DORA, calitatea codului) — prin "
+                "framework-ul modular <b>sources</b>. Trei termeni ajung: un "
+                "<b>provider</b> traduce un sistem străin în <b>records</b> "
+                "normalizate; un fetch le scrie ca <b>registru</b> (JSON) pe "
+                "care configurația soluției îl referențiază. Raportul nu "
+                "vede niciodată un furnizor, iar judecățile (breached, tier "
+                "low, …) se fac central — la fel pentru orice sursă.", st),
+              PRE("python -m sources providers\n"
+                  "python -m sources fetch --kind slo --config surse.json "
+                  "--output slo.json", st),
+              P("<b>Schimbarea unei surse</b> = doar config-ul de fetch se "
+                "schimbă (ex.: csv → prometheus în ziua aprobării API) — "
+                "același registru, raport neatins, doar coloana 'Data "
+                "source' arată noua origine. <b>Combinare</b>: o listă "
+                "'sources' umple UN registru, fiecare rând își păstrează "
+                "originea. <b>Sursă nouă</b> = UN fișier în "
+                "sources/providers/ cu un obiect PROVIDER — descoperit "
+                "automat; tutorialul pas-cu-pas (exemplu CSV de la zero) "
+                "este sources_Tutorial_EN.pdf și online la Tutorials. "
+                "Tokenurile doar din variabile de mediu, niciodată salvate "
+                "sau logate.", st),
+              SP(6),
+
+              H1("4  Întrebări frecvente (FAQ)", st), HR(),
 
               H2("Ce se întâmplă dacă expand=changelog lipsește?", st),
               P("transform_data nu găsește nicio tranziție de status și produce valori de "
@@ -1109,7 +1240,7 @@ def content_ro(st: dict) -> list:
                 "starea reală a fluxului de lucru.", st)]
 
     story += [PageBreak(),
-              H1("4  Glosar", st), HR(),
+              H1("5  Glosar", st), HR(),
               tbl(["Termen", "Explicație"],
                   [["ART",       "Agile Release Train — o structură de echipe în SAFe"],
                    ["API",       "Application Programming Interface — interfață de programare"],
@@ -1365,7 +1496,32 @@ def content_pt(st: dict) -> list:
                  "mantém-no apenas em memória.", st),
               SP(6),
 
-              H1("3  Perguntas Frequentes (FAQ)", st), HR(),
+              H1("3  Gerir fontes de métricas (sources)", st), HR(),
+              P("Além dos dados brutos do Jira, o SituationReport também "
+                "recolhe métricas externas (SLO/SLI, DORA, qualidade do "
+                "código) — através do framework modular <b>sources</b>. "
+                "Bastam três termos: um <b>provider</b> traduz um sistema "
+                "estranho em <b>records</b> normalizados; um fetch "
+                "escreve-os como <b>registo</b> (JSON) que a configuração "
+                "da solution referencia. O relatório nunca vê um "
+                "fornecedor, e os julgamentos (breached, tier low, …) são "
+                "centrais — iguais para qualquer fonte.", st),
+              PRE("python -m sources providers\n"
+                  "python -m sources fetch --kind slo --config fontes.json "
+                  "--output slo.json", st),
+              P("<b>Trocar uma fonte</b> = só o config de fetch muda (ex.: "
+                "csv → prometheus no dia da aprovação da API) — mesmo "
+                "registo, relatório intacto, só a coluna 'Data source' "
+                "mostra a nova origem. <b>Combinar</b>: uma lista "
+                "'sources' enche UM registo, cada linha guarda a origem. "
+                "<b>Fonte nova</b> = UM ficheiro em sources/providers/ com "
+                "um objeto PROVIDER — descoberto automaticamente; o "
+                "tutorial passo-a-passo (exemplo CSV do zero) é "
+                "sources_Tutorial_EN.pdf e online em Tutorials. Tokens só "
+                "de variáveis de ambiente, nunca guardados nem registados.", st),
+              SP(6),
+
+              H1("4  Perguntas Frequentes (FAQ)", st), HR(),
 
               H2("O que acontece se expand=changelog estiver em falta?", st),
               P("O transform_data não encontra transições de estado e produz valores de "
@@ -1399,7 +1555,7 @@ def content_pt(st: dict) -> list:
                 "refletem o estado verdadeiro do fluxo de trabalho.", st)]
 
     story += [PageBreak(),
-              H1("4  Glossário", st), HR(),
+              H1("5  Glossário", st), HR(),
               tbl(["Termo", "Explicação"],
                   [["ART",       "Agile Release Train — uma estrutura de equipas em SAFe"],
                    ["API",       "Application Programming Interface — interface de programação"],
@@ -1655,7 +1811,33 @@ def content_fr(st: dict) -> list:
                  "par défaut), la GUI le garde uniquement en mémoire.", st),
               SP(6),
 
-              H1("3  Foire aux Questions (FAQ)", st), HR(),
+              H1("3  Gérer les sources de métriques (sources)", st), HR(),
+              P("Outre les données brutes de Jira, SituationReport "
+                "récupère aussi des métriques externes (SLO/SLI, DORA, "
+                "qualité du code) — via le framework modulaire "
+                "<b>sources</b>. Trois termes suffisent : un <b>provider</b> "
+                "traduit un système étranger en <b>records</b> normalisés ; "
+                "un fetch les écrit comme <b>registre</b> (JSON) que la "
+                "configuration de la solution référence. Le rapport ne voit "
+                "jamais un fournisseur, et les jugements (breached, tier "
+                "low, …) sont centraux — identiques pour chaque source.", st),
+              PRE("python -m sources providers\n"
+                  "python -m sources fetch --kind slo --config sources.json "
+                  "--output slo.json", st),
+              P("<b>Remplacer une source</b> = seul le config de fetch "
+                "change (ex. : csv → prometheus le jour de l'approbation "
+                "API) — même registre, rapport intact, seule la colonne "
+                "'Data source' montre la nouvelle origine. <b>Combiner</b> : "
+                "une liste 'sources' remplit UN registre, chaque ligne "
+                "garde son origine. <b>Nouvelle source</b> = UN fichier "
+                "dans sources/providers/ avec un objet PROVIDER — découvert "
+                "automatiquement ; le tutoriel pas-à-pas (exemple CSV "
+                "depuis zéro) est sources_Tutorial_EN.pdf et en ligne sous "
+                "Tutorials. Les tokens uniquement via variables "
+                "d'environnement, jamais stockés ni journalisés.", st),
+              SP(6),
+
+              H1("4  Foire aux Questions (FAQ)", st), HR(),
 
               H2("Que se passe-t-il si expand=changelog est absent ?", st),
               P("transform_data ne trouve aucune transition de statut et produit des "
@@ -1689,7 +1871,7 @@ def content_fr(st: dict) -> list:
                 "travail.", st)]
 
     story += [PageBreak(),
-              H1("4  Glossaire", st), HR(),
+              H1("5  Glossaire", st), HR(),
               tbl(["Terme", "Explication"],
                   [["ART",       "Agile Release Train — une structure d'équipes dans SAFe"],
                    ["API",       "Application Programming Interface — interface de programmation"],
