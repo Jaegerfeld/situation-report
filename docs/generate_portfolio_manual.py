@@ -523,7 +523,10 @@ def content_de(st: dict) -> list:
            "HTML-Seite, ohne --output nach stdout. Ein Delta ohne Änderungen "
            "sagt das ausdrücklich. Alles deterministisch — die optionale "
            "KI-Narration (später, eigene Freigabe) darf umformulieren, nie "
-           "Zahlen erzeugen.", st),
+           "Zahlen erzeugen. In der GUI: „Snapshot speichern …“ friert die "
+           "aktuell konfigurierte Solution ein, „Delta-Briefing …“ fragt "
+           "nach Vorher- und Nachher-Snapshot und öffnet das Briefing im "
+           "Browser.", st),
         _SP(6),
 
         _H1("6. Kommandozeile (CLI)", st), _hr(st),
@@ -810,7 +813,10 @@ def content_en(st: dict) -> list:
            "Markdown, any other suffix the HTML page, no --output prints to "
            "stdout. A delta with no changes says so explicitly. All of it "
            "deterministic — the optional AI narration (later, separately "
-           "approved) may rephrase, never produce numbers.", st),
+           "approved) may rephrase, never produce numbers. In the GUI: "
+           "'Save snapshot …' freezes the currently configured solution, "
+           "'Delta briefing …' asks for the earlier and later snapshot and "
+           "opens the briefing in the browser.", st),
         _SP(6),
 
         _H1("6. Command line (CLI)", st), _hr(st),
@@ -1098,7 +1104,10 @@ def content_ro(st: dict) -> list:
            "extensie pagina HTML, fara --output la stdout. Un delta fara "
            "schimbari o spune explicit. Totul determinist — naratiunea AI "
            "optionala (mai tarziu, aprobata separat) poate reformula, "
-           "niciodata produce numere.", st),
+           "niciodata produce numere. In GUI: 'Salveaza snapshot …' "
+           "ingheata solutia configurata curent, 'Delta briefing …' cere "
+           "snapshot-ul anterior si cel recent si deschide briefingul in "
+           "browser.", st),
         _SP(6),
 
         _H1("6. Linia de comanda (CLI)", st), _hr(st),
@@ -1388,7 +1397,9 @@ def content_pt(st: dict) -> list:
            "sem --output para stdout. Um delta sem mudancas di-lo "
            "explicitamente. Tudo determinista — a narracao de IA opcional "
            "(mais tarde, aprovada em separado) pode reformular, nunca "
-           "produzir numeros.", st),
+           "produzir numeros. Na GUI: 'Guardar snapshot …' congela a "
+           "solution configurada, 'Delta briefing …' pede o snapshot "
+           "anterior e o recente e abre o briefing no browser.", st),
         _SP(6),
 
         _H1("6. Linha de comandos (CLI)", st), _hr(st),
@@ -1684,7 +1695,10 @@ def content_fr(st: dict) -> list:
            "sans --output vers stdout. Un delta sans changement le dit "
            "explicitement. Le tout deterministe — la narration IA optionnelle "
            "(plus tard, approuvee separement) peut reformuler, jamais "
-           "produire de chiffres.", st),
+           "produire de chiffres. Dans la GUI : 'Enregistrer le snapshot …' "
+           "fige la solution configuree, 'Delta briefing …' demande le "
+           "snapshot precedent et le recent et ouvre le briefing dans le "
+           "navigateur.", st),
         _SP(6),
 
         _H1("6. Ligne de commande (CLI)", st), _hr(st),

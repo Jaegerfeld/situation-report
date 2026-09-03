@@ -76,6 +76,10 @@ ONEPAGERS: dict[str, dict[str, dict]] = {
                 ("code", "python -m portfolio portfolio.json --snapshot heute.json\n"
                          "python -m portfolio --delta vorher.json heute.json --output delta.html\n"
                          "# Demo: im Szenario liegen snapshot_prev/now.json schon bereit"),
+                ("p", "Oder per GUI: Im Solutions-&-Portfolios-Fenster "
+                      "„Snapshot speichern …“ und „Delta-Briefing …“; im "
+                      "Testdaten-Generator öffnet „Delta-Briefing öffnen“ "
+                      "das Demo-Briefing mit einem Klick."),
                 ("p", "--snapshot friert Kennzahlen, Quell-Konfidenz und alle "
                       "fünf Governance-Register als kleines JSON ein "
                       "(--as-of setzt das Beobachtungsdatum). --delta braucht "
@@ -117,6 +121,10 @@ ONEPAGERS: dict[str, dict[str, dict]] = {
                 ("code", "python -m portfolio portfolio.json --snapshot today.json\n"
                          "python -m portfolio --delta before.json today.json --output delta.html\n"
                          "# Demo: the scenario ships snapshot_prev/now.json ready to use"),
+                ("p", "Or via the GUI: the Solutions & Portfolios window "
+                      "carries 'Save snapshot …' and 'Delta briefing …'; in "
+                      "the test-data generator, 'Open Delta Briefing' opens "
+                      "the demo briefing with one click."),
                 ("p", "--snapshot freezes metrics, source confidence and all "
                       "five governance registers into a small JSON (--as-of "
                       "pins the observation date). --delta needs no config; "

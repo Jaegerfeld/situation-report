@@ -163,6 +163,10 @@ _T: dict[str, dict[str, str]] = {
         "log_scenario_done":  "--- Demo-Portfolio erzeugt: {} ---",
         "log_scenario_hint":  "Direkt verwendbar: portfolio.json im portfolio-Modul laden oder hier den Report öffnen.",
         "log_scenario_error": "FEHLER beim Demo-Portfolio: {}",
+        "btn_scenario_delta": "Delta-Briefing öffnen",
+        "log_delta_started":  "--- Delta-Briefing wird erstellt (snapshot_prev → snapshot_now) ---",
+        "log_delta_done":     "--- Delta-Briefing im Browser geöffnet ---",
+        "log_delta_error":    "FEHLER beim Delta-Briefing: {}",
     },
     LANG_EN: {
         "title":              f"testdata_generator {_VERSION}",
@@ -230,6 +234,10 @@ _T: dict[str, dict[str, str]] = {
         "log_scenario_done":  "--- Demo portfolio generated: {} ---",
         "log_scenario_hint":  "Ready to use: load portfolio.json in the portfolio module, or open the report here.",
         "log_scenario_error": "ERROR generating demo portfolio: {}",
+        "btn_scenario_delta": "Open Delta Briefing",
+        "log_delta_started":  "--- Building delta briefing (snapshot_prev → snapshot_now) ---",
+        "log_delta_done":     "--- Delta briefing opened in browser ---",
+        "log_delta_error":    "ERROR building delta briefing: {}",
     },
 }
 
@@ -326,6 +334,33 @@ def _build_portfolio_report_html_file(portfolio_json: Path, log=print) -> str:
         return f.name
 
 
+def _build_delta_html_file(prev_path: Path, now_path: Path, log=print) -> str:
+    """
+    Render the delta briefing for the demo scenario's two snapshots into a
+    temporary HTML file (lazy portfolio import, like the report helpers).
+
+    Args:
+        prev_path: Earlier snapshot JSON (scenario's snapshot_prev.json).
+        now_path:  Later snapshot JSON (scenario's snapshot_now.json).
+        log:       Progress callback.
+
+    Returns:
+        Path of the written temporary .html file.
+    """
+    import tempfile
+
+    from portfolio.delta import compute_delta, render_delta_html
+    from portfolio.snapshot import load_snapshot
+
+    html = render_delta_html(
+        compute_delta(load_snapshot(prev_path), load_snapshot(now_path)))
+    with tempfile.NamedTemporaryFile(
+        mode="w", suffix=".html", delete=False, encoding="utf-8"
+    ) as f:
+        f.write(html)
+        return f.name
+
+
 def _build_template_section(values: dict[str, str]) -> dict:
     """Assemble the testdata_generator section for the shared project template."""
     return {key: str(values.get(key, "")) for key in _TEMPLATE_FIELDS}
@@ -344,6 +379,7 @@ class _App:
         self._running = False
         self._last_report: dict[str, Path] | None = None
         self._last_scenario: Path | None = None
+        self._last_snapshots: tuple[Path, Path] | None = None
 
         self._var_workflow    = tk.StringVar()
         self._var_output      = tk.StringVar()
@@ -500,7 +536,12 @@ class _App:
             scen_frame, text="Open Portfolio Report",
             command=self._open_portfolio_report, state="disabled",
         )
-        self._btn_scenario_report.pack(side="left")
+        self._btn_scenario_report.pack(side="left", padx=(0, 6))
+        self._btn_scenario_delta = ttk.Button(
+            scen_frame, text="Open Delta Briefing",
+            command=self._open_delta_briefing, state="disabled",
+        )
+        self._btn_scenario_delta.pack(side="left")
 
         self._progress = ttk.Progressbar(frame, mode="indeterminate")
         self._progress.grid(row=21, column=0, columnspan=3, sticky="ew")
@@ -579,6 +620,7 @@ class _App:
         self._btn_report.configure(text=self._t("btn_report"))
         self._btn_scenario.configure(text=self._t("btn_scenario"))
         self._btn_scenario_report.configure(text=self._t("btn_scenario_report"))
+        self._btn_scenario_delta.configure(text=self._t("btn_scenario_delta"))
         self._log_frame.configure(text=self._t("lbl_log"))
         lang = self._lang_var.get()
         for rb, (_val, lbl_de, lbl_en) in zip(self._pattern_rbs, _PATTERN_LABELS):
@@ -962,6 +1004,7 @@ class _App:
         self._btn_run.configure(state="disabled")
         self._btn_scenario.configure(state="disabled")
         self._btn_scenario_report.configure(state="disabled")
+        self._btn_scenario_delta.configure(state="disabled")
         self._log_msg(self._t("log_scenario_started"))
 
         _timer: list = []
@@ -980,6 +1023,8 @@ class _App:
                     Path(target), seed=seed, log=self._log_msg
                 )
                 self._last_scenario = paths["portfolio"]
+                self._last_snapshots = (paths["snapshot_prev"],
+                                        paths["snapshot_now"])
                 done = self._t("log_scenario_done").format(target)
                 self._root.after(0, lambda: self._log_msg(done))
                 self._root.after(
@@ -1005,6 +1050,8 @@ class _App:
         self._btn_scenario.configure(state="normal")
         if self._last_scenario is not None:
             self._btn_scenario_report.configure(state="normal")
+        if self._last_snapshots is not None:
+            self._btn_scenario_delta.configure(state="normal")
         self._progress.stop()
         self._progress.grid_remove()
 
@@ -1019,6 +1066,7 @@ class _App:
         self._btn_run.configure(state="disabled")
         self._btn_scenario.configure(state="disabled")
         self._btn_scenario_report.configure(state="disabled")
+        self._btn_scenario_delta.configure(state="disabled")
         self._log_msg(self._t("log_report_started"))
 
         _timer: list = []
@@ -1045,6 +1093,47 @@ class _App:
                 )
             except Exception as exc:
                 msg = self._t("log_report_error").format(exc)
+                self._root.after(0, lambda: self._log_msg(msg))
+            finally:
+                for t in _timer:
+                    self._root.after_cancel(t)
+                self._root.after(0, self._reset_after_scenario)
+
+        threading.Thread(target=_do, daemon=True).start()
+
+    def _open_delta_briefing(self) -> None:
+        """Render the delta briefing for the demo scenario's snapshot pair
+        (prev → now) and open it in the browser."""
+        if self._running or self._last_snapshots is None:
+            return
+        prev_path, now_path = self._last_snapshots
+
+        self._running = True
+        self._btn_run.configure(state="disabled")
+        self._btn_scenario.configure(state="disabled")
+        self._btn_scenario_report.configure(state="disabled")
+        self._btn_scenario_delta.configure(state="disabled")
+        self._log_msg(self._t("log_delta_started"))
+
+        _timer: list = []
+
+        def show_progress() -> None:
+            self._progress.grid()
+            self._progress.start(10)
+
+        _timer.append(self._root.after(3000, show_progress))
+
+        def _do() -> None:
+            try:
+                tmp_path = _build_delta_html_file(
+                    prev_path, now_path, log=self._log_msg
+                )
+                webbrowser.open(f"file:///{tmp_path.replace(chr(92), '/')}")
+                self._root.after(
+                    0, lambda: self._log_msg(self._t("log_delta_done"))
+                )
+            except Exception as exc:
+                msg = self._t("log_delta_error").format(exc)
                 self._root.after(0, lambda: self._log_msg(msg))
             finally:
                 for t in _timer:

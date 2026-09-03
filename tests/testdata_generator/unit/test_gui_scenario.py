@@ -70,8 +70,32 @@ def test_portfolio_chain_end_to_end_with_real_scenario(tmp_path: Path) -> None:
     Path(out).unlink()
 
 
+def test_delta_helper_renders_scenario_snapshots(tmp_path: Path) -> None:
+    """The GUI delta helper on real snapshot files (mocked delta pipeline)."""
+    from testdata_generator.gui import _build_delta_html_file
+
+    prev = tmp_path / "snapshot_prev.json"
+    now = tmp_path / "snapshot_now.json"
+    prev.write_text("{}", encoding="utf-8")
+    now.write_text("{}", encoding="utf-8")
+
+    with patch("portfolio.snapshot.load_snapshot", side_effect=["P", "N"]) as m_load, \
+         patch("portfolio.delta.compute_delta", return_value="D") as m_delta, \
+         patch("portfolio.delta.render_delta_html",
+               return_value="<!DOCTYPE html><html></html>"):
+        out = _build_delta_html_file(prev, now, log=lambda _: None)
+
+    assert out.endswith(".html")
+    assert Path(out).read_text(encoding="utf-8").startswith("<!DOCTYPE html>")
+    assert [c.args[0] for c in m_load.call_args_list] == [prev, now]
+    assert m_delta.call_args.args == ("P", "N")
+    Path(out).unlink()
+
+
 def test_scenario_translation_keys_exist_in_de_and_en() -> None:
     keys = ("lbl_scenario", "btn_scenario", "btn_scenario_report",
+            "btn_scenario_delta", "log_delta_started", "log_delta_done",
+            "log_delta_error",
             "dlg_scenario_dir", "log_scenario_started", "log_scenario_done",
             "log_scenario_hint", "log_scenario_error")
     for lang in ("de", "en"):
