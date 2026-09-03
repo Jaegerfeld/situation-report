@@ -258,6 +258,34 @@ gets a red "review due" cell — the hook for red-team/premortem sessions.
 `owner` names a team, not a person. Missing or invalid files are logged and
 skipped.
 
+## Delta briefing (D2, deterministic core)
+
+Two commands turn report states into a "what changed?" briefing:
+
+```bash
+python -m portfolio portfolio.json --snapshot state_now.json
+python -m portfolio --delta state_prev.json state_now.json --output delta.html
+```
+
+`--snapshot` freezes the computed report state (metrics per unit and pooled,
+source quality incl. confidence, all five governance registers) into a small
+schema-v1 JSON; `--as-of YYYY-MM-DD` pins the observation date (default:
+today). Without `--output`/`--pdf`, only the snapshot is written.
+
+`--delta PREV NOW` needs no config: it compares two snapshots and emits the
+briefing — metric deltas at display precision (invisible float changes are
+dropped), throughput in the period, confidence transitions per source, and
+per governance register the added/removed entries, status transitions
+(worsenings first, red; improvements green) and **newly overdue** items
+(judged against each snapshot's as-of date, so only genuine flips count).
+`--output *.md` writes Markdown, any other suffix the self-contained HTML
+page, no `--output` prints Markdown to stdout. A delta with no changes says
+so explicitly — silence is information.
+
+The Markdown output is deliberately the input contract for the optional LLM
+narration layer (D2 part 2, not yet built): the LLM may rephrase it, never
+add numbers — the numbers are made here, deterministically.
+
 ## Custom stage map (optional, config schema 2)
 
 By default, differing ART workflows pool into the three canonical groups
@@ -292,6 +320,8 @@ portfolio/
 ├── capability_config.py Capability map (B1): schema, parse/load/save
 ├── dependency_config.py Dependency register (B5): schema, parse/load/save
 ├── decision_config.py Decision/assumption log (B4): schema, parse/load/save
+├── snapshot.py        Report snapshot (D2): freeze metrics/quality/governance
+├── delta.py           Delta briefing (D2): diff two snapshots, HTML/Markdown
 ├── aggregator.py      Record-level pooling + rendering (HTML/PDF)
 └── summary.py         Management summary + data quality (A1/A2), outliers (A3), ROAM board (B3), NFR dashboard (B2)
 ```

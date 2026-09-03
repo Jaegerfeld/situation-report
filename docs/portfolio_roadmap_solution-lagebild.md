@@ -125,9 +125,10 @@ Nicht nach „Feature-Wunschliste", sondern nach **Datenherkunft** (das BGS-Prin
 - **Was:** Kennzahlen aus `summary.py` als Eingabe, LLM erzeugt die Management-Formulierung (Zwei-Lesarten-tauglich); Zahlen werden aus dem Datenpfad übernommen, nie generiert.
 - **Warum:** Rosetta-Stone-Arbeit (EA-Prinzip 3) wird bezahlbar; Muster M1/M6. **Aufwand:** S–M.
 
-### D2 · Delta-Briefing  ⟵ *Phase-D-Pilot (Beschluss 13.08.2026)*
+### D2 · Delta-Briefing  ⟵ *Phase-D-Pilot (Beschluss 13.08.2026)* — **Teil 1 ✅ (deterministischer Kern, 03.09.2026)**
 - **Was:** Deterministischer Diff zweier Report-Stände (neue/geschlossene Items, Kennzahl-Deltas, Ampelwechsel, Konfidenz-Änderungen) + LLM-Narration „Was hat sich geändert, was beschleunigt sich?".
 - **Warum:** Hohpes „first derivative" als Produkt (Muster M2); geringstes Risiko, sofort spürbar, sauberer Beleg für den Architektur-Grundsatz. **Voraussetzung:** zwei Report-Stände. **Aufwand:** M.
+- **Ist-Stand Teil 1:** `portfolio/snapshot.py` (Schema v1: Kennzahlen je Einheit + gepoolt, Quell-Konfidenz as-of-verankert, alle fünf Governance-Register; CLI `--snapshot`/`--as-of`) + `portfolio/delta.py` (CLI `--delta PREV NOW` ohne Config): Kennzahl-Deltas auf Anzeigegenauigkeit, Durchsatz im Zeitraum, Konfidenz-Übergänge, je Register added/removed/Statuswechsel (Verschlechterungen zuerst) + **frisch Überfälliges** (nur echte Kipp-Punkte gegen beide as-of-Daten); Ausgabe HTML/Markdown/stdout, „keine Änderungen" wird explizit gesagt. Szenario liefert snapshot_prev/now mit erzählter Zwei-Wochen-Story (DoD). **Offen (Teil 2):** LLM-Narration — wartet auf Entscheidungen Modell/Deployment + Freigabeprozess (Grundsatz 6, Rechts-Leitplanken a–d); Eingabe-Contract = das Markdown des Kerns.
 
 ### D3 · Befragbares Lagebild
 - **Was:** Q&A über Report-Daten (JSON/CSV) mit **Zitierpflicht**: jede Antwort referenziert den Datenpfad; „weiß ich nicht" ist zulässige Antwort. *Hygiene-Vorgabe (KI-Denkschrift v2.0, Prinzip 7):* konfigurierbar die **eigene Einschätzung des Fragenden vor der Antwort abfragen** und beide nebeneinanderstellen — Entscheidungshygiene nach Kahneman/Sibony/Sunstein („erst unabhängig urteilen, dann die KI fragen").

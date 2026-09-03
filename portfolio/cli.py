@@ -10,7 +10,9 @@
 #   Kommandozeileninterface für aggregierte Solution-/Portfolio-Reports in
 #   beiden Modi: "pooled" (Solution als ein System) und "comparison" (Einheiten
 #   nebeneinander). Liest eine Solution-Konfiguration, aggregiert die
-#   referenzierten ARTs und schreibt HTML- und/oder PDF-Reports.
+#   referenzierten ARTs und schreibt HTML- und/oder PDF-Reports. Zusätzlich
+#   D2: --snapshot friert den Report-Zustand als JSON ein, --delta vergleicht
+#   zwei Snapshots zum Delta-Briefing („Was hat sich geändert?").
 # =============================================================================
 
 from __future__ import annotations
@@ -19,6 +21,7 @@ import argparse
 import sys
 import webbrowser
 from collections.abc import Callable
+from datetime import date
 from pathlib import Path
 
 from build_reports.metrics.flow_time import CT_METHOD_A, CT_METHOD_B
@@ -93,14 +96,55 @@ def run_solution_report(
     return html
 
 
+def run_delta_briefing(
+    prev_path: Path,
+    now_path: Path,
+    output: Path | None = None,
+    open_browser: bool = False,
+    log: Callable[[str], None] = print,
+) -> None:
+    """
+    Compare two snapshot files and emit the delta briefing (D2).
+
+    Args:
+        prev_path:    Earlier snapshot JSON.
+        now_path:     Later snapshot JSON.
+        output:       Destination file — ``*.md`` writes Markdown, any other
+                      suffix writes the HTML page; None prints Markdown.
+        open_browser: Open a written HTML file in the default browser.
+        log:          Progress callback.
+    """
+    from .delta import compute_delta, delta_to_markdown, render_delta_html
+    from .snapshot import load_snapshot
+
+    delta = compute_delta(load_snapshot(prev_path), load_snapshot(now_path))
+    if output is None:
+        text = delta_to_markdown(delta)
+        try:
+            print(text)
+        except UnicodeEncodeError:
+            # Windows-Konsole mit Legacy-Codepage (cp1252): UTF-8 erzwingen.
+            sys.stdout.buffer.write(text.encode("utf-8") + b"\n")
+            sys.stdout.buffer.flush()
+        return
+    if output.suffix.lower() == ".md":
+        output.write_text(delta_to_markdown(delta), encoding="utf-8")
+    else:
+        output.write_text(render_delta_html(delta), encoding="utf-8")
+        if open_browser:
+            webbrowser.open(output.resolve().as_uri())
+    log(f"Delta briefing written: {output}")
+
+
 def main() -> None:
     """Entry point for the portfolio CLI."""
     parser = argparse.ArgumentParser(
         prog="python -m portfolio",
         description="Generate an aggregated (pooled) Large-Solution / Portfolio report.",
     )
-    parser.add_argument("config", type=Path,
-                        help="Path to the solution-config JSON file.")
+    parser.add_argument("config", type=Path, nargs="?", default=None,
+                        help="Path to the solution-config JSON file "
+                             "(not needed with --delta).")
     parser.add_argument("--output", type=Path, default=None, metavar="FILE",
                         help="Write the combined HTML report to this file.")
     parser.add_argument("--pdf", type=Path, default=None, metavar="FILE",
@@ -125,8 +169,38 @@ def main() -> None:
                         metavar="FILE", help="JSON PI interval config for Flow Velocity.")
     parser.add_argument("--browser", action="store_true",
                         help="Open the written report in the default browser.")
+    parser.add_argument("--snapshot", type=Path, default=None, metavar="FILE",
+                        help="Freeze the report state (metrics, quality, "
+                             "governance) into this snapshot JSON (D2). "
+                             "Without --output/--pdf, only the snapshot is "
+                             "written.")
+    parser.add_argument("--as-of", type=date.fromisoformat, default=None,
+                        dest="as_of", metavar="YYYY-MM-DD",
+                        help="Observation date recorded in the snapshot "
+                             "(default: today).")
+    parser.add_argument("--delta", nargs=2, type=Path, default=None,
+                        metavar=("PREV", "NOW"),
+                        help="Compare two snapshot files and write the delta "
+                             "briefing: --output *.md = Markdown, --output "
+                             "otherwise = HTML, no --output = Markdown to "
+                             "stdout. Needs no config.")
 
     args = parser.parse_args()
+
+    if args.delta:
+        run_delta_briefing(args.delta[0], args.delta[1],
+                           output=args.output, open_browser=args.browser)
+        return
+    if args.config is None:
+        parser.error("config is required (except with --delta).")
+
+    if args.snapshot:
+        from .snapshot import write_snapshot_for_config
+        write_snapshot_for_config(
+            args.config, args.snapshot,
+            as_of=args.as_of, target_ct=args.target_ct)
+        if not args.output and not args.pdf:
+            return
 
     html = run_solution_report(
         config_path=args.config,

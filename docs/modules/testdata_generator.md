@@ -139,6 +139,12 @@ Built-in stories (deterministic per seed):
 - **Decision log**: three decisions and two assumptions; Alpha's stage-map
   decision supersedes an older one, and Beta's open assumption has passed
   its review date — flagged red as "review due".
+- **Delta briefing**: `snapshot_prev.json` (the same world two weeks
+  earlier) and `snapshot_now.json` ship with the scenario —
+  `python -m portfolio --delta snapshot_prev.json snapshot_now.json` shows
+  the throughput since, Beta-3's confidence decaying medium → low, AD-1
+  escalating at_risk → blocked, risk BR-2 appearing, and the runway gap and
+  assumption AS-B1 turning newly overdue.
 
 The folder is directly usable: `python -m portfolio demo/portfolio.json`
 builds the portfolio report; the solution configs also work individually.

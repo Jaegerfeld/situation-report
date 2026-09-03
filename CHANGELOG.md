@@ -5,6 +5,31 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [Unreleased]
+
+### Added
+- Portfolio: **delta briefing** (roadmap D2, deterministic core) — new CLI
+  flags on `python -m portfolio`: `--snapshot FILE` (with `--as-of`) freezes
+  the computed report state (metrics per unit and pooled, source confidence,
+  all five governance registers) into a schema-v1 JSON (new module
+  `portfolio/snapshot.py`); `--delta PREV NOW` (no config needed, new module
+  `portfolio/delta.py`) compares two snapshots and answers "what changed?":
+  metric deltas at display precision, throughput in the period, confidence
+  transitions per source, per register added/removed entries and status
+  transitions (worsenings first, red) plus newly overdue items judged
+  against each snapshot's as-of date. Output as self-contained HTML page,
+  Markdown file, or Markdown to stdout; a delta with no changes says so
+  explicitly. Deliberately deterministic — the Markdown is the input
+  contract for the optional LLM narration (D2 part 2, not built yet). The
+  demo scenario ships `snapshot_prev.json`/`snapshot_now.json` (the same
+  world two weeks earlier: fewer completed items, Beta-3 confidence still
+  medium, AD-1 only at risk, BR-2 absent, runway gap and assumption AS-B1
+  not yet overdue); manual section 5.12 in all five languages.
+- Docs: **feature one-pagers** — every implemented feature now gets a
+  one-page PDF (DE+EN) introducing the new function
+  (`docs/generate_feature_onepagers.py` → `docs/onepager/`); first one:
+  the delta briefing.
+
 ## [0.19.0] – 2026-09-03
 
 ### Added

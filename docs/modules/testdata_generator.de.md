@@ -142,6 +142,12 @@ Eingebaute Geschichten (deterministisch je Seed):
 - **Decision-Log**: drei Entscheidungen und zwei Annahmen; Alphas
   Stage-Map-Entscheidung ersetzt eine ältere (supersedes), Betas offene
   Annahme hat ihr Prüfdatum überschritten — rot als „review due" markiert.
+- **Delta-Briefing**: `snapshot_prev.json` (dieselbe Welt zwei Wochen
+  früher) und `snapshot_now.json` liegen dem Szenario bei —
+  `python -m portfolio --delta snapshot_prev.json snapshot_now.json` zeigt
+  den Durchsatz seither, Beta-3s Konfidenz-Verfall medium → low, AD-1s
+  Eskalation at_risk → blocked, das neue Risiko BR-2 sowie Runway-Lücke und
+  Annahme AS-B1 als frisch überfällig.
 
 Der Ordner ist direkt verwendbar: `python -m portfolio demo/portfolio.json`
 erzeugt den Portfolio-Report; die Solution-Configs funktionieren auch einzeln.

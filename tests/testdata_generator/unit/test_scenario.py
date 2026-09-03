@@ -16,7 +16,7 @@
 
 from __future__ import annotations
 
-from datetime import date
+from datetime import date, timedelta
 
 import pytest
 
@@ -46,6 +46,7 @@ class TestArtifacts:
                     "capabilities_alpha", "capabilities_beta",
                     "dependencies_alpha", "dependencies_beta",
                     "decisions_alpha", "decisions_beta",
+                    "snapshot_prev", "snapshot_now",
                     "pi_config", "readme"):
             assert paths[key].exists(), key
         assert len(list((out / "arts").glob("*_IssueTimes.xlsx"))) == 6
@@ -244,6 +245,36 @@ class TestBuiltInStories:
         entries = _collect_decisions(cfg, log=lambda m: None)
         assert {source for source, _ in entries} == {"Solution Alpha", "Solution Beta"}
         assert len(entries) == 5
+
+    def test_delta_briefing_snapshots_tell_their_story(self, scenario) -> None:
+        from portfolio.delta import compute_delta
+        from portfolio.snapshot import load_snapshot
+        _, paths = scenario
+        prev = load_snapshot(paths["snapshot_prev"])
+        now = load_snapshot(paths["snapshot_now"])
+        assert prev.as_of == REF - timedelta(days=14)
+        assert now.as_of == REF
+
+        delta = compute_delta(prev, now)
+        assert not delta.quiet
+        assert delta.period_days == 14
+        # Durchsatz: im Zeitraum wurde sichtbar fertiggestellt.
+        assert delta.completed_delta > 0
+        # Die Geschichte: Beta-3-Konfidenz verfällt medium → low, ...
+        assert [(c.entry_id, c.fields["confidence"])
+                for c in delta.confidence_changes] \
+            == [("ART Beta-3", ("medium", "low"))]
+        # ... AD-1 eskaliert at_risk → blocked, ...
+        deps = delta.governance["dependencies"]
+        assert [(c.entry_id, c.fields["status"]) for c in deps.changed] \
+            == [("AD-1", ("at_risk", "blocked"))]
+        # ... Risiko BR-2 ist neu, ...
+        assert [e["id"] for e in delta.governance["risks"].added] == ["BR-2"]
+        # ... und Runway-Lücke + offene Annahme sind frisch überfällig.
+        assert [e["id"] for e in delta.governance["runway"].newly_overdue] \
+            == ["BRW-1"]
+        assert [e["id"] for e in delta.governance["decisions"].newly_overdue] \
+            == ["AS-B1"]
 
     def test_outlier_art_has_clearly_higher_cycle_time(self, scenario) -> None:
         from portfolio.aggregator import load_members
