@@ -136,6 +136,15 @@ _DE = [
           "Provider wählen, dann wie gewohnt „Delta-Briefing …“:"),
     ("code", CODE_USE),
     ("h1", "7  Wenn etwas hakt"),
+    ("li", "„Python wurde nicht gefunden“ (Hinweis auf den Microsoft "
+           "Store): Windows leitet den Befehl python auf einen "
+           "Store-Platzhalter um. Die Befehle aus Abschnitt 5/6 im "
+           "Repo-Ordner ausführen und dort .venv\\Scripts\\python.exe "
+           "statt python verwenden (oder einmalig "
+           ".venv\\Scripts\\Activate.ps1) — alternativ mit installiertem "
+           "Python-Launcher py -m llm test, oder die App-Ausführungsaliase "
+           "python.exe/python3.exe deaktivieren (Einstellungen > Apps > "
+           "Erweiterte App-Einstellungen)."),
     ("li", "„Could not reach Ollama“ / Verbindung abgelehnt: Ollama ist "
            "nicht gestartet — über das Startmenü „Ollama“ öffnen und auf "
            "das Lama-Symbol im Infobereich warten."),
@@ -207,6 +216,15 @@ _EN = [
           "briefing …\" as usual:"),
     ("code", CODE_USE),
     ("h1", "7  Troubleshooting"),
+    ("li", "\"Python was not found\" (pointing to the Microsoft Store): "
+           "Windows redirects the python command to a Store placeholder. "
+           "Run the commands from sections 5/6 in the repository folder "
+           "and use .venv\\Scripts\\python.exe there instead of python "
+           "(or activate once via .venv\\Scripts\\Activate.ps1) — "
+           "alternatively py -m llm test with the Python launcher "
+           "installed, or disable the app execution aliases "
+           "python.exe/python3.exe (Settings > Apps > Advanced app "
+           "settings)."),
     ("li", "\"Could not reach Ollama\" / connection refused: Ollama is "
            "not running — start \"Ollama\" from the Start menu and wait "
            "for the llama icon in the notification area."),
