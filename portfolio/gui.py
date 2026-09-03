@@ -155,6 +155,11 @@ _T: dict[str, dict[str, str]] = {
         "msg_snapshot_error": "Snapshot fehlgeschlagen: {error}",
         "msg_delta_done": "Delta-Briefing im Browser geöffnet",
         "msg_delta_error": "Delta-Briefing fehlgeschlagen: {error}",
+        "btn_conference": "Konferenzmappe …",
+        "dlg_save_conference": "Konferenzmappe speichern",
+        "msg_conference_building": "Konferenzmappe wird erzeugt …",
+        "msg_conference_done": "Konferenzmappe erzeugt: {path}",
+        "msg_conference_error": "Konferenzmappe fehlgeschlagen: {error}",
     },
     LANG_EN: {
         "window_title": "Solutions & Portfolios",
@@ -204,6 +209,11 @@ _T: dict[str, dict[str, str]] = {
         "msg_snapshot_error": "Snapshot failed: {error}",
         "msg_delta_done": "Delta briefing opened in the browser",
         "msg_delta_error": "Delta briefing failed: {error}",
+        "btn_conference": "Conference pre-read …",
+        "dlg_save_conference": "Save conference pre-read",
+        "msg_conference_building": "Building conference pre-read …",
+        "msg_conference_done": "Conference pre-read written: {path}",
+        "msg_conference_error": "Conference pre-read failed: {error}",
     },
     LANG_RO: {
         "window_title": "Soluții & Portofolii",
@@ -253,6 +263,11 @@ _T: dict[str, dict[str, str]] = {
         "msg_snapshot_error": "Snapshot eșuat: {error}",
         "msg_delta_done": "Delta briefing deschis în browser",
         "msg_delta_error": "Delta briefing eșuat: {error}",
+        "btn_conference": "Mapa conferinței …",
+        "dlg_save_conference": "Salvează mapa conferinței",
+        "msg_conference_building": "Se creează mapa conferinței …",
+        "msg_conference_done": "Mapa conferinței creată: {path}",
+        "msg_conference_error": "Mapa conferinței a eșuat: {error}",
     },
     LANG_PT: {
         "window_title": "Soluções & Portefólios",
@@ -302,6 +317,11 @@ _T: dict[str, dict[str, str]] = {
         "msg_snapshot_error": "Snapshot falhou: {error}",
         "msg_delta_done": "Delta briefing aberto no browser",
         "msg_delta_error": "Delta briefing falhou: {error}",
+        "btn_conference": "Dossier da conferência …",
+        "dlg_save_conference": "Guardar o dossier da conferência",
+        "msg_conference_building": "A criar o dossier da conferência …",
+        "msg_conference_done": "Dossier da conferência criado: {path}",
+        "msg_conference_error": "Dossier da conferência falhou: {error}",
     },
     LANG_FR: {
         "window_title": "Solutions & Portefeuilles",
@@ -351,6 +371,11 @@ _T: dict[str, dict[str, str]] = {
         "msg_snapshot_error": "Échec du snapshot : {error}",
         "msg_delta_done": "Delta briefing ouvert dans le navigateur",
         "msg_delta_error": "Échec du delta briefing : {error}",
+        "btn_conference": "Dossier de conférence …",
+        "dlg_save_conference": "Enregistrer le dossier de conférence",
+        "msg_conference_building": "Création du dossier de conférence …",
+        "msg_conference_done": "Dossier de conférence créé : {path}",
+        "msg_conference_error": "Échec du dossier de conférence : {error}",
     },
 }
 
@@ -650,6 +675,8 @@ class SolutionManagerApp(tk.Tk):
         ttk.Button(btns, text=self._tr("btn_save"), command=self._save).pack(side="left", padx=(6, 0))
         ttk.Button(btns, text=self._tr("btn_generate"), command=self._generate).pack(
             side="right")
+        ttk.Button(btns, text=self._tr("btn_conference"),
+                   command=self._conference).pack(side="right", padx=(0, 6))
         ttk.Button(btns, text=self._tr("btn_delta"), command=self._delta).pack(
             side="right", padx=(0, 6))
         ttk.Button(btns, text=self._tr("btn_snapshot"), command=self._snapshot).pack(
@@ -843,6 +870,34 @@ class SolutionManagerApp(tk.Tk):
                 msg = self._tr("msg_snapshot_done").format(path=path)
             except Exception as exc:
                 msg = self._tr("msg_snapshot_error").format(error=exc)
+            self.after(0, lambda: self._status.set(msg))
+
+        threading.Thread(target=worker, daemon=True).start()
+
+    def _conference(self) -> None:
+        """Write the VSC conference pre-read for the current config (B6)."""
+        cfg = self._build_config()
+        if cfg is None:
+            return
+        path = filedialog.asksaveasfilename(
+            title=self._tr("dlg_save_conference"), defaultextension=".html",
+            initialfile=f"{cfg.name}_VSC_{date.today().isoformat()}.html",
+            filetypes=[("HTML", "*.html")])
+        if not path:
+            return
+        self._status.set(self._tr("msg_conference_building"))
+        self.update_idletasks()
+
+        def worker() -> None:
+            try:
+                from .aggregator import render_conference_html
+
+                html = render_conference_html(cfg, log=lambda *_: None)
+                Path(path).write_text(html, encoding="utf-8")
+                webbrowser.open(Path(path).resolve().as_uri())
+                msg = self._tr("msg_conference_done").format(path=path)
+            except Exception as exc:
+                msg = self._tr("msg_conference_error").format(error=exc)
             self.after(0, lambda: self._status.set(msg))
 
         threading.Thread(target=worker, daemon=True).start()

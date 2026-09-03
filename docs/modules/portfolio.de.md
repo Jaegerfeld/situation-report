@@ -325,7 +325,12 @@ Input 1 · Aktuelle Daten (Summary + Quell-Qualität), Input 2 ·
 Impediment-Backlog & Governance (Flussprobleme zuerst, dann ROAM und
 Dependencies), Input 3 · Business Objectives (Capability-Map + SLOs),
 Input 4 · Integrierte Roadmap & Strategic Themes (B7). Der vollständige
-interaktive Report bleibt die Detailquelle.
+interaktive Report bleibt die Detailquelle. **In der GUI:** Der Knopf
+*Konferenzmappe …* im Manager-Fenster schreibt dieselbe Seite für die
+aktuell konfigurierte Solution (Dateiname schlägt das Tagesdatum vor)
+und öffnet sie im Browser — von dort als PDF drucken; im
+Demo-Portfolio-Bereich des Testdaten-Generators öffnet *Konferenzmappe
+öffnen* die Demo-Mappe mit einem Klick.
 
 ## Strategic Themes & integrierte Roadmap (optional, B7)
 

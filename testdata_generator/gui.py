@@ -164,6 +164,10 @@ _T: dict[str, dict[str, str]] = {
         "log_scenario_hint":  "Direkt verwendbar: portfolio.json im portfolio-Modul laden oder hier den Report öffnen.",
         "log_scenario_error": "FEHLER beim Demo-Portfolio: {}",
         "btn_scenario_delta": "Delta-Briefing öffnen",
+        "btn_scenario_conference": "Konferenzmappe öffnen",
+        "log_conference_started": "--- Konferenzmappe wird erstellt ---",
+        "log_conference_done": "--- Konferenzmappe im Browser geöffnet ---",
+        "log_conference_error": "FEHLER bei der Konferenzmappe: {}",
         "log_delta_started":  "--- Delta-Briefing wird erstellt (snapshot_prev → snapshot_now) ---",
         "log_delta_done":     "--- Delta-Briefing im Browser geöffnet ---",
         "log_delta_error":    "FEHLER beim Delta-Briefing: {}",
@@ -235,6 +239,10 @@ _T: dict[str, dict[str, str]] = {
         "log_scenario_hint":  "Ready to use: load portfolio.json in the portfolio module, or open the report here.",
         "log_scenario_error": "ERROR generating demo portfolio: {}",
         "btn_scenario_delta": "Open Delta Briefing",
+        "btn_scenario_conference": "Open Conference Pre-Read",
+        "log_conference_started": "--- Building conference pre-read ---",
+        "log_conference_done": "--- Conference pre-read opened in browser ---",
+        "log_conference_error": "ERROR building conference pre-read: {}",
         "log_delta_started":  "--- Building delta briefing (snapshot_prev → snapshot_now) ---",
         "log_delta_done":     "--- Delta briefing opened in browser ---",
         "log_delta_error":    "ERROR building delta briefing: {}",
@@ -327,6 +335,25 @@ def _build_portfolio_report_html_file(portfolio_json: Path, log=print) -> str:
     if not html:
         return ""
 
+    with tempfile.NamedTemporaryFile(
+        mode="w", suffix=".html", delete=False, encoding="utf-8"
+    ) as f:
+        f.write(html)
+        return f.name
+
+
+def _build_conference_html_file(portfolio_json: Path, log=print) -> str:
+    """
+    Render the VSC conference pre-read for the demo scenario into a temp
+    HTML file (lazy portfolio import, like the other report helpers).
+    """
+    import tempfile
+
+    from portfolio.aggregator import render_conference_html
+    from portfolio.solution_config import load_solution_config
+
+    html = render_conference_html(load_solution_config(portfolio_json),
+                                  log=log)
     with tempfile.NamedTemporaryFile(
         mode="w", suffix=".html", delete=False, encoding="utf-8"
     ) as f:
@@ -541,7 +568,12 @@ class _App:
             scen_frame, text="Open Delta Briefing",
             command=self._open_delta_briefing, state="disabled",
         )
-        self._btn_scenario_delta.pack(side="left")
+        self._btn_scenario_delta.pack(side="left", padx=(0, 6))
+        self._btn_scenario_conference = ttk.Button(
+            scen_frame, text="Open Conference Pre-Read",
+            command=self._open_conference, state="disabled",
+        )
+        self._btn_scenario_conference.pack(side="left")
 
         self._progress = ttk.Progressbar(frame, mode="indeterminate")
         self._progress.grid(row=21, column=0, columnspan=3, sticky="ew")
@@ -621,6 +653,8 @@ class _App:
         self._btn_scenario.configure(text=self._t("btn_scenario"))
         self._btn_scenario_report.configure(text=self._t("btn_scenario_report"))
         self._btn_scenario_delta.configure(text=self._t("btn_scenario_delta"))
+        self._btn_scenario_conference.configure(
+            text=self._t("btn_scenario_conference"))
         self._log_frame.configure(text=self._t("lbl_log"))
         lang = self._lang_var.get()
         for rb, (_val, lbl_de, lbl_en) in zip(self._pattern_rbs, _PATTERN_LABELS):
@@ -1005,6 +1039,7 @@ class _App:
         self._btn_scenario.configure(state="disabled")
         self._btn_scenario_report.configure(state="disabled")
         self._btn_scenario_delta.configure(state="disabled")
+        self._btn_scenario_conference.configure(state="disabled")
         self._log_msg(self._t("log_scenario_started"))
 
         _timer: list = []
@@ -1052,6 +1087,8 @@ class _App:
             self._btn_scenario_report.configure(state="normal")
         if self._last_snapshots is not None:
             self._btn_scenario_delta.configure(state="normal")
+        if self._last_scenario is not None:
+            self._btn_scenario_conference.configure(state="normal")
         self._progress.stop()
         self._progress.grid_remove()
 
@@ -1067,6 +1104,7 @@ class _App:
         self._btn_scenario.configure(state="disabled")
         self._btn_scenario_report.configure(state="disabled")
         self._btn_scenario_delta.configure(state="disabled")
+        self._btn_scenario_conference.configure(state="disabled")
         self._log_msg(self._t("log_report_started"))
 
         _timer: list = []
@@ -1113,6 +1151,7 @@ class _App:
         self._btn_scenario.configure(state="disabled")
         self._btn_scenario_report.configure(state="disabled")
         self._btn_scenario_delta.configure(state="disabled")
+        self._btn_scenario_conference.configure(state="disabled")
         self._log_msg(self._t("log_delta_started"))
 
         _timer: list = []
@@ -1134,6 +1173,47 @@ class _App:
                 )
             except Exception as exc:
                 msg = self._t("log_delta_error").format(exc)
+                self._root.after(0, lambda: self._log_msg(msg))
+            finally:
+                for t in _timer:
+                    self._root.after_cancel(t)
+                self._root.after(0, self._reset_after_scenario)
+
+        threading.Thread(target=_do, daemon=True).start()
+
+    def _open_conference(self) -> None:
+        """Render the demo scenario's VSC conference pre-read and open it."""
+        if self._running or self._last_scenario is None:
+            return
+        portfolio_json = self._last_scenario
+
+        self._running = True
+        self._btn_run.configure(state="disabled")
+        self._btn_scenario.configure(state="disabled")
+        self._btn_scenario_report.configure(state="disabled")
+        self._btn_scenario_delta.configure(state="disabled")
+        self._btn_scenario_conference.configure(state="disabled")
+        self._log_msg(self._t("log_conference_started"))
+
+        _timer: list = []
+
+        def show_progress() -> None:
+            self._progress.grid()
+            self._progress.start(10)
+
+        _timer.append(self._root.after(3000, show_progress))
+
+        def _do() -> None:
+            try:
+                tmp_path = _build_conference_html_file(
+                    portfolio_json, log=self._log_msg
+                )
+                webbrowser.open(f"file:///{tmp_path.replace(chr(92), '/')}")
+                self._root.after(
+                    0, lambda: self._log_msg(self._t("log_conference_done"))
+                )
+            except Exception as exc:
+                msg = self._t("log_conference_error").format(exc)
                 self._root.after(0, lambda: self._log_msg(msg))
             finally:
                 for t in _timer:

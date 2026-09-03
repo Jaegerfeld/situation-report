@@ -96,7 +96,8 @@ python -m testdata_generator \
 Szenario in einen Ordner deiner Wahl (das Seed-Feld wird übernommen, Standard
 42) — **Portfolio-Report öffnen** rendert den Portfolio-Report, **Delta-
 Briefing öffnen** macht aus dem mitgelieferten Paar `snapshot_prev/now.json`
-das „Was hat sich geändert?"-Briefing; beides öffnet im Browser. Zwei Klicks
+das „Was hat sich geändert?"-Briefing, **Konferenzmappe öffnen** den
+VSC-Pre-Read; alles öffnet im Browser. Zwei Klicks
 vom leeren Ordner zur vollständigen Portfolio-Evaluation, ganz ohne
 Kommandozeile.
 

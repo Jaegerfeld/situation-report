@@ -318,7 +318,11 @@ Input 1 · current data (summary + source quality), Input 2 · impediment
 backlog & governance (flow problems first, then ROAM and dependencies),
 Input 3 · business objectives (capability map + SLOs), Input 4 · the
 integrated roadmap & strategic themes (B7). The full interactive report
-stays the detail source.
+stays the detail source. **In the GUI:** the manager window's
+*Conference pre-read …* button writes the same page for the currently
+configured solution (filename suggests today's date) and opens it in
+the browser — print to PDF from there; the test-data generator's demo
+section has *Open Conference Pre-Read* for the one-click demo.
 
 ## Strategic themes & integrated roadmap (optional, B7)
 

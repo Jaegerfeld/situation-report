@@ -5,6 +5,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [Unreleased]
+
+### Added
+- **Conference pre-read reachable from both GUIs** — completing the B6
+  feature shipped in 0.22.0, which was CLI-only: the Solutions &
+  Portfolios window gains *Conference pre-read …* (writes the printable
+  VSC bundle for the currently configured solution, filename suggesting
+  today's date, opens in the browser — print to PDF from there; labels
+  in all five languages), and the test-data generator's demo-portfolio
+  section gains *Open Conference Pre-Read* for the one-click demo.
+
 ## [0.22.0] – 2026-09-03
 
 ### Fixed
