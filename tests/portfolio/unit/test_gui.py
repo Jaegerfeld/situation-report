@@ -192,3 +192,74 @@ class TestBuildDeltaHtmlFile:
                                   created="", target_ct=90, total={}))
         with pytest.raises(ValueError, match="different reports"):
             _build_delta_html_file(a, b)
+
+
+class TestPreservedFieldsRoundTrip:
+    """Phase 0 des Portfolio-Datenraum-Konzepts (04.09.2026): Felder, die
+    das Formular nicht editiert, muessen jeden Neuaufbau aus den Feldern
+    ueberleben (Speichern, Report, Snapshot, Mappe)."""
+
+    def _loaded(self):
+        from portfolio.solution_config import parse_solution_config
+        return parse_solution_config({
+            "schema": 1, "app": "situation_report", "kind": KIND_SOLUTION,
+            "name": "Beta", "framework": "LeSS",
+            "members": [{"name": "B-1", "issue_times": "b1.xlsx"}],
+            "stage_map": {"stages": {"Vorlauf": ["Backlog"],
+                                     "Umsetzung": ["Dev"],
+                                     "Fertig": ["Done"]},
+                          "first_stage": "Umsetzung",
+                          "closed_stage": "Fertig"},
+            "risks": "registers/risks.json", "nfr": "registers/nfr.json",
+            "capabilities": "registers/capabilities.json",
+            "dependencies": "registers/dependencies.json",
+            "decisions": "registers/decisions.json",
+            "slo": "registers/slo.json", "dora": "registers/dora.json",
+            "flow_problems": "registers/flow_problems.json",
+            "themes": "registers/themes.json",
+            "report": {"modes": [MODE_POOLED]},
+        })
+
+    def test_form_rebuild_alone_drops_the_fields(self) -> None:
+        # Der dokumentierte Alt-Fehler: build_config_from_fields kennt die
+        # Nicht-Formular-Felder nicht — ohne merge gehen sie verloren.
+        built = build_config_from_fields(
+            "Beta", "SAFe", "", "", [("B-1", "b1.xlsx")], MODE_POOLED)
+        assert built.risks == "" and built.themes == ""
+        assert built.stage_map is None
+
+    def test_merge_restores_every_preserved_field(self) -> None:
+        from portfolio.gui import _PRESERVED_FIELDS, merge_preserved_fields
+        loaded = self._loaded()
+        built = build_config_from_fields(
+            "Beta umbenannt", "SAFe", "", "", [("B-1", "b1.xlsx")],
+            MODE_POOLED)
+        merged = merge_preserved_fields(built, loaded)
+        for f in _PRESERVED_FIELDS:
+            assert getattr(merged, f) == getattr(loaded, f), f
+        # Formular-Felder bleiben die des Neuaufbaus.
+        assert merged.name == "Beta umbenannt"
+        assert merged.framework == "LeSS"
+        assert merged.stage_map is not None
+        assert merged.slo == "registers/slo.json"
+
+    def test_merge_without_loaded_config_is_identity(self) -> None:
+        from portfolio.gui import merge_preserved_fields
+        built = build_config_from_fields(
+            "Neu", "SAFe", "", "", [("A", "a.xlsx")], MODE_POOLED)
+        assert merge_preserved_fields(built, None) is built
+
+    def test_full_roundtrip_via_save_and_reload(self, tmp_path) -> None:
+        from portfolio.gui import merge_preserved_fields
+        from portfolio.solution_config import (
+            load_solution_config,
+            save_solution_config,
+            to_dict,
+        )
+        loaded = self._loaded()
+        rebuilt = merge_preserved_fields(build_config_from_fields(
+            "Beta", "SAFe", "", "", [("B-1", "b1.xlsx")], MODE_POOLED),
+            loaded)
+        out = tmp_path / "roundtrip.json"
+        save_solution_config(out, rebuilt)
+        assert to_dict(load_solution_config(out)) == to_dict(loaded)

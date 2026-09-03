@@ -7,6 +7,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Fixed
+- **The Solutions & Portfolios GUI no longer silently deletes
+  non-form fields** — loading a configuration and then saving it (or
+  generating a report, snapshot or conference pre-read from it) rebuilt
+  the config from the form fields only, dropping all nine register
+  references (`risks`, `nfr`, `capabilities`, `dependencies`,
+  `decisions`, `slo`, `dora`, `flow_problems`, `themes`) plus a custom
+  `stage_map` and the `framework`. These fields are now carried over
+  verbatim from the loaded file on every rebuild; regression tests
+  document the old data loss and pin the round trip
+  (load → save → reload is field-identical). Phase 0 of the approved
+  Portfolio-Datenraum concept (2026-09-04).
+
 ### Added
 - **Selectable LLM provider for the demo narration** — the test-data
   generator's *Open AI Narration (Demo)* button gains a provider
