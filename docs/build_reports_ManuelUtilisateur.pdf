@@ -1048,7 +1048,7 @@ endobj
 endobj
 59 0 obj
 <<
-/Author (Robert Seebauer) /CreationDate (D:20260903002028+02'00') /Creator (\(unspecified\)) /Keywords () /ModDate (D:20260903002028+02'00') /Producer (ReportLab PDF Library - \(opensource\)) 
+/Author (Robert Seebauer) /CreationDate (D:20260903113032+02'00') /Creator (\(unspecified\)) /Keywords () /ModDate (D:20260903113032+02'00') /Producer (ReportLab PDF Library - \(opensource\)) 
   /Subject (Metriques de flux pour equipes agiles) /Title (build_reports Manuel d'utilisation) /Trapped /False
 >>
 endobj
@@ -1061,10 +1061,10 @@ endobj
 endobj
 61 0 obj
 <<
-/Filter [ /ASCII85Decode /FlateDecode ] /Length 566
+/Filter [ /ASCII85Decode /FlateDecode ] /Length 564
 >>
 stream
-Gat%^bA,cs'ScAR'`Y=MMN?)OqeT3"6><*,6s#*%fOI?=Q>Ko@+2:?eYS5_Z)41Guo3]3L!J;QE^>8lL"dZV!d3uF79,>KZHmmKAOTb&f!blGg"OOYoLUL1,2"$MO*LoX,68>?n2Ih*983DZ@6&m7:!R3['3Lq^H0D7N2I3QimSAk`mC.i\JS8nr^3O3HP*'4dC&rI]q\,%,_9Z^#!P@$H_<PA4Uk/4q#]=02;U:;9A>_m)KP`cQ]/lL3`6;6AeVM4pnG.24@>\!A;kc;;[<dhAo/i5$%J<CWRIQSX3'OF8\L18LJ<\ui(B/;?4]jQ;3Qi"3P%_9J(@p9JYES(dRno:T<\\kGKlJ,g!p\SQ,Ps[X06148MiP'b?jR>f"&4sgc#u!1o/k,,7K.!eSS\N^":_ZYC_:ucc);-;6\nI&@;%&&2=Sm>\R\lfQE@T[Br@k'Rbh%LOb,Tq0*bi=F/O-@XRG2S]2p9f;rr"l(0tH3S*/23+:YRNIbn8njY<904RXKfPYFh7$rHDki\(l-O>G`"[L$QE5Wb5OsB^GZ`f/n,YT`+p]g=(6~>endstream
+Gat$s95E9I&AIV:phif)4J(7#?;m:ZBqT0.:PIf\CIL[XD*;Q^IZ`]!-a\Z70E]MDpR2gN(c'Y7%_*sl]G65lZ%Z;c-pHZYToP!UBP.uL>9bJF`i:'5;Dlq599++5*mk>6Qm17CmBn/.*23TsQK/3+j.,7RZK/^Oo=4LN/DG+^(Q>7DeP1&3.?NW3ZE\B88;p+gG$*VdG768V2fVlIof,qDk!tmOqmPtMUA0T)HLu7ZVSuA(5/=a#;5XdUM'JB'ne9[3WYoi:c'tE1lDe(]e\8T0Ubi=@X@VhjG<Dbl;S"b#K@[9$a_<u'R??i)k#Zc;Dl_o[4)?[\p$`oUrQl`1L['s_XNIQg*>Wn7DmiY+[$)Eh*rdPSlUOAR^Jk;t7-pGZ6pp<=`""\Md[K"fY/Z*gE5Dn;"s/,%POrXc0bQu.&/JaBj4S.8N&&AoBNOlEUinJr#n)tts"ljdHG<[5>3.NKgK\Z_Y93alSW]@Fn-G%@@/_P@QSH`>_WST&cus*r%Jm_dC?F`p1CLqY[MuPadS,&)HEW@oRFWT$4+I/#:>IG!5=U"KDZ~>endstream
 endobj
 62 0 obj
 <<
@@ -1277,31 +1277,31 @@ xref
 0000760575 00000 n 
 0000760901 00000 n 
 0000761110 00000 n 
-0000761767 00000 n 
-0000763590 00000 n 
-0000764822 00000 n 
-0000766496 00000 n 
-0000767967 00000 n 
-0000770461 00000 n 
-0000772269 00000 n 
-0000775013 00000 n 
-0000777679 00000 n 
-0000778757 00000 n 
-0000781136 00000 n 
-0000783464 00000 n 
-0000785042 00000 n 
-0000786689 00000 n 
-0000789123 00000 n 
-0000791380 00000 n 
-0000793487 00000 n 
-0000794424 00000 n 
-0000796896 00000 n 
-0000799014 00000 n 
-0000800153 00000 n 
+0000761765 00000 n 
+0000763588 00000 n 
+0000764820 00000 n 
+0000766494 00000 n 
+0000767965 00000 n 
+0000770459 00000 n 
+0000772267 00000 n 
+0000775011 00000 n 
+0000777677 00000 n 
+0000778755 00000 n 
+0000781134 00000 n 
+0000783462 00000 n 
+0000785040 00000 n 
+0000786687 00000 n 
+0000789121 00000 n 
+0000791378 00000 n 
+0000793485 00000 n 
+0000794422 00000 n 
+0000796894 00000 n 
+0000799012 00000 n 
+0000800151 00000 n 
 trailer
 <<
 /ID 
-[<716bb3ba1e39825c83e2778cd74655c6><716bb3ba1e39825c83e2778cd74655c6>]
+[<470805724b17cd0b8299a3e230ed6aa2><470805724b17cd0b8299a3e230ed6aa2>]
 % ReportLab generated PDF document -- digest (opensource)
 
 /Info 59 0 R
@@ -1309,5 +1309,5 @@ trailer
 /Size 83
 >>
 startxref
-802641
+802639
 %%EOF
