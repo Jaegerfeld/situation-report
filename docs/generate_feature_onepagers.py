@@ -521,8 +521,12 @@ ONEPAGERS: dict[str, dict[str, dict]] = {
                          "demo/snapshots/snapshot_now.json"),
                 ("p", "Das Demo-Szenario erzeugt die Struktur fertig; für "
                       "eigene Portfolios genügt es, Config und Daten in "
-                      "einen gemeinsamen Ordner zu legen und die Pfade "
-                      "relativ anzugeben."),
+                      "einen gemeinsamen Ordner zu legen. In der GUI "
+                      "verwaltet der Dialog „Datenquellen …“ die neun "
+                      "Register-Pfade mit Status je Feld; „Aus Datenraum "
+                      "übernehmen …“ füllt sie per Konvention, und beim "
+                      "Speichern werden Pfade im Config-Ordner automatisch "
+                      "relativiert."),
                 ("h", "Die Regeln"),
                 ("li", "Relative Pfade: relativ zur Config-Datei — die "
                        "Regel gilt überall (Member, Templates, alle neun "
@@ -569,8 +573,11 @@ ONEPAGERS: dict[str, dict[str, dict]] = {
                          "demo/snapshots/snapshot_now.json"),
                 ("p", "The demo scenario produces the structure ready-made; "
                       "for your own portfolios just put config and data "
-                      "into one shared folder and state the paths "
-                      "relatively."),
+                      "into one shared folder. In the GUI, the 'Data "
+                      "sources …' dialog manages the nine register paths "
+                      "with a per-field status; 'Take from data folder …' "
+                      "fills them by convention, and on save, paths inside "
+                      "the config folder are relativised automatically."),
                 ("h", "The rules"),
                 ("li", "Relative paths: relative to the config file — one "
                        "rule everywhere (members, templates, all nine "

@@ -136,6 +136,29 @@ _T: dict[str, dict[str, str]] = {
         "tip_generate": "Aggregierten HTML-Report erzeugen und im Browser öffnen",
         "msg_saved": "Konfiguration gespeichert: {path}",
         "msg_loaded": "Konfiguration geladen: {path}",
+        "btn_sources": "Datenquellen …",
+        "dlg_sources_title": "Datenquellen (Register) — {name}",
+        "btn_fill_datenraum": "Aus Datenraum übernehmen …",
+        "dlg_pick_datenraum": "Datenraum-Ordner wählen (enthält registers/)",
+        "dlg_pick_register": "Register-Datei wählen",
+        "msg_sources_applied": "{n} Datenquellen übernommen",
+        "msg_registers_connected": " — {n} Datenquellen verbunden",
+        "sources_portfolio_hint": "Portfolio: Register kommen aus den Member-Solutions (nur Anzeige).",
+        "sources_member_line": "{name}: {n} Register verbunden",
+        "sources_member_error": "{name}: Solution-Config nicht lesbar",
+        "st_found": "gefunden",
+        "st_missing": "FEHLT",
+        "st_empty": "leer",
+        "btn_cancel": "Abbrechen",
+        "reg_risks": "Risiken (ROAM)",
+        "reg_nfr": "NFR & Runway",
+        "reg_capabilities": "Capability-Map",
+        "reg_dependencies": "Dependencies",
+        "reg_decisions": "Decision-Log",
+        "reg_slo": "SLO / Error-Budgets",
+        "reg_dora": "DORA & Qualität",
+        "reg_flow_problems": "Flussprobleme (VSC)",
+        "reg_themes": "Themes & Roadmap",
         "msg_load_error": "Laden fehlgeschlagen: {error}",
         "msg_need_name": "Bitte einen Namen für die Solution angeben.",
         "msg_need_members": "Bitte mindestens einen ART hinzufügen.",
@@ -193,6 +216,29 @@ _T: dict[str, dict[str, str]] = {
         "tip_generate": "Generate the aggregated HTML report and open it in the browser",
         "msg_saved": "Configuration saved: {path}",
         "msg_loaded": "Configuration loaded: {path}",
+        "btn_sources": "Data sources …",
+        "dlg_sources_title": "Data sources (registers) — {name}",
+        "btn_fill_datenraum": "Take from data folder …",
+        "dlg_pick_datenraum": "Select data folder (contains registers/)",
+        "dlg_pick_register": "Select register file",
+        "msg_sources_applied": "{n} data sources taken over",
+        "msg_registers_connected": " — {n} data sources connected",
+        "sources_portfolio_hint": "Portfolio: registers come from the member solutions (view only).",
+        "sources_member_line": "{name}: {n} registers connected",
+        "sources_member_error": "{name}: solution config not readable",
+        "st_found": "found",
+        "st_missing": "MISSING",
+        "st_empty": "empty",
+        "btn_cancel": "Cancel",
+        "reg_risks": "Risks (ROAM)",
+        "reg_nfr": "NFR & runway",
+        "reg_capabilities": "Capability map",
+        "reg_dependencies": "Dependencies",
+        "reg_decisions": "Decision log",
+        "reg_slo": "SLO / error budgets",
+        "reg_dora": "DORA & quality",
+        "reg_flow_problems": "Flow problems (VSC)",
+        "reg_themes": "Themes & roadmap",
         "msg_load_error": "Load failed: {error}",
         "msg_need_name": "Please enter a name for the solution.",
         "msg_need_members": "Please add at least one ART.",
@@ -250,6 +296,29 @@ _T: dict[str, dict[str, str]] = {
         "tip_generate": "Generează raportul HTML agregat și deschide-l în browser",
         "msg_saved": "Configurație salvată: {path}",
         "msg_loaded": "Configurație încărcată: {path}",
+        "btn_sources": "Surse de date …",
+        "dlg_sources_title": "Surse de date (registre) — {name}",
+        "btn_fill_datenraum": "Preia din folderul de date …",
+        "dlg_pick_datenraum": "Alege folderul de date (conține registers/)",
+        "dlg_pick_register": "Alege fișierul de registru",
+        "msg_sources_applied": "{n} surse de date preluate",
+        "msg_registers_connected": " — {n} surse de date conectate",
+        "sources_portfolio_hint": "Portofoliu: registrele vin din soluțiile membre (doar afișare).",
+        "sources_member_line": "{name}: {n} registre conectate",
+        "sources_member_error": "{name}: config-ul soluției nu poate fi citit",
+        "st_found": "găsit",
+        "st_missing": "LIPSEȘTE",
+        "st_empty": "gol",
+        "btn_cancel": "Anulează",
+        "reg_risks": "Riscuri (ROAM)",
+        "reg_nfr": "NFR & runway",
+        "reg_capabilities": "Capability map",
+        "reg_dependencies": "Dependențe",
+        "reg_decisions": "Jurnal de decizii",
+        "reg_slo": "SLO / bugete de erori",
+        "reg_dora": "DORA & calitate",
+        "reg_flow_problems": "Probleme de flux (VSC)",
+        "reg_themes": "Teme & roadmap",
         "msg_load_error": "Încărcare eșuată: {error}",
         "msg_need_name": "Introduceți un nume pentru soluție.",
         "msg_need_members": "Adăugați cel puțin un ART.",
@@ -307,6 +376,29 @@ _T: dict[str, dict[str, str]] = {
         "tip_generate": "Gerar o relatório HTML agregado e abri-lo no browser",
         "msg_saved": "Configuração guardada: {path}",
         "msg_loaded": "Configuração carregada: {path}",
+        "btn_sources": "Fontes de dados …",
+        "dlg_sources_title": "Fontes de dados (registos) — {name}",
+        "btn_fill_datenraum": "Assumir da pasta de dados …",
+        "dlg_pick_datenraum": "Escolher a pasta de dados (contém registers/)",
+        "dlg_pick_register": "Escolher o ficheiro de registo",
+        "msg_sources_applied": "{n} fontes de dados assumidas",
+        "msg_registers_connected": " — {n} fontes de dados ligadas",
+        "sources_portfolio_hint": "Portefólio: os registos vêm das solutions membro (apenas visualização).",
+        "sources_member_line": "{name}: {n} registos ligados",
+        "sources_member_error": "{name}: config da solution ilegível",
+        "st_found": "encontrado",
+        "st_missing": "EM FALTA",
+        "st_empty": "vazio",
+        "btn_cancel": "Cancelar",
+        "reg_risks": "Riscos (ROAM)",
+        "reg_nfr": "NFR & runway",
+        "reg_capabilities": "Capability map",
+        "reg_dependencies": "Dependências",
+        "reg_decisions": "Registo de decisões",
+        "reg_slo": "SLO / error budgets",
+        "reg_dora": "DORA & qualidade",
+        "reg_flow_problems": "Problemas de fluxo (VSC)",
+        "reg_themes": "Temas & roadmap",
         "msg_load_error": "Falha ao carregar: {error}",
         "msg_need_name": "Introduza um nome para a solução.",
         "msg_need_members": "Adicione pelo menos um ART.",
@@ -364,6 +456,29 @@ _T: dict[str, dict[str, str]] = {
         "tip_generate": "Générer le rapport HTML agrégé et l'ouvrir dans le navigateur",
         "msg_saved": "Configuration enregistrée : {path}",
         "msg_loaded": "Configuration chargée : {path}",
+        "btn_sources": "Sources de données …",
+        "dlg_sources_title": "Sources de données (registres) — {name}",
+        "btn_fill_datenraum": "Reprendre du dossier de données …",
+        "dlg_pick_datenraum": "Choisir le dossier de données (contient registers/)",
+        "dlg_pick_register": "Choisir le fichier de registre",
+        "msg_sources_applied": "{n} sources de données reprises",
+        "msg_registers_connected": " — {n} sources de données reliées",
+        "sources_portfolio_hint": "Portefeuille : les registres viennent des solutions membres (affichage seul).",
+        "sources_member_line": "{name} : {n} registres reliés",
+        "sources_member_error": "{name} : config de solution illisible",
+        "st_found": "trouvé",
+        "st_missing": "MANQUE",
+        "st_empty": "vide",
+        "btn_cancel": "Annuler",
+        "reg_risks": "Risques (ROAM)",
+        "reg_nfr": "NFR & runway",
+        "reg_capabilities": "Capability map",
+        "reg_dependencies": "Dépendances",
+        "reg_decisions": "Journal de décisions",
+        "reg_slo": "SLO / error budgets",
+        "reg_dora": "DORA & qualité",
+        "reg_flow_problems": "Problèmes de flux (VSC)",
+        "reg_themes": "Thèmes & roadmap",
         "msg_load_error": "Échec du chargement : {error}",
         "msg_need_name": "Veuillez saisir un nom pour la solution.",
         "msg_need_members": "Veuillez ajouter au moins un ART.",
@@ -547,6 +662,82 @@ _PRESERVED_FIELDS = ("framework", "stage_map", "risks", "nfr",
                      "capabilities", "dependencies", "decisions", "slo",
                      "dora", "flow_problems", "themes")
 
+#: The nine register fields, in dialog order (Datenquellen-Dialog).
+REGISTER_FIELDS = ("risks", "nfr", "capabilities", "dependencies",
+                   "decisions", "slo", "dora", "flow_problems", "themes")
+
+STATUS_EMPTY = "empty"
+STATUS_FOUND = "found"
+STATUS_MISSING = "missing"
+
+
+def register_field_status(base_dir: Path | None, value: str) -> str:
+    """
+    Classify one register path for the dialog's per-row indicator.
+
+    Returns STATUS_EMPTY for a blank field ("no register", today's
+    semantics), STATUS_FOUND when the stated file exists (resolved by
+    the Datenraum rule), STATUS_MISSING otherwise.
+    """
+    value = (value or "").strip()
+    if not value:
+        return STATUS_EMPTY
+    from .solution_config import resolve_config_path
+    return (STATUS_FOUND
+            if resolve_config_path(base_dir, value).is_file()
+            else STATUS_MISSING)
+
+
+def fill_from_datenraum(folder: Path) -> dict[str, str]:
+    """
+    The convention as a fill-in helper (decision ②: NO auto-discovery).
+
+    Looks for the standard file names in ``<folder>/registers/`` — and,
+    for a folder that IS the registers folder, directly inside it — and
+    returns absolute path strings for the files that exist. Fields whose
+    standard file is absent are simply not returned (they stay as they
+    are); nothing is ever loaded without these values being taken into
+    the config explicitly.
+    """
+    folder = Path(folder)
+    registers = (folder / "registers"
+                 if (folder / "registers").is_dir() else folder)
+    return {name: str((registers / f"{name}.json").resolve())
+            for name in REGISTER_FIELDS
+            if (registers / f"{name}.json").is_file()}
+
+
+def relativize_paths(cfg: SolutionConfig, config_path: Path) -> SolutionConfig:
+    """
+    Rewrite absolute paths under the config's folder as relative ones.
+
+    Applied on save: when a stated file lives inside the folder the
+    config is saved to, the stored string becomes relative (forward
+    slashes — the portable Datenraum form). Paths outside that folder
+    and already-relative values stay untouched.
+    """
+    base = Path(config_path).resolve().parent
+
+    def _rel(value: str) -> str:
+        value = (value or "").strip()
+        if not value:
+            return value
+        p = Path(value)
+        if not p.is_absolute():
+            return value
+        try:
+            return p.resolve().relative_to(base).as_posix()
+        except ValueError:
+            return value
+
+    members = [dataclasses.replace(m, **{
+        key: _rel(getattr(m, key))
+        for key in ("template", "issue_times", "cfd", "workflow",
+                    "transitions")}) for m in cfg.members]
+    return dataclasses.replace(
+        cfg, members=members,
+        **{name: _rel(getattr(cfg, name)) for name in REGISTER_FIELDS})
+
 
 def merge_preserved_fields(cfg: SolutionConfig,
                            loaded: SolutionConfig | None) -> SolutionConfig:
@@ -592,6 +783,7 @@ class SolutionManagerApp(tk.Tk):
         self._flag_imgs: dict[str, tk.PhotoImage] = {}
         self._flag_btn: tk.Button | None = None
         self._loaded_cfg: SolutionConfig | None = None
+        self._register_values: dict[str, str] | None = None
         self._status = tk.StringVar()
 
         self._create_flag_imgs()
@@ -753,6 +945,9 @@ class SolutionManagerApp(tk.Tk):
         ttk.Button(btns, text=self._tr("btn_new"), command=self._new).pack(side="left")
         ttk.Button(btns, text=self._tr("btn_load"), command=self._load).pack(side="left", padx=(6, 0))
         ttk.Button(btns, text=self._tr("btn_save"), command=self._save).pack(side="left", padx=(6, 0))
+        ttk.Button(btns, text=self._tr("btn_sources"),
+                   command=self._open_sources_dialog).pack(side="left",
+                                                           padx=(6, 0))
         ttk.Button(btns, text=self._tr("btn_generate"), command=self._generate).pack(
             side="right")
         ttk.Button(btns, text=self._tr("btn_conference"),
@@ -822,6 +1017,7 @@ class SolutionManagerApp(tk.Tk):
 
     def _new(self) -> None:
         self._loaded_cfg = None
+        self._register_values = None
         self._name.set("")
         self._from.set("")
         self._to.set("")
@@ -847,6 +1043,7 @@ class SolutionManagerApp(tk.Tk):
                                  self._tr("msg_load_error").format(error=exc))
             return
         self._loaded_cfg = cfg
+        self._register_values = None
         self._name.set(cfg.name)
         self._terminology.set(cfg.terminology)
         self._kind.set(cfg.kind)
@@ -863,16 +1060,22 @@ class SolutionManagerApp(tk.Tk):
                 self._add_member_row()
             self._member_rows[i]["name"].set(m.name)
             self._member_rows[i]["source"].set(m.template or m.issue_times)
-        self._status.set(self._tr("msg_loaded").format(path=path))
+        connected = sum(1 for f in REGISTER_FIELDS if getattr(cfg, f).strip())
+        suffix = (self._tr("msg_registers_connected").format(n=connected)
+                  if connected else "")
+        self._status.set(self._tr("msg_loaded").format(path=path) + suffix)
 
     def _build_config(self) -> SolutionConfig | None:
         try:
-            return merge_preserved_fields(build_config_from_fields(
+            cfg = merge_preserved_fields(build_config_from_fields(
                 self._name.get(), FRAMEWORK_SAFE,
                 self._from.get(), self._to.get(),
                 self._collect_members(), self._mode.get(),
                 kind=self._kind.get(), terminology=self._terminology.get()),
                 self._loaded_cfg)
+            if self._register_values is not None:
+                cfg = dataclasses.replace(cfg, **self._register_values)
+            return cfg
         except ValueError as exc:
             messagebox.showwarning(self._tr("window_title"),
                                    self._tr("msg_invalid").format(error=exc))
@@ -887,7 +1090,7 @@ class SolutionManagerApp(tk.Tk):
             filetypes=[("JSON", "*.json")])
         if not path:
             return
-        save_solution_config(Path(path), cfg)
+        save_solution_config(Path(path), relativize_paths(cfg, Path(path)))
         self._status.set(self._tr("msg_saved").format(path=path))
 
     def _generate(self) -> None:
@@ -984,6 +1187,115 @@ class SolutionManagerApp(tk.Tk):
             self.after(0, lambda: self._status.set(msg))
 
         threading.Thread(target=worker, daemon=True).start()
+
+    def _current_register_values(self) -> dict[str, str]:
+        """Dialog start values: explicit dialog state, else the loaded file."""
+        if self._register_values is not None:
+            return dict(self._register_values)
+        if self._loaded_cfg is not None:
+            return {f: getattr(self._loaded_cfg, f) for f in REGISTER_FIELDS}
+        return dict.fromkeys(REGISTER_FIELDS, "")
+
+    def _open_sources_dialog(self) -> None:
+        """The Datenquellen dialog (Phase 2 of the Datenraum concept)."""
+        dlg = tk.Toplevel(self)
+        dlg.title(self._tr("dlg_sources_title").format(
+            name=self._name.get() or "—"))
+        dlg.configure(padx=14, pady=12)
+        dlg.transient(self)
+        dlg.grab_set()
+
+        if self._kind.get() == KIND_PORTFOLIO:
+            self._build_portfolio_sources_view(dlg)
+            return
+
+        base = (self._loaded_cfg.base_dir
+                if self._loaded_cfg is not None else None)
+        variables: dict[str, tk.StringVar] = {}
+        status_labels: dict[str, tk.Label] = {}
+
+        def refresh(name: str) -> None:
+            status = register_field_status(base, variables[name].get())
+            text, color = {
+                STATUS_FOUND: (self._tr("st_found"), "#1e8449"),
+                STATUS_MISSING: (self._tr("st_missing"), "#c0392b"),
+                STATUS_EMPTY: (self._tr("st_empty"), "#777777"),
+            }[status]
+            status_labels[name].configure(text=text, fg=color)
+
+        grid = tk.Frame(dlg)
+        grid.pack(fill="both", expand=True)
+        start = self._current_register_values()
+        for row, name in enumerate(REGISTER_FIELDS):
+            tk.Label(grid, text=self._tr(f"reg_{name}"), width=20,
+                     anchor="w").grid(row=row, column=0, sticky="w", pady=1)
+            var = tk.StringVar(value=start.get(name, ""))
+            variables[name] = var
+            tk.Entry(grid, textvariable=var, width=52).grid(
+                row=row, column=1, sticky="we", padx=(4, 4))
+            status_labels[name] = tk.Label(grid, width=10, anchor="w")
+            status_labels[name].grid(row=row, column=2, sticky="w")
+
+            def browse(n: str = name) -> None:
+                picked = filedialog.askopenfilename(
+                    parent=dlg, title=self._tr("dlg_pick_register"),
+                    filetypes=[("JSON", "*.json")])
+                if picked:
+                    variables[n].set(picked)
+
+            ttk.Button(grid, text=self._tr("btn_browse"),
+                       command=browse).grid(row=row, column=3, padx=(2, 0))
+            var.trace_add("write", lambda *_a, n=name: refresh(n))
+            refresh(name)
+        grid.columnconfigure(1, weight=1)
+
+        def fill_from_folder() -> None:
+            folder = filedialog.askdirectory(
+                parent=dlg, title=self._tr("dlg_pick_datenraum"))
+            if not folder:
+                return
+            found = fill_from_datenraum(Path(folder))
+            for name, value in found.items():
+                variables[name].set(value)
+            self._status.set(
+                self._tr("msg_sources_applied").format(n=len(found)))
+
+        buttons = tk.Frame(dlg)
+        buttons.pack(fill="x", pady=(12, 0))
+        ttk.Button(buttons, text=self._tr("btn_fill_datenraum"),
+                   command=fill_from_folder).pack(side="left")
+
+        def confirm() -> None:
+            self._register_values = {
+                name: variables[name].get().strip()
+                for name in REGISTER_FIELDS}
+            dlg.destroy()
+
+        ttk.Button(buttons, text=self._tr("btn_ok"),
+                   command=confirm).pack(side="right")
+        ttk.Button(buttons, text=self._tr("btn_cancel"),
+                   command=dlg.destroy).pack(side="right", padx=(0, 6))
+
+    def _build_portfolio_sources_view(self, dlg: tk.Toplevel) -> None:
+        """Read-only view: which registers each member solution brings."""
+        tk.Label(dlg, text=self._tr("sources_portfolio_hint"),
+                 anchor="w").pack(fill="x", pady=(0, 8))
+        base = (self._loaded_cfg.base_dir
+                if self._loaded_cfg is not None else None)
+        from .solution_config import resolve_config_path
+        for name, source in self._collect_members():
+            try:
+                sub = load_solution_config(
+                    resolve_config_path(base, source))
+                n = sum(1 for f in REGISTER_FIELDS
+                        if getattr(sub, f).strip())
+                line = self._tr("sources_member_line").format(
+                    name=sub.name, n=n)
+            except Exception:
+                line = self._tr("sources_member_error").format(name=name)
+            tk.Label(dlg, text="•  " + line, anchor="w").pack(fill="x")
+        ttk.Button(dlg, text=self._tr("btn_ok"),
+                   command=dlg.destroy).pack(pady=(12, 0))
 
     def _delta(self) -> None:
         """Pick two snapshot files and open their delta briefing (D2)."""

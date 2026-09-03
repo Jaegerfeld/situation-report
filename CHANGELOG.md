@@ -23,6 +23,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   briefing from a relocated copy under a foreign working directory.
   Docs: portfolio + test-data manuals in five languages, one-pager
   DE/EN. Phase 1 of the approved Portfolio-Datenraum concept.
+- **Data-sources dialog in Solutions & Portfolios (Datenraum, part
+  2)** — the new *Data sources …* button opens a dialog with the
+  solution's nine register paths (risks, NFR, capabilities,
+  dependencies, decisions, SLO, DORA, flow problems, themes), each
+  with a live status (found / empty / MISSING) and a file picker.
+  *Take from data folder …* fills the fields by convention from a
+  chosen folder's `registers/` (decision ②: an explicit helper, no
+  auto-discovery — an empty field still means "no register"). For a
+  portfolio the dialog is a read-only view of which registers each
+  member solution brings. Saving a config now automatically rewrites
+  absolute paths inside the config's folder as relative ones, and the
+  status line reports how many data sources a loaded config connects.
+  All labels in five languages.
 
 ## [0.24.0] – 2026-09-04
 

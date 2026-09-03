@@ -263,3 +263,92 @@ class TestPreservedFieldsRoundTrip:
         out = tmp_path / "roundtrip.json"
         save_solution_config(out, rebuilt)
         assert to_dict(load_solution_config(out)) == to_dict(loaded)
+
+
+class TestDatenquellenDialogCore:
+    """Phase 2 des Datenraum-Konzepts: die display-unabhaengigen Bausteine
+    des Datenquellen-Dialogs (Fuellhelfer, Status je Feld, Relativierung
+    beim Speichern)."""
+
+    def test_fill_from_datenraum_finds_standard_names_only(
+            self, tmp_path) -> None:
+        from portfolio.gui import fill_from_datenraum
+        reg = tmp_path / "registers"
+        reg.mkdir()
+        for name in ("risks", "slo", "themes"):
+            (reg / f"{name}.json").write_text("{}", encoding="utf-8")
+        (reg / "anderes.json").write_text("{}", encoding="utf-8")
+        found = fill_from_datenraum(tmp_path)
+        assert set(found) == {"risks", "slo", "themes"}
+        assert found["risks"] == str((reg / "risks.json").resolve())
+        # Der registers/-Ordner selbst funktioniert ebenfalls als Ziel.
+        assert set(fill_from_datenraum(reg)) == {"risks", "slo", "themes"}
+
+    def test_fill_is_explicit_not_auto_discovery(self, tmp_path) -> None:
+        # Entscheidung (2): eine leere Auswahl liefert nichts — niemand
+        # bekommt Register, nur weil Dateien daneben liegen.
+        from portfolio.gui import fill_from_datenraum
+        assert fill_from_datenraum(tmp_path) == {}
+
+    def test_register_field_status(self, tmp_path) -> None:
+        from portfolio.gui import (
+            STATUS_EMPTY,
+            STATUS_FOUND,
+            STATUS_MISSING,
+            register_field_status,
+        )
+        (tmp_path / "registers").mkdir()
+        (tmp_path / "registers" / "risks.json").write_text(
+            "{}", encoding="utf-8")
+        assert register_field_status(tmp_path, "") == STATUS_EMPTY
+        assert register_field_status(
+            tmp_path, "registers/risks.json") == STATUS_FOUND
+        assert register_field_status(
+            tmp_path, "registers/fehlt.json") == STATUS_MISSING
+        # Ohne base_dir zaehlt der Wert wie bisher (CWD/absolut).
+        assert register_field_status(
+            None, str(tmp_path / "registers" / "risks.json")) == STATUS_FOUND
+
+    def test_relativize_rewrites_only_paths_inside_the_folder(
+            self, tmp_path) -> None:
+        from portfolio.gui import relativize_paths
+        from portfolio.solution_config import Member, SolutionConfig
+        outside = tmp_path.parent / "woanders.xlsx"
+        cfg = SolutionConfig(
+            name="S",
+            members=[Member(name="A",
+                            issue_times=str(tmp_path / "arts" / "a.xlsx"),
+                            workflow=str(outside))],
+            risks=str(tmp_path / "registers" / "risks.json"),
+            slo="registers/slo.json")
+        out = relativize_paths(cfg, tmp_path / "solution.json")
+        assert out.members[0].issue_times == "arts/a.xlsx"
+        assert out.members[0].workflow == str(outside)  # außerhalb: unverändert
+        assert out.risks == "registers/risks.json"
+        assert out.slo == "registers/slo.json"  # bereits relativ: unverändert
+
+    def test_dialog_values_roundtrip_into_a_portable_file(
+            self, tmp_path) -> None:
+        # Fuellhelfer → Config → relativierend speichern → laden → aufloesen.
+        import dataclasses as dc
+
+        from portfolio.gui import fill_from_datenraum, relativize_paths
+        from portfolio.solution_config import (
+            Member,
+            SolutionConfig,
+            load_solution_config,
+            resolve_config_path,
+            save_solution_config,
+        )
+        reg = tmp_path / "registers"
+        reg.mkdir()
+        (reg / "risks.json").write_text("{}", encoding="utf-8")
+        cfg = dc.replace(
+            SolutionConfig(name="S",
+                           members=[Member(name="A", issue_times="a.xlsx")]),
+            **fill_from_datenraum(tmp_path))
+        target = tmp_path / "solution.json"
+        save_solution_config(target, relativize_paths(cfg, target))
+        loaded = load_solution_config(target)
+        assert loaded.risks == "registers/risks.json"
+        assert resolve_config_path(loaded.base_dir, loaded.risks).is_file()
