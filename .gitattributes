@@ -1,0 +1,6 @@
+# Binärformate nie zeilenenden-normalisieren (kleine ReportLab-PDFs fallen
+# sonst durch Gits Text-Heuristik und würden beim Checkout verändert).
+*.pdf binary
+*.png binary
+*.xlsx binary
+*.pptx binary

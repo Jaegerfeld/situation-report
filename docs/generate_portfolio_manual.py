@@ -507,6 +507,25 @@ def content_de(st: dict) -> list:
            "Personen.", st),
         _SP(6),
 
+        _H2("5.12  Delta-Briefing (Snapshots vergleichen)", st),
+        _P("<font name='Courier'>--snapshot DATEI</font> friert den "
+           "berechneten Report-Zustand (Kennzahlen je Einheit und gepoolt, "
+           "Quell-Konfidenz, alle fünf Governance-Register) als kleines JSON "
+           "ein; <font name='Courier'>--as-of</font> setzt das "
+           "Beobachtungsdatum. <font name='Courier'>--delta VORHER JETZT"
+           "</font> vergleicht zwei Snapshots ohne Config und beantwortet "
+           "„Was hat sich geändert?“: Kennzahl-Deltas auf Anzeigegenauigkeit, "
+           "Durchsatz im Zeitraum, Konfidenz-Wechsel je Quelle, je Register "
+           "neue/entfallene Einträge und Statusübergänge (Verschlechterungen "
+           "zuerst, rot) sowie frisch überfällige Einträge — beurteilt gegen "
+           "das as-of-Datum beider Stände, nur echte Kipp-Punkte zählen. "
+           "Ausgabe: --output *.md als Markdown, andere Endung als "
+           "HTML-Seite, ohne --output nach stdout. Ein Delta ohne Änderungen "
+           "sagt das ausdrücklich. Alles deterministisch — die optionale "
+           "KI-Narration (später, eigene Freigabe) darf umformulieren, nie "
+           "Zahlen erzeugen.", st),
+        _SP(6),
+
         _H1("6. Kommandozeile (CLI)", st), _hr(st),
         _P("Für Automatisierung und reproduzierbare Reports:", st),
         _CD("python -m portfolio meine_solution.json --output report.html", st),
@@ -774,6 +793,24 @@ def content_en(st: dict) -> list:
            "cell — the hook for red-team and premortem sessions. A portfolio "
            "aggregates the logs of all member solutions with a Solution "
            "column. Owners are teams, not persons.", st),
+        _SP(6),
+
+        _H2("5.12  Delta briefing (comparing snapshots)", st),
+        _P("<font name='Courier'>--snapshot FILE</font> freezes the computed "
+           "report state (metrics per unit and pooled, source confidence, "
+           "all five governance registers) into a small JSON; "
+           "<font name='Courier'>--as-of</font> pins the observation date. "
+           "<font name='Courier'>--delta PREV NOW</font> compares two "
+           "snapshots without a config and answers 'what changed?': metric "
+           "deltas at display precision, throughput in the period, "
+           "confidence transitions per source, per register the added/"
+           "removed entries and status transitions (worsenings first, red) "
+           "plus newly overdue items — judged against each snapshot's as-of "
+           "date, so only genuine flips count. Output: --output *.md writes "
+           "Markdown, any other suffix the HTML page, no --output prints to "
+           "stdout. A delta with no changes says so explicitly. All of it "
+           "deterministic — the optional AI narration (later, separately "
+           "approved) may rephrase, never produce numbers.", st),
         _SP(6),
 
         _H1("6. Command line (CLI)", st), _hr(st),
@@ -1045,6 +1082,25 @@ def content_ro(st: dict) -> list:
            "cu o coloana Solution. Ownerii sunt echipe, nu persoane.", st),
         _SP(6),
 
+        _H2("5.12  Delta briefing (compararea snapshot-urilor)", st),
+        _P("<font name='Courier'>--snapshot FISIER</font> ingheata starea "
+           "calculata a raportului (metrici per unitate si cumulat, "
+           "increderea surselor, cele cinci registre de governance) intr-un "
+           "JSON mic; <font name='Courier'>--as-of</font> fixeaza data "
+           "observatiei. <font name='Courier'>--delta INAINTE ACUM</font> "
+           "compara doua snapshot-uri fara config si raspunde la 'ce s-a "
+           "schimbat?': delte de metrici la precizia afisarii, debitul in "
+           "perioada, tranzitii de incredere per sursa, per registru "
+           "intrarile noi/eliminate si tranzitiile de status (inrautatirile "
+           "primele, rosii) plus intrarile proaspat intarziate — judecate "
+           "fata de data as-of a fiecarui snapshot, conteaza doar "
+           "basculariile reale. Iesire: --output *.md scrie Markdown, alta "
+           "extensie pagina HTML, fara --output la stdout. Un delta fara "
+           "schimbari o spune explicit. Totul determinist — naratiunea AI "
+           "optionala (mai tarziu, aprobata separat) poate reformula, "
+           "niciodata produce numere.", st),
+        _SP(6),
+
         _H1("6. Linia de comanda (CLI)", st), _hr(st),
         _P("Pentru automatizare si rapoarte reproductibile:", st),
         _CD("python -m portfolio solutia_mea.json --output report.html", st),
@@ -1314,6 +1370,25 @@ def content_pt(st: dict) -> list:
            "due' — o ponto de ligacao para sessoes red-team e premortem. Um "
            "portfolio agrega os logs de todas as solutions membros com uma "
            "coluna Solution. Os owners sao equipas, nao pessoas.", st),
+        _SP(6),
+
+        _H2("5.12  Delta briefing (comparar snapshots)", st),
+        _P("<font name='Courier'>--snapshot FICHEIRO</font> congela o estado "
+           "calculado do relatorio (metricas por unidade e agregadas, "
+           "confianca das fontes, os cinco registos de governance) num JSON "
+           "pequeno; <font name='Courier'>--as-of</font> fixa a data de "
+           "observacao. <font name='Courier'>--delta ANTES AGORA</font> "
+           "compara dois snapshots sem config e responde a 'o que mudou?': "
+           "deltas de metricas na precisao de exibicao, debito no periodo, "
+           "transicoes de confianca por fonte, por registo as entradas "
+           "novas/removidas e transicoes de estado (pioras primeiro, a "
+           "vermelho) mais as entradas recem-atrasadas — julgadas contra a "
+           "data as-of de cada snapshot, so contam viragens reais. Saida: "
+           "--output *.md escreve Markdown, outra extensao a pagina HTML, "
+           "sem --output para stdout. Um delta sem mudancas di-lo "
+           "explicitamente. Tudo determinista — a narracao de IA opcional "
+           "(mais tarde, aprovada em separado) pode reformular, nunca "
+           "produzir numeros.", st),
         _SP(6),
 
         _H1("6. Linha de comandos (CLI)", st), _hr(st),
@@ -1590,6 +1665,26 @@ def content_fr(st: dict) -> list:
            "premortem. Un portefeuille agrege les logs de toutes les solutions "
            "membres avec une colonne Solution. Les owners sont des equipes, "
            "pas des personnes.", st),
+        _SP(6),
+
+        _H2("5.12  Delta briefing (comparer des snapshots)", st),
+        _P("<font name='Courier'>--snapshot FICHIER</font> fige l'etat "
+           "calcule du rapport (metriques par unite et agregees, confiance "
+           "des sources, les cinq registres de gouvernance) dans un petit "
+           "JSON ; <font name='Courier'>--as-of</font> fixe la date "
+           "d'observation. <font name='Courier'>--delta AVANT MAINTENANT"
+           "</font> compare deux snapshots sans config et repond a 'qu'est-ce "
+           "qui a change ?' : deltas de metriques a la precision d'affichage, "
+           "debit sur la periode, transitions de confiance par source, par "
+           "registre les entrees nouvelles/retirees et les transitions de "
+           "statut (deteriorations d'abord, en rouge) plus les entrees "
+           "fraichement en retard — jugees contre la date as-of de chaque "
+           "snapshot, seuls les vrais basculements comptent. Sortie : "
+           "--output *.md ecrit du Markdown, autre extension la page HTML, "
+           "sans --output vers stdout. Un delta sans changement le dit "
+           "explicitement. Le tout deterministe — la narration IA optionnelle "
+           "(plus tard, approuvee separement) peut reformuler, jamais "
+           "produire de chiffres.", st),
         _SP(6),
 
         _H1("6. Ligne de commande (CLI)", st), _hr(st),

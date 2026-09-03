@@ -264,6 +264,35 @@ Prüfdatum** sortiert nach oben und bekommt eine rote „review due"-Zelle — d
 Anschlusspunkt für Red-Team-/Premortem-Sitzungen. `owner` benennt ein **Team,
 keine Person**. Fehlende oder defekte Dateien werden geloggt und übersprungen.
 
+## Delta-Briefing (D2, deterministischer Kern)
+
+Zwei Befehle machen aus Report-Ständen ein „Was hat sich geändert?"-Briefing:
+
+```bash
+python -m portfolio portfolio.json --snapshot stand_jetzt.json
+python -m portfolio --delta stand_vorher.json stand_jetzt.json --output delta.html
+```
+
+`--snapshot` friert den berechneten Report-Zustand (Kennzahlen je Einheit und
+gepoolt, Quell-Qualität inkl. Konfidenz, alle fünf Governance-Register) als
+kleines Schema-v1-JSON ein; `--as-of YYYY-MM-DD` setzt das Beobachtungsdatum
+(Standard: heute). Ohne `--output`/`--pdf` wird nur der Snapshot geschrieben.
+
+`--delta PREV NOW` braucht keine Config: Es vergleicht zwei Snapshots und
+liefert das Briefing — Kennzahl-Deltas auf Anzeigegenauigkeit (unsichtbare
+Float-Änderungen entfallen), Durchsatz im Zeitraum, Konfidenz-Wechsel je
+Quelle und je Governance-Register neue/entfallene Einträge, Statusübergänge
+(Verschlechterungen zuerst, rot; Verbesserungen grün) sowie **frisch
+überfällige** Einträge (gegen das as-of-Datum beider Snapshots beurteilt —
+nur echte Kipp-Punkte zählen). `--output *.md` schreibt Markdown, jede andere
+Endung die eigenständige HTML-Seite, ohne `--output` geht Markdown nach
+stdout. Ein Delta ohne Änderungen sagt das ausdrücklich — Stille ist
+Information.
+
+Das Markdown ist bewusst der Eingabe-Contract der optionalen LLM-Narration
+(D2 Teil 2, noch nicht gebaut): Das LLM darf umformulieren, nie Zahlen
+hinzufügen — die Zahlen entstehen hier, deterministisch.
+
 ## Eigene Stage-Map (optional, Config-Schema 2)
 
 Standardmäßig poolen unterschiedliche ART-Workflows in die drei kanonischen
@@ -298,6 +327,8 @@ portfolio/
 ├── capability_config.py Capability-Map (B1): Schema, parse/load/save
 ├── dependency_config.py Dependency-Register (B5): Schema, parse/load/save
 ├── decision_config.py Decision-/Assumption-Log (B4): Schema, parse/load/save
+├── snapshot.py        Report-Snapshot (D2): Kennzahlen/Qualität/Governance einfrieren
+├── delta.py           Delta-Briefing (D2): zwei Snapshots vergleichen, HTML/Markdown
 ├── aggregator.py      Zusammenführung auf Datensatz-Ebene + Rendering (HTML/PDF)
 └── summary.py         Management-Summary + Datenqualität (A1/A2), Ausreißer (A3), ROAM-Board (B3), NFR-Dashboard (B2)
 ```

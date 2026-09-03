@@ -30,6 +30,10 @@
 #     Alpha-3 blockiert + überfällig, Beta-1 → Alpha-1 Cross-Solution.
 #   - Beide Solutions bringen ein Decision-/Assumption-Log mit (B4); Betas
 #     offene Annahme hat ihr Prüfdatum überschritten → „review due" rot.
+#   - Delta-Briefing (D2): snapshot_prev/now.json liegen bei — die Prev-
+#     Variante (story=STORY_PREV, 2 Wochen früher) hat weniger Items,
+#     Beta-3 noch medium, AD-1 nur at_risk, kein BR-2; Runway-Lücke und
+#     Annahme AS-B1 kippen erst im Now-Stand auf überfällig.
 # =============================================================================
 
 from __future__ import annotations
@@ -154,20 +158,44 @@ class _ArtProfile:
     issue_count: int = 120
 
 
-def _profiles() -> list[tuple[str, _ArtProfile]]:
-    """(solution key, profile) pairs for the six demo ARTs."""
+STORY_NOW = "now"
+STORY_PREV = "prev"
+
+
+def _profiles(story: str = STORY_NOW) -> list[tuple[str, _ArtProfile]]:
+    """
+    (solution key, profile) pairs for the six demo ARTs.
+
+    ``story=STORY_PREV`` yields the same world two weeks earlier for the
+    Delta-Briefing demo (D2): fewer issues per ART (the throughput since),
+    and Beta-3's data gaps were smaller back then (confidence medium — the
+    decay to low is part of the story).
+    """
+    prev = story == STORY_PREV
+    scale = 0.88 if prev else 1.0
+
+    def n(count: int) -> int:
+        return int(count * scale)
+
     return [
-        ("alpha", _ArtProfile("Alpha-1", _WORKFLOW_ALPHA, mean_cycle_days=12)),
-        ("alpha", _ArtProfile("Alpha-2", _WORKFLOW_ALPHA, mean_cycle_days=16)),
+        ("alpha", _ArtProfile("Alpha-1", _WORKFLOW_ALPHA, mean_cycle_days=12,
+                              issue_count=n(120))),
+        ("alpha", _ArtProfile("Alpha-2", _WORKFLOW_ALPHA, mean_cycle_days=16,
+                              issue_count=n(120))),
         # Der Ausreißer: Cycle Time ~3x der Schwester-ARTs (A3-Hervorhebung).
-        ("alpha", _ArtProfile("Alpha-3", _WORKFLOW_ALPHA, mean_cycle_days=45)),
-        ("beta", _ArtProfile("Beta-1", _WORKFLOW_BETA, mean_cycle_days=14)),
-        ("beta", _ArtProfile("Beta-2", _WORKFLOW_BETA, mean_cycle_days=18)),
+        ("alpha", _ArtProfile("Alpha-3", _WORKFLOW_ALPHA, mean_cycle_days=45,
+                              issue_count=n(120))),
+        ("beta", _ArtProfile("Beta-1", _WORKFLOW_BETA, mean_cycle_days=14,
+                             issue_count=n(120))),
+        ("beta", _ArtProfile("Beta-2", _WORKFLOW_BETA, mean_cycle_days=18,
+                             issue_count=n(120))),
         # Die schwache Quelle: kaum begonnene Issues (kein First Date), kein
         # CFD, Datenstand 60 Tage alt (A1-Ampel low, Abdeckung < 100 %).
         ("beta", _ArtProfile("Beta-3", _WORKFLOW_BETA, mean_cycle_days=15,
-                             completion_rate=0.15, todo_rate=0.8,
-                             stale_days=60, write_cfd=False, issue_count=60)),
+                             completion_rate=0.15,
+                             todo_rate=0.45 if prev else 0.8,
+                             stale_days=60, write_cfd=False,
+                             issue_count=n(60))),
     ]
 
 
@@ -194,24 +222,32 @@ def _alpha_risks(reference: date) -> RiskRegister:
     ])
 
 
-def _beta_risks(reference: date) -> RiskRegister:
-    """ROAM register of Solution Beta: the second aging owned risk lives here."""
-    return RiskRegister(risks=[
+def _beta_risks(reference: date, story: str = STORY_NOW) -> RiskRegister:
+    """
+    ROAM register of Solution Beta: the second aging owned risk lives here.
+
+    In the prev story (two weeks earlier), BR-2 does not exist yet — it shows
+    up as a *new* risk in the Delta-Briefing demo.
+    """
+    risks = [
         Risk("BR-1", "Data quality of ART Beta-3 blocks solution reporting",
              ROAM_OWNED, owner="ART Beta-3", impact=IMPACT_HIGH,
              status_since=reference - timedelta(days=50),
              notes="Aging: matches the weak-source story of this scenario."),
-        Risk("BR-2", "Security review for release milestone not scheduled",
-             ROAM_MITIGATED, owner="Shared Services", impact=IMPACT_HIGH,
-             status_since=reference - timedelta(days=7),
-             notes="Interim: external reviewer booked for next sprint."),
         Risk("BR-3", "Vendor API rate limits during nightly sync",
              ROAM_ACCEPTED, owner="ART Beta-1", impact=IMPACT_MEDIUM,
              status_since=reference - timedelta(days=15)),
         Risk("BR-4", "Duplicate effort with platform team clarified",
              ROAM_RESOLVED, owner="ART Beta-2", impact=IMPACT_LOW,
              status_since=reference - timedelta(days=12)),
-    ])
+    ]
+    if story != STORY_PREV:
+        risks.insert(1, Risk(
+            "BR-2", "Security review for release milestone not scheduled",
+            ROAM_MITIGATED, owner="Shared Services", impact=IMPACT_HIGH,
+            status_since=reference - timedelta(days=7),
+            notes="Interim: external reviewer booked for next sprint."))
+    return RiskRegister(risks=risks)
 
 
 def _alpha_capabilities(reference: date) -> CapabilityMap:
@@ -288,14 +324,22 @@ def _beta_decisions(reference: date) -> DecisionLog:
     ])
 
 
-def _alpha_dependencies(reference: date) -> DependencyRegister:
-    """Dependencies of Solution Alpha: the overdue blocked one lives here."""
+def _alpha_dependencies(
+    reference: date, story: str = STORY_NOW
+) -> DependencyRegister:
+    """
+    Dependencies of Solution Alpha: the overdue blocked one lives here.
+
+    In the prev story, AD-1 was still at risk — the escalation to blocked is
+    the status transition the Delta-Briefing demo shows.
+    """
     return DependencyRegister(dependencies=[
         # Die Geschichte: der Ausreißer Alpha-3 liefert nicht — blockiert
         # und überfällig, springt in der Heatmap rot an.
         Dependency("AD-1", "Billing API contract for order flow",
                    from_art="ART Alpha-1", to_art="ART Alpha-3",
-                   status=DEP_BLOCKED, due=reference - timedelta(days=15),
+                   status=DEP_AT_RISK if story == STORY_PREV else DEP_BLOCKED,
+                   due=reference - timedelta(days=15),
                    notes="Overdue: matches the outlier story of this scenario."),
         Dependency("AD-2", "Shared test fixtures for the order domain",
                    from_art="ART Alpha-2", to_art="ART Alpha-1",
@@ -361,9 +405,11 @@ def _beta_nfr(reference: date) -> NfrRegister:
                 status=STATUS_AT_RISK, owner="ART Beta-2"),
         ],
         runway=[
+            # 10 Tage überfällig: vor 14 Tagen noch nicht — im Delta-Briefing
+            # taucht die Lücke als „newly overdue" auf (B2- + D2-Story).
             RunwayItem("BRW-1", "Automated failover for the sync service",
                        status=RUNWAY_GAP,
-                       needed_by=reference - timedelta(days=20),
+                       needed_by=reference - timedelta(days=10),
                        owner="ART Beta-2",
                        notes="Overdue: needed before the last release."),
             RunwayItem("BRW-2", "Contract test suite against vendor API",
@@ -379,6 +425,7 @@ def build_portfolio_scenario(
     reference: date | None = None,
     window_days: int = 365,
     log: Callable[[str], None] = print,
+    story: str = STORY_NOW,
 ) -> dict[str, Path]:
     """
     Generate the complete demo portfolio into ``output_dir``.
@@ -392,6 +439,10 @@ def build_portfolio_scenario(
                      window ends ``stale_days`` earlier.
         window_days: Length of the data window in days.
         log:         Progress callback.
+        story:       STORY_NOW (default) builds the current state including
+                     the two Delta-Briefing snapshots; STORY_PREV builds the
+                     same world two weeks earlier (used internally for the
+                     prev snapshot — no snapshots of its own).
 
     Returns:
         Dict with the key output paths (portfolio config, solution configs,
@@ -411,7 +462,7 @@ def build_portfolio_scenario(
     workflow_files["beta"].write_text(_WORKFLOW_BETA, encoding="utf-8")
 
     members: dict[str, list[Member]] = {"alpha": [], "beta": []}
-    for i, (solution_key, profile) in enumerate(_profiles()):
+    for i, (solution_key, profile) in enumerate(_profiles(story)):
         wf_file = workflow_files[solution_key]
         workflow = parse_workflow(wf_file)
 
@@ -460,7 +511,7 @@ def build_portfolio_scenario(
     risks_alpha = out / "risks_alpha.json"
     save_risks(risks_alpha, _alpha_risks(reference))
     risks_beta = out / "risks_beta.json"
-    save_risks(risks_beta, _beta_risks(reference))
+    save_risks(risks_beta, _beta_risks(reference, story))
     nfr_alpha = out / "nfr_alpha.json"
     save_nfr(nfr_alpha, _alpha_nfr(reference))
     nfr_beta = out / "nfr_beta.json"
@@ -470,7 +521,7 @@ def build_portfolio_scenario(
     caps_beta = out / "capabilities_beta.json"
     save_capabilities(caps_beta, _beta_capabilities(reference))
     deps_alpha = out / "dependencies_alpha.json"
-    save_dependencies(deps_alpha, _alpha_dependencies(reference))
+    save_dependencies(deps_alpha, _alpha_dependencies(reference, story))
     deps_beta = out / "dependencies_beta.json"
     save_dependencies(deps_beta, _beta_dependencies(reference))
     decisions_alpha = out / "decisions_alpha.json"
@@ -554,10 +605,39 @@ def build_portfolio_scenario(
         "  Alphas Stage-Map-Entscheidung ersetzt eine ältere (supersedes),",
         "  Betas offene Annahme „Beta-3 heilt sich selbst\" hat ihr Prüfdatum",
         "  überschritten — im Log rot als „review due\" markiert.",
+        "- **Delta-Briefing (D2)**: `snapshot_prev.json` (Stand vor 14 Tagen)",
+        "  und `snapshot_now.json` liegen bei —",
+        "  `python -m portfolio --delta snapshot_prev.json snapshot_now.json`",
+        "  zeigt: Durchsatz im Zeitraum, Beta-3-Konfidenz medium → low,",
+        "  AD-1 at_risk → blocked, Risiko BR-2 neu, Runway-Lücke und Annahme",
+        "  AS-B1 frisch überfällig.",
         "",
         "Die Pfade in den Configs sind absolut — nach dem Verschieben des",
         "Ordners das Szenario neu erzeugen.",
     ]), encoding="utf-8")
+
+    snapshot_prev = out / "snapshot_prev.json"
+    snapshot_now = out / "snapshot_now.json"
+    if story == STORY_NOW:
+        # Delta-Briefing-Demo (D2): denselben Bau als Prev-Variante in einen
+        # Temp-Ordner legen, beide Staende einfrieren, Temp verwerfen.
+        import tempfile
+
+        from portfolio.snapshot import build_snapshot, save_snapshot
+        from portfolio.solution_config import load_solution_config
+
+        log("  Delta-Briefing: Snapshots (prev/now) werden erzeugt ...")
+        save_snapshot(snapshot_now, build_snapshot(
+            load_solution_config(portfolio_cfg), as_of=reference,
+            log=lambda m: None))
+        with tempfile.TemporaryDirectory(prefix="scenario_prev_") as tmp:
+            prev_paths = build_portfolio_scenario(
+                Path(tmp), seed=seed, reference=reference,
+                window_days=window_days, log=lambda m: None,
+                story=STORY_PREV)
+            save_snapshot(snapshot_prev, build_snapshot(
+                load_solution_config(prev_paths["portfolio"]),
+                as_of=reference - timedelta(days=14), log=lambda m: None))
 
     log(f"Szenario komplett: {out}")
     return {"portfolio": portfolio_cfg, "solution_alpha": solution_alpha,
@@ -567,4 +647,5 @@ def build_portfolio_scenario(
             "capabilities_beta": caps_beta, "dependencies_alpha": deps_alpha,
             "dependencies_beta": deps_beta, "decisions_alpha": decisions_alpha,
             "decisions_beta": decisions_beta, "pi_config": pi_cfg,
+            "snapshot_prev": snapshot_prev, "snapshot_now": snapshot_now,
             "readme": readme}
