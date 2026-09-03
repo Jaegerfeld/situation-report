@@ -18,7 +18,6 @@
 from __future__ import annotations
 
 import json
-from pathlib import Path
 from unittest.mock import patch
 
 from get_data.cli import main as cli_main
@@ -41,9 +40,8 @@ class TestValidateExport:
         assert validate_export(envelope).ok
         assert validate_export([_issue("A-1")]).ok
 
-    def test_real_testdata_export_passes(self) -> None:
-        raw = json.loads(Path("testdata_generator/ART_A.json")
-                         .read_text(encoding="utf-8"))
+    def test_real_testdata_export_passes(self, ata_json) -> None:
+        raw = json.loads(ata_json.read_text(encoding="utf-8"))
         check = validate_export(raw)
         assert check.ok, check.errors
         assert check.issue_count > 0

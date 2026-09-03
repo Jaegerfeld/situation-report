@@ -18,19 +18,16 @@ from __future__ import annotations
 
 import json
 from datetime import UTC, datetime
-from pathlib import Path
 from unittest.mock import patch
 
 from get_data.client import JiraConfig, fetch_to_file
 from transform_data.transform import process_issues
 from transform_data.workflow import parse_workflow
 
-_RAW = Path("testdata_generator/ART_A.json")
-_WORKFLOW = Path("testdata_generator/workflow_ART_A.txt")
 
-
-def test_fetched_file_feeds_transform_data_like_a_manual_export(tmp_path) -> None:
-    raw = json.loads(_RAW.read_text(encoding="utf-8"))
+def test_fetched_file_feeds_transform_data_like_a_manual_export(
+        tmp_path, ata_json, ata_workflow) -> None:
+    raw = json.loads(ata_json.read_text(encoding="utf-8"))
     issues = raw["issues"]
     half = len(issues) // 2
     pages = [
@@ -61,12 +58,12 @@ def test_fetched_file_feeds_transform_data_like_a_manual_export(tmp_path) -> Non
         count = fetch_to_file(config, fetched, log=lambda m: None)
     assert count == len(issues)
 
-    workflow = parse_workflow(_WORKFLOW)
+    workflow = parse_workflow(ata_workflow)
     reference = datetime(2026, 1, 1, tzinfo=UTC)
     records_fetched, unmapped_fetched = process_issues(
         fetched, workflow, reference_dt=reference)
     records_manual, unmapped_manual = process_issues(
-        _RAW, workflow, reference_dt=reference)
+        ata_json, workflow, reference_dt=reference)
 
     assert not unmapped_fetched
     assert unmapped_fetched == unmapped_manual
