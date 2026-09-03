@@ -94,6 +94,7 @@ GUI — im Solutions-&-Portfolios-Fenster die Checkbox **„KI-Narration
 
 | Symptom | Abhilfe |
 |---|---|
+| `Python wurde nicht gefunden` (Hinweis auf den Microsoft Store) | Windows leitet `python` auf einen Store-Platzhalter um. Die Befehle im Repo-Ordner ausführen und dort `.venv\Scripts\python.exe` verwenden (oder einmalig aktivieren: `.venv\Scripts\Activate.ps1`); alternativ `py -m llm test`, oder die App-Ausführungsaliase `python.exe`/`python3.exe` unter *Einstellungen → Apps → Erweiterte App-Einstellungen* deaktivieren. |
 | `Could not reach Ollama` / Verbindung abgelehnt | Ollama läuft nicht — über das Startmenü starten, auf das Lama-Symbol warten. |
 | `Ollama does not know model …` | `ollama pull mistral-nemo` ausführen (Abschnitt 4). |
 | Antworten dauern lange | Bis zu einer Minute auf reiner CPU ist normal; `--llm-model mistral` halbiert die Wartezeit ungefähr. |

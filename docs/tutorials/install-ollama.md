@@ -92,6 +92,7 @@ as usual.
 
 | Symptom | Fix |
 |---|---|
+| `Python was not found` (points to the Microsoft Store) | Windows redirects `python` to a Store placeholder. Run the commands in the repository folder and use `.venv\Scripts\python.exe` there (or activate once: `.venv\Scripts\Activate.ps1`); alternatively `py -m llm test`, or disable the app execution aliases `python.exe`/`python3.exe` under *Settings → Apps → Advanced app settings*. |
 | `Could not reach Ollama` / connection refused | Ollama is not running — start it from the Start menu, wait for the llama icon. |
 | `Ollama does not know model …` | Run `ollama pull mistral-nemo` (section 4). |
 | Answers are slow | Up to a minute on pure CPU is normal; `--llm-model mistral` roughly halves the wait. |
