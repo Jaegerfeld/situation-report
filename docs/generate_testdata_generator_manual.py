@@ -546,7 +546,7 @@ def content_de(st: dict) -> list:
                 "das Szenario per Knopfdruck in einen Ordner deiner Wahl (das Seed-Feld "
                 "wird übernommen, Standard 42); „Portfolio-Report öffnen\" rendert den "
                 "Portfolio-Report, „Delta-Briefing öffnen\" das „Was hat sich "
-                "geändert?\"-Briefing aus snapshot_prev/now.json — ganz ohne "
+                "geändert?\"-Briefing aus snapshots/snapshot_prev/now.json — ganz ohne "
                 "Kommandozeile.", st),
               PRE("python -m testdata_generator --scenario portfolio \\\n"
                   "    --output demo/ --seed 42", st),
@@ -554,18 +554,8 @@ def content_de(st: dict) -> list:
               tbl(["Artefakt", "Inhalt"],
                   [["workflows/", "zwei Workflow-Dateien (Alpha- und Beta-Stages)"],
                    ["raw/", "sechs Jira-JSON-Exporte (ein Generatorlauf je ART)"],
-                   ["arts/", "IssueTimes-, CFD- und Transitions-Dateien je ART"],
-                   ["solution_alpha.json", "Solution-Config ohne stage_map (Default-Pfad)"],
-                   ["solution_beta.json", "Solution-Config mit eigener stage_map (Schema 2)"],
-                   ["risks_*.json", "ROAM-Risiko-Register je Solution"],
-                   ["nfr_*.json", "NFR-/Runway-Register je Solution"],
-                   ["capabilities_*.json", "Capability-Map je Solution"],
-                   ["dependencies_*.json", "Dependency-Register je Solution"],
-                   ["decisions_*.json", "Decision-/Assumption-Log je Solution"],
-                   ["snapshot_*.json", "Report-Snapshots fürs Delta-Briefing (prev/now)"],
-                   ["slo_*.json / dora_*.json", "SLO- und DORA-/Qualitäts-Register je Solution"],
-                   ["flow_problems_*.json", "Flussproblem-Backlog der VSC je Solution"],
-                   ["themes_*.json", "Strategic Themes + Roadmap-Epics je Solution"],
+                   ["solutions/&lt;name&gt;/", "je Solution: solution.json (Beta mit eigener stage_map), arts/ (IssueTimes/CFD/Transitions je ART) und registers/ mit den neun Registern unter Standardnamen (risks.json … themes.json)"],
+                   ["snapshots/", "Report-Snapshots fürs Delta-Briefing (prev/now)"],
                    ["portfolio.json", "Portfolio-Config über beide Solutions"],
                    ["pi_config.json", "PI-Intervalle über den Datenzeitraum"],
                    ["README.md", "Beschreibung der eingebauten Geschichten"]],
@@ -592,7 +582,7 @@ def content_de(st: dict) -> list:
                   "überfällig; Beta-1 → Alpha-1 als Cross-Solution-Integration.<br/>"
                   "- <b>Decision-Log</b>: Betas offene Annahme hat ihr Prüfdatum "
                   "überschritten — rot als „review due\" markiert.<br/>"
-                  "- <b>Delta-Briefing</b>: snapshot_prev/now.json liegen bei — "
+                  "- <b>Delta-Briefing</b>: snapshots/snapshot_prev/now.json liegen bei — "
                   "--delta zeigt Durchsatz, Beta-3-Konfidenzverfall, AD-1-Eskalation, "
                   "neues Risiko BR-2, frisch Überfälliges.<br/>"
                   "- <b>SLO & DORA</b>: Betas Sync-API reißt ihr SLO (breached), "
@@ -886,7 +876,7 @@ def content_en(st: dict) -> list:
                 "window generates the scenario into a folder of your choice at the click "
                 "of a button (the seed field is honoured, default 42); 'Open Portfolio "
                 "Report' renders the portfolio report, 'Open Delta Briefing' the "
-                "'what changed?' briefing from snapshot_prev/now.json — no command "
+                "'what changed?' briefing from snapshots/snapshot_prev/now.json — no command "
                 "line needed.", st),
               PRE("python -m testdata_generator --scenario portfolio \\\n"
                   "    --output demo/ --seed 42", st),
@@ -894,18 +884,8 @@ def content_en(st: dict) -> list:
               tbl(["Artifact", "Content"],
                   [["workflows/", "two workflow files (Alpha and Beta stages)"],
                    ["raw/", "six Jira JSON exports (one generator run per ART)"],
-                   ["arts/", "IssueTimes, CFD, and Transitions files per ART"],
-                   ["solution_alpha.json", "solution config without stage_map (default path)"],
-                   ["solution_beta.json", "solution config with its own stage_map (schema 2)"],
-                   ["risks_*.json", "ROAM risk register per solution"],
-                   ["nfr_*.json", "NFR/runway register per solution"],
-                   ["capabilities_*.json", "capability map per solution"],
-                   ["dependencies_*.json", "dependency register per solution"],
-                   ["decisions_*.json", "decision/assumption log per solution"],
-                   ["snapshot_*.json", "report snapshots for the delta briefing (prev/now)"],
-                   ["slo_*.json / dora_*.json", "SLO and DORA/quality registers per solution"],
-                   ["flow_problems_*.json", "VSC flow-problem backlog per solution"],
-                   ["themes_*.json", "strategic themes + roadmap epics per solution"],
+                   ["solutions/&lt;name&gt;/", "per solution: solution.json (Beta with its own stage_map), arts/ (IssueTimes/CFD/Transitions per ART) and registers/ with the nine registers under standard names (risks.json … themes.json)"],
+                   ["snapshots/", "report snapshots for the delta briefing (prev/now)"],
                    ["portfolio.json", "portfolio config covering both solutions"],
                    ["pi_config.json", "PI intervals across the data window"],
                    ["README.md", "description of the built-in stories"]],
@@ -931,7 +911,7 @@ def content_en(st: dict) -> list:
                   "overdue; Beta-1 → Alpha-1 as a cross-solution integration.<br/>"
                   "- <b>Decision log</b>: Beta's open assumption has passed its "
                   "review date — flagged red as 'review due'.<br/>"
-                  "- <b>Delta briefing</b>: snapshot_prev/now.json ship along — "
+                  "- <b>Delta briefing</b>: snapshots/snapshot_prev/now.json ship along — "
                   "--delta shows throughput, Beta-3's confidence decay, AD-1's "
                   "escalation, new risk BR-2, newly overdue items.<br/>"
                   "- <b>SLO & DORA</b>: Beta's sync API breaches its SLO, and ART "
@@ -1171,25 +1151,15 @@ def content_ro(st: dict) -> list:
                 "generează scenariul într-un director la alegere printr-un clic (câmpul "
                 "seed este preluat, implicit 42); 'Open Portfolio Report' redă raportul "
                 "de portofoliu, 'Open Delta Briefing' briefingul 'ce s-a schimbat?' din "
-                "snapshot_prev/now.json — fără linie de comandă.", st),
+                "snapshots/snapshot_prev/now.json — fără linie de comandă.", st),
               PRE("python -m testdata_generator --scenario portfolio \\\n"
                   "    --output demo/ --seed 42", st),
               P("Directorul țintă conține apoi:", st),
               tbl(["Artefact", "Conținut"],
                   [["workflows/", "două fișiere de flux de lucru (etape Alpha și Beta)"],
                    ["raw/", "șase exporturi JSON Jira (o rulare de generator per ART)"],
-                   ["arts/", "fișiere IssueTimes, CFD și Transitions per ART"],
-                   ["solution_alpha.json", "config de soluție fără stage_map (cale implicită)"],
-                   ["solution_beta.json", "config de soluție cu stage_map propriu (schema 2)"],
-                   ["risks_*.json", "registru de riscuri ROAM per soluție"],
-                   ["nfr_*.json", "registru NFR/runway per soluție"],
-                   ["capabilities_*.json", "capability map per soluție"],
-                   ["dependencies_*.json", "registru de dependențe per soluție"],
-                   ["decisions_*.json", "log de decizii/presupuneri per soluție"],
-                   ["snapshot_*.json", "snapshot-uri de raport pentru delta briefing (prev/now)"],
-                   ["slo_*.json / dora_*.json", "registre SLO și DORA/calitate per soluție"],
-                   ["flow_problems_*.json", "backlog de probleme de flux (VSC) per soluție"],
-                   ["themes_*.json", "teme strategice + epics de roadmap per soluție"],
+                   ["solutions/&lt;name&gt;/", "per soluție: solution.json (Beta cu stage_map propriu), arts/ (IssueTimes/CFD/Transitions per ART) și registers/ cu cele nouă registre sub nume standard (risks.json … themes.json)"],
+                   ["snapshots/", "snapshot-uri de raport pentru delta briefing (prev/now)"],
                    ["portfolio.json", "config de portofoliu peste ambele soluții"],
                    ["pi_config.json", "intervale PI pe fereastra de date"],
                    ["README.md", "descrierea poveștilor încorporate"]],
@@ -1219,7 +1189,7 @@ def content_ro(st: dict) -> list:
                   "întârziată; Beta-1 → Alpha-1 ca integrare cross-solution.<br/>"
                   "- <b>Log de decizii</b>: presupunerea deschisă a soluției Beta "
                   "și-a depășit data de revizuire — marcată roșu 'review due'.<br/>"
-                  "- <b>Delta briefing</b>: snapshot_prev/now.json sunt incluse — "
+                  "- <b>Delta briefing</b>: snapshots/snapshot_prev/now.json sunt incluse — "
                   "--delta arată debitul, declinul încrederii Beta-3, escaladarea "
                   "AD-1, riscul nou BR-2, intrările proaspăt întârziate.<br/>"
                   "- <b>SLO & DORA</b>: API-ul de sincronizare al Beta își încalcă "
@@ -1462,25 +1432,15 @@ def content_pt(st: dict) -> list:
                 "gera o cenário numa pasta à escolha com um clique (o campo seed é "
                 "respeitado, padrão 42); 'Open Portfolio Report' gera o relatório de "
                 "portfólio, 'Open Delta Briefing' o briefing 'o que mudou?' a partir de "
-                "snapshot_prev/now.json — sem linha de comandos.", st),
+                "snapshots/snapshot_prev/now.json — sem linha de comandos.", st),
               PRE("python -m testdata_generator --scenario portfolio \\\n"
                   "    --output demo/ --seed 42", st),
               P("A pasta de destino contém depois:", st),
               tbl(["Artefacto", "Conteúdo"],
                   [["workflows/", "dois ficheiros de fluxo de trabalho (etapas Alpha e Beta)"],
                    ["raw/", "seis exports JSON do Jira (uma execução do gerador por ART)"],
-                   ["arts/", "ficheiros IssueTimes, CFD e Transitions por ART"],
-                   ["solution_alpha.json", "config de solution sem stage_map (caminho padrão)"],
-                   ["solution_beta.json", "config de solution com stage_map próprio (schema 2)"],
-                   ["risks_*.json", "registo de riscos ROAM por solution"],
-                   ["nfr_*.json", "registo NFR/runway por solution"],
-                   ["capabilities_*.json", "capability map por solution"],
-                   ["dependencies_*.json", "registo de dependências por solution"],
-                   ["decisions_*.json", "log de decisões/suposições por solution"],
-                   ["snapshot_*.json", "snapshots do relatório para o delta briefing (prev/now)"],
-                   ["slo_*.json / dora_*.json", "registos SLO e DORA/qualidade por solution"],
-                   ["flow_problems_*.json", "backlog de problemas de fluxo (VSC) por solution"],
-                   ["themes_*.json", "temas estratégicos + epics de roadmap por solution"],
+                   ["solutions/&lt;name&gt;/", "por solution: solution.json (Beta com stage_map próprio), arts/ (IssueTimes/CFD/Transitions por ART) e registers/ com os nove registos sob nomes padrão (risks.json … themes.json)"],
+                   ["snapshots/", "snapshots de relatório para o delta briefing (prev/now)"],
                    ["portfolio.json", "config de portfólio sobre ambas as solutions"],
                    ["pi_config.json", "intervalos PI sobre a janela de dados"],
                    ["README.md", "descrição das histórias incorporadas"]],
@@ -1509,7 +1469,7 @@ def content_pt(st: dict) -> list:
                   "e atrasada; Beta-1 → Alpha-1 como integração cross-solution.<br/>"
                   "- <b>Log de decisões</b>: a suposição aberta da Beta passou a "
                   "data de revisão — marcada a vermelho 'review due'.<br/>"
-                  "- <b>Delta briefing</b>: snapshot_prev/now.json vêm incluídos — "
+                  "- <b>Delta briefing</b>: snapshots/snapshot_prev/now.json vêm incluídos — "
                   "--delta mostra o débito, o declínio da confiança da Beta-3, a "
                   "escalada de AD-1, o risco novo BR-2, itens recém-atrasados.<br/>"
                   "- <b>SLO & DORA</b>: a API de sincronização da Beta viola o seu "
@@ -1755,7 +1715,7 @@ def content_fr(st: dict) -> list:
                 "génère le scénario dans un dossier de votre choix en un clic (le champ "
                 "seed est repris, 42 par défaut) ; 'Open Portfolio Report' génère le "
                 "rapport de portefeuille, 'Open Delta Briefing' le briefing « qu'est-ce "
-                "qui a changé ? » à partir de snapshot_prev/now.json — sans ligne de "
+                "qui a changé ? » à partir de snapshots/snapshot_prev/now.json — sans ligne de "
                 "commande.", st),
               PRE("python -m testdata_generator --scenario portfolio \\\n"
                   "    --output demo/ --seed 42", st),
@@ -1763,18 +1723,8 @@ def content_fr(st: dict) -> list:
               tbl(["Artefact", "Contenu"],
                   [["workflows/", "deux fichiers de flux de travail (étapes Alpha et Beta)"],
                    ["raw/", "six exports JSON Jira (une exécution du générateur par ART)"],
-                   ["arts/", "fichiers IssueTimes, CFD et Transitions par ART"],
-                   ["solution_alpha.json", "config de solution sans stage_map (chemin par défaut)"],
-                   ["solution_beta.json", "config de solution avec stage_map propre (schéma 2)"],
-                   ["risks_*.json", "registre de risques ROAM par solution"],
-                   ["nfr_*.json", "registre NFR/runway par solution"],
-                   ["capabilities_*.json", "capability map par solution"],
-                   ["dependencies_*.json", "registre de dependances par solution"],
-                   ["decisions_*.json", "log de decisions/hypotheses par solution"],
-                   ["snapshot_*.json", "snapshots du rapport pour le delta briefing (prev/now)"],
-                   ["slo_*.json / dora_*.json", "registres SLO et DORA/qualite par solution"],
-                   ["flow_problems_*.json", "backlog des problemes de flux (VSC) par solution"],
-                   ["themes_*.json", "themes strategiques + epics de roadmap par solution"],
+                   ["solutions/&lt;name&gt;/", "par solution : solution.json (Beta avec son propre stage_map), arts/ (IssueTimes/CFD/Transitions par ART) et registers/ avec les neuf registres sous noms standard (risks.json … themes.json)"],
+                   ["snapshots/", "snapshots de rapport pour le delta briefing (prev/now)"],
                    ["portfolio.json", "config de portefeuille couvrant les deux solutions"],
                    ["pi_config.json", "intervalles PI sur la fenêtre de données"],
                    ["README.md", "description des histoires intégrées"]],
@@ -1804,7 +1754,7 @@ def content_fr(st: dict) -> list:
                   "et en retard ; Beta-1 → Alpha-1 en integration cross-solution.<br/>"
                   "- <b>Log de decisions</b> : l'hypothese ouverte de Beta a "
                   "depasse sa date de revision — marquee en rouge 'review due'.<br/>"
-                  "- <b>Delta briefing</b> : snapshot_prev/now.json sont fournis — "
+                  "- <b>Delta briefing</b> : snapshots/snapshot_prev/now.json sont fournis — "
                   "--delta montre le debit, le declin de confiance de Beta-3, "
                   "l'escalade d'AD-1, le nouveau risque BR-2, le fraichement en retard.<br/>"
                   "- <b>SLO & DORA</b> : l'API de synchronisation de Beta viole son "

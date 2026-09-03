@@ -5,6 +5,25 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [Unreleased]
+
+### Added
+- **Portfolio data folder (Datenraum), part 1** — relative paths in a
+  solution/portfolio config now resolve against the config file's
+  folder (absolute paths unchanged; legacy CWD-relative values keep
+  working via a fallback with a log hint). One central rule
+  (`resolve_config_path`) covers members, project templates and all
+  nine register references, so a portfolio folder can be moved, copied
+  or zipped as a whole. The test-data scenario now writes exactly this
+  structure: `portfolio.json` on top, `solutions/<name>/` with
+  `solution.json`, `arts/` and `registers/` (standard file names),
+  plus `snapshots/`, `raw/` and `workflows/` — with relative paths
+  throughout; the old "paths are absolute, regenerate after moving"
+  caveat is gone. A move-the-folder test renders report and delta
+  briefing from a relocated copy under a foreign working directory.
+  Docs: portfolio + test-data manuals in five languages, one-pager
+  DE/EN. Phase 1 of the approved Portfolio-Datenraum concept.
+
 ## [0.24.0] – 2026-09-04
 
 ### Fixed

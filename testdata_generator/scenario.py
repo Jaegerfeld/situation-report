@@ -647,7 +647,11 @@ def build_portfolio_scenario(
     out = Path(output_dir)
     (out / "workflows").mkdir(parents=True, exist_ok=True)
     (out / "raw").mkdir(exist_ok=True)
-    (out / "arts").mkdir(exist_ok=True)
+    (out / "snapshots").mkdir(exist_ok=True)
+    for _key in ("alpha", "beta"):
+        (out / "solutions" / _key / "arts").mkdir(parents=True, exist_ok=True)
+        (out / "solutions" / _key / "registers").mkdir(parents=True,
+                                                       exist_ok=True)
 
     workflow_files = {
         "alpha": out / "workflows" / "alpha.txt",
@@ -683,88 +687,89 @@ def build_portfolio_scenario(
         if unmapped:
             log(f"  WARNING [{profile.name}]: unmapped statuses {sorted(unmapped)}")
 
-        issue_times = out / "arts" / f"{profile.name}_IssueTimes.xlsx"
-        transitions = out / "arts" / f"{profile.name}_Transitions.xlsx"
+        arts_dir = out / "solutions" / solution_key / "arts"
+        issue_times = arts_dir / f"{profile.name}_IssueTimes.xlsx"
+        transitions = arts_dir / f"{profile.name}_Transitions.xlsx"
         write_issue_times(records, workflow, issue_times)
         write_transitions(records, transitions)
         cfd = ""
         if profile.write_cfd:
-            cfd_path = out / "arts" / f"{profile.name}_CFD.xlsx"
-            write_cfd(records, workflow, cfd_path, reference_dt=reference_dt)
-            cfd = str(cfd_path)
+            write_cfd(records, workflow,
+                      arts_dir / f"{profile.name}_CFD.xlsx",
+                      reference_dt=reference_dt)
+            cfd = f"arts/{profile.name}_CFD.xlsx"
 
+        # Pfade RELATIV zur solution.json — der Datenraum ist verschiebbar.
         members[solution_key].append(Member(
             name=f"ART {profile.name}",
-            issue_times=str(issue_times),
+            issue_times=f"arts/{profile.name}_IssueTimes.xlsx",
             cfd=cfd,
-            workflow=str(wf_file),
-            transitions=str(transitions),
+            workflow=f"../../workflows/{solution_key}.txt",
+            transitions=f"arts/{profile.name}_Transitions.xlsx",
         ))
         log(f"  {profile.name}: {len(records)} issues"
             f"{' (kein CFD, Datenstand -' + str(profile.stale_days) + 'd)' if profile.stale_days else ''}")
 
-    risks_alpha = out / "risks_alpha.json"
+    risks_alpha = out / "solutions" / "alpha" / "registers" / "risks.json"
     save_risks(risks_alpha, _alpha_risks(reference))
-    risks_beta = out / "risks_beta.json"
+    risks_beta = out / "solutions" / "beta" / "registers" / "risks.json"
     save_risks(risks_beta, _beta_risks(reference, story))
-    nfr_alpha = out / "nfr_alpha.json"
+    nfr_alpha = out / "solutions" / "alpha" / "registers" / "nfr.json"
     save_nfr(nfr_alpha, _alpha_nfr(reference))
-    nfr_beta = out / "nfr_beta.json"
+    nfr_beta = out / "solutions" / "beta" / "registers" / "nfr.json"
     save_nfr(nfr_beta, _beta_nfr(reference))
-    caps_alpha = out / "capabilities_alpha.json"
+    caps_alpha = out / "solutions" / "alpha" / "registers" / "capabilities.json"
     save_capabilities(caps_alpha, _alpha_capabilities(reference))
-    caps_beta = out / "capabilities_beta.json"
+    caps_beta = out / "solutions" / "beta" / "registers" / "capabilities.json"
     save_capabilities(caps_beta, _beta_capabilities(reference))
-    deps_alpha = out / "dependencies_alpha.json"
+    deps_alpha = out / "solutions" / "alpha" / "registers" / "dependencies.json"
     save_dependencies(deps_alpha, _alpha_dependencies(reference, story))
-    deps_beta = out / "dependencies_beta.json"
+    deps_beta = out / "solutions" / "beta" / "registers" / "dependencies.json"
     save_dependencies(deps_beta, _beta_dependencies(reference))
-    decisions_alpha = out / "decisions_alpha.json"
+    decisions_alpha = out / "solutions" / "alpha" / "registers" / "decisions.json"
     save_decisions(decisions_alpha, _alpha_decisions(reference))
-    decisions_beta = out / "decisions_beta.json"
+    decisions_beta = out / "solutions" / "beta" / "registers" / "decisions.json"
     save_decisions(decisions_beta, _beta_decisions(reference))
-    slo_alpha = out / "slo_alpha.json"
+    slo_alpha = out / "solutions" / "alpha" / "registers" / "slo.json"
     save_slo(slo_alpha, _alpha_slo(reference))
-    slo_beta = out / "slo_beta.json"
+    slo_beta = out / "solutions" / "beta" / "registers" / "slo.json"
     save_slo(slo_beta, _beta_slo(reference))
-    dora_alpha = out / "dora_alpha.json"
+    dora_alpha = out / "solutions" / "alpha" / "registers" / "dora.json"
     save_delivery(dora_alpha, _alpha_delivery(reference))
-    dora_beta = out / "dora_beta.json"
+    dora_beta = out / "solutions" / "beta" / "registers" / "dora.json"
     save_delivery(dora_beta, _beta_delivery(reference))
-    flow_alpha = out / "flow_problems_alpha.json"
+    flow_alpha = out / "solutions" / "alpha" / "registers" / "flow_problems.json"
     save_flow_problems(flow_alpha, _alpha_flow_problems(reference))
-    flow_beta = out / "flow_problems_beta.json"
+    flow_beta = out / "solutions" / "beta" / "registers" / "flow_problems.json"
     save_flow_problems(flow_beta, _beta_flow_problems(reference))
-    themes_alpha = out / "themes_alpha.json"
+    themes_alpha = out / "solutions" / "alpha" / "registers" / "themes.json"
     save_themes(themes_alpha, _alpha_themes(story))
-    themes_beta = out / "themes_beta.json"
+    themes_beta = out / "solutions" / "beta" / "registers" / "themes.json"
     save_themes(themes_beta, _beta_themes(story))
 
-    solution_alpha = out / "solution_alpha.json"
+    _registers = {r: f"registers/{r}.json"
+                  for r in ("risks", "nfr", "capabilities", "dependencies",
+                            "decisions", "slo", "dora", "flow_problems",
+                            "themes")}
+    solution_alpha = out / "solutions" / "alpha" / "solution.json"
     save_solution_config(solution_alpha, SolutionConfig(
         name="Solution Alpha", members=members["alpha"],
         from_date=reference - timedelta(days=window_days), to_date=reference,
-        risks=str(risks_alpha), nfr=str(nfr_alpha),
-        capabilities=str(caps_alpha), dependencies=str(deps_alpha),
-        decisions=str(decisions_alpha), slo=str(slo_alpha),
-        dora=str(dora_alpha), flow_problems=str(flow_alpha),
-        themes=str(themes_alpha)))
-    solution_beta = out / "solution_beta.json"
+        **_registers))
+    solution_beta = out / "solutions" / "beta" / "solution.json"
     save_solution_config(solution_beta, SolutionConfig(
         name="Solution Beta", members=members["beta"],
         from_date=reference - timedelta(days=window_days), to_date=reference,
-        stage_map=_BETA_STAGE_MAP, risks=str(risks_beta), nfr=str(nfr_beta),
-        capabilities=str(caps_beta), dependencies=str(deps_beta),
-        decisions=str(decisions_beta), slo=str(slo_beta),
-        dora=str(dora_beta), flow_problems=str(flow_beta),
-        themes=str(themes_beta)))
+        stage_map=_BETA_STAGE_MAP, **_registers))
 
     portfolio_cfg = out / "portfolio.json"
     save_solution_config(portfolio_cfg, SolutionConfig(
         name="Demo Portfolio", kind=KIND_PORTFOLIO,
         members=[
-            Member(name="Solution Alpha", template=str(solution_alpha)),
-            Member(name="Solution Beta", template=str(solution_beta)),
+            Member(name="Solution Alpha",
+                   template="solutions/alpha/solution.json"),
+            Member(name="Solution Beta",
+                   template="solutions/beta/solution.json"),
         ],
         from_date=reference - timedelta(days=window_days), to_date=reference))
 
@@ -789,7 +794,22 @@ def build_portfolio_scenario(
         f"(Seed {seed}, Referenzdatum {reference.isoformat()}).",
         "",
         "Direkt verwendbar: `python -m portfolio portfolio.json` bzw. die",
-        "Solution-Configs einzeln. Eingebaute Geschichten:",
+        "Solution-Configs einzeln. **Der Ordner ist ein Portfolio-Datenraum**:",
+        "alle Pfade in den Configs sind relativ zur jeweiligen Config-Datei —",
+        "der Ordner kann als Ganzes verschoben, kopiert oder gezippt werden.",
+        "",
+        "    portfolio.json            Einstieg (Portfolio)",
+        "    solutions/<name>/         je Solution: solution.json,",
+        "                              arts/ (IssueTimes/Transitions/CFD),",
+        "                              registers/ (Standardnamen: risks.json,",
+        "                              nfr.json, capabilities.json,",
+        "                              dependencies.json, decisions.json,",
+        "                              slo.json, dora.json, flow_problems.json,",
+        "                              themes.json)",
+        "    workflows/  raw/  pi_config.json",
+        "    snapshots/                snapshot_prev.json, snapshot_now.json",
+        "",
+        "Eingebaute Geschichten:",
         "",
         "- **ART Alpha-3** ist der Ausreißer (Cycle Time ~3x) — im",
         "  Comparison-Report der Solution Alpha markiert die",
@@ -801,47 +821,48 @@ def build_portfolio_scenario(
         "  Vorlauf/Umsetzung/Fertig); Solution Alpha nutzt den Default-Pfad",
         "  (To Do / In Progress / Done).",
         "- **ROAM-Board**: beide Solutions bringen ein Risiko-Register mit",
-        "  (`risks_alpha.json`/`risks_beta.json`); zwei Owned-Risiken sind",
+        "  (`solutions/*/registers/risks.json`); zwei Owned-Risiken sind",
         "  bewusst alt (45/50 Tage) — das Aging springt im Board rot an.",
         "- **NFR & Runway**: beide Solutions bringen ein NFR-Register mit",
-        "  (`nfr_alpha.json`/`nfr_beta.json`); Betas API-NFR ist verletzt und",
+        "  (`registers/nfr.json`); Betas API-NFR ist verletzt und",
         "  ein Runway-Element ist eine überfällige Lücke — Dashboard-Ampel rot.",
         "- **Capability-Map**: beide Solutions bringen eine Capability-Map mit",
-        "  (`capabilities_alpha.json`/`capabilities_beta.json`); Betas",
+        "  (`registers/capabilities.json`); Betas",
         "  Data-Insights-Capability ist kritisch (schwache Quelle) und Alphas",
         "  Partner-Self-Service hat keinen beitragenden ART (uncovered).",
         "- **Dependency-Heatmap**: beide Solutions bringen ein",
-        "  Dependency-Register mit (`dependencies_alpha.json`/",
-        "  `dependencies_beta.json`); Alpha-1 → Alpha-3 ist blockiert und",
+        "  Dependency-Register mit (`registers/dependencies.json`);",
+        "  Alpha-1 → Alpha-3 ist blockiert und",
         "  überfällig (der Ausreißer liefert nicht), Beta-1 → Alpha-1 ist eine",
         "  Cross-Solution-Integration — im Portfolio-Report sichtbar.",
         "- **Decision-Log**: beide Solutions bringen ein Decision-/",
-        "  Assumption-Log mit (`decisions_alpha.json`/`decisions_beta.json`);",
+        "  Assumption-Log mit (`registers/decisions.json`);",
         "  Alphas Stage-Map-Entscheidung ersetzt eine ältere (supersedes),",
         "  Betas offene Annahme „Beta-3 heilt sich selbst\" hat ihr Prüfdatum",
         "  überschritten — im Log rot als „review due\" markiert.",
-        "- **Flussproblem-Backlog (B6, VSC)**: `flow_problems_alpha/beta.json`;",
+        "- **Flussproblem-Backlog (B6, VSC)**: `registers/flow_problems.json`;",
         "  FP-A1 und FP-B1 haben 3 bzw. 4 Konferenzen überlebt (das",
         "  Workshop-Muster „geloggt, nie mitigiert\" — rot markiert), FP-B1",
         "  ist Cross-VS. Konferenzmappe: `python -m portfolio portfolio.json",
         "  --conference mappe.html`.",
-        "- **Strategic Themes & Roadmap (B7, VSC)**: `themes_alpha/beta.json`;",
+        "- **Strategic Themes & Roadmap (B7, VSC)**: `registers/themes.json`;",
         "  Alphas Theme „Green operations\" ist verwaist (kein Epic —",
         "  „declared & forgotten\"), EP-A9 ist eine Zombie-Initiative ohne",
         "  Theme; die Roadmap-Matrix zeigt Trains × P1·P2·Y1·Y2·Y3. Im",
         "  Delta-Briefing: EP-A9 verlor sein Theme, EP-B2 wurde von P2 nach",
         "  P1 gezogen („updated roadmaps\").",
-        "- **SLO & Error-Budgets (C1)**: `slo_alpha.json`/`slo_beta.json`;",
+        "- **SLO & Error-Budgets (C1)**: `registers/slo.json`;",
         "  Betas „Order Sync API\" reißt ihr SLO (breached), Alphas",
         "  „Checkout\" hat sein Budget fast aufgebraucht (at risk).",
-        "- **DORA & Code-Qualität (C2)**: `dora_alpha.json`/`dora_beta.json`;",
+        "- **DORA & Code-Qualität (C2)**: `registers/dora.json`;",
         "  ART Beta-3 ist auch im Delivery-Bild low (CFR 38 %, MTTR 30 h,",
         "  Coverage 31 %, Rating D) — die schwache Quelle von allen Seiten.",
         "  Erzeugt/austauschbar über `python -m sources fetch` (Provider:",
         "  file, prometheus, github, gitlab, sonarqube — kombinierbar).",
-        "- **Delta-Briefing (D2)**: `snapshot_prev.json` (Stand vor 14 Tagen)",
-        "  und `snapshot_now.json` liegen bei —",
-        "  `python -m portfolio --delta snapshot_prev.json snapshot_now.json`",
+        "- **Delta-Briefing (D2)**: `snapshots/snapshot_prev.json` (Stand vor",
+        "  14 Tagen) und `snapshots/snapshot_now.json` liegen bei —",
+        "  `python -m portfolio --delta snapshots/snapshot_prev.json",
+        "  snapshots/snapshot_now.json`",
         "  zeigt: Durchsatz im Zeitraum, Beta-3-Konfidenz medium → low,",
         "  AD-1 at_risk → blocked, Risiko BR-2 neu, Runway-Lücke und Annahme",
         "  AS-B1 frisch überfällig.",
@@ -855,13 +876,10 @@ def build_portfolio_scenario(
         "Die Roh-JSONs unter `raw/` sind zugleich Demo-Futter für get_data:",
         "`python -m get_data check raw/Alpha-1_jira.json` zeigt die",
         "Export-Prüfung (Weg 2) am Beispiel.",
-        "",
-        "Die Pfade in den Configs sind absolut — nach dem Verschieben des",
-        "Ordners das Szenario neu erzeugen.",
     ]), encoding="utf-8")
 
-    snapshot_prev = out / "snapshot_prev.json"
-    snapshot_now = out / "snapshot_now.json"
+    snapshot_prev = out / "snapshots" / "snapshot_prev.json"
+    snapshot_now = out / "snapshots" / "snapshot_now.json"
     if story == STORY_NOW:
         # Delta-Briefing-Demo (D2): denselben Bau als Prev-Variante in einen
         # Temp-Ordner legen, beide Staende einfrieren, Temp verwerfen.

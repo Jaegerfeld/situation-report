@@ -14,11 +14,13 @@
 from __future__ import annotations
 
 from datetime import date
+from pathlib import Path
 
 import pytest
 
 from portfolio.solution_config import (
     KIND_SOLUTION,
+    Member,
     parse_solution_config,
     to_dict,
 )
@@ -226,3 +228,60 @@ class TestStageMap:
     def test_v1_dict_without_block_roundtrips_without_block(self) -> None:
         cfg = parse_solution_config(_valid_dict())
         assert "stage_map" not in to_dict(cfg)
+
+
+class TestResolveConfigPath:
+    """Die Datenraum-Pfadregel (Phase 1, 04.09.2026): relativ = relativ
+    zur Config-Datei; absolut unveraendert; CWD-Altbestand per Fallback."""
+
+    def test_absolute_passes_through(self, tmp_path) -> None:
+        from portfolio.solution_config import resolve_config_path
+        p = tmp_path / "x.json"
+        assert resolve_config_path(tmp_path, str(p)) == p
+
+    def test_relative_resolves_against_config_folder(self, tmp_path) -> None:
+        from portfolio.solution_config import resolve_config_path
+        target = tmp_path / "registers" / "risks.json"
+        target.parent.mkdir()
+        target.write_text("{}", encoding="utf-8")
+        assert resolve_config_path(
+            tmp_path, "registers/risks.json") == target
+
+    def test_missing_file_points_at_config_relative_location(
+            self, tmp_path) -> None:
+        # Fehlermeldungen sollen auf den GEMEINTEN Ort zeigen.
+        from portfolio.solution_config import resolve_config_path
+        assert resolve_config_path(tmp_path, "registers/fehlt.json") == (
+            tmp_path / "registers" / "fehlt.json")
+
+    def test_legacy_cwd_fallback_warns(self, tmp_path, monkeypatch) -> None:
+        from portfolio.solution_config import resolve_config_path
+        cwd = tmp_path / "arbeitsverzeichnis"
+        base = tmp_path / "configs"
+        cwd.mkdir(); base.mkdir()
+        (cwd / "alt.json").write_text("{}", encoding="utf-8")
+        monkeypatch.chdir(cwd)
+        warnings: list[str] = []
+        resolved = resolve_config_path(base, "alt.json", warnings.append)
+        assert resolved == Path("alt.json")
+        assert warnings and "portable" in warnings[0]
+
+    def test_no_base_keeps_todays_behaviour(self) -> None:
+        from portfolio.solution_config import resolve_config_path
+        assert resolve_config_path(None, "irgendwo/x.json") == Path(
+            "irgendwo/x.json")
+
+    def test_loader_sets_base_dir_but_never_serialises_it(
+            self, tmp_path) -> None:
+        from portfolio.solution_config import (
+            SolutionConfig,
+            load_solution_config,
+            save_solution_config,
+            to_dict,
+        )
+        cfg_file = tmp_path / "solution.json"
+        save_solution_config(cfg_file, SolutionConfig(
+            name="S", members=[Member(name="A", issue_times="a.xlsx")]))
+        loaded = load_solution_config(cfg_file)
+        assert loaded.base_dir == tmp_path.resolve()
+        assert "base_dir" not in to_dict(loaded)

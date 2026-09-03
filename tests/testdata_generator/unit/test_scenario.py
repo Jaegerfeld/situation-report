@@ -17,6 +17,7 @@
 from __future__ import annotations
 
 from datetime import date, timedelta
+from pathlib import Path
 
 import pytest
 
@@ -52,11 +53,17 @@ class TestArtifacts:
                     "themes_alpha", "themes_beta",
                     "pi_config", "readme"):
             assert paths[key].exists(), key
-        assert len(list((out / "arts").glob("*_IssueTimes.xlsx"))) == 6
-        assert len(list((out / "arts").glob("*_Transitions.xlsx"))) == 6
+        # Datenraum-Layout A: ART-Artefakte liegen je Solution unter
+        # solutions/<name>/arts/.
+        assert len(list(out.glob("solutions/*/arts/*_IssueTimes.xlsx"))) == 6
+        assert len(list(out.glob("solutions/*/arts/*_Transitions.xlsx"))) == 6
         # Die schwache Quelle Beta-3 liefert bewusst kein CFD.
-        assert len(list((out / "arts").glob("*_CFD.xlsx"))) == 5
+        assert len(list(out.glob("solutions/*/arts/*_CFD.xlsx"))) == 5
         assert len(list((out / "raw").glob("*_jira.json"))) == 6
+        # Register tragen die Standardnamen der Datenraum-Konvention.
+        assert (out / "solutions" / "alpha" / "registers"
+                / "risks.json").exists()
+        assert paths["snapshot_now"].parent.name == "snapshots"
 
     def test_pi_config_loads_and_covers_window(self, scenario) -> None:
         _, paths = scenario
@@ -371,8 +378,56 @@ class TestDeterminism:
         b = tmp_path / "b"
         build_portfolio_scenario(a, seed=7, reference=REF, log=lambda m: None)
         build_portfolio_scenario(b, seed=7, reference=REF, log=lambda m: None)
-        wa = openpyxl.load_workbook(a / "arts" / "Alpha-1_IssueTimes.xlsx").active
-        wb = openpyxl.load_workbook(b / "arts" / "Alpha-1_IssueTimes.xlsx").active
+        wa = openpyxl.load_workbook(
+            a / "solutions" / "alpha" / "arts" / "Alpha-1_IssueTimes.xlsx").active
+        wb = openpyxl.load_workbook(
+            b / "solutions" / "alpha" / "arts" / "Alpha-1_IssueTimes.xlsx").active
         rows_a = [tuple(r) for r in wa.iter_rows(values_only=True)]
         rows_b = [tuple(r) for r in wb.iter_rows(values_only=True)]
         assert rows_a == rows_b
+
+
+class TestDatenraumPortability:
+    """Phase 1 des Portfolio-Datenraum-Konzepts (04.09.2026): der
+    Szenario-Ordner ist als Ganzes verschiebbar — alle Config-Pfade sind
+    relativ zur jeweiligen Config-Datei."""
+
+    def test_configs_carry_only_relative_paths(self, scenario) -> None:
+        import json as _json
+        out, paths = scenario
+        for cfg_file in (paths["portfolio"], paths["solution_alpha"],
+                         paths["solution_beta"]):
+            raw = _json.loads(cfg_file.read_text(encoding="utf-8"))
+            stated = [v for m in raw.get("members", [])
+                      for v in m.values() if v and str(v).endswith(
+                          (".json", ".xlsx", ".txt"))]
+            stated += [raw[r] for r in ("risks", "nfr", "capabilities",
+                                        "dependencies", "decisions", "slo",
+                                        "dora", "flow_problems", "themes")
+                       if r in raw]
+            assert stated, cfg_file
+            for value in stated:
+                assert not Path(value).is_absolute(), (cfg_file, value)
+                assert "\\" not in value  # portabel: nur Vorwaertsschraegstriche
+
+    def test_moved_copy_renders_report_and_delta(self, scenario, tmp_path,
+                                                 monkeypatch) -> None:
+        import shutil
+
+        from portfolio.aggregator import render_pooled_html
+        from portfolio.delta import compute_delta, delta_to_markdown
+        from portfolio.snapshot import load_snapshot
+        out, _ = scenario
+        moved = tmp_path / "umgezogen"
+        shutil.copytree(out, moved)
+        # Fremdes Arbeitsverzeichnis: nichts darf mehr ueber CWD aufloesen.
+        monkeypatch.chdir(tmp_path)
+        html = render_pooled_html(
+            load_solution_config(moved / "portfolio.json"),
+            log=lambda m: None)
+        for marker in ("BR-2", "Order Sync API", "EP-A9", "FP-B1"):
+            assert marker in html, marker
+        md = delta_to_markdown(compute_delta(
+            load_snapshot(moved / "snapshots" / "snapshot_prev.json"),
+            load_snapshot(moved / "snapshots" / "snapshot_now.json")))
+        assert "BR-2" in md

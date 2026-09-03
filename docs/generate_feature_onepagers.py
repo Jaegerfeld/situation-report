@@ -492,6 +492,105 @@ ONEPAGERS: dict[str, dict[str, dict]] = {
             ],
         },
     },
+    "portfolio_datenraum": {
+        "de": {
+            "title": "Portfolio-Datenraum",
+            "tagline": "Ein Ordner = ein Portfolio · relative Pfade, "
+                       "verschiebbar als Ganzes · Konvention statt Suchen",
+            "sections": [
+                ("h", "Worum geht es?"),
+                ("p", "Bisher verwiesen Portfolio-Configs mit absoluten "
+                      "Pfaden auf verstreute Dateien — der Ordner überstand "
+                      "kein Verschieben. Der Datenraum ist eine "
+                      "Ordner-Konvention: portfolio.json oben, je Solution "
+                      "ein Unterordner mit solution.json, arts/ "
+                      "(IssueTimes/CFD/Transitions) und registers/ (die "
+                      "neun Register unter Standardnamen), dazu snapshots/, "
+                      "raw/ und workflows/. Relative Pfade in einer Config "
+                      "lösen sich relativ zur Config-Datei auf — der Ordner "
+                      "lässt sich als Ganzes verschieben, kopieren, zippen "
+                      "und weitergeben."),
+                ("h", "So benutzt du es"),
+                ("code", "python -m testdata_generator --scenario portfolio "
+                         "--output demo/ --seed 42\n"
+                         "# demo/ irgendwohin verschieben — und dann:\n"
+                         "python -m portfolio demo/portfolio.json --output "
+                         "report.html\n"
+                         "python -m portfolio --delta "
+                         "demo/snapshots/snapshot_prev.json "
+                         "demo/snapshots/snapshot_now.json"),
+                ("p", "Das Demo-Szenario erzeugt die Struktur fertig; für "
+                      "eigene Portfolios genügt es, Config und Daten in "
+                      "einen gemeinsamen Ordner zu legen und die Pfade "
+                      "relativ anzugeben."),
+                ("h", "Die Regeln"),
+                ("li", "Relative Pfade: relativ zur Config-Datei — die "
+                       "Regel gilt überall (Member, Templates, alle neun "
+                       "Register)"),
+                ("li", "Absolute Pfade: bleiben unverändert — "
+                       "Bestands-Configs funktionieren weiter"),
+                ("li", "Altfall CWD-relativ: funktioniert per Fallback, mit "
+                       "Hinweis im Log"),
+                ("li", "Standardnamen in registers/ sind Konvention, keine "
+                       "Auto-Discovery — ein leeres Config-Feld bleibt "
+                       "„kein Register“"),
+                ("h", "Leitplanken"),
+                ("p", "Die Configs bleiben die einzige Wahrheit; die "
+                      "Konvention macht sie nur kurz und portabel. Kein "
+                      "Schema-Bump, keine stille Verhaltensänderung. Ein "
+                      "Verschiebe-Test in der Suite beweist die "
+                      "Portabilität bei jedem Build."),
+            ],
+        },
+        "en": {
+            "title": "Portfolio Data Folder",
+            "tagline": "One folder = one portfolio · relative paths, "
+                       "movable as a whole · convention over hunting",
+            "sections": [
+                ("h", "What is it?"),
+                ("p", "Portfolio configs used to point at scattered files "
+                      "with absolute paths — the folder did not survive a "
+                      "move. The data folder is a folder convention: "
+                      "portfolio.json on top, one subfolder per solution "
+                      "with solution.json, arts/ (IssueTimes/CFD/"
+                      "Transitions) and registers/ (the nine registers "
+                      "under standard names), plus snapshots/, raw/ and "
+                      "workflows/. Relative paths in a config resolve "
+                      "against the config file's folder — the folder moves, "
+                      "copies, zips and travels as a whole."),
+                ("h", "How to use it"),
+                ("code", "python -m testdata_generator --scenario portfolio "
+                         "--output demo/ --seed 42\n"
+                         "# move demo/ anywhere — then:\n"
+                         "python -m portfolio demo/portfolio.json --output "
+                         "report.html\n"
+                         "python -m portfolio --delta "
+                         "demo/snapshots/snapshot_prev.json "
+                         "demo/snapshots/snapshot_now.json"),
+                ("p", "The demo scenario produces the structure ready-made; "
+                      "for your own portfolios just put config and data "
+                      "into one shared folder and state the paths "
+                      "relatively."),
+                ("h", "The rules"),
+                ("li", "Relative paths: relative to the config file — one "
+                       "rule everywhere (members, templates, all nine "
+                       "registers)"),
+                ("li", "Absolute paths: unchanged — existing configs keep "
+                       "working"),
+                ("li", "Legacy CWD-relative: still works via fallback, with "
+                       "a log hint"),
+                ("li", "Standard names in registers/ are a convention, not "
+                       "auto-discovery — an empty config field still means "
+                       "'no register'"),
+                ("h", "Guardrails"),
+                ("p", "The configs stay the single source of truth; the "
+                      "convention only keeps them short and portable. No "
+                      "schema bump, no silent behaviour change. A "
+                      "move-the-folder test in the suite proves portability "
+                      "on every build."),
+            ],
+        },
+    },
     "llm_narration": {
         "de": {
             "title": "KI-Narration",
