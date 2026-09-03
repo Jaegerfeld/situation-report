@@ -30,8 +30,9 @@ from typing import Any
 # seit B2 das optionale "nfr"-Feld (Pfad zur NFR-/Runway-nfr.json), seit B1
 # das optionale "capabilities"-Feld (Pfad zur Capability-Map-JSON), seit B5
 # das optionale "dependencies"-Feld (Pfad zum Dependency-Register), seit B4
-# das optionale "decisions"-Feld (Pfad zum Decision-/Assumption-Log) —
-# alles additiv, daher kein Schema-Bump.
+# das optionale "decisions"-Feld (Pfad zum Decision-/Assumption-Log), seit
+# C1/C2 die optionalen Felder "slo" (SLO-Register) und "dora"
+# (Delivery-Register) — alles additiv, daher kein Schema-Bump.
 SCHEMA_VERSION = 2
 APP_NAME = "situation_report"
 
@@ -165,6 +166,10 @@ class SolutionConfig:
                     means no dependency register.
         decisions:  Optional path to a decision/assumption-log JSON (B4);
                     "" means no decision log.
+        slo:        Optional path to an SLO register JSON (C1); "" means
+                    no SLO register.
+        dora:       Optional path to a delivery register JSON (C2, DORA +
+                    quality); "" means no delivery register.
     """
     name: str
     kind: str = KIND_SOLUTION
@@ -180,6 +185,8 @@ class SolutionConfig:
     capabilities: str = ""
     dependencies: str = ""
     decisions: str = ""
+    slo: str = ""
+    dora: str = ""
 
 
 def _parse_date(value: Any) -> date | None:
@@ -267,6 +274,8 @@ def parse_solution_config(data: dict[str, Any]) -> SolutionConfig:
         capabilities=str(data.get("capabilities", "")).strip(),
         dependencies=str(data.get("dependencies", "")).strip(),
         decisions=str(data.get("decisions", "")).strip(),
+        slo=str(data.get("slo", "")).strip(),
+        dora=str(data.get("dora", "")).strip(),
     )
 
 
@@ -341,6 +350,10 @@ def to_dict(config: SolutionConfig) -> dict[str, Any]:
         out["dependencies"] = config.dependencies
     if config.decisions:
         out["decisions"] = config.decisions
+    if config.slo:
+        out["slo"] = config.slo
+    if config.dora:
+        out["dora"] = config.dora
     return out
 
 

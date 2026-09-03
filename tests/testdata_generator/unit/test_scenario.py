@@ -47,6 +47,7 @@ class TestArtifacts:
                     "dependencies_alpha", "dependencies_beta",
                     "decisions_alpha", "decisions_beta",
                     "snapshot_prev", "snapshot_now",
+                    "slo_alpha", "slo_beta", "dora_alpha", "dora_beta",
                     "pi_config", "readme"):
             assert paths[key].exists(), key
         assert len(list((out / "arts").glob("*_IssueTimes.xlsx"))) == 6
@@ -275,6 +276,29 @@ class TestBuiltInStories:
             == ["BRW-1"]
         assert [e["id"] for e in delta.governance["decisions"].newly_overdue] \
             == ["AS-B1"]
+
+    def test_slo_and_dora_registers_tell_their_story(self, scenario) -> None:
+        from portfolio.aggregator import _collect_delivery, _collect_slo
+        from portfolio.dora_config import unit_tier
+        from portfolio.slo_config import slo_status
+        _, paths = scenario
+        cfg = load_solution_config(paths["portfolio"])
+        slo_entries = _collect_slo(cfg, log=lambda m: None)
+        assert len(slo_entries) == 5
+        # Die Geschichte: Betas Sync-API reisst ihr SLO, Alphas Checkout
+        # hat kaum noch Budget.
+        by_status = {r.service: slo_status(r) for _, r in slo_entries}
+        assert by_status["Order Sync API"] == "breached"
+        assert by_status["Checkout"] == "at_risk"
+
+        dora_entries, quality_entries = _collect_delivery(cfg, log=lambda m: None)
+        assert len(dora_entries) == 5 and len(quality_entries) == 3
+        tiers = {r.unit: unit_tier(r) for _, r in dora_entries}
+        # Beta-3 ist auch im Delivery-Bild low; Alpha-1 liefert elite.
+        assert tiers["ART Beta-3"] == "low"
+        assert tiers["ART Alpha-1"] == "elite"
+        weak = next(q for _, q in quality_entries if q.unit == "ART Beta-3")
+        assert weak.maintainability == "D" and weak.critical_issues == 7
 
     def test_outlier_art_has_clearly_higher_cycle_time(self, scenario) -> None:
         from portfolio.aggregator import load_members

@@ -73,6 +73,7 @@ nav:
     - helper: modules/helper.md
     - testdata_generator: modules/testdata_generator.md
     - get_data: modules/get_data.md
+    - sources: modules/sources.md
     - simulate: modules/simulate.md
   - Memoranda: denkschriften/index.md
   - Architecture: architecture.md

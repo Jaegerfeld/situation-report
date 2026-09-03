@@ -294,6 +294,27 @@ browser. The demo path is even shorter: the test-data generator's
 demo-portfolio section gains **Open Delta Briefing**, which renders the
 scenario's shipped `snapshot_prev/now.json` pair directly.
 
+## SLO & DORA registers (optional, C1/C2)
+
+A solution config may reference two more registers, both produced by the
+pluggable `sources` framework (see its module page for providers and the
+30-line recipe for new sources):
+
+- `"slo": "slo.json"` renders **Service Levels & Error Budgets**: per SLO
+  the target, current SLI, remaining error budget (central rule:
+  consumed = (100−SLI)/(100−target)) and a status — met / at risk (< 25 %
+  budget left) / breached / unknown, breached first. Every data source is
+  judged by the same rule.
+- `"dora": "dora.json"` renders **Delivery Performance (DORA) & Code
+  Quality**: the four DORA keys per unit, each cell tiered at the
+  published thresholds (elite/high/medium/low), overall tier = the unit's
+  worst metric; a quality table (coverage, maintainability rating,
+  critical issues) follows.
+
+Each row keeps its data source (combinable sources); a portfolio
+aggregates member registers with a Solution column; broken files are
+logged and skipped.
+
 ## Custom stage map (optional, config schema 2)
 
 By default, differing ART workflows pool into the three canonical groups
@@ -328,6 +349,8 @@ portfolio/
 ├── capability_config.py Capability map (B1): schema, parse/load/save
 ├── dependency_config.py Dependency register (B5): schema, parse/load/save
 ├── decision_config.py Decision/assumption log (B4): schema, parse/load/save
+├── slo_config.py      SLO register (C1): central budget/status rule
+├── dora_config.py     Delivery register (C2): DORA tiers + quality
 ├── snapshot.py        Report snapshot (D2): freeze metrics/quality/governance
 ├── delta.py           Delta briefing (D2): diff two snapshots, HTML/Markdown
 ├── aggregator.py      Record-level pooling + rendering (HTML/PDF)

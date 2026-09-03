@@ -37,6 +37,12 @@ from portfolio.dependency_config import (
     DEP_STATUS_ORDER,
     Dependency,
 )
+from portfolio.dora_config import (
+    DORA_TIER_FUNCS,
+    TIER_ORDER,
+    TIER_UNKNOWN,
+    unit_tier,
+)
 from portfolio.nfr_config import (
     NFR_STATUS_ORDER,
     RUNWAY_IN_PLACE,
@@ -52,6 +58,12 @@ from portfolio.risks_config import (
     ROAM_OWNED,
     Risk,
 )
+from portfolio.slo_config import (
+    SLO_STATUS_ORDER,
+    error_budget_remaining_pct,
+    slo_status,
+)
+from sources.base import DoraRecord, QualityRecord, SloRecord
 
 #: Confidence levels for a data source (traffic-light semantics).
 CONFIDENCE_HIGH = "high"
@@ -1476,4 +1488,273 @@ def decisions_figure(
     ))
     fig.update_layout(title=_log_title(entries, title, reference),
                       title_font_size=14, margin=dict(t=40, b=10))
+    return fig
+
+
+# ---------------------------------------------------------------------------
+# SLO / error budgets (C1) and DORA / code quality (C2)
+# ---------------------------------------------------------------------------
+
+_SLO_STATUS_COLORS = {
+    "breached": "#f8d7da",
+    "at_risk": "#fff3cd",
+    "met": "#e6f4e6",
+    "unknown": "#e2e3e5",
+}
+
+_TIER_COLORS = {
+    "elite": "#e6f4e6",
+    "high": "#e6f4e6",
+    "medium": "#fff3cd",
+    "low": "#f8d7da",
+    "unknown": "#e2e3e5",
+}
+
+_RATING_COLORS = {"A": "#e6f4e6", "B": "#e6f4e6", "C": "#fff3cd",
+                  "D": "#f8d7da", "E": "#f8d7da"}
+
+
+def _fmt_num(value: float | int | None, digits: int = 1) -> str:
+    if value is None:
+        return "–"
+    return f"{value:.{digits}f}"
+
+
+def _slo_sorted(entries: list[tuple[str, SloRecord]]) -> list[tuple[str, SloRecord]]:
+    return sorted(entries, key=lambda e: (
+        SLO_STATUS_ORDER.index(slo_status(e[1])), e[0], e[1].service))
+
+
+def _slo_title(entries: list[tuple[str, SloRecord]], title: str) -> str:
+    statuses = [slo_status(r) for _, r in entries]
+    breached = statuses.count("breached")
+    at_risk = statuses.count("at_risk")
+    return (f"{title} — {len(entries)} SLOs "
+            f"({breached} breached, {at_risk} at risk)")
+
+
+def _slo_headers(include_source: bool) -> list[str]:
+    head = ["Service", "SLO", "Target %", "SLI %", "Error budget %",
+            "Window", "Data source", "Status"]
+    return (["Solution"] + head) if include_source else head
+
+
+def _slo_cells(source: str, r: SloRecord, include_source: bool) -> list[str]:
+    row = [r.service, r.slo, _fmt_num(r.target_pct, 2), _fmt_num(r.sli_pct, 2),
+           _fmt_num(error_budget_remaining_pct(r)), r.window,
+           r.source or "–", slo_status(r).replace("_", " ")]
+    return ([source] + row) if include_source else row
+
+
+def render_slo_html(
+    entries: list[tuple[str, SloRecord]],
+    title: str = "Service Levels & Error Budgets",
+) -> str:
+    """
+    Render the SLO register as an HTML fragment (C1).
+
+    Status and error budget are derived centrally (portfolio.slo_config),
+    so every data source is judged by the same rule; breached SLOs sort
+    first. A Solution column appears in portfolio mode.
+    """
+    if not entries:
+        return ""
+    include_source = _log_include_source(entries)  # type: ignore[arg-type]
+    offset = 1 if include_source else 0
+    head = "".join(f"<th>{_html.escape(h)}</th>"
+                   for h in _slo_headers(include_source))
+    rows = ""
+    for source, record in _slo_sorted(entries):
+        status = slo_status(record)
+        cells = [_html.escape(c)
+                 for c in _slo_cells(source, record, include_source)]
+        tds = []
+        for col, c in enumerate(cells):
+            if col == offset + 7:
+                color = _SLO_STATUS_COLORS.get(status, "#ffffff")
+                tds.append(
+                    f"<td style='background:{color};font-weight:600'>{c}</td>")
+            else:
+                tds.append(f"<td>{c}</td>")
+        rows += f"<tr>{''.join(tds)}</tr>"
+    heading = _slo_title(entries, title)
+    return (f"<h2 class='metric-heading'>{_html.escape(heading)}</h2>"
+            f"<table class='sr-summary'><tr>{head}</tr>{rows}</table>")
+
+
+def slo_figure(
+    entries: list[tuple[str, SloRecord]],
+    title: str = "Service Levels & Error Budgets",
+):
+    """Render the SLO register as a plotly Table figure (PDF export)."""
+    import plotly.graph_objects as go
+
+    include_source = _log_include_source(entries)  # type: ignore[arg-type]
+    offset = 1 if include_source else 0
+    ordered = _slo_sorted(entries)
+    headers = _slo_headers(include_source)
+    rows = [_slo_cells(source, r, include_source) for source, r in ordered]
+    columns = [[row[c] for row in rows] for c in range(len(headers))]
+    fills: list[list[str]] = [["white"] * len(rows) for _ in headers]
+    fills[offset + 7] = [_SLO_STATUS_COLORS.get(slo_status(r), "#ffffff")
+                         for _, r in ordered]
+    fig = go.Figure(go.Table(
+        header=dict(values=headers, fill_color="#f2f2f2", align="left"),
+        cells=dict(values=columns, align="left", fill_color=fills),
+    ))
+    fig.update_layout(title=_slo_title(entries, title),
+                      title_font_size=14, margin=dict(t=40, b=10))
+    return fig
+
+
+def _dora_title(entries: list[tuple[str, DoraRecord]], title: str) -> str:
+    tiers = [unit_tier(r) for _, r in entries]
+    known = [t for t in tiers if t != TIER_UNKNOWN]
+    worst = min(known, key=TIER_ORDER.index) if known else TIER_UNKNOWN
+    return f"{title} — {len(entries)} units (worst tier: {worst})"
+
+
+def _dora_headers(include_source: bool) -> list[str]:
+    head = ["Unit"] + [label for label, _f in DORA_TIER_FUNCS] + [
+        "Overall", "Window", "Data source"]
+    return (["Solution"] + head) if include_source else head
+
+
+def _dora_values(r: DoraRecord) -> list[str]:
+    return [_fmt_num(r.deployments_per_day, 2), _fmt_num(r.lead_time_hours),
+            _fmt_num(r.change_failure_rate_pct), _fmt_num(r.time_to_restore_hours)]
+
+
+def _dora_sorted(entries: list[tuple[str, DoraRecord]]) -> list[tuple[str, DoraRecord]]:
+    order = {t: i for i, t in enumerate(TIER_ORDER)}
+    return sorted(entries, key=lambda e: (
+        order.get(unit_tier(e[1]), len(order)), e[0], e[1].unit))
+
+
+def render_dora_html(
+    dora_entries: list[tuple[str, DoraRecord]],
+    quality_entries: list[tuple[str, QualityRecord]],
+    title: str = "Delivery Performance (DORA) & Code Quality",
+) -> str:
+    """
+    Render DORA and quality registers as an HTML fragment (C2).
+
+    Each DORA metric cell is coloured by its own tier (published DORA
+    thresholds, applied centrally); the overall tier is the unit's worst
+    metric. Worst units sort first. The quality table follows below.
+    """
+    if not dora_entries and not quality_entries:
+        return ""
+    html = ""
+    if dora_entries:
+        include_source = _log_include_source(dora_entries)  # type: ignore[arg-type]
+        head = "".join(f"<th>{_html.escape(h)}</th>"
+                       for h in _dora_headers(include_source))
+        rows = ""
+        for source, r in _dora_sorted(dora_entries):
+            tiers = [func(r) for _label, func in DORA_TIER_FUNCS]
+            values = _dora_values(r)
+            tds = ([f"<td>{_html.escape(source)}</td>"] if include_source else [])
+            tds.append(f"<td>{_html.escape(r.unit)}</td>")
+            for value, tier in zip(values, tiers):
+                color = _TIER_COLORS.get(tier, "#ffffff")
+                tds.append(f"<td style='background:{color}'>{value}</td>")
+            overall = unit_tier(r)
+            color = _TIER_COLORS.get(overall, "#ffffff")
+            tds.append(f"<td style='background:{color};font-weight:600'>"
+                       f"{overall}</td>")
+            tds.append(f"<td>{_html.escape(r.window)}</td>")
+            tds.append(f"<td>{_html.escape(r.source or '–')}</td>")
+            rows += f"<tr>{''.join(tds)}</tr>"
+        heading = _dora_title(dora_entries, title)
+        html += (f"<h2 class='metric-heading'>{_html.escape(heading)}</h2>"
+                 f"<table class='sr-summary'><tr>{head}</tr>{rows}</table>")
+
+    if quality_entries:
+        include_source = _log_include_source(quality_entries)  # type: ignore[arg-type]
+        head_cols = ["Unit", "Coverage %", "Maintainability",
+                     "Critical issues", "Data source"]
+        if include_source:
+            head_cols = ["Solution"] + head_cols
+        head = "".join(f"<th>{_html.escape(h)}</th>" for h in head_cols)
+        rows = ""
+        for source, q in sorted(quality_entries,
+                                key=lambda e: (e[0], e[1].unit)):
+            tds = ([f"<td>{_html.escape(source)}</td>"] if include_source else [])
+            tds.append(f"<td>{_html.escape(q.unit)}</td>")
+            tds.append(f"<td>{_fmt_num(q.coverage_pct)}</td>")
+            rating = q.maintainability or "–"
+            color = _RATING_COLORS.get(rating, "#ffffff")
+            tds.append(f"<td style='background:{color}'>"
+                       f"{_html.escape(rating)}</td>")
+            crit = q.critical_issues
+            crit_style = (f" style='background:{_SLO_STATUS_COLORS['breached']};"
+                          f"font-weight:600'" if crit else "")
+            tds.append(f"<td{crit_style}>{'–' if crit is None else crit}</td>")
+            tds.append(f"<td>{_html.escape(q.source or '–')}</td>")
+            rows += f"<tr>{''.join(tds)}</tr>"
+        html += (f"<h3 class='metric-heading'>Code quality</h3>"
+                 f"<table class='sr-summary'><tr>{head}</tr>{rows}</table>")
+    return html
+
+
+def dora_figure(
+    dora_entries: list[tuple[str, DoraRecord]],
+    quality_entries: list[tuple[str, QualityRecord]],
+    title: str = "Delivery Performance (DORA) & Code Quality",
+):
+    """Render DORA + quality as a plotly figure (PDF export)."""
+    import plotly.graph_objects as go
+    from plotly.subplots import make_subplots
+
+    blocks = []
+    if dora_entries:
+        include_source = _log_include_source(dora_entries)  # type: ignore[arg-type]
+        ordered = _dora_sorted(dora_entries)
+        headers = _dora_headers(include_source)
+        rows = []
+        fills: list[list[str]] = []
+        for source, r in ordered:
+            row = ([source] if include_source else []) + [r.unit] \
+                + _dora_values(r) + [unit_tier(r), r.window, r.source or "–"]
+            rows.append(row)
+        for _c in range(len(headers)):
+            fills.append(["white"] * len(rows))
+        offset = (1 if include_source else 0) + 1
+        for m, (_label, func) in enumerate(DORA_TIER_FUNCS):
+            fills[offset + m] = [_TIER_COLORS.get(func(r), "white")
+                                 for _, r in ordered]
+        fills[offset + 4] = [_TIER_COLORS.get(unit_tier(r), "white")
+                             for _, r in ordered]
+        blocks.append((headers, rows, fills))
+    if quality_entries:
+        include_source = _log_include_source(quality_entries)  # type: ignore[arg-type]
+        headers = (["Solution"] if include_source else []) + [
+            "Unit", "Coverage %", "Maintainability", "Critical issues",
+            "Data source"]
+        ordered_q = sorted(quality_entries, key=lambda e: (e[0], e[1].unit))
+        rows = [([s] if include_source else []) + [
+            q.unit, _fmt_num(q.coverage_pct), q.maintainability or "–",
+            "–" if q.critical_issues is None else str(q.critical_issues),
+            q.source or "–"] for s, q in ordered_q]
+        fills = [["white"] * len(rows) for _ in headers]
+        offset = (1 if include_source else 0) + 2
+        fills[offset] = [_RATING_COLORS.get(q.maintainability, "white")
+                         for _, q in ordered_q]
+        fills[offset + 1] = [_SLO_STATUS_COLORS["breached"]
+                             if q.critical_issues else "white"
+                             for _, q in ordered_q]
+        blocks.append((headers, rows, fills))
+
+    fig = make_subplots(rows=len(blocks), cols=1,
+                        specs=[[{"type": "table"}]] * len(blocks))
+    for i, (headers, rows, fills) in enumerate(blocks, start=1):
+        columns = [[row[c] for row in rows] for c in range(len(headers))]
+        fig.add_trace(go.Table(
+            header=dict(values=headers, fill_color="#f2f2f2", align="left"),
+            cells=dict(values=columns, align="left", fill_color=fills),
+        ), row=i, col=1)
+    fig.update_layout(
+        title=_dora_title(dora_entries, title) if dora_entries else title,
+        title_font_size=14, margin=dict(t=40, b=10))
     return fig

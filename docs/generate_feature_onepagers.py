@@ -59,6 +59,95 @@ _FOOT = ParagraphStyle("foot", fontName="Helvetica", fontSize=8, leading=10,
 #: Onepager je Feature: slug -> {lang -> {title, tagline, sections, footer_note}}
 #: sections: Liste aus ("h", Text) | ("p", Text) | ("code", Text) | ("li", Text)
 ONEPAGERS: dict[str, dict[str, dict]] = {
+    "metric_sources": {
+        "de": {
+            "title": "Externe Kennzahlen-Quellen",
+            "tagline": "Feature C1/C2 · SLO, DORA und Code-Qualität — aus "
+                       "austauschbaren, kombinierbaren Quellen.",
+            "sections": [
+                ("h", "Worum geht es?"),
+                ("p", "Das Lagebild bekommt zwei neue Sichten: „Service "
+                      "Levels & Error Budgets“ (Zuverlässigkeit gemessen "
+                      "und budgetiert) und „Delivery Performance (DORA) & "
+                      "Code Quality“ (wie gesund liefert das System). Die "
+                      "Daten kommen aus einem steckbaren Quellen-Framework "
+                      "— der Report sieht nie einen Hersteller, nur "
+                      "normierte Records. Status- und Tier-Urteile fallen "
+                      "zentral: Jede Quelle wird nach derselben Regel "
+                      "beurteilt."),
+                ("h", "So benutzt du es"),
+                ("code", "python -m sources providers\n"
+                         "python -m sources fetch --kind slo  --config quellen.json --output slo.json\n"
+                         "python -m sources fetch --kind dora --config github.json  --output dora.json\n"
+                         "# dann in der Solution-Config: \"slo\": \"slo.json\", \"dora\": \"dora.json\""),
+                ("p", "Eine Config darf MEHRERE Quellen listen — die "
+                      "Records landen in einem Register, jede Zeile behält "
+                      "ihre Herkunft. Quellen sind jederzeit austauschbar."),
+                ("h", "Mitgelieferte Provider"),
+                ("li", "file — universeller Weg 1: jedes System ist per "
+                       "JSON-Export anbindbar, ganz ohne API-Freigabe"),
+                ("li", "prometheus — De-facto-Standard des Monitorings "
+                       "(SLO/SLI per PromQL-Query)"),
+                ("li", "github — DORA aus Deployments, PRs und "
+                       "Incident-Issues abgeleitet (Näherungen dokumentiert "
+                       "und konfigurierbar)"),
+                ("li", "gitlab — die einzige native DORA-API am Markt "
+                       "(zweite Referenz: der Austauschbarkeits-Beweis)"),
+                ("li", "sonarqube — Coverage, Maintainability-Rating, "
+                       "kritische Verstöße"),
+                ("h", "Leitplanken"),
+                ("p", "Eine neue Quelle ist EINE Datei in "
+                      "sources/providers/ (~30 Zeilen, Rezept auf der "
+                      "Modulseite) — die Auto-Discovery findet sie. Tokens "
+                      "nur aus Umgebungsvariablen, nie gespeichert, nie "
+                      "geloggt; 401/403 verweist auf die ggf. fehlende "
+                      "Freigabe und den Datei-Weg. Nur Standardbibliothek."),
+            ],
+        },
+        "en": {
+            "title": "External Metric Sources",
+            "tagline": "Feature C1/C2 · SLO, DORA and code quality — from "
+                       "exchangeable, combinable sources.",
+            "sections": [
+                ("h", "What is it?"),
+                ("p", "The situational picture gains two new views: "
+                      "'Service Levels & Error Budgets' (reliability "
+                      "measured and budgeted) and 'Delivery Performance "
+                      "(DORA) & Code Quality' (how healthily the system "
+                      "delivers). The data comes from a pluggable source "
+                      "framework — the report never sees a vendor, only "
+                      "normalised records. Status and tier judgements are "
+                      "central: every source is judged by the same rule."),
+                ("h", "How to use it"),
+                ("code", "python -m sources providers\n"
+                         "python -m sources fetch --kind slo  --config sources.json --output slo.json\n"
+                         "python -m sources fetch --kind dora --config github.json  --output dora.json\n"
+                         "# then in the solution config: \"slo\": \"slo.json\", \"dora\": \"dora.json\""),
+                ("p", "A config may list SEVERAL sources — the records land "
+                      "in one register, each row keeping its origin. "
+                      "Sources stay exchangeable at any time."),
+                ("h", "Shipped providers"),
+                ("li", "file — universal path 1: any system attaches via "
+                       "JSON export, no API approval needed"),
+                ("li", "prometheus — the de-facto monitoring standard "
+                       "(SLO/SLI via PromQL query)"),
+                ("li", "github — DORA derived from deployments, PRs and "
+                       "incident issues (approximations documented and "
+                       "configurable)"),
+                ("li", "gitlab — the only native DORA API on the market "
+                       "(second reference: the exchangeability proof)"),
+                ("li", "sonarqube — coverage, maintainability rating, "
+                       "critical violations"),
+                ("h", "Guardrails"),
+                ("p", "A new source is ONE file in sources/providers/ "
+                      "(~30 lines, recipe on the module page) — "
+                      "auto-discovery picks it up. Tokens only from "
+                      "environment variables, never stored, never logged; "
+                      "401/403 points to the possibly missing approval and "
+                      "to the file path. Standard library only."),
+            ],
+        },
+    },
     "get_data": {
         "de": {
             "title": "Get Data",

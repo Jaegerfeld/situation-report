@@ -144,6 +144,13 @@ Eingebaute Geschichten (deterministisch je Seed):
 - **Decision-Log**: drei Entscheidungen und zwei Annahmen; Alphas
   Stage-Map-Entscheidung ersetzt eine ältere (supersedes), Betas offene
   Annahme hat ihr Prüfdatum überschritten — rot als „review due" markiert.
+- **SLO & Error-Budgets**: `slo_alpha.json`/`slo_beta.json` — Betas
+  „Order Sync API" reißt ihr SLO, Alphas „Checkout" hat sein Budget fast
+  aufgebraucht (at risk).
+- **DORA & Code-Qualität**: `dora_alpha.json`/`dora_beta.json` — ART
+  Beta-3 ist auch im Delivery-Bild low (CFR 38 %, MTTR 30 h, Coverage
+  31 %, Rating D); erzeugbar/austauschbar via `python -m sources fetch`
+  (Provider: file, prometheus, github, gitlab, sonarqube — kombinierbar).
 - **Delta-Briefing**: `snapshot_prev.json` (dieselbe Welt zwei Wochen
   früher) und `snapshot_now.json` liegen dem Szenario bei —
   `python -m portfolio --delta snapshot_prev.json snapshot_now.json` zeigt

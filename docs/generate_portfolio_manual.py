@@ -529,6 +529,26 @@ def content_de(st: dict) -> list:
            "Browser.", st),
         _SP(6),
 
+        _H2("5.13  SLO- & DORA-Register aus externen Quellen (C1/C2)", st),
+        _P("Über die Config-Felder <font name='Courier'>slo</font> und "
+           "<font name='Courier'>dora</font> zeigt der Report zwei weitere "
+           "Sichten: „Service Levels & Error Budgets“ (je SLO Ziel, SLI, "
+           "Rest-Error-Budget und Status met/at risk/breached — breached "
+           "zuerst; die Budget-Regel ist zentral und für jede Quelle gleich) "
+           "und „Delivery Performance (DORA) & Code Quality“ (die vier "
+           "DORA-Kennzahlen je Einheit, an den veröffentlichten Schwellen "
+           "eingestuft, Gesamt-Tier = schwächste Kennzahl; darunter "
+           "Coverage, Maintainability, kritische Verstöße). Die Register "
+           "erzeugt das steckbare Quellen-Framework: <font name='Courier'>"
+           "python -m sources fetch --kind slo --config quellen.json "
+           "--output slo.json</font> — Provider sind austauschbar und "
+           "kombinierbar (mehrere Quellen füllen EIN Register, jede Zeile "
+           "behält ihre Herkunft): file (universell, ohne API-Freigabe), "
+           "prometheus, github, gitlab, sonarqube. Eine neue Quelle ist "
+           "eine einzige Datei in sources/providers/ (Rezept auf der "
+           "Modulseite). Tokens nur per Umgebungsvariable, nie gespeichert.", st),
+        _SP(6),
+
         _H1("6. Kommandozeile (CLI)", st), _hr(st),
         _P("Für Automatisierung und reproduzierbare Reports:", st),
         _CD("python -m portfolio meine_solution.json --output report.html", st),
@@ -817,6 +837,26 @@ def content_en(st: dict) -> list:
            "'Save snapshot …' freezes the currently configured solution, "
            "'Delta briefing …' asks for the earlier and later snapshot and "
            "opens the briefing in the browser.", st),
+        _SP(6),
+
+        _H2("5.13  SLO & DORA registers from external sources (C1/C2)", st),
+        _P("Via the config fields <font name='Courier'>slo</font> and "
+           "<font name='Courier'>dora</font> the report shows two more "
+           "views: 'Service Levels & Error Budgets' (per SLO the target, "
+           "SLI, remaining error budget and status met/at risk/breached — "
+           "breached first; the budget rule is central and identical for "
+           "every source) and 'Delivery Performance (DORA) & Code Quality' "
+           "(the four DORA keys per unit, tiered at the published "
+           "thresholds, overall tier = worst metric; coverage, "
+           "maintainability and critical issues below). The registers are "
+           "produced by the pluggable sources framework: <font "
+           "name='Courier'>python -m sources fetch --kind slo --config "
+           "sources.json --output slo.json</font> — providers are "
+           "exchangeable and combinable (several sources fill ONE register, "
+           "each row keeps its origin): file (universal, no API approval "
+           "needed), prometheus, github, gitlab, sonarqube. A new source is "
+           "a single file in sources/providers/ (recipe on the module "
+           "page). Tokens only via environment variables, never stored.", st),
         _SP(6),
 
         _H1("6. Command line (CLI)", st), _hr(st),
@@ -1110,6 +1150,26 @@ def content_ro(st: dict) -> list:
            "browser.", st),
         _SP(6),
 
+        _H2("5.13  Registre SLO & DORA din surse externe (C1/C2)", st),
+        _P("Prin campurile <font name='Courier'>slo</font> si <font "
+           "name='Courier'>dora</font> raportul arata doua vederi in plus: "
+           "'Service Levels & Error Budgets' (per SLO tinta, SLI, bugetul "
+           "de erori ramas si statusul met/at risk/breached — breached "
+           "primul; regula de buget este centrala si identica pentru orice "
+           "sursa) si 'Delivery Performance (DORA) & Code Quality' (cele "
+           "patru chei DORA per unitate, clasificate la pragurile "
+           "publicate, tier general = cea mai slaba metrica; dedesubt "
+           "coverage, maintainability si problemele critice). Registrele "
+           "sunt produse de framework-ul de surse: <font name='Courier'>"
+           "python -m sources fetch</font> — providerii sunt "
+           "interschimbabili si combinabili (mai multe surse umplu UN "
+           "registru, fiecare rand isi pastreaza originea): file "
+           "(universal, fara aprobare API), prometheus, github, gitlab, "
+           "sonarqube. O sursa noua este un singur fisier in "
+           "sources/providers/. Tokenurile doar din variabile de mediu, "
+           "niciodata salvate.", st),
+        _SP(6),
+
         _H1("6. Linia de comanda (CLI)", st), _hr(st),
         _P("Pentru automatizare si rapoarte reproductibile:", st),
         _CD("python -m portfolio solutia_mea.json --output report.html", st),
@@ -1400,6 +1460,26 @@ def content_pt(st: dict) -> list:
            "produzir numeros. Na GUI: 'Guardar snapshot …' congela a "
            "solution configurada, 'Delta briefing …' pede o snapshot "
            "anterior e o recente e abre o briefing no browser.", st),
+        _SP(6),
+
+        _H2("5.13  Registos SLO & DORA de fontes externas (C1/C2)", st),
+        _P("Atraves dos campos <font name='Courier'>slo</font> e <font "
+           "name='Courier'>dora</font> o relatorio mostra duas vistas "
+           "adicionais: 'Service Levels & Error Budgets' (por SLO o "
+           "objetivo, o SLI, o error budget restante e o estado met/at "
+           "risk/breached — breached primeiro; a regra de budget e central "
+           "e identica para todas as fontes) e 'Delivery Performance "
+           "(DORA) & Code Quality' (as quatro chaves DORA por unidade, "
+           "classificadas nos limiares publicados, tier geral = a pior "
+           "metrica; por baixo coverage, maintainability e problemas "
+           "criticos). Os registos sao produzidos pelo framework de "
+           "fontes: <font name='Courier'>python -m sources fetch</font> — "
+           "os providers sao intercambiaveis e combinaveis (varias fontes "
+           "enchem UM registo, cada linha guarda a origem): file "
+           "(universal, sem aprovacao de API), prometheus, github, gitlab, "
+           "sonarqube. Uma fonte nova e um unico ficheiro em "
+           "sources/providers/. Tokens so por variaveis de ambiente, nunca "
+           "guardados.", st),
         _SP(6),
 
         _H1("6. Linha de comandos (CLI)", st), _hr(st),
@@ -1699,6 +1779,26 @@ def content_fr(st: dict) -> list:
            "fige la solution configuree, 'Delta briefing …' demande le "
            "snapshot precedent et le recent et ouvre le briefing dans le "
            "navigateur.", st),
+        _SP(6),
+
+        _H2("5.13  Registres SLO & DORA de sources externes (C1/C2)", st),
+        _P("Via les champs <font name='Courier'>slo</font> et <font "
+           "name='Courier'>dora</font>, le rapport montre deux vues "
+           "supplementaires : 'Service Levels & Error Budgets' (par SLO la "
+           "cible, le SLI, le budget d'erreur restant et le statut met/at "
+           "risk/breached — breached d'abord ; la regle de budget est "
+           "centrale et identique pour chaque source) et 'Delivery "
+           "Performance (DORA) & Code Quality' (les quatre cles DORA par "
+           "unite, classees aux seuils publies, tier global = la plus "
+           "faible metrique ; en dessous coverage, maintainability et "
+           "problemes critiques). Les registres sont produits par le "
+           "framework de sources : <font name='Courier'>python -m sources "
+           "fetch</font> — les providers sont interchangeables et "
+           "combinables (plusieurs sources remplissent UN registre, chaque "
+           "ligne garde son origine) : file (universel, sans approbation "
+           "API), prometheus, github, gitlab, sonarqube. Une nouvelle "
+           "source est un seul fichier dans sources/providers/. Les tokens "
+           "uniquement via variables d'environnement, jamais stockes.", st),
         _SP(6),
 
         _H1("6. Ligne de commande (CLI)", st), _hr(st),
