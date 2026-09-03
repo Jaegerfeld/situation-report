@@ -95,9 +95,10 @@ python -m testdata_generator \
 **GUI:** the *Demo portfolio* section at the bottom of the window generates
 the complete scenario into a folder of your choice (the seed field is
 honoured, default 42) — **Open Portfolio Report** renders the portfolio
-report, and **Open Delta Briefing** renders the shipped
-`snapshot_prev/now.json` pair into the "what changed?" briefing, each
-opening in the browser. Two clicks from empty folder to a full portfolio
+report, **Open Delta Briefing** renders the shipped
+`snapshot_prev/now.json` pair into the "what changed?" briefing, and
+**Open Conference Pre-Read** the VSC bundle — each opening in the
+browser. Two clicks from empty folder to a full portfolio
 evaluation, no command line needed.
 
 **Command line:**

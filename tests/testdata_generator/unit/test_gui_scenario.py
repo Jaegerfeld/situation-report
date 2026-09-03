@@ -96,6 +96,8 @@ def test_scenario_translation_keys_exist_in_de_and_en() -> None:
     keys = ("lbl_scenario", "btn_scenario", "btn_scenario_report",
             "btn_scenario_delta", "log_delta_started", "log_delta_done",
             "log_delta_error",
+            "btn_scenario_conference", "log_conference_started",
+            "log_conference_done", "log_conference_error",
             "dlg_scenario_dir", "log_scenario_started", "log_scenario_done",
             "log_scenario_hint", "log_scenario_error")
     for lang in ("de", "en"):
