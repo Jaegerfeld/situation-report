@@ -323,9 +323,39 @@ python -m portfolio portfolio.json --conference mappe.html --conference-date 202
 
 Input 1 · Aktuelle Daten (Summary + Quell-Qualität), Input 2 ·
 Impediment-Backlog & Governance (Flussprobleme zuerst, dann ROAM und
-Dependencies), Input 3 · Business Objectives (Capability-Map + SLOs).
-Die integrierte Roadmap-Sicht kommt mit B7 dazu. Der vollständige
+Dependencies), Input 3 · Business Objectives (Capability-Map + SLOs),
+Input 4 · Integrierte Roadmap & Strategic Themes (B7). Der vollständige
 interaktive Report bleibt die Detailquelle.
+
+## Strategic Themes & integrierte Roadmap (optional, B7)
+
+`"themes": "themes.json"` gibt strategischen Themen ein strukturiertes
+Zuhause und der Solution-Ebene ihre integrierte Roadmap:
+
+```json
+{
+  "themes": [{"id": "T-1", "title": "Digital ordering end-to-end"}],
+  "epics": [
+    {"id": "EP-1", "title": "Self-service portal", "train": "ART A",
+     "horizon": "P1", "theme": "T-1", "status": "in_progress"},
+    {"id": "EP-9", "title": "Legacy rewrite", "train": "ART C",
+     "horizon": "Y1"}
+  ]
+}
+```
+
+Horizonte folgen *nah granular, fern grob*: `P1 · P2 · Y1 · Y2 · Y3`.
+**Orphan-Detection wirkt in beide Richtungen**: Ein Theme, auf das kein
+Epic einzahlt, wird rot als *declared & forgotten* markiert (portfolioweit
+beurteilt — ein Epic einer anderen Solution zählt), und ein Epic mit
+**leerem** `theme` ist eine *Zombie-Initiative* (ein Tippfehler in der
+Referenz ist ein Validierungsfehler, kein Zombie). Der Report rendert
+Theme-Tabelle, Roadmap-Matrix (Zeilen = Trains, Spalten = Horizonte,
+Zombies rot) und Zombie-Liste; die Konferenzmappe trägt sie als Input 4.
+Roadmap-Epics fließen außerdem in D2-Snapshots — das Delta-Briefing
+dokumentiert so die *updated roadmaps* je Konferenz (Horizont-
+Verschiebungen, Statuswechsel; ein verlorenes Theme liest sich als
+`→ zombie`).
 
 ## SLO- & DORA-Register (optional, C1/C2)
 
@@ -383,6 +413,7 @@ portfolio/
 ├── dependency_config.py Dependency-Register (B5): Schema, parse/load/save
 ├── decision_config.py Decision-/Assumption-Log (B4): Schema, parse/load/save
 ├── flow_problems_config.py Flussproblem-Backlog (B6): Schema, Survivor-Regel
+├── themes_config.py   Strategic Themes/Roadmap (B7): Orphan-/Zombie-Regeln
 ├── slo_config.py      SLO-Register (C1): zentrale Budget-/Status-Regel
 ├── dora_config.py     Delivery-Register (C2): DORA-Tiers + Qualität
 ├── snapshot.py        Report-Snapshot (D2): Kennzahlen/Qualität/Governance einfrieren

@@ -49,6 +49,7 @@ class TestArtifacts:
                     "snapshot_prev", "snapshot_now",
                     "slo_alpha", "slo_beta", "dora_alpha", "dora_beta",
                     "flow_alpha", "flow_beta",
+                    "themes_alpha", "themes_beta",
                     "pi_config", "readme"):
             assert paths[key].exists(), key
         assert len(list((out / "arts").glob("*_IssueTimes.xlsx"))) == 6
@@ -324,6 +325,31 @@ class TestBuiltInStories:
             assert marker in conf
         # Impediment-Backlog vor den verwandten Governance-Sichten.
         assert conf.index("Flow-Problem Backlog") < conf.index("ROAM")
+
+    def test_themes_register_tells_orphan_and_zombie_story(self, scenario) -> None:
+        from portfolio.aggregator import _collect_themes
+        from portfolio.themes_config import ThemesRegister, orphan_theme_ids, zombie_epics
+        _, paths = scenario
+        cfg = load_solution_config(paths["portfolio"])
+        theme_entries, epic_entries = _collect_themes(cfg, log=lambda m: None)
+        assert len(theme_entries) == 3 and len(epic_entries) == 7
+        merged = ThemesRegister(
+            themes=[t for _, t in theme_entries],
+            epics=[e for _, e in epic_entries])
+        assert orphan_theme_ids(merged) == {"T-A2"}
+        assert [e.epic_id for e in zombie_epics(merged)] == ["EP-A9"]
+
+    def test_delta_documents_updated_roadmaps(self, scenario) -> None:
+        from portfolio.delta import compute_delta
+        from portfolio.snapshot import load_snapshot
+        _, paths = scenario
+        delta = compute_delta(load_snapshot(paths["snapshot_prev"]),
+                              load_snapshot(paths["snapshot_now"]))
+        by_id = {c.entry_id: c for c in delta.governance["epics"].changed}
+        # EP-A9 verlor sein Theme (Zombie, worsened); EP-B2 wurde P2 -> P1.
+        assert by_id["EP-A9"].fields["theme"] == ("T-A1", "") \
+            and by_id["EP-A9"].worsened
+        assert by_id["EP-B2"].fields["horizon"] == ("P2", "P1")
 
     def test_outlier_art_has_clearly_higher_cycle_time(self, scenario) -> None:
         from portfolio.aggregator import load_members

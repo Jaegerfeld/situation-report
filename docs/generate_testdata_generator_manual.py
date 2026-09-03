@@ -565,6 +565,7 @@ def content_de(st: dict) -> list:
                    ["snapshot_*.json", "Report-Snapshots fürs Delta-Briefing (prev/now)"],
                    ["slo_*.json / dora_*.json", "SLO- und DORA-/Qualitäts-Register je Solution"],
                    ["flow_problems_*.json", "Flussproblem-Backlog der VSC je Solution"],
+                   ["themes_*.json", "Strategic Themes + Roadmap-Epics je Solution"],
                    ["portfolio.json", "Portfolio-Config über beide Solutions"],
                    ["pi_config.json", "PI-Intervalle über den Datenzeitraum"],
                    ["README.md", "Beschreibung der eingebauten Geschichten"]],
@@ -597,7 +598,9 @@ def content_de(st: dict) -> list:
                   "- <b>SLO & DORA</b>: Betas Sync-API reißt ihr SLO (breached), "
                   "ART Beta-3 ist auch im Delivery-Bild low (CFR 38 %, Coverage 31 %).<br/>"
                   "- <b>Flussproblem-Backlog (VSC)</b>: FP-A1/FP-B1 überleben 3 bzw. 4 "
-                  "Konferenzen (rot); --conference rendert die Konferenzmappe.", st),
+                  "Konferenzen (rot); --conference rendert die Konferenzmappe.<br/>"
+                  "- <b>Strategic Themes & Roadmap</b>: ein verwaistes Theme, EP-A9 als "
+                  "Zombie; im Delta: EP-A9 verliert sein Theme, EP-B2 zieht P2 → P1.", st),
               SP(6),
               P("Der Ordner ist direkt verwendbar: "
                 "<font name='Courier'>python -m portfolio demo/portfolio.json</font> erzeugt "
@@ -902,6 +905,7 @@ def content_en(st: dict) -> list:
                    ["snapshot_*.json", "report snapshots for the delta briefing (prev/now)"],
                    ["slo_*.json / dora_*.json", "SLO and DORA/quality registers per solution"],
                    ["flow_problems_*.json", "VSC flow-problem backlog per solution"],
+                   ["themes_*.json", "strategic themes + roadmap epics per solution"],
                    ["portfolio.json", "portfolio config covering both solutions"],
                    ["pi_config.json", "PI intervals across the data window"],
                    ["README.md", "description of the built-in stories"]],
@@ -934,7 +938,9 @@ def content_en(st: dict) -> list:
                   "Beta-3 is low tier in the delivery picture too (CFR 38 %, "
                   "coverage 31 %).<br/>"
                   "- <b>Flow-problem backlog (VSC)</b>: FP-A1/FP-B1 survive 3 resp. 4 "
-                  "conferences (red); --conference renders the pre-read.", st),
+                  "conferences (red); --conference renders the pre-read.<br/>"
+                  "- <b>Strategic themes & roadmap</b>: one orphan theme, EP-A9 a "
+                  "zombie; in the delta: EP-A9 loses its theme, EP-B2 moves P2 → P1.", st),
               SP(6),
               P("The folder is directly usable: "
                 "<font name='Courier'>python -m portfolio demo/portfolio.json</font> builds "
@@ -1183,6 +1189,7 @@ def content_ro(st: dict) -> list:
                    ["snapshot_*.json", "snapshot-uri de raport pentru delta briefing (prev/now)"],
                    ["slo_*.json / dora_*.json", "registre SLO și DORA/calitate per soluție"],
                    ["flow_problems_*.json", "backlog de probleme de flux (VSC) per soluție"],
+                   ["themes_*.json", "teme strategice + epics de roadmap per soluție"],
                    ["portfolio.json", "config de portofoliu peste ambele soluții"],
                    ["pi_config.json", "intervale PI pe fereastra de date"],
                    ["README.md", "descrierea poveștilor încorporate"]],
@@ -1219,7 +1226,9 @@ def content_ro(st: dict) -> list:
                   "SLO-ul, iar ART Beta-3 este low și în imaginea de livrare "
                   "(CFR 38 %, coverage 31 %).<br/>"
                   "- <b>Backlog probleme de flux (VSC)</b>: FP-A1/FP-B1 supraviețuiesc "
-                  "3 resp. 4 conferințe (roșu); --conference redă mapa.", st),
+                  "3 resp. 4 conferințe (roșu); --conference redă mapa.<br/>"
+                  "- <b>Teme strategice & roadmap</b>: o temă orfană, EP-A9 zombie; în "
+                  "delta: EP-A9 își pierde tema, EP-B2 trece P2 → P1.", st),
               SP(6),
               P("Directorul este direct utilizabil: "
                 "<font name='Courier'>python -m portfolio demo/portfolio.json</font> "
@@ -1471,6 +1480,7 @@ def content_pt(st: dict) -> list:
                    ["snapshot_*.json", "snapshots do relatório para o delta briefing (prev/now)"],
                    ["slo_*.json / dora_*.json", "registos SLO e DORA/qualidade por solution"],
                    ["flow_problems_*.json", "backlog de problemas de fluxo (VSC) por solution"],
+                   ["themes_*.json", "temas estratégicos + epics de roadmap por solution"],
                    ["portfolio.json", "config de portfólio sobre ambas as solutions"],
                    ["pi_config.json", "intervalos PI sobre a janela de dados"],
                    ["README.md", "descrição das histórias incorporadas"]],
@@ -1506,7 +1516,9 @@ def content_pt(st: dict) -> list:
                   "SLO, e o ART Beta-3 é low também na imagem de entrega "
                   "(CFR 38 %, coverage 31 %).<br/>"
                   "- <b>Backlog de problemas de fluxo (VSC)</b>: FP-A1/FP-B1 sobrevivem "
-                  "a 3 resp. 4 conferências (vermelho); --conference gera o dossier.", st),
+                  "a 3 resp. 4 conferências (vermelho); --conference gera o dossier.<br/>"
+                  "- <b>Temas estratégicos & roadmap</b>: um tema órfão, EP-A9 zombie; "
+                  "no delta: EP-A9 perde o tema, EP-B2 passa de P2 → P1.", st),
               SP(6),
               P("A pasta é diretamente utilizável: "
                 "<font name='Courier'>python -m portfolio demo/portfolio.json</font> gera "
@@ -1762,6 +1774,7 @@ def content_fr(st: dict) -> list:
                    ["snapshot_*.json", "snapshots du rapport pour le delta briefing (prev/now)"],
                    ["slo_*.json / dora_*.json", "registres SLO et DORA/qualite par solution"],
                    ["flow_problems_*.json", "backlog des problemes de flux (VSC) par solution"],
+                   ["themes_*.json", "themes strategiques + epics de roadmap par solution"],
                    ["portfolio.json", "config de portefeuille couvrant les deux solutions"],
                    ["pi_config.json", "intervalles PI sur la fenêtre de données"],
                    ["README.md", "description des histoires intégrées"]],
@@ -1798,7 +1811,9 @@ def content_fr(st: dict) -> list:
                   "SLO, et l'ART Beta-3 est low aussi dans l'image de livraison "
                   "(CFR 38 %, coverage 31 %).<br/>"
                   "- <b>Backlog des problemes de flux (VSC)</b> : FP-A1/FP-B1 survivent "
-                  "a 3 resp. 4 conferences (rouge) ; --conference genere le dossier.", st),
+                  "a 3 resp. 4 conferences (rouge) ; --conference genere le dossier.<br/>"
+                  "- <b>Themes strategiques & roadmap</b> : un theme orphelin, EP-A9 "
+                  "zombie ; dans le delta : EP-A9 perd son theme, EP-B2 passe P2 → P1.", st),
               SP(6),
               P("Le dossier est directement utilisable : "
                 "<font name='Courier'>python -m portfolio demo/portfolio.json</font> "

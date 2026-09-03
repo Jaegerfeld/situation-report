@@ -31,6 +31,7 @@ from .aggregator import (
     _collect_dependencies,
     _collect_nfr,
     _collect_risks,
+    _collect_themes,
     build_pooled_report_data,
     load_comparison_units,
 )
@@ -122,8 +123,14 @@ def _governance_dict(
                   "status": e.status, "review_by": _iso(e.review_by),
                   "solution": src}
                  for src, e in _collect_decisions(config, log=log)]
+    _themes, epic_entries = _collect_themes(config, log=log)
+    epics = [{"id": e.epic_id, "title": e.title, "train": e.train,
+              "horizon": e.horizon, "theme": e.theme, "status": e.status,
+              "solution": src}
+             for src, e in epic_entries]
     return {"risks": risks, "dependencies": deps, "nfr": nfrs,
-            "runway": runway, "capabilities": caps, "decisions": decisions}
+            "runway": runway, "capabilities": caps, "decisions": decisions,
+            "epics": epics}
 
 
 def build_snapshot(

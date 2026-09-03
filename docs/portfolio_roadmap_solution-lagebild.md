@@ -106,10 +106,11 @@ Nicht nach „Feature-Wunschliste", sondern nach **Datenherkunft** (das BGS-Prin
 - **Aufwand:** M. **Voraussetzung:** B3/B5 (gemeinsame Datenobjekte).
 - **Ist-Stand:** `portfolio/flow_problems_config.py` (Schema v1; Status open|committed|resolved|dropped; **Cross-VS abgeleitet**, nicht behauptet: > 1 value_stream; `conferences`-Zähler von Menschen gepflegt), **Survivor-Regel** ungelöst ∧ ≥ 3 Konferenzen → sortiert zuerst, roter Zähler; Report-Sektion (HTML+PDF, Portfolio-aggregiert) + **Konferenzmappe** via `--conference FILE [--conference-date]` (leichte druckbare Seite: Input 1 Daten/Qualität · Input 2 Impediments/ROAM/Dependencies · Input 3 Capabilities/SLOs; Roadmap-Input folgt mit B7); Szenario liefert flow_problems_alpha/beta.json mit (FP-A1/FP-B1 als Survivors, DoD erfüllt).
 
-### B7 · Integrierte Roadmap-Sicht & Strategic Themes *(VSC-2; Workshop Wolfsburg 08/2026)*
+### B7 · Integrierte Roadmap-Sicht & Strategic Themes *(VSC-2; Workshop Wolfsburg 08/2026)* ✅ (umgesetzt 03.09.2026)
 - **Was:** Roadmap-Aggregation über Trains mit Initiative-Swimlanes (Zeithorizont nah granular, fern grob: P1 · P2 · Y1 · Y2 · Y3). `strategic_themes` als Entität mit Epic-Verknüpfung und **Orphan-Detection in beide Richtungen** (Theme ohne Epics = deklariert und vergessen; Epic ohne Theme = Zombie-Initiative). Der Report-Diff (D2) auf die integrierte Sicht dokumentiert die „updated roadmaps" je Konferenz automatisch.
 - **Warum:** Schließt die im Workshop konsolidierten SAFe-Lücken „no large-solution roadmap with initiative-level swim lanes" und „strategic themes haben kein strukturiertes Zuhause". Herleitung: Workshop-Analyse (dort P2).
 - **Aufwand:** M–L. **Voraussetzung:** B6; profitiert von D2, braucht es aber nicht.
+- **Ist-Stand:** `portfolio/themes_config.py` (Schema v1; Zombie = bewusst LEERES theme-Feld, Tippfehler-Referenz = Validierungsfehler), Orphanschaft portfolioweit beurteilt; Report mit Theme-Tabelle („declared & forgotten" rot), Roadmap-Matrix Trains × Horizonte (Zombies rot) und Zombie-Liste (HTML+PDF); Konferenzmappe um **Input 4** ergänzt; **D2-Anschluss umgesetzt**: Epics in Snapshots, Delta-Sektion „Roadmap epics (updated roadmaps)" mit Mehrfeld-Änderungen (Horizont/Status/Theme; Theme-Verlust → „zombie", worsened). Szenario liefert themes_alpha/beta.json mit (Orphan T-A2, Zombie EP-A9; Delta-Story EP-A9-Theme-Verlust + EP-B2 P2→P1 — DoD erfüllt). **Damit sind Phase B (B1–B7) und die VSC-Erweiterungen komplett.**
 
 > *Einordnung B6/B7:* Am 31.08.2026 zunächst hinter Phase D gelegt, am 01.09.2026 in Phase B eingegliedert — wohin sie typologisch immer gehörten (lokale Input-Contracts im deterministischen Kern, keine KI-Abhängigkeit); Priorisierung nach dem D2-Piloten. Umsetzung beauftragt am 03.09.2026 (ursprünglich als PR #149 vorgeschlagen; dort wegen Roadmap-Konflikten geschlossen und hier aktuell eingepflegt).
 
@@ -201,7 +202,7 @@ Nicht nach „Feature-Wunschliste", sondern nach **Datenherkunft** (das BGS-Prin
 | 10 | C1/C2 SLO + DORA/Qualität | C | L | hoch (technisches Gesundheitsbild) |
 | 11 | **D2 Delta-Briefing (Phase-D-Pilot)** | D | M | hoch (sofort spürbar, geringstes KI-Risiko) |
 | 12 | ✅ B6 Flussproblem-Backlog & Konferenzmappe (VSC-1) | B | M | hoch (füttert das VSC-Ritual; Aging macht Nicht-Mitigation messbar) |
-| 13 | B7 Integrierte Roadmap & Strategic Themes (VSC-2) | B | M–L | hoch (SAFe-Lücken; Orphan-Detection; nutzt D2 für Konferenz-Nachberichte) |
+| 13 | ✅ B7 Integrierte Roadmap & Strategic Themes (VSC-2) | B | M–L | hoch (SAFe-Lücken; Orphan-Detection; nutzt D2 für Konferenz-Nachberichte) |
 | 14 | D1 Exec-Summary · D6 Sprachen | D | S–M | mittel–hoch |
 | 15 | D4 Anomalie · D5 Red-Team · D3 Q&A (mit Hygiene-Vorgabe) | D | M–L | hoch (Lagedienst-Ausbau) |
 | 16 | D7 Noise-Audit-Unterstützung | D | M | mittel–hoch (Vertrauen messbar machen) |

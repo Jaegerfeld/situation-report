@@ -59,6 +59,91 @@ _FOOT = ParagraphStyle("foot", fontName="Helvetica", fontSize=8, leading=10,
 #: Onepager je Feature: slug -> {lang -> {title, tagline, sections, footer_note}}
 #: sections: Liste aus ("h", Text) | ("p", Text) | ("code", Text) | ("li", Text)
 ONEPAGERS: dict[str, dict[str, dict]] = {
+    "strategic_themes": {
+        "de": {
+            "title": "Strategic Themes & Roadmap",
+            "tagline": "Feature B7 (VSC-2) · Strategie bekommt ein Zuhause, "
+                       "die Solution-Ebene ihre integrierte Roadmap.",
+            "sections": [
+                ("h", "Worum geht es?"),
+                ("p", "Zwei SAFe-Lücken aus dem Workshop: Strategic Themes "
+                      "haben kein strukturiertes Zuhause, und es fehlt eine "
+                      "Large-Solution-Roadmap mit Initiative-Swimlanes. "
+                      "Jetzt: Themes mit Epic-Verknüpfung und eine "
+                      "Roadmap-Matrix über Trains — Zeithorizont nah "
+                      "granular, fern grob (P1 · P2 · Y1 · Y2 · Y3)."),
+                ("h", "So benutzt du es"),
+                ("code", "// themes.json, in der Config: \"themes\": \"themes.json\"\n"
+                         "{\"themes\": [{\"id\": \"T-1\", \"title\": \"Digital ordering\"}],\n"
+                         " \"epics\": [\n"
+                         "   {\"id\": \"EP-1\", \"title\": \"Portal\", \"train\": \"ART A\",\n"
+                         "    \"horizon\": \"P1\", \"theme\": \"T-1\", \"status\": \"in_progress\"},\n"
+                         "   {\"id\": \"EP-9\", \"title\": \"Legacy rewrite\", \"train\": \"ART C\",\n"
+                         "    \"horizon\": \"Y1\"}]}   // leeres theme = Zombie"),
+                ("h", "Was der Report zeigt"),
+                ("li", "Orphan-Detection in beide Richtungen: Theme ohne "
+                       "Epics = „declared & forgotten“ (rot, portfolioweit "
+                       "beurteilt); Epic ohne Theme = Zombie-Initiative"),
+                ("li", "Tippfehler-Schutz: eine falsche Theme-Referenz ist "
+                       "ein Validierungsfehler, kein stiller Zombie"),
+                ("li", "Roadmap-Matrix Trains × Horizonte, Zombies rot; "
+                       "Zombie-Liste darunter"),
+                ("li", "Konferenzmappe: die Sicht ist Input 4 des "
+                       "VSC-Pre-Reads"),
+                ("li", "D2-Anschluss: Epics fließen in Snapshots — das "
+                       "Delta-Briefing dokumentiert „updated roadmaps“ je "
+                       "Konferenz (P2 → P1, Theme verloren → „zombie“)"),
+                ("h", "Leitplanken"),
+                ("p", "Horizonte sind bewusst grob in der Ferne — keine "
+                      "Scheingenauigkeit über Jahre. Das Werkzeug urteilt "
+                      "nur strukturell (verwaist/zombie); ob eine "
+                      "Initiative strategisch richtig ist, bleibt "
+                      "menschliches Urteil in der Konferenz."),
+            ],
+        },
+        "en": {
+            "title": "Strategic Themes & Roadmap",
+            "tagline": "Feature B7 (VSC-2) · Strategy gets a home, the "
+                       "solution level its integrated roadmap.",
+            "sections": [
+                ("h", "What is it?"),
+                ("p", "Two SAFe gaps from the workshop: strategic themes "
+                      "have no structured home, and there is no "
+                      "large-solution roadmap with initiative swimlanes. "
+                      "Now: themes with epic links and a roadmap matrix "
+                      "across trains — near-term granular, far-term coarse "
+                      "(P1 · P2 · Y1 · Y2 · Y3)."),
+                ("h", "How to use it"),
+                ("code", "// themes.json, in the config: \"themes\": \"themes.json\"\n"
+                         "{\"themes\": [{\"id\": \"T-1\", \"title\": \"Digital ordering\"}],\n"
+                         " \"epics\": [\n"
+                         "   {\"id\": \"EP-1\", \"title\": \"Portal\", \"train\": \"ART A\",\n"
+                         "    \"horizon\": \"P1\", \"theme\": \"T-1\", \"status\": \"in_progress\"},\n"
+                         "   {\"id\": \"EP-9\", \"title\": \"Legacy rewrite\", \"train\": \"ART C\",\n"
+                         "    \"horizon\": \"Y1\"}]}   // empty theme = zombie"),
+                ("h", "What the report shows"),
+                ("li", "Orphan detection in both directions: a theme with "
+                       "no epics = 'declared & forgotten' (red, judged "
+                       "portfolio-wide); an epic without a theme = zombie "
+                       "initiative"),
+                ("li", "Typo protection: a wrong theme reference is a "
+                       "validation error, not a silent zombie"),
+                ("li", "Roadmap matrix trains × horizons, zombies red; "
+                       "zombie list below"),
+                ("li", "Conference pre-read: the view is input 4 of the "
+                       "VSC bundle"),
+                ("li", "D2 hook: epics flow into snapshots — the delta "
+                       "briefing documents 'updated roadmaps' per "
+                       "conference (P2 → P1, theme lost → 'zombie')"),
+                ("h", "Guardrails"),
+                ("p", "Horizons stay deliberately coarse in the distance — "
+                      "no fake precision across years. The tool judges "
+                      "structure only (orphaned/zombie); whether an "
+                      "initiative is strategically right remains a human "
+                      "judgement in the conference."),
+            ],
+        },
+    },
     "flow_problems": {
         "de": {
             "title": "Flussproblem-Backlog",

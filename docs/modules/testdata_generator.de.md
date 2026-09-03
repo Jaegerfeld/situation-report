@@ -148,6 +148,11 @@ Eingebaute Geschichten (deterministisch je Seed):
   FP-A1 und FP-B1 haben 3 bzw. 4 Konferenzen überlebt (das
   Workshop-Muster „geloggt, nie mitigiert" — rot markiert), FP-B1 ist
   Cross-VS; `--conference mappe.html` rendert die Konferenzmappe.
+- **Strategic Themes & Roadmap (B7, VSC)**: `themes_alpha/beta.json` —
+  Alphas Theme „Green operations" ist verwaist (declared & forgotten),
+  EP-A9 ist eine Zombie-Initiative; die Matrix zeigt Trains ×
+  P1·P2·Y1·Y2·Y3. Im Delta-Briefing: EP-A9 verlor sein Theme, EP-B2
+  wurde von P2 nach P1 gezogen (*updated roadmaps*).
 - **SLO & Error-Budgets**: `slo_alpha.json`/`slo_beta.json` — Betas
   „Order Sync API" reißt ihr SLO, Alphas „Checkout" hat sein Budget fast
   aufgebraucht (at risk).

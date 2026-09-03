@@ -563,7 +563,25 @@ def content_de(st: dict) -> list:
            "mappe.html --conference-date JJJJ-MM-TT</font>) bündelt die "
            "Sitzungs-Inputs druckbar: Aktuelle Daten, Impediment-Backlog "
            "samt ROAM/Dependencies, Business Objectives (Capabilities + "
-           "SLOs); die integrierte Roadmap-Sicht kommt mit B7 dazu.", st),
+           "SLOs) und die integrierte Roadmap (Input 4, B7).", st),
+        _SP(6),
+
+        _H2("5.15  Strategic Themes & integrierte Roadmap (B7, VSC)", st),
+        _P("Über das Config-Feld <font name='Courier'>themes</font> bekommen "
+           "strategische Themen ein strukturiertes Zuhause und die "
+           "Solution-Ebene ihre integrierte Roadmap: Themes mit "
+           "Epic-Verknüpfung; Epics mit Train, Horizont (nah granular, fern "
+           "grob: P1 · P2 · Y1 · Y2 · Y3) und Status. "
+           "<b>Orphan-Detection in beide Richtungen</b>: Ein Theme ohne "
+           "einzahlendes Epic ist „declared & forgotten“ (rot; portfolioweit "
+           "beurteilt), ein Epic mit leerem theme-Feld eine "
+           "Zombie-Initiative (rot in Matrix und Zombie-Liste) — ein "
+           "Tippfehler in der Referenz ist dagegen ein Validierungsfehler. "
+           "Die Roadmap-Matrix zeigt Trains × Horizonte; die Konferenzmappe "
+           "trägt alles als Input 4. Roadmap-Epics fließen in die "
+           "D2-Snapshots: Das Delta-Briefing dokumentiert „updated "
+           "roadmaps“ je Konferenz (Horizont-Verschiebungen, Statuswechsel; "
+           "ein verlorenes Theme liest sich als „→ zombie“).", st),
         _SP(6),
 
         _H1("6. Kommandozeile (CLI)", st), _hr(st),
@@ -889,8 +907,25 @@ def content_en(st: dict) -> list:
            "(<font name='Courier'>--conference preread.html "
            "--conference-date YYYY-MM-DD</font>) bundles the meeting "
            "inputs printably: current data, impediment backlog with "
-           "ROAM/dependencies, business objectives (capabilities + SLOs); "
-           "the integrated roadmap view joins with B7.", st),
+           "ROAM/dependencies, business objectives (capabilities + SLOs) "
+           "and the integrated roadmap (input 4, B7).", st),
+        _SP(6),
+
+        _H2("5.15  Strategic themes & integrated roadmap (B7, VSC)", st),
+        _P("Via the config field <font name='Courier'>themes</font>, "
+           "strategic themes get a structured home and the solution level "
+           "its integrated roadmap: themes with epic links; epics with "
+           "train, horizon (near-term granular, far-term coarse: P1 · P2 · "
+           "Y1 · Y2 · Y3) and status. <b>Orphan detection in both "
+           "directions</b>: a theme no epic pays into is 'declared & "
+           "forgotten' (red; judged portfolio-wide), an epic with an empty "
+           "theme field is a zombie initiative (red in matrix and zombie "
+           "list) — a typo in the reference is a validation error instead. "
+           "The roadmap matrix shows trains × horizons; the conference "
+           "pre-read carries it all as input 4. Roadmap epics flow into D2 "
+           "snapshots: the delta briefing documents the 'updated roadmaps' "
+           "per conference (horizon shifts, status changes; a lost theme "
+           "reads as '→ zombie').", st),
         _SP(6),
 
         _H1("6. Command line (CLI)", st), _hr(st),
@@ -1216,7 +1251,23 @@ def content_ro(st: dict) -> list:
            "conferinta se sorteaza primele, cu contor rosu. Mapa "
            "conferintei (<font name='Courier'>--conference mapa.html"
            "</font>) aduna inputurile sedintei intr-o pagina printabila; "
-           "vederea de roadmap integrata vine cu B7.", st),
+           "roadmap-ul integrat este inputul 4 (B7).", st),
+        _SP(6),
+
+        _H2("5.15  Strategic themes & roadmap integrat (B7, VSC)", st),
+        _P("Prin campul <font name='Courier'>themes</font> temele "
+           "strategice primesc o casa structurata, iar nivelul solutiei "
+           "roadmap-ul integrat: teme cu legaturi la epics; epics cu train, "
+           "orizont (aproape granular, departe grosier: P1 · P2 · Y1 · Y2 · "
+           "Y3) si status. <b>Detectie de orfani in ambele directii</b>: o "
+           "tema fara epics este 'declared & forgotten' (rosu; judecata la "
+           "nivel de portofoliu), un epic cu campul theme gol este o "
+           "initiativa zombie — o greseala de tastare in referinta este "
+           "insa eroare de validare. Matricea arata trains × orizonturi; "
+           "mapa conferintei o poarta ca input 4. Epics intra in "
+           "snapshot-urile D2: delta briefingul documenteaza 'updated "
+           "roadmaps' per conferinta (mutari de orizont, schimbari de "
+           "status; o tema pierduta se citeste '→ zombie').", st),
         _SP(6),
 
         _H1("6. Linia de comanda (CLI)", st), _hr(st),
@@ -1543,7 +1594,24 @@ def content_pt(st: dict) -> list:
            "terceira conferencia ordenam primeiro, com contador vermelho. "
            "O dossier da conferencia (<font name='Courier'>--conference "
            "dossier.html</font>) reune os inputs da reuniao numa pagina "
-           "imprimivel; a vista de roadmap integrada chega com B7.", st),
+           "imprimivel; o roadmap integrado e o input 4 (B7).", st),
+        _SP(6),
+
+        _H2("5.15  Strategic themes & roadmap integrado (B7, VSC)", st),
+        _P("Atraves do campo <font name='Courier'>themes</font> os temas "
+           "estrategicos ganham uma casa estruturada e o nivel da solution "
+           "o seu roadmap integrado: temas com ligacao a epics; epics com "
+           "train, horizonte (perto granular, longe grosseiro: P1 · P2 · "
+           "Y1 · Y2 · Y3) e estado. <b>Detecao de orfaos nas duas "
+           "direcoes</b>: um tema sem epics e 'declared & forgotten' "
+           "(vermelho; julgado a nivel de portfolio), um epic com o campo "
+           "theme vazio e uma iniciativa zombie — um erro de digitacao na "
+           "referencia e, pelo contrario, erro de validacao. A matriz "
+           "mostra trains × horizontes; o dossier da conferencia leva tudo "
+           "como input 4. Os epics entram nos snapshots D2: o delta "
+           "briefing documenta os 'updated roadmaps' por conferencia "
+           "(mudancas de horizonte e estado; um tema perdido le-se "
+           "'→ zombie').", st),
         _SP(6),
 
         _H1("6. Linha de comandos (CLI)", st), _hr(st),
@@ -1877,7 +1945,24 @@ def content_fr(st: dict) -> list:
            "conference se classent en premier, avec compteur rouge. Le "
            "dossier de conference (<font name='Courier'>--conference "
            "dossier.html</font>) rassemble les inputs de la seance en une "
-           "page imprimable ; la vue roadmap integree arrive avec B7.", st),
+           "page imprimable ; la roadmap integree est l'input 4 (B7).", st),
+        _SP(6),
+
+        _H2("5.15  Strategic themes & roadmap integree (B7, VSC)", st),
+        _P("Via le champ <font name='Courier'>themes</font>, les themes "
+           "strategiques recoivent une maison structuree et le niveau "
+           "solution sa roadmap integree : themes lies aux epics ; epics "
+           "avec train, horizon (proche granulaire, lointain grossier : "
+           "P1 · P2 · Y1 · Y2 · Y3) et statut. <b>Detection d'orphelins "
+           "dans les deux sens</b> : un theme sans epic est 'declared & "
+           "forgotten' (rouge ; juge a l'echelle du portefeuille), un epic "
+           "au champ theme vide est une initiative zombie — une faute de "
+           "frappe dans la reference est, elle, une erreur de validation. "
+           "La matrice montre trains × horizons ; le dossier de conference "
+           "porte le tout comme input 4. Les epics entrent dans les "
+           "snapshots D2 : le delta briefing documente les 'updated "
+           "roadmaps' par conference (deplacements d'horizon, changements "
+           "de statut ; un theme perdu se lit '→ zombie').", st),
         _SP(6),
 
         _H1("6. Ligne de commande (CLI)", st), _hr(st),
