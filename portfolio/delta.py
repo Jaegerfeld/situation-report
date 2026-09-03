@@ -129,6 +129,15 @@ def _status_field(section: str) -> str:
     return {"risks": "roam", "capabilities": "health"}.get(section, "status")
 
 
+def _compare_fields(section: str) -> tuple[str, ...]:
+    """Fields diffed per section (default: just the status field)."""
+    if section == "epics":
+        # 'Updated roadmaps' per conference: status, horizon shifts and a
+        # lost strategic home (theme emptied -> zombie) all count.
+        return ("status", "horizon", "theme")
+    return (_status_field(section),)
+
+
 def _due_field(section: str) -> str | None:
     """The due-date field per governance section (None = no due concept)."""
     return {"dependencies": "due", "runway": "needed_by",
@@ -168,6 +177,7 @@ def _diff_section(
     now_by = {_key(e): e for e in now}
     delta = SectionDelta()
     status_key = _status_field(section)
+    compare = _compare_fields(section)
 
     for key, entry in now_by.items():
         if key not in prev_by:
@@ -175,16 +185,21 @@ def _diff_section(
             continue
         old = prev_by[key]
         fields: dict[str, tuple[Any, Any]] = {}
-        if old.get(status_key) != entry.get(status_key):
-            fields[status_key] = (old.get(status_key), entry.get(status_key))
+        for field_name in compare:
+            if old.get(field_name) != entry.get(field_name):
+                fields[field_name] = (old.get(field_name),
+                                      entry.get(field_name))
         if fields:
             new_status = str(entry.get(status_key, "")).lower()
+            became_zombie = (section == "epics" and "theme" in fields
+                             and not fields["theme"][1])
             delta.changed.append(FieldChange(
                 entry_id=str(entry.get("id", "")),
                 title=str(entry.get("title", "")),
                 solution=str(entry.get("solution", "")),
                 fields=fields,
-                worsened=new_status in _BAD_STATES,
+                worsened=(status_key in fields
+                          and new_status in _BAD_STATES) or became_zombie,
             ))
         if (_is_overdue(section, entry, as_of_now)
                 and not _is_overdue(section, old, as_of_prev)):
@@ -245,7 +260,7 @@ def compute_delta(prev: Snapshot, now: Snapshot) -> DeltaReport:
             section, prev.governance.get(section, []),
             now.governance.get(section, []), prev.as_of, now.as_of)
         for section in ("risks", "dependencies", "nfr", "runway",
-                        "capabilities", "decisions")
+                        "capabilities", "decisions", "epics")
     }
 
     completed_delta = (int(now.total.get("completed", 0))
@@ -276,7 +291,29 @@ _SECTION_TITLES = {
     "runway": "Architecture runway",
     "capabilities": "Capabilities",
     "decisions": "Decisions & assumptions",
+    "epics": "Roadmap epics (updated roadmaps)",
 }
+
+
+def _change_text(change: FieldChange) -> str:
+    """
+    Human form of one entry's changed fields.
+
+    A single change keeps the short 'old → new'; several changes name the
+    fields ('status: a → b; horizon: c → d') — a theme emptied to '' reads
+    as 'zombie'.
+    """
+    def _v(name: str, value: Any) -> str:
+        if value in (None, ""):
+            return "zombie" if name == "theme" else "–"
+        return str(value)
+
+    items = list(change.fields.items())
+    if len(items) == 1:
+        name, (old, new) = items[0]
+        return f"{_v(name, old)} → {_v(name, new)}"
+    return "; ".join(f"{name}: {_v(name, old)} → {_v(name, new)}"
+                     for name, (old, new) in items)
 
 
 def _fmt(value: Any) -> str:
@@ -381,14 +418,12 @@ def render_delta_html(delta: DeltaReport) -> str:
         if sd.empty:
             continue
         body += f"<h2>{_SECTION_TITLES[section]}</h2><ul class='delta'>"
-        status_key = _status_field(section)
         for c in sd.changed:
-            old, new = c.fields[status_key]
             cls = "worse" if c.worsened else "better"
             label = _entry_line({"solution": c.solution, "id": c.entry_id,
                                  "title": c.title})
             body += (f"<li class='{cls}'>{_html.escape(label)} — "
-                     f"{_html.escape(str(old))} → <b>{_html.escape(str(new))}</b></li>")
+                     f"<b>{_html.escape(_change_text(c))}</b></li>")
         for e in sd.newly_overdue:
             body += (f"<li class='worse'>newly overdue: "
                      f"{_html.escape(_entry_line(e))}</li>")
@@ -452,11 +487,9 @@ def _section_markdown(section: str, sd: SectionDelta) -> list[str]:
     if sd.empty:
         return []
     lines = [f"## {_SECTION_TITLES[section]}"]
-    status_key = _status_field(section)
     for c in sd.changed:
-        old, new = c.fields[status_key]
         src = f"[{c.solution}] " if c.solution else ""
-        lines.append(f"- {src}{c.entry_id}: {c.title} — {old} → {new}")
+        lines.append(f"- {src}{c.entry_id}: {c.title} — {_change_text(c)}")
     lines.extend(f"- newly overdue: {_entry_line(e)}" for e in sd.newly_overdue)
     lines.extend(f"- new: {_entry_line(e)}" for e in sd.added)
     lines.extend(f"- removed: {_entry_line(e)}" for e in sd.removed)

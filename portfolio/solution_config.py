@@ -33,7 +33,8 @@ from typing import Any
 # das optionale "decisions"-Feld (Pfad zum Decision-/Assumption-Log), seit
 # C1/C2 die optionalen Felder "slo" (SLO-Register) und "dora"
 # (Delivery-Register), seit B6 das optionale "flow_problems"-Feld
-# (Flussproblem-Backlog der VSC) — alles additiv, daher kein Schema-Bump.
+# (Flussproblem-Backlog der VSC), seit B7 das optionale "themes"-Feld
+# (Strategic Themes + Roadmap) — alles additiv, daher kein Schema-Bump.
 SCHEMA_VERSION = 2
 APP_NAME = "situation_report"
 
@@ -173,6 +174,8 @@ class SolutionConfig:
                     quality); "" means no delivery register.
         flow_problems: Optional path to a flow-problem backlog JSON (B6);
                     "" means no backlog.
+        themes:     Optional path to a strategic-themes/roadmap JSON (B7);
+                    "" means no themes register.
     """
     name: str
     kind: str = KIND_SOLUTION
@@ -191,6 +194,7 @@ class SolutionConfig:
     slo: str = ""
     dora: str = ""
     flow_problems: str = ""
+    themes: str = ""
 
 
 def _parse_date(value: Any) -> date | None:
@@ -281,6 +285,7 @@ def parse_solution_config(data: dict[str, Any]) -> SolutionConfig:
         slo=str(data.get("slo", "")).strip(),
         dora=str(data.get("dora", "")).strip(),
         flow_problems=str(data.get("flow_problems", "")).strip(),
+        themes=str(data.get("themes", "")).strip(),
     )
 
 
@@ -345,22 +350,11 @@ def to_dict(config: SolutionConfig) -> dict[str, Any]:
             "first_stage": config.stage_map.first_stage,
             "closed_stage": config.stage_map.closed_stage,
         }
-    if config.risks:
-        out["risks"] = config.risks
-    if config.nfr:
-        out["nfr"] = config.nfr
-    if config.capabilities:
-        out["capabilities"] = config.capabilities
-    if config.dependencies:
-        out["dependencies"] = config.dependencies
-    if config.decisions:
-        out["decisions"] = config.decisions
-    if config.slo:
-        out["slo"] = config.slo
-    if config.dora:
-        out["dora"] = config.dora
-    if config.flow_problems:
-        out["flow_problems"] = config.flow_problems
+    for register in ("risks", "nfr", "capabilities", "dependencies",
+                     "decisions", "slo", "dora", "flow_problems", "themes"):
+        value = getattr(config, register)
+        if value:
+            out[register] = value
     return out
 
 

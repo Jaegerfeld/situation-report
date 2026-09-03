@@ -100,10 +100,13 @@ from .summary import (
     render_roam_html,
     render_slo_html,
     render_summary_html,
+    render_themes_html,
     roam_figure,
     slo_figure,
     summary_figure,
+    themes_figure,
 )
+from .themes_config import Epic, StrategicTheme, load_themes
 
 #: Default metrics for the POOLED mode. Flow Velocity, Flow Time and Flow
 #: Distribution are record-based and pool cleanly regardless of differing ART
@@ -614,6 +617,30 @@ def _collect_flow_problems(
     return entries
 
 
+def _collect_themes(
+    config: SolutionConfig,
+    log: Callable[[str], None] = print,
+) -> tuple[list[tuple[str, StrategicTheme]], list[tuple[str, Epic]]]:
+    """
+    Collect strategic themes and roadmap epics for the report (B7) —
+    same rules as the other governance registers; broken or missing files
+    are logged and skipped.
+    """
+    themes: list[tuple[str, StrategicTheme]] = []
+    epics: list[tuple[str, Epic]] = []
+    for label, sub in _governance_sources(config, log):
+        if not sub.themes:
+            continue
+        try:
+            register = load_themes(Path(sub.themes))
+        except (OSError, ValueError, json.JSONDecodeError) as exc:
+            log(f"  WARNING [{label}]: themes file skipped ({exc})")
+            continue
+        themes.extend((label, theme) for theme in register.themes)
+        epics.extend((label, epic) for epic in register.epics)
+    return themes, epics
+
+
 def _collect_slo(
     config: SolutionConfig,
     log: Callable[[str], None] = print,
@@ -792,13 +819,15 @@ def render_html(
     deps = render_dependencies_html(_collect_dependencies(config, log=log))
     decisions = render_decisions_html(_collect_decisions(config, log=log))
     flow = render_flow_problems_html(_collect_flow_problems(config, log=log))
+    theme_entries, epic_entries = _collect_themes(config, log=log)
+    themes = render_themes_html(theme_entries, epic_entries)
     slo = render_slo_html(_collect_slo(config, log=log))
     dora_entries, quality_entries = _collect_delivery(config, log=log)
     dora = render_dora_html(dora_entries, quality_entries)
     return html.replace(
         "<body>",
         "<body>" + summary + quality + caps + roam + nfr + deps + decisions
-        + flow + slo + dora, 1)
+        + flow + themes + slo + dora, 1)
 
 
 def render_pdf(
@@ -849,6 +878,9 @@ def render_pdf(
     flow_entries = _collect_flow_problems(config, log=log)
     if flow_entries:
         extra.append(flow_problems_figure(flow_entries))
+    theme_entries, epic_entries = _collect_themes(config, log=log)
+    if theme_entries or epic_entries:
+        extra.append(themes_figure(theme_entries, epic_entries))
     slo_entries = _collect_slo(config, log=log)
     if slo_entries:
         extra.append(slo_figure(slo_entries))
@@ -925,6 +957,8 @@ def render_conference_html(
     deps = render_dependencies_html(_collect_dependencies(config, log=log))
     caps = render_capabilities_html(_collect_capabilities(config, log=log))
     slo = render_slo_html(_collect_slo(config, log=log))
+    theme_entries, epic_entries = _collect_themes(config, log=log)
+    themes = render_themes_html(theme_entries, epic_entries)
 
     def block(label: str, *fragments: str) -> str:
         body = "".join(f for f in fragments if f)
@@ -951,5 +985,6 @@ def render_conference_html(
                 flow, roam, deps)
         + block("Input 3 · Business Objectives (Capability-Map & SLOs)",
                 caps, slo)
+        + block("Input 4 · Integrierte Roadmap & Strategic Themes", themes)
     )
     return head + body + "</body></html>"

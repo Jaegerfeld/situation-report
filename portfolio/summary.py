@@ -69,6 +69,11 @@ from portfolio.slo_config import (
     error_budget_remaining_pct,
     slo_status,
 )
+from portfolio.themes_config import (
+    HORIZONS,
+    Epic,
+    StrategicTheme,
+)
 from sources.base import DoraRecord, QualityRecord, SloRecord
 
 #: Confidence levels for a data source (traffic-light semantics).
@@ -1889,4 +1894,189 @@ def flow_problems_figure(
     ))
     fig.update_layout(title=_flow_title(entries, title),
                       title_font_size=14, margin=dict(t=40, b=10))
+    return fig
+
+
+# ---------------------------------------------------------------------------
+# Strategic themes & integrated roadmap (B7, VSC-2)
+# ---------------------------------------------------------------------------
+
+_EPIC_STATUS_MARK = {"planned": "", "in_progress": " ⟳", "done": " ✓"}
+
+
+def _themes_title(
+    theme_entries: list[tuple[str, StrategicTheme]],
+    epic_entries: list[tuple[str, Epic]],
+    title: str,
+) -> str:
+    used = {e.theme for _, e in epic_entries if e.theme}
+    orphans = sum(1 for _, t in theme_entries if t.theme_id not in used)
+    zombies = sum(1 for _, e in epic_entries if not e.theme)
+    return (f"{title} — {len(theme_entries)} themes, {len(epic_entries)} "
+            f"epics ({orphans} orphan themes, {zombies} zombie epics)")
+
+
+def render_themes_html(
+    theme_entries: list[tuple[str, StrategicTheme]],
+    epic_entries: list[tuple[str, Epic]],
+    title: str = "Strategic Themes & Integrated Roadmap",
+) -> str:
+    """
+    Render strategic themes and the integrated roadmap (B7).
+
+    Three parts: the theme table (a theme without epics is flagged red as
+    'declared & forgotten'), the roadmap matrix (rows = trains, columns =
+    P1·P2·Y1·Y2·Y3 — near-term granular, far-term coarse; zombie epics
+    red), and, when present, the zombie list (epics without a strategic
+    home). Orphanhood is judged across the whole portfolio: a theme
+    served by another solution's epic is not orphaned.
+    """
+    if not theme_entries and not epic_entries:
+        return ""
+    used = {e.theme for _, e in epic_entries if e.theme}
+    epic_count: dict[str, int] = {}
+    for _, e in epic_entries:
+        if e.theme:
+            epic_count[e.theme] = epic_count.get(e.theme, 0) + 1
+
+    heading = _themes_title(theme_entries, epic_entries, title)
+    html = f"<h2 class='metric-heading'>{_html.escape(heading)}</h2>"
+
+    if theme_entries:
+        include_source = _log_include_source(theme_entries)  # type: ignore[arg-type]
+        head_cols = ["Theme", "Description", "Epics"]
+        if include_source:
+            head_cols = ["Solution"] + head_cols
+        head = "".join(f"<th>{_html.escape(h)}</th>" for h in head_cols)
+        rows = ""
+        ordered = sorted(theme_entries,
+                         key=lambda t: (t[1].theme_id in used, t[0],
+                                        t[1].theme_id))
+        for source, t in ordered:
+            count = epic_count.get(t.theme_id, 0)
+            tds = ([f"<td>{_html.escape(source)}</td>"]
+                   if include_source else [])
+            tds.append(f"<td>{_html.escape(t.theme_id)}: "
+                       f"{_html.escape(t.title)}</td>")
+            tds.append(f"<td>{_html.escape(t.description or '–')}</td>")
+            if count:
+                tds.append(f"<td>{count}</td>")
+            else:
+                tds.append(f"<td style='background:{_OVERDUE_COLOR};"
+                           f"font-weight:600'>0 — declared &amp; "
+                           f"forgotten</td>")
+            rows += f"<tr>{''.join(tds)}</tr>"
+        html += f"<table class='sr-summary'><tr>{head}</tr>{rows}</table>"
+
+    if epic_entries:
+        trains = sorted({e.train for _, e in epic_entries})
+        head = "<th>Train \\ Horizon</th>" + "".join(
+            f"<th>{h}</th>" for h in HORIZONS)
+        rows = ""
+        for train in trains:
+            row_tds = f"<td style='font-weight:600'>{_html.escape(train)}</td>"
+            for horizon in HORIZONS:
+                cell_epics = [e for _, e in epic_entries
+                              if e.train == train and e.horizon == horizon]
+                if not cell_epics:
+                    row_tds += "<td>–</td>"
+                    continue
+                parts = []
+                for e in sorted(cell_epics, key=lambda x: x.epic_id):
+                    label = (f"{_html.escape(e.epic_id)}: "
+                             f"{_html.escape(e.title)}"
+                             f"{_EPIC_STATUS_MARK.get(e.status, '')}")
+                    if e.theme:
+                        label += f" [{_html.escape(e.theme)}]"
+                        parts.append(label)
+                    else:
+                        parts.append(
+                            f"<span style='background:{_OVERDUE_COLOR};"
+                            f"font-weight:600'>{label} [ZOMBIE]</span>")
+                row_tds += f"<td>{'<br/>'.join(parts)}</td>"
+            rows += f"<tr>{row_tds}</tr>"
+        html += (f"<h3 class='metric-heading'>Integrated roadmap "
+                 f"(near-term granular, far-term coarse)</h3>"
+                 f"<table class='sr-summary'><tr>{head}</tr>{rows}</table>")
+
+    zombies = [(s, e) for s, e in epic_entries if not e.theme]
+    if zombies:
+        items = "".join(
+            f"<li style='background:{_OVERDUE_COLOR};padding:2px 6px'>"
+            f"{_html.escape(s)} · {_html.escape(e.epic_id)}: "
+            f"{_html.escape(e.title)} ({_html.escape(e.train)}, "
+            f"{e.horizon})</li>" for s, e in zombies)
+        html += (f"<h3 class='metric-heading'>Zombie initiatives "
+                 f"(no strategic home)</h3><ul class='delta'>{items}</ul>")
+    return html
+
+
+def themes_figure(
+    theme_entries: list[tuple[str, StrategicTheme]],
+    epic_entries: list[tuple[str, Epic]],
+    title: str = "Strategic Themes & Integrated Roadmap",
+):
+    """Render themes + roadmap matrix as a plotly figure (PDF export)."""
+    import plotly.graph_objects as go
+    from plotly.subplots import make_subplots
+
+    used = {e.theme for _, e in epic_entries if e.theme}
+    epic_count: dict[str, int] = {}
+    for _, e in epic_entries:
+        if e.theme:
+            epic_count[e.theme] = epic_count.get(e.theme, 0) + 1
+
+    blocks = []
+    if theme_entries:
+        include_source = _log_include_source(theme_entries)  # type: ignore[arg-type]
+        headers = ((["Solution"] if include_source else [])
+                   + ["Theme", "Description", "Epics"])
+        ordered = sorted(theme_entries,
+                         key=lambda t: (t[1].theme_id in used, t[0],
+                                        t[1].theme_id))
+        rows = []
+        for source, t in ordered:
+            count = epic_count.get(t.theme_id, 0)
+            rows.append(([source] if include_source else [])
+                        + [f"{t.theme_id}: {t.title}", t.description or "–",
+                           str(count) if count
+                           else "0 — declared & forgotten"])
+        fills = [["white"] * len(rows) for _ in headers]
+        fills[-1] = [_OVERDUE_COLOR if not epic_count.get(t.theme_id) else
+                     "white" for _, t in ordered]
+        blocks.append((headers, rows, fills))
+
+    if epic_entries:
+        trains = sorted({e.train for _, e in epic_entries})
+        headers = ["Train \\ Horizon"] + list(HORIZONS)
+        rows = []
+        fills = [["white"] * len(trains) for _ in headers]
+        for r, train in enumerate(trains):
+            row = [train]
+            for c, horizon in enumerate(HORIZONS, start=1):
+                cell_epics = [e for _, e in epic_entries
+                              if e.train == train and e.horizon == horizon]
+                labels = []
+                has_zombie = False
+                for e in sorted(cell_epics, key=lambda x: x.epic_id):
+                    tag = f" [{e.theme}]" if e.theme else " [ZOMBIE]"
+                    has_zombie = has_zombie or not e.theme
+                    labels.append(f"{e.epic_id}: {e.title}{tag}")
+                row.append("<br>".join(labels) if labels else "–")
+                if has_zombie:
+                    fills[c][r] = _OVERDUE_COLOR
+            rows.append(row)
+        blocks.append((headers, rows, fills))
+
+    fig = make_subplots(rows=len(blocks), cols=1,
+                        specs=[[{"type": "table"}]] * len(blocks))
+    for i, (headers, rows, fills) in enumerate(blocks, start=1):
+        columns = [[row[c] for row in rows] for c in range(len(headers))]
+        fig.add_trace(go.Table(
+            header=dict(values=headers, fill_color="#f2f2f2", align="left"),
+            cells=dict(values=columns, align="left", fill_color=fills),
+        ), row=i, col=1)
+    fig.update_layout(
+        title=_themes_title(theme_entries, epic_entries, title),
+        title_font_size=14, margin=dict(t=40, b=10))
     return fig

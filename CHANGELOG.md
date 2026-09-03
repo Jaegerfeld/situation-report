@@ -8,6 +8,24 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- Portfolio: **strategic themes & integrated roadmap** (roadmap B7,
+  VSC-2 from the Wolfsburg workshop) — `"themes": "themes.json"` (new
+  module `portfolio/themes_config.py`, schema v1: themes; epics with
+  train, horizon P1·P2·Y1·Y2·Y3 near-granular/far-coarse, status,
+  theme link). **Orphan detection in both directions**: a theme no epic
+  pays into is flagged red as *declared & forgotten* (judged
+  portfolio-wide), an epic with an **empty** theme is a *zombie
+  initiative* — while a typo in the reference is a validation error,
+  not a silent zombie. The report renders the theme table, the roadmap
+  matrix (trains × horizons, zombies red) and the zombie list (HTML +
+  PDF); the conference pre-read carries the view as Input 4. Roadmap
+  epics flow into D2 snapshots — the delta briefing gains the section
+  *Roadmap epics (updated roadmaps)* with multi-field changes (horizon
+  shifts, status changes; a lost theme reads `→ zombie`, worsened). The
+  demo scenario ships `themes_alpha/beta.json` (orphan theme "Green
+  operations", zombie EP-A9; in the delta EP-A9 loses its theme and
+  EP-B2 moves P2 → P1); manual section 5.15 in all five languages;
+  one-pager (DE+EN).
 - Portfolio: **flow-problem backlog & conference pre-read** (roadmap B6,
   VSC-1 from the Wolfsburg workshop) — a solution config can reference
   the Value-Stream Conference's impediment backlog

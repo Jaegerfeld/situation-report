@@ -145,6 +145,11 @@ Built-in stories (deterministic per seed):
   FP-A1 and FP-B1 have survived 3 resp. 4 conferences (the workshop
   pattern "logged, never mitigated" — flagged red), FP-B1 is cross-VS;
   `--conference preread.html` renders the conference pre-read.
+- **Strategic themes & roadmap (B7, VSC)**: `themes_alpha/beta.json` —
+  Alpha's theme "Green operations" is orphaned (declared & forgotten),
+  EP-A9 is a zombie initiative; the matrix shows trains ×
+  P1·P2·Y1·Y2·Y3. In the delta briefing: EP-A9 lost its theme, EP-B2
+  was pulled from P2 to P1 (*updated roadmaps*).
 - **SLO & error budgets**: `slo_alpha.json`/`slo_beta.json` — Beta's
   "Order Sync API" breaches its SLO, Alpha's "Checkout" has nearly burned
   its budget (at risk).

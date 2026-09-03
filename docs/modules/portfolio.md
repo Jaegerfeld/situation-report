@@ -316,9 +316,38 @@ python -m portfolio portfolio.json --conference preread.html --conference-date 2
 
 Input 1 · current data (summary + source quality), Input 2 · impediment
 backlog & governance (flow problems first, then ROAM and dependencies),
-Input 3 · business objectives (capability map + SLOs). The integrated
-roadmap view joins with B7. The full interactive report stays the detail
-source.
+Input 3 · business objectives (capability map + SLOs), Input 4 · the
+integrated roadmap & strategic themes (B7). The full interactive report
+stays the detail source.
+
+## Strategic themes & integrated roadmap (optional, B7)
+
+`"themes": "themes.json"` gives strategic themes a structured home and
+the solution level its integrated roadmap:
+
+```json
+{
+  "themes": [{"id": "T-1", "title": "Digital ordering end-to-end"}],
+  "epics": [
+    {"id": "EP-1", "title": "Self-service portal", "train": "ART A",
+     "horizon": "P1", "theme": "T-1", "status": "in_progress"},
+    {"id": "EP-9", "title": "Legacy rewrite", "train": "ART C",
+     "horizon": "Y1"}
+  ]
+}
+```
+
+Horizons follow *near-term granular, far-term coarse*: `P1 · P2 · Y1 ·
+Y2 · Y3`. **Orphan detection works in both directions**: a theme no epic
+pays into is flagged red as *declared & forgotten* (judged
+portfolio-wide — an epic in another solution counts), and an epic with an
+**empty** `theme` is a *zombie initiative* (a typo in the reference is a
+validation error, not a zombie). The report renders the theme table, the
+roadmap matrix (rows = trains, columns = horizons, zombies red) and the
+zombie list; the conference pre-read carries it as Input 4. Roadmap epics
+also flow into D2 snapshots, so the delta briefing documents the
+*updated roadmaps* per conference (horizon shifts, status changes, a
+lost strategic home reads as `→ zombie`).
 
 ## SLO & DORA registers (optional, C1/C2)
 
@@ -376,6 +405,7 @@ portfolio/
 ├── dependency_config.py Dependency register (B5): schema, parse/load/save
 ├── decision_config.py Decision/assumption log (B4): schema, parse/load/save
 ├── flow_problems_config.py Flow-problem backlog (B6): schema, survivor rule
+├── themes_config.py   Strategic themes/roadmap (B7): orphan/zombie rules
 ├── slo_config.py      SLO register (C1): central budget/status rule
 ├── dora_config.py     Delivery register (C2): DORA tiers + quality
 ├── snapshot.py        Report snapshot (D2): freeze metrics/quality/governance

@@ -113,6 +113,14 @@ from portfolio.solution_config import (
     StageMap,
     save_solution_config,
 )
+from portfolio.themes_config import (
+    EPIC_DONE,
+    EPIC_IN_PROGRESS,
+    Epic,
+    StrategicTheme,
+    ThemesRegister,
+    save_themes,
+)
 from sources.base import DoraRecord, QualityRecord, SloRecord
 from transform_data.processor import process_issues
 from transform_data.workflow import parse_workflow
@@ -293,6 +301,61 @@ def _beta_capabilities(reference: date) -> CapabilityMap:
                    arts=["ART Beta-2"], owner="ART Beta-2",
                    assessed_on=reference - timedelta(days=7)),
     ])
+
+
+def _alpha_themes(story: str = STORY_NOW) -> ThemesRegister:
+    """
+    Themes/roadmap of Solution Alpha: one orphan theme, one zombie epic.
+
+    Prev story (Delta demo): EP-A9 still had its theme two weeks ago —
+    losing the strategic home is one of the 'updated roadmaps' changes.
+    """
+    prev = story == STORY_PREV
+    return ThemesRegister(
+        themes=[
+            StrategicTheme("T-A1", "Digital ordering end-to-end",
+                           "Order intake to billing without media breaks."),
+            # Deklariert und vergessen: kein einziges Epic zahlt ein.
+            StrategicTheme("T-A2", "Green operations",
+                           "Energy-aware runtime operations."),
+        ],
+        epics=[
+            Epic("EP-A1", "Self-service order portal", "ART Alpha-1",
+                 "P1", theme="T-A1", status=EPIC_IN_PROGRESS),
+            Epic("EP-A2", "Billing integration", "ART Alpha-2",
+                 "P2", theme="T-A1"),
+            Epic("EP-A3", "Order analytics", "ART Alpha-1",
+                 "Y1", theme="T-A1"),
+            # Die Zombie-Initiative: im Prev-Stand noch mit Theme.
+            Epic("EP-A9", "Legacy portal rewrite", "ART Alpha-3",
+                 "Y1", theme="T-A1" if prev else ""),
+        ],
+    )
+
+
+def _beta_themes(story: str = STORY_NOW) -> ThemesRegister:
+    """
+    Themes/roadmap of Solution Beta.
+
+    Prev story: the data-quality epic was still parked in P2 — pulling it
+    into P1 is the second 'updated roadmaps' change.
+    """
+    prev = story == STORY_PREV
+    return ThemesRegister(
+        themes=[
+            StrategicTheme("T-B1", "Trusted reporting",
+                           "One reporting truth across the solution."),
+        ],
+        epics=[
+            Epic("EP-B1", "Vendor sync hardening", "ART Beta-1",
+                 "P1", theme="T-B1", status=EPIC_DONE),
+            Epic("EP-B2", "Beta-3 data-quality remediation", "ART Beta-3",
+                 "P2" if prev else "P1", theme="T-B1",
+                 status=EPIC_IN_PROGRESS),
+            Epic("EP-B3", "Cross-solution reporting hub", "ART Beta-2",
+                 "Y2", theme="T-B1"),
+        ],
+    )
 
 
 def _alpha_flow_problems(reference: date) -> FlowProblemRegister:
@@ -672,6 +735,10 @@ def build_portfolio_scenario(
     save_flow_problems(flow_alpha, _alpha_flow_problems(reference))
     flow_beta = out / "flow_problems_beta.json"
     save_flow_problems(flow_beta, _beta_flow_problems(reference))
+    themes_alpha = out / "themes_alpha.json"
+    save_themes(themes_alpha, _alpha_themes(story))
+    themes_beta = out / "themes_beta.json"
+    save_themes(themes_beta, _beta_themes(story))
 
     solution_alpha = out / "solution_alpha.json"
     save_solution_config(solution_alpha, SolutionConfig(
@@ -680,7 +747,8 @@ def build_portfolio_scenario(
         risks=str(risks_alpha), nfr=str(nfr_alpha),
         capabilities=str(caps_alpha), dependencies=str(deps_alpha),
         decisions=str(decisions_alpha), slo=str(slo_alpha),
-        dora=str(dora_alpha), flow_problems=str(flow_alpha)))
+        dora=str(dora_alpha), flow_problems=str(flow_alpha),
+        themes=str(themes_alpha)))
     solution_beta = out / "solution_beta.json"
     save_solution_config(solution_beta, SolutionConfig(
         name="Solution Beta", members=members["beta"],
@@ -688,7 +756,8 @@ def build_portfolio_scenario(
         stage_map=_BETA_STAGE_MAP, risks=str(risks_beta), nfr=str(nfr_beta),
         capabilities=str(caps_beta), dependencies=str(deps_beta),
         decisions=str(decisions_beta), slo=str(slo_beta),
-        dora=str(dora_beta), flow_problems=str(flow_beta)))
+        dora=str(dora_beta), flow_problems=str(flow_beta),
+        themes=str(themes_beta)))
 
     portfolio_cfg = out / "portfolio.json"
     save_solution_config(portfolio_cfg, SolutionConfig(
@@ -756,6 +825,12 @@ def build_portfolio_scenario(
         "  Workshop-Muster „geloggt, nie mitigiert\" — rot markiert), FP-B1",
         "  ist Cross-VS. Konferenzmappe: `python -m portfolio portfolio.json",
         "  --conference mappe.html`.",
+        "- **Strategic Themes & Roadmap (B7, VSC)**: `themes_alpha/beta.json`;",
+        "  Alphas Theme „Green operations\" ist verwaist (kein Epic —",
+        "  „declared & forgotten\"), EP-A9 ist eine Zombie-Initiative ohne",
+        "  Theme; die Roadmap-Matrix zeigt Trains × P1·P2·Y1·Y2·Y3. Im",
+        "  Delta-Briefing: EP-A9 verlor sein Theme, EP-B2 wurde von P2 nach",
+        "  P1 gezogen („updated roadmaps\").",
         "- **SLO & Error-Budgets (C1)**: `slo_alpha.json`/`slo_beta.json`;",
         "  Betas „Order Sync API\" reißt ihr SLO (breached), Alphas",
         "  „Checkout\" hat sein Budget fast aufgebraucht (at risk).",
@@ -811,6 +886,7 @@ def build_portfolio_scenario(
             "dependencies_beta": deps_beta, "decisions_alpha": decisions_alpha,
             "decisions_beta": decisions_beta, "pi_config": pi_cfg,
             "flow_alpha": flow_alpha, "flow_beta": flow_beta,
+            "themes_alpha": themes_alpha, "themes_beta": themes_beta,
             "slo_alpha": slo_alpha, "slo_beta": slo_beta,
             "dora_alpha": dora_alpha, "dora_beta": dora_beta,
             "snapshot_prev": snapshot_prev, "snapshot_now": snapshot_now,
