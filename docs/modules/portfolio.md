@@ -294,6 +294,32 @@ browser. The demo path is even shorter: the test-data generator's
 demo-portfolio section gains **Open Delta Briefing**, which renders the
 scenario's shipped `snapshot_prev/now.json` pair directly.
 
+## Flow-problem backlog & conference pre-read (optional, B6)
+
+`"flow_problems": "flow_problems.json"` renders the **Flow-Problem
+Backlog** — the Value-Stream Conference's most important input. Each
+problem carries id, title, status (`open`/`committed`/`resolved`/
+`dropped`), the affected `value_streams` (cross-VS is *derived*: more
+than one stream), who raised it, the owning team, `raised_on`, a
+`conferences` counter (in how many conferences it has been on the
+table — maintained by people), `resolution_commitment` and
+`follow_up_pi`. The workshop pattern "logged, never mitigated, back next
+PI" becomes measurable: an unresolved problem seen in **≥ 3 conferences**
+sorts first with a red counter.
+
+The **conference pre-read** bundles the meeting inputs into one light,
+printable page:
+
+```bash
+python -m portfolio portfolio.json --conference preread.html --conference-date 2026-09-10
+```
+
+Input 1 · current data (summary + source quality), Input 2 · impediment
+backlog & governance (flow problems first, then ROAM and dependencies),
+Input 3 · business objectives (capability map + SLOs). The integrated
+roadmap view joins with B7. The full interactive report stays the detail
+source.
+
 ## SLO & DORA registers (optional, C1/C2)
 
 A solution config may reference two more registers, both produced by the
@@ -349,6 +375,7 @@ portfolio/
 ├── capability_config.py Capability map (B1): schema, parse/load/save
 ├── dependency_config.py Dependency register (B5): schema, parse/load/save
 ├── decision_config.py Decision/assumption log (B4): schema, parse/load/save
+├── flow_problems_config.py Flow-problem backlog (B6): schema, survivor rule
 ├── slo_config.py      SLO register (C1): central budget/status rule
 ├── dora_config.py     Delivery register (C2): DORA tiers + quality
 ├── snapshot.py        Report snapshot (D2): freeze metrics/quality/governance

@@ -59,6 +59,86 @@ _FOOT = ParagraphStyle("foot", fontName="Helvetica", fontSize=8, leading=10,
 #: Onepager je Feature: slug -> {lang -> {title, tagline, sections, footer_note}}
 #: sections: Liste aus ("h", Text) | ("p", Text) | ("code", Text) | ("li", Text)
 ONEPAGERS: dict[str, dict[str, dict]] = {
+    "flow_problems": {
+        "de": {
+            "title": "Flussproblem-Backlog",
+            "tagline": "Feature B6 (VSC-1) · Der wichtigste Input der "
+                       "Value-Stream-Konferenz — mit Konferenzmappe.",
+            "sections": [
+                ("h", "Worum geht es?"),
+                ("p", "Der Workshop hat es benannt: Risiken und "
+                      "Flussprobleme werden geloggt, nie mitigiert — und "
+                      "tauchen nächstes PI wieder auf. Der Backlog macht "
+                      "dieses Muster messbar: Jedes Problem zählt, in wie "
+                      "vielen Konferenzen es schon auf dem Tisch lag. "
+                      "Ungelöste Probleme ab der dritten Konferenz "
+                      "eskalieren sichtbar — sortiert zuerst, roter Zähler."),
+                ("h", "So benutzt du es"),
+                ("code", "// flow_problems.json je Solution, in der Config: \"flow_problems\": \"...\"\n"
+                         "{\"problems\": [{\"id\": \"FP-1\",\n"
+                         "  \"title\": \"Test-environment provisioning takes weeks\",\n"
+                         "  \"status\": \"open\", \"conferences\": 3,\n"
+                         "  \"value_streams\": [\"ART A\", \"ART B\"],\n"
+                         "  \"resolution_commitment\": \"...\", \"follow_up_pi\": \"PI 5\"}]}\n\n"
+                         "python -m portfolio portfolio.json --conference mappe.html"),
+                ("h", "Was der Report zeigt"),
+                ("li", "Survivor-Regel: ungelöst und ≥ 3 Konferenzen → oben "
+                       "und rot — Nicht-Mitigation wird sichtbar statt "
+                       "anekdotisch"),
+                ("li", "Cross-VS wird abgeleitet, nie behauptet: mehr als "
+                       "ein betroffener Value Stream"),
+                ("li", "Commitment und Wiedervorlage-PI je Problem — "
+                       "Zusagen bekommen ein Gedächtnis"),
+                ("li", "Konferenzmappe: druckbarer Pre-Read mit den "
+                       "Sitzungs-Inputs (Daten, Impediments samt "
+                       "ROAM/Dependencies, Business Objectives)"),
+                ("h", "Leitplanken"),
+                ("p", "Der Konferenzen-Zähler wird von Menschen gepflegt — "
+                      "das Werkzeug hat keine Historie und erfindet keine. "
+                      "Owner sind Teams, keine Personen. Portfolio "
+                      "aggregiert die Backlogs aller Solutions mit "
+                      "Solution-Spalte."),
+            ],
+        },
+        "en": {
+            "title": "Flow-Problem Backlog",
+            "tagline": "Feature B6 (VSC-1) · The Value-Stream Conference's "
+                       "most important input — with a conference pre-read.",
+            "sections": [
+                ("h", "What is it?"),
+                ("p", "The workshop named it: risks and flow problems get "
+                      "logged, never mitigated — and return next PI. The "
+                      "backlog makes that pattern measurable: every problem "
+                      "counts in how many conferences it has been on the "
+                      "table. Unresolved problems from the third conference "
+                      "on escalate visibly — sorted first, red counter."),
+                ("h", "How to use it"),
+                ("code", "// flow_problems.json per solution, in the config: \"flow_problems\": \"...\"\n"
+                         "{\"problems\": [{\"id\": \"FP-1\",\n"
+                         "  \"title\": \"Test-environment provisioning takes weeks\",\n"
+                         "  \"status\": \"open\", \"conferences\": 3,\n"
+                         "  \"value_streams\": [\"ART A\", \"ART B\"],\n"
+                         "  \"resolution_commitment\": \"...\", \"follow_up_pi\": \"PI 5\"}]}\n\n"
+                         "python -m portfolio portfolio.json --conference preread.html"),
+                ("h", "What the report shows"),
+                ("li", "Survivor rule: unresolved and ≥ 3 conferences → on "
+                       "top and red — non-mitigation becomes visible "
+                       "instead of anecdotal"),
+                ("li", "Cross-VS is derived, never asserted: more than one "
+                       "affected value stream"),
+                ("li", "Commitment and follow-up PI per problem — promises "
+                       "get a memory"),
+                ("li", "Conference pre-read: printable bundle of the "
+                       "meeting inputs (data, impediments with "
+                       "ROAM/dependencies, business objectives)"),
+                ("h", "Guardrails"),
+                ("p", "The conference counter is maintained by people — the "
+                      "tool has no history and invents none. Owners are "
+                      "teams, not persons. A portfolio aggregates all "
+                      "solutions' backlogs with a Solution column."),
+            ],
+        },
+    },
     "metric_sources": {
         "de": {
             "title": "Externe Kennzahlen-Quellen",

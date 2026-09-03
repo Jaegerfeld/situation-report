@@ -43,6 +43,12 @@ from portfolio.dora_config import (
     TIER_UNKNOWN,
     unit_tier,
 )
+from portfolio.flow_problems_config import (
+    FLOW_OPEN,
+    FLOW_STATUS_ORDER,
+    SURVIVED_CONFERENCES_THRESHOLD,
+    FlowProblem,
+)
 from portfolio.nfr_config import (
     NFR_STATUS_ORDER,
     RUNWAY_IN_PLACE,
@@ -1757,4 +1763,130 @@ def dora_figure(
     fig.update_layout(
         title=_dora_title(dora_entries, title) if dora_entries else title,
         title_font_size=14, margin=dict(t=40, b=10))
+    return fig
+
+
+# ---------------------------------------------------------------------------
+# Flow-problem backlog (B6, VSC-1)
+# ---------------------------------------------------------------------------
+
+_FLOW_STATUS_COLORS = {
+    "open": "#fff3cd",
+    "committed": "#d1ecf1",
+    "resolved": "#e6f4e6",
+    "dropped": "#e2e3e5",
+}
+
+
+def _flow_sorted(
+    entries: list[tuple[str, FlowProblem]]
+) -> list[tuple[str, FlowProblem]]:
+    """Survivors first (the workshop pattern), then by status/source/id."""
+    return sorted(entries, key=lambda e: (
+        not e[1].survived,
+        FLOW_STATUS_ORDER.index(e[1].status), e[0], e[1].problem_id))
+
+
+def _flow_title(entries: list[tuple[str, FlowProblem]], title: str) -> str:
+    problems = [p for _, p in entries]
+    open_count = sum(1 for p in problems
+                     if p.status in (FLOW_OPEN, "committed"))
+    cross = sum(1 for p in problems if p.cross_vs)
+    survived = sum(1 for p in problems if p.survived)
+    return (f"{title} — {len(problems)} problems ({open_count} unresolved, "
+            f"{cross} cross-VS, {survived} survived "
+            f"≥{SURVIVED_CONFERENCES_THRESHOLD} conferences)")
+
+
+def _flow_headers(include_source: bool) -> list[str]:
+    head = ["Problem", "Raised by", "Value streams", "Status",
+            "Commitment", "Follow-up PI", "Conf.", "Since"]
+    return (["Solution"] + head) if include_source else head
+
+
+def _flow_cells(
+    source: str, p: FlowProblem, include_source: bool,
+    reference: date | None = None,
+) -> list[str]:
+    streams = ", ".join(p.value_streams)
+    if p.cross_vs:
+        streams = f"CROSS: {streams}"
+    since = "–"
+    if p.raised_on:
+        days = ((reference or date.today()) - p.raised_on).days
+        since = f"{p.raised_on.strftime('%d.%m.%Y')} ({days}d)"
+    row = [f"{p.problem_id}: {p.title}", p.source or "–", streams,
+           p.status, p.resolution_commitment or "–",
+           p.follow_up_pi or "–", str(p.conferences), since]
+    return ([source] + row) if include_source else row
+
+
+def render_flow_problems_html(
+    entries: list[tuple[str, FlowProblem]],
+    title: str = "Flow-Problem Backlog (Value-Stream Conference)",
+    reference: date | None = None,
+) -> str:
+    """
+    Render the conference impediment backlog as an HTML fragment (B6).
+
+    Problems that survived several conferences unresolved sort first and
+    carry a red conference counter — the workshop pattern 'logged, never
+    mitigated, back next PI' made measurable. Cross-VS problems are
+    flagged in the value-streams cell.
+    """
+    if not entries:
+        return ""
+    include_source = _log_include_source(entries)  # type: ignore[arg-type]
+    offset = 1 if include_source else 0
+    head = "".join(f"<th>{_html.escape(h)}</th>"
+                   for h in _flow_headers(include_source))
+    rows = ""
+    for source, p in _flow_sorted(entries):
+        cells = [_html.escape(c)
+                 for c in _flow_cells(source, p, include_source, reference)]
+        tds = []
+        for col, c in enumerate(cells):
+            if col == offset + 3:  # status
+                color = _FLOW_STATUS_COLORS.get(p.status, "#ffffff")
+                tds.append(
+                    f"<td style='background:{color};font-weight:600'>{c}</td>")
+            elif col == offset + 6 and p.survived:  # conference counter
+                tds.append(f"<td style='background:{_OVERDUE_COLOR};"
+                           f"font-weight:700'>{c}</td>")
+            elif col == offset + 2 and p.cross_vs:
+                tds.append(f"<td style='font-weight:600'>{c}</td>")
+            else:
+                tds.append(f"<td>{c}</td>")
+        rows += f"<tr>{''.join(tds)}</tr>"
+    heading = _flow_title(entries, title)
+    return (f"<h2 class='metric-heading'>{_html.escape(heading)}</h2>"
+            f"<table class='sr-summary'><tr>{head}</tr>{rows}</table>")
+
+
+def flow_problems_figure(
+    entries: list[tuple[str, FlowProblem]],
+    title: str = "Flow-Problem Backlog (Value-Stream Conference)",
+    reference: date | None = None,
+):
+    """Render the flow-problem backlog as a plotly Table figure (PDF)."""
+    import plotly.graph_objects as go
+
+    include_source = _log_include_source(entries)  # type: ignore[arg-type]
+    offset = 1 if include_source else 0
+    ordered = _flow_sorted(entries)
+    headers = _flow_headers(include_source)
+    rows = [_flow_cells(source, p, include_source, reference)
+            for source, p in ordered]
+    columns = [[row[c] for row in rows] for c in range(len(headers))]
+    fills: list[list[str]] = [["white"] * len(rows) for _ in headers]
+    fills[offset + 3] = [_FLOW_STATUS_COLORS.get(p.status, "#ffffff")
+                         for _, p in ordered]
+    fills[offset + 6] = [_OVERDUE_COLOR if p.survived else "white"
+                         for _, p in ordered]
+    fig = go.Figure(go.Table(
+        header=dict(values=headers, fill_color="#f2f2f2", align="left"),
+        cells=dict(values=columns, align="left", fill_color=fills),
+    ))
+    fig.update_layout(title=_flow_title(entries, title),
+                      title_font_size=14, margin=dict(t=40, b=10))
     return fig

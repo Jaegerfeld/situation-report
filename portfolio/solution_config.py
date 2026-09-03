@@ -32,7 +32,8 @@ from typing import Any
 # das optionale "dependencies"-Feld (Pfad zum Dependency-Register), seit B4
 # das optionale "decisions"-Feld (Pfad zum Decision-/Assumption-Log), seit
 # C1/C2 die optionalen Felder "slo" (SLO-Register) und "dora"
-# (Delivery-Register) — alles additiv, daher kein Schema-Bump.
+# (Delivery-Register), seit B6 das optionale "flow_problems"-Feld
+# (Flussproblem-Backlog der VSC) — alles additiv, daher kein Schema-Bump.
 SCHEMA_VERSION = 2
 APP_NAME = "situation_report"
 
@@ -170,6 +171,8 @@ class SolutionConfig:
                     no SLO register.
         dora:       Optional path to a delivery register JSON (C2, DORA +
                     quality); "" means no delivery register.
+        flow_problems: Optional path to a flow-problem backlog JSON (B6);
+                    "" means no backlog.
     """
     name: str
     kind: str = KIND_SOLUTION
@@ -187,6 +190,7 @@ class SolutionConfig:
     decisions: str = ""
     slo: str = ""
     dora: str = ""
+    flow_problems: str = ""
 
 
 def _parse_date(value: Any) -> date | None:
@@ -276,6 +280,7 @@ def parse_solution_config(data: dict[str, Any]) -> SolutionConfig:
         decisions=str(data.get("decisions", "")).strip(),
         slo=str(data.get("slo", "")).strip(),
         dora=str(data.get("dora", "")).strip(),
+        flow_problems=str(data.get("flow_problems", "")).strip(),
     )
 
 
@@ -354,6 +359,8 @@ def to_dict(config: SolutionConfig) -> dict[str, Any]:
         out["slo"] = config.slo
     if config.dora:
         out["dora"] = config.dora
+    if config.flow_problems:
+        out["flow_problems"] = config.flow_problems
     return out
 
 

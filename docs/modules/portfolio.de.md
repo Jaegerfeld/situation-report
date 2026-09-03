@@ -301,6 +301,32 @@ Browser. Der Demo-Weg ist noch kürzer: Der Demo-Portfolio-Bereich des
 Testdaten-Generators bekommt **Delta-Briefing öffnen** und rendert direkt
 das mitgelieferte Paar `snapshot_prev/now.json`.
 
+## Flussproblem-Backlog & Konferenzmappe (optional, B6)
+
+`"flow_problems": "flow_problems.json"` rendert den **Flussproblem-
+Backlog** — den wichtigsten Input der Value-Stream-Konferenz. Jedes
+Problem trägt id, Titel, Status (`open`/`committed`/`resolved`/
+`dropped`), die betroffenen `value_streams` (Cross-VS wird *abgeleitet*:
+mehr als ein Stream), Einbringer, Owner-Team, `raised_on`, einen
+`conferences`-Zähler (in wie vielen Konferenzen es auf dem Tisch war —
+von Menschen gepflegt), `resolution_commitment` und `follow_up_pi`. Das
+Workshop-Muster „geloggt, nie mitigiert, taucht nächstes PI wieder auf"
+wird messbar: Ein ungelöstes Problem mit **≥ 3 Konferenzen** sortiert
+nach oben und trägt einen roten Zähler.
+
+Die **Konferenzmappe** bündelt die Sitzungs-Inputs zu einer leichten,
+druckbaren Seite:
+
+```bash
+python -m portfolio portfolio.json --conference mappe.html --conference-date 2026-09-10
+```
+
+Input 1 · Aktuelle Daten (Summary + Quell-Qualität), Input 2 ·
+Impediment-Backlog & Governance (Flussprobleme zuerst, dann ROAM und
+Dependencies), Input 3 · Business Objectives (Capability-Map + SLOs).
+Die integrierte Roadmap-Sicht kommt mit B7 dazu. Der vollständige
+interaktive Report bleibt die Detailquelle.
+
 ## SLO- & DORA-Register (optional, C1/C2)
 
 Eine Solution-Config kann zwei weitere Register referenzieren, beide vom
@@ -356,6 +382,7 @@ portfolio/
 ├── capability_config.py Capability-Map (B1): Schema, parse/load/save
 ├── dependency_config.py Dependency-Register (B5): Schema, parse/load/save
 ├── decision_config.py Decision-/Assumption-Log (B4): Schema, parse/load/save
+├── flow_problems_config.py Flussproblem-Backlog (B6): Schema, Survivor-Regel
 ├── slo_config.py      SLO-Register (C1): zentrale Budget-/Status-Regel
 ├── dora_config.py     Delivery-Register (C2): DORA-Tiers + Qualität
 ├── snapshot.py        Report-Snapshot (D2): Kennzahlen/Qualität/Governance einfrieren

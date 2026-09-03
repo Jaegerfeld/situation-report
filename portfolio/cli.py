@@ -184,6 +184,16 @@ def main() -> None:
                              "briefing: --output *.md = Markdown, --output "
                              "otherwise = HTML, no --output = Markdown to "
                              "stdout. Needs no config.")
+    parser.add_argument("--conference", type=Path, default=None,
+                        metavar="FILE",
+                        help="Write the Value-Stream-Conference pre-read "
+                             "(Konferenzmappe, B6) to this HTML file: the "
+                             "conference inputs in meeting order, printable.")
+    parser.add_argument("--conference-date", type=date.fromisoformat,
+                        default=None, dest="conference_date",
+                        metavar="YYYY-MM-DD",
+                        help="Conference date shown in the pre-read header "
+                             "(default: today).")
 
     args = parser.parse_args()
 
@@ -199,6 +209,18 @@ def main() -> None:
         write_snapshot_for_config(
             args.config, args.snapshot,
             as_of=args.as_of, target_ct=args.target_ct)
+        if not args.output and not args.pdf and not args.conference:
+            return
+
+    if args.conference:
+        from .aggregator import render_conference_html
+        html_doc = render_conference_html(
+            load_solution_config(args.config),
+            conference_date=args.conference_date)
+        args.conference.write_text(html_doc, encoding="utf-8")
+        print(f"Conference pre-read written: {args.conference}")
+        if args.browser:
+            webbrowser.open(args.conference.resolve().as_uri())
         if not args.output and not args.pdf:
             return
 
