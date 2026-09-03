@@ -112,8 +112,9 @@ Nicht nach „Feature-Wunschliste", sondern nach **Datenherkunft** (das BGS-Prin
 ### C2 · DORA + Qualitäts-/Fehlermetriken
 - **Quelle:** CI/CD + Git + SonarQube. **Was:** Deployment Frequency, Lead Time for Changes, Change Failure Rate, Time to Restore; Coupling/Cohesion → Fehlerneigung (*Fault Detection*). **Aufwand:** L.
 
-### C3 · `get_data`-Modul (Jira REST) fertigstellen
+### C3 · `get_data`-Modul (Jira REST) fertigstellen ✅ (umgesetzt 03.09.2026)
 - **Was:** direkter Jira-Abruf statt manuellem Export (bereits als Modul geplant). **Warum:** senkt Erhebungsaufwand → METRIKS-MINDSET „Metriken als automatisiertes Nebenprodukt". **Aufwand:** M–L.
+- **Ist-Stand:** Umgesetzt mit **zwei gleichwertigen Erhebungswegen** (Vorgabe Robert 03.09.: API-Freigaben dauern in großen Organisationen lange — der manuelle Export bleibt vollwertig): CLI `fetch` (REST v3 Cursor-/v2 Offset-Paginierung, expand=changelog, Auth Cloud-Basic/Bearer-PAT, Token nur per ENV, nie geloggt) und `check` (Export-Prüfung: Pflichtfelder, Changelog, Duplikate, vergessene Folgeseiten); GUI mit Modus-Umschalter beider Wege; Launcher-Karte startet jetzt (Info-Knopf mit Export-Anleitung bleibt). Beide Wege münden im selben JSON-Envelope — Contract-Test gegen transform_data; Manual-Kapitel 2 in fünf Sprachen; Onepager.
 
 ---
 

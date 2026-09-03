@@ -5,6 +5,27 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [Unreleased]
+
+### Added
+- **get_data implemented** (roadmap C3) — two equal acquisition paths for
+  Jira data, ending in the same JSON `transform_data` consumes. Path 1,
+  REST fetch (`python -m get_data fetch`): API v3 (`POST /search/jql`,
+  cursor pagination) and v2 (`GET /search`, offset pagination) with
+  `expand=changelog`, auth for Jira Cloud (Basic: e-mail + API token) and
+  Server/DC (bearer PAT), sequential paging, de-duplication, safety cap;
+  the token comes only from an environment variable (default `JIRA_TOKEN`),
+  is never stored and never logged; 401/403 errors point to the possibly
+  missing API approval and to the manual path as fallback. Path 2, manual
+  export (unchanged) plus a validator (`python -m get_data check`) that
+  catches missing required fields, missing changelog, duplicates, and
+  forgotten follow-up pages (total > issues in file). GUI
+  (`python -m get_data` or the launcher's Get Data card, now launchable):
+  both paths as a mode toggle, fetch/check in background threads, DE/EN.
+  A contract test guarantees a fetched file and a manual export of the
+  same data are processed identically; manual chapter 2 in all five
+  languages; one-pager (DE+EN).
+
 ## [0.20.0] – 2026-09-03
 
 ### Added
