@@ -522,7 +522,7 @@ def content_de(st: dict) -> list:
            "Ausgabe: --output *.md als Markdown, andere Endung als "
            "HTML-Seite, ohne --output nach stdout. Ein Delta ohne Änderungen "
            "sagt das ausdrücklich. Alles deterministisch — die optionale "
-           "KI-Narration (später, eigene Freigabe) darf umformulieren, nie "
+           "KI-Narration (Abschnitt 5.16) darf umformulieren, nie "
            "Zahlen erzeugen. In der GUI: „Snapshot speichern …“ friert die "
            "aktuell konfigurierte Solution ein, „Delta-Briefing …“ fragt "
            "nach Vorher- und Nachher-Snapshot und öffnet das Briefing im "
@@ -582,6 +582,34 @@ def content_de(st: dict) -> list:
            "D2-Snapshots: Das Delta-Briefing dokumentiert „updated "
            "roadmaps“ je Konferenz (Horizont-Verschiebungen, Statuswechsel; "
            "ein verlorenes Theme liest sich als „→ zombie“).", st),
+        _SP(6),
+
+        _H2("5.16  KI-Narration des Delta-Briefings (D2, optional)", st),
+        _P("<font name='Courier'>--narrate [PROVIDER]</font> ergänzt das "
+           "Delta-Briefing um den Abschnitt „Narration (Entwurf)“: 5–8 "
+           "Sätze „Was hat sich geändert, was verdient Aufmerksamkeit?“, "
+           "formuliert von einem Sprachmodell — standardmäßig lokal über "
+           "<b>ollama</b> (Modell mistral-nemo; Daten verlassen den Rechner "
+           "nie), alternativ <b>claude</b> (Anthropic-API; Schlüssel NUR "
+           "aus der Umgebungsvariable ANTHROPIC_API_KEY) oder <b>mock</b> "
+           "(Attrappe für Demo und Tests, ganz ohne Modell); "
+           "<font name='Courier'>--llm-model</font> und <font "
+           "name='Courier'>--llm-lang de|en</font> verfeinern. Drei Dinge "
+           "sind unumgehbar verdrahtet: Der <b>Zahlen-Wächter</b> verwirft "
+           "jeden Text mit Zahlen, die nicht im Briefing stehen („das LLM "
+           "textet, es rechnet nicht“); die <b>Kennzeichnung</b> (Art. 50 "
+           "KI-VO) markiert jeden Entwurf sichtbar als ungeprüft — erst "
+           "der redigierende Mensch gibt frei; der "
+           "<b>Betreiber-Nachweis</b> (llm_audit.jsonl neben der Ausgabe) "
+           "protokolliert jede Anfrage mit Modell, Deployment-Klasse, "
+           "Prompt-Version und SHA-256-Hashes — nie Volltexte, nie "
+           "Schlüssel. Bei Markdown-Ausgabe entsteht zusätzlich "
+           "&lt;output&gt;.narration.md als redigierbarer Entwurf. GUI: "
+           "Checkbox „KI-Narration (Entwurf)“ plus Provider-Auswahl neben "
+           "dem Delta-Briefing-Knopf. Ollama einrichten: separate "
+           "Anleitung ollama_Installationsanleitung_DE.pdf bzw. Doku-Site "
+           "→ Tutorials. Ohne --narrate bleibt das Briefing vollständig "
+           "deterministisch.", st),
         _SP(6),
 
         _H1("6. Kommandozeile (CLI)", st), _hr(st),
@@ -867,8 +895,8 @@ def content_en(st: dict) -> list:
            "date, so only genuine flips count. Output: --output *.md writes "
            "Markdown, any other suffix the HTML page, no --output prints to "
            "stdout. A delta with no changes says so explicitly. All of it "
-           "deterministic — the optional AI narration (later, separately "
-           "approved) may rephrase, never produce numbers. In the GUI: "
+           "deterministic — the optional AI narration (section 5.16) "
+           "may rephrase, never produce numbers. In the GUI: "
            "'Save snapshot …' freezes the currently configured solution, "
            "'Delta briefing …' asks for the earlier and later snapshot and "
            "opens the briefing in the browser.", st),
@@ -926,6 +954,33 @@ def content_en(st: dict) -> list:
            "snapshots: the delta briefing documents the 'updated roadmaps' "
            "per conference (horizon shifts, status changes; a lost theme "
            "reads as '→ zombie').", st),
+        _SP(6),
+
+        _H2("5.16  AI narration of the delta briefing (D2, optional)", st),
+        _P("<font name='Courier'>--narrate [PROVIDER]</font> adds the "
+           "section 'Narration (Entwurf)' to the delta briefing: 5–8 "
+           "sentences on 'what changed, what deserves attention?', phrased "
+           "by a language model — locally via <b>ollama</b> by default "
+           "(model mistral-nemo; data never leaves the machine), "
+           "alternatively <b>claude</b> (Anthropic API; key ONLY from the "
+           "environment variable ANTHROPIC_API_KEY) or <b>mock</b> (a "
+           "stand-in for demos and tests, no model at all); <font "
+           "name='Courier'>--llm-model</font> and <font name='Courier'>"
+           "--llm-lang de|en</font> refine. Three things are wired in and "
+           "cannot be bypassed: the <b>numbers guard</b> discards any text "
+           "containing numbers that do not occur in the briefing ('the LLM "
+           "writes, it does not calculate'); the <b>AI label</b> (Art. 50 "
+           "EU AI Act) visibly marks every draft as unreviewed — only the "
+           "editing human approves; the <b>operator evidence</b> "
+           "(llm_audit.jsonl next to the output) logs every request with "
+           "model, deployment class, prompt version and SHA-256 hashes — "
+           "never full texts, never keys. Markdown output additionally "
+           "writes &lt;output&gt;.narration.md as the editable draft. GUI: "
+           "checkbox 'AI narration (draft)' plus a provider picker next to "
+           "the delta-briefing button. Setting up Ollama: separate guide "
+           "ollama_Installationsanleitung_EN.pdf, or docs site → "
+           "Tutorials. Without --narrate the briefing stays fully "
+           "deterministic.", st),
         _SP(6),
 
         _H1("6. Command line (CLI)", st), _hr(st),
@@ -1212,7 +1267,7 @@ def content_ro(st: dict) -> list:
            "basculariile reale. Iesire: --output *.md scrie Markdown, alta "
            "extensie pagina HTML, fara --output la stdout. Un delta fara "
            "schimbari o spune explicit. Totul determinist — naratiunea AI "
-           "optionala (mai tarziu, aprobata separat) poate reformula, "
+           "optionala (sectiunea 5.16) poate reformula, "
            "niciodata produce numere. In GUI: 'Salveaza snapshot …' "
            "ingheata solutia configurata curent, 'Delta briefing …' cere "
            "snapshot-ul anterior si cel recent si deschide briefingul in "
@@ -1268,6 +1323,33 @@ def content_ro(st: dict) -> list:
            "snapshot-urile D2: delta briefingul documenteaza 'updated "
            "roadmaps' per conferinta (mutari de orizont, schimbari de "
            "status; o tema pierduta se citeste '→ zombie').", st),
+        _SP(6),
+
+        _H2("5.16  Naratiune AI a delta briefingului (D2, optional)", st),
+        _P("<font name='Courier'>--narrate [PROVIDER]</font> adauga la "
+           "delta briefing sectiunea 'Narration (Entwurf)': 5–8 fraze "
+           "despre 'ce s-a schimbat, ce merita atentie?', formulate de un "
+           "model de limbaj — implicit local prin <b>ollama</b> (model "
+           "mistral-nemo; datele nu parasesc niciodata masina), alternativ "
+           "<b>claude</b> (API Anthropic; cheia DOAR din variabila de "
+           "mediu ANTHROPIC_API_KEY) sau <b>mock</b> (substitut pentru "
+           "demo si teste, fara model); <font name='Courier'>--llm-model"
+           "</font> si <font name='Courier'>--llm-lang de|en</font> "
+           "rafineaza. Trei lucruri sunt cablate si nu pot fi ocolite: "
+           "<b>garda numerelor</b> arunca orice text cu numere care nu "
+           "apar in briefing ('LLM-ul scrie, nu calculeaza'); "
+           "<b>eticheta AI</b> (art. 50 din AI Act) marcheaza vizibil "
+           "fiecare schita ca neverificata — doar omul care redacteaza "
+           "aproba; <b>dovada de operator</b> (llm_audit.jsonl langa "
+           "iesire) inregistreaza fiecare cerere cu model, clasa de "
+           "deployment, versiunea promptului si hash-uri SHA-256 — "
+           "niciodata texte complete, niciodata chei. Iesirea Markdown "
+           "scrie in plus &lt;output&gt;.narration.md ca schita "
+           "editabila. GUI: caseta 'Naratiune AI (schita)' plus alegerea "
+           "providerului. Instalarea Ollama: ghid separat "
+           "ollama_Installationsanleitung_EN.pdf sau situl de documentatie "
+           "→ Tutorials. Fara --narrate briefingul ramane complet "
+           "determinist.", st),
         _SP(6),
 
         _H1("6. Linia de comanda (CLI)", st), _hr(st),
@@ -1556,7 +1638,7 @@ def content_pt(st: dict) -> list:
            "--output *.md escreve Markdown, outra extensao a pagina HTML, "
            "sem --output para stdout. Um delta sem mudancas di-lo "
            "explicitamente. Tudo determinista — a narracao de IA opcional "
-           "(mais tarde, aprovada em separado) pode reformular, nunca "
+           "(seccao 5.16) pode reformular, nunca "
            "produzir numeros. Na GUI: 'Guardar snapshot …' congela a "
            "solution configurada, 'Delta briefing …' pede o snapshot "
            "anterior e o recente e abre o briefing no browser.", st),
@@ -1612,6 +1694,33 @@ def content_pt(st: dict) -> list:
            "briefing documenta os 'updated roadmaps' por conferencia "
            "(mudancas de horizonte e estado; um tema perdido le-se "
            "'→ zombie').", st),
+        _SP(6),
+
+        _H2("5.16  Narracao de IA do delta briefing (D2, opcional)", st),
+        _P("<font name='Courier'>--narrate [PROVIDER]</font> acrescenta ao "
+           "delta briefing a seccao 'Narration (Entwurf)': 5–8 frases "
+           "sobre 'o que mudou, o que merece atencao?', formuladas por um "
+           "modelo de linguagem — por predefinicao local via <b>ollama</b> "
+           "(modelo mistral-nemo; os dados nunca saem da maquina), em "
+           "alternativa <b>claude</b> (API Anthropic; chave SO da variavel "
+           "de ambiente ANTHROPIC_API_KEY) ou <b>mock</b> (substituto para "
+           "demos e testes, sem modelo); <font name='Courier'>--llm-model"
+           "</font> e <font name='Courier'>--llm-lang de|en</font> "
+           "refinam. Tres coisas estao cabladas e nao podem ser "
+           "contornadas: a <b>guarda de numeros</b> descarta qualquer "
+           "texto com numeros que nao aparecem no briefing ('o LLM "
+           "escreve, nao calcula'); o <b>rotulo de IA</b> (art. 50 do AI "
+           "Act) marca visivelmente cada rascunho como nao revisto — so o "
+           "humano que redige aprova; a <b>evidencia de operador</b> "
+           "(llm_audit.jsonl junto a saida) regista cada pedido com "
+           "modelo, classe de deployment, versao do prompt e hashes "
+           "SHA-256 — nunca textos completos, nunca chaves. A saida "
+           "Markdown escreve ainda &lt;output&gt;.narration.md como "
+           "rascunho editavel. GUI: caixa 'Narracao por IA (rascunho)' "
+           "mais a escolha do provider. Instalar o Ollama: guia separado "
+           "ollama_Installationsanleitung_EN.pdf ou site de documentacao "
+           "→ Tutorials. Sem --narrate o briefing fica totalmente "
+           "determinista.", st),
         _SP(6),
 
         _H1("6. Linha de comandos (CLI)", st), _hr(st),
@@ -1906,7 +2015,7 @@ def content_fr(st: dict) -> list:
            "--output *.md ecrit du Markdown, autre extension la page HTML, "
            "sans --output vers stdout. Un delta sans changement le dit "
            "explicitement. Le tout deterministe — la narration IA optionnelle "
-           "(plus tard, approuvee separement) peut reformuler, jamais "
+           "(section 5.16) peut reformuler, jamais "
            "produire de chiffres. Dans la GUI : 'Enregistrer le snapshot …' "
            "fige la solution configuree, 'Delta briefing …' demande le "
            "snapshot precedent et le recent et ouvre le briefing dans le "
@@ -1963,6 +2072,35 @@ def content_fr(st: dict) -> list:
            "snapshots D2 : le delta briefing documente les 'updated "
            "roadmaps' par conference (deplacements d'horizon, changements "
            "de statut ; un theme perdu se lit '→ zombie').", st),
+        _SP(6),
+
+        _H2("5.16  Narration IA du delta briefing (D2, optionnelle)", st),
+        _P("<font name='Courier'>--narrate [PROVIDER]</font> ajoute au "
+           "delta briefing la section 'Narration (Entwurf)' : 5–8 phrases "
+           "sur 'qu'est-ce qui a change, qu'est-ce qui merite "
+           "l'attention ?', formulees par un modele de langage — par "
+           "defaut en local via <b>ollama</b> (modele mistral-nemo ; les "
+           "donnees ne quittent jamais la machine), sinon <b>claude</b> "
+           "(API Anthropic ; cle UNIQUEMENT depuis la variable "
+           "d'environnement ANTHROPIC_API_KEY) ou <b>mock</b> (substitut "
+           "pour demos et tests, sans modele) ; <font name='Courier'>"
+           "--llm-model</font> et <font name='Courier'>--llm-lang de|en"
+           "</font> affinent. Trois choses sont cablees et "
+           "incontournables : le <b>garde des chiffres</b> rejette tout "
+           "texte contenant des nombres absents du briefing ('le LLM "
+           "redige, il ne calcule pas') ; le <b>marquage IA</b> (art. 50 "
+           "du reglement IA) signale visiblement chaque brouillon comme "
+           "non relu — seul l'humain qui redige approuve ; la <b>preuve "
+           "d'exploitant</b> (llm_audit.jsonl a cote de la sortie) "
+           "journalise chaque requete avec modele, classe de deploiement, "
+           "version du prompt et hachages SHA-256 — jamais de textes "
+           "complets, jamais de cles. La sortie Markdown ecrit en plus "
+           "&lt;output&gt;.narration.md comme brouillon editable. GUI : "
+           "case 'Narration IA (brouillon)' plus le choix du provider. "
+           "Installer Ollama : guide separe "
+           "ollama_Installationsanleitung_EN.pdf ou site de doc → "
+           "Tutorials. Sans --narrate, le briefing reste entierement "
+           "deterministe.", st),
         _SP(6),
 
         _H1("6. Ligne de commande (CLI)", st), _hr(st),

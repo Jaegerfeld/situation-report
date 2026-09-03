@@ -74,9 +74,11 @@ nav:
     - testdata_generator: modules/testdata_generator.md
     - get_data: modules/get_data.md
     - sources: modules/sources.md
+    - llm: modules/llm.md
     - simulate: modules/simulate.md
   - Tutorials:
     - Attach a data source: tutorials/attach-a-source.md
+    - Install Ollama (Windows 11): tutorials/install-ollama.md
   - Memoranda: denkschriften/index.md
   - Architecture: architecture.md
   - Development: development.md

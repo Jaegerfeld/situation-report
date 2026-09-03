@@ -8,7 +8,9 @@
 | [portfolio](portfolio.md) | Aggregated Large-Solution & Portfolio reports across several ARTs | available (Alpha) |
 | [helper](helper.md) | Merge JSON files (Jira pagination) | available (Alpha) |
 | [testdata_generator](testdata_generator.md) | Generate synthetic test data | available (Beta) |
-| [get_data](get_data.md) | Retrieve data from Jira via REST API | planned |
+| [get_data](get_data.md) | Retrieve data from Jira — REST or export validation | available (Alpha) |
+| [sources](sources.md) | Pluggable external metric sources (SLO, DORA, quality) | available (Alpha) |
+| [llm](llm.md) | Pluggable AI narration (local Ollama, Claude API, mock) | available (Alpha) |
 | [simulate](simulate.md) | Simulations and prediction models | available (Alpha) |
 
 ## Shared project template

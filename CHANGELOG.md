@@ -5,6 +5,44 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [Unreleased]
+
+### Added
+- **AI narration of the delta briefing (D2 part 2)** — a pluggable LLM
+  layer (`llm/`, the `sources` pattern transferred to AI backends)
+  drafts the 5–8 sentence situational narration for the Value-Stream
+  Conference. Local first: the `ollama` provider (default model
+  `mistral-nemo`) runs entirely on the user's machine — no account, no
+  key, no API approval, data never leaves the system; `claude`
+  (Anthropic Messages API, default `claude-sonnet-5`, key ONLY from
+  `ANTHROPIC_API_KEY`) is the external alternative and `mock` demos the
+  whole flow without any model. CLI: `--narrate [PROVIDER]` with
+  `--llm-model` / `--llm-lang de|en` on `--delta`; without the flag the
+  briefing is byte-for-byte the deterministic D2 output. Markdown
+  output additionally writes `<output>.narration.md` — the draft a
+  human edits and approves. GUI: checkbox *AI narration (draft)* plus
+  provider picker in Solutions & Portfolios (labels in all five
+  languages); the test-data generator's demo section gains *Open AI
+  Narration (Demo)* via `mock`. Three guards are wired in and cannot be
+  bypassed: a **numbers guard** (every number must occur verbatim in
+  the briefing, otherwise the text is discarded — "the LLM writes, it
+  does not calculate"), the **Art. 50 AI label** (model, deployment
+  class, prompt version; never claims approval) and **operator
+  evidence** (`llm_audit.jsonl`, SHA-256 hashes only — never full
+  texts, never keys). A pipeline test enforces that the model only ever
+  sees the delta Markdown contract (teams, never persons). New CLI
+  `python -m llm providers|test`; optional live test via
+  `-m ollama_live`.
+- **Ollama installation guide (Windows 11)** — separate PDFs
+  `docs/ollama_Installationsanleitung_DE.pdf` / `_EN.pdf` (own
+  generator), a Tutorials page on the docs site (EN/DE), a new module
+  page `modules/llm` (EN/DE) and section 5.16 in the portfolio manual
+  in all five languages.
+
+### Fixed
+- The modules overview on the docs site now lists `sources` (and the
+  new `llm`) and no longer shows `get_data` as "planned".
+
 ## [0.22.1] – 2026-09-03
 
 ### Added

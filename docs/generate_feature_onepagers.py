@@ -439,10 +439,10 @@ ONEPAGERS: dict[str, dict[str, dict]] = {
                        "Stille ist Information"),
                 ("h", "Leitplanken"),
                 ("p", "Alles deterministisch — gleiche Snapshots, gleiches "
-                      "Briefing. Die optionale KI-Narration (D2 Teil 2) ist "
-                      "bewusst getrennt und noch nicht gebaut: Das LLM wird "
-                      "texten, nie rechnen; das Markdown des Briefings ist "
-                      "ihr künftiger Eingabe-Contract. Owner sind Teams, "
+                      "Briefing. Die optionale KI-Narration (D2 Teil 2, "
+                      "eigener Onepager) ist bewusst getrennt: Das LLM "
+                      "textet, es rechnet nie; das Markdown des Briefings "
+                      "ist ihr Eingabe-Contract. Owner sind Teams, "
                       "keine Personen."),
             ],
         },
@@ -485,10 +485,107 @@ ONEPAGERS: dict[str, dict[str, dict]] = {
                        "information"),
                 ("h", "Guardrails"),
                 ("p", "Everything deterministic — same snapshots, same "
-                      "briefing. The optional AI narration (D2 part 2) is "
-                      "deliberately separate and not built yet: the LLM will "
-                      "write, never calculate; the briefing's Markdown is its "
-                      "future input contract. Owners are teams, not persons."),
+                      "briefing. The optional AI narration (D2 part 2, own "
+                      "one-pager) is deliberately separate: the LLM writes, "
+                      "it never calculates; the briefing's Markdown is its "
+                      "input contract. Owners are teams, not persons."),
+            ],
+        },
+    },
+    "llm_narration": {
+        "de": {
+            "title": "KI-Narration",
+            "tagline": "Feature D2 Teil 2 · Ein Sprachmodell entwirft die "
+                       "Lage-Erzählung — lokal zuerst, gekennzeichnet immer",
+            "sections": [
+                ("h", "Worum geht es?"),
+                ("p", "Das Delta-Briefing liefert die Fakten; die Narration "
+                      "macht daraus den Entwurf von 5–8 Sätzen für die "
+                      "Value-Stream-Konferenz: Was hat sich geändert, was "
+                      "verdient Aufmerksamkeit — Verschlechterungen zuerst. "
+                      "Formuliert von einem austauschbaren Sprachmodell, "
+                      "standardmäßig lokal (Ollama, mistral-nemo): Daten "
+                      "verlassen den Rechner nie, kein Konto, keine "
+                      "API-Freigabe. Alternativ claude (Anthropic-API) oder "
+                      "mock (Attrappe ohne Modell für Demo und Tests)."),
+                ("h", "So benutzt du es"),
+                ("code", "python -m portfolio --delta vorher.json heute.json "
+                         "--narrate --output delta.html\n"
+                         "python -m llm providers   # Inventar\n"
+                         "python -m llm test        # Verkabelungs-Check "
+                         "nach der Ollama-Installation"),
+                ("p", "Oder per GUI: Checkbox „KI-Narration (Entwurf)“ plus "
+                      "Provider-Auswahl neben „Delta-Briefing …“; der "
+                      "Testdaten-Generator zeigt den kompletten Ablauf über "
+                      "den mock-Provider — ohne jede Installation. Ollama "
+                      "einrichten: separate Anleitung "
+                      "ollama_Installationsanleitung_DE.pdf (Doku-Site → "
+                      "Tutorials)."),
+                ("h", "Drei Wächter, fest verdrahtet"),
+                ("li", "Zahlen-Wächter: Jede Zahl muss wörtlich im Briefing "
+                       "stehen, sonst wird der Text verworfen — „das LLM "
+                       "textet, es rechnet nicht“"),
+                ("li", "Kennzeichnung (Art. 50 KI-VO): Jeder Entwurf trägt "
+                       "sichtbar Modell, Deployment-Klasse und "
+                       "Prompt-Version — freigeben kann nur der Mensch, der "
+                       "redigiert"),
+                ("li", "Betreiber-Nachweis: llm_audit.jsonl protokolliert "
+                       "jede Anfrage mit SHA-256-Hashes — nie Volltexte, "
+                       "nie Schlüssel"),
+                ("h", "Leitplanken"),
+                ("p", "Ohne --narrate bleibt das Briefing exakt wie bisher — "
+                      "die KI ist Zusatz, nie Voraussetzung. Das Modell "
+                      "sieht ausschließlich das Delta-Markdown (Teams, nie "
+                      "Personen); ein Provider ist EINE Datei in "
+                      "llm/providers/ — austauschbar wie die Datenquellen. "
+                      "API-Schlüssel nur aus Umgebungsvariablen."),
+            ],
+        },
+        "en": {
+            "title": "AI Narration",
+            "tagline": "Feature D2 part 2 · A language model drafts the "
+                       "situational narrative — local first, always labeled",
+            "sections": [
+                ("h", "What is it?"),
+                ("p", "The delta briefing delivers the facts; the narration "
+                      "turns them into a 5–8 sentence draft for the "
+                      "Value-Stream Conference: what changed, what deserves "
+                      "attention — worsenings first. Phrased by an "
+                      "exchangeable language model, local by default "
+                      "(Ollama, mistral-nemo): data never leaves the "
+                      "machine, no account, no API approval. Alternatives: "
+                      "claude (Anthropic API) or mock (a stand-in without "
+                      "any model, for demos and tests)."),
+                ("h", "How to use it"),
+                ("code", "python -m portfolio --delta before.json today.json "
+                         "--narrate --output delta.html\n"
+                         "python -m llm providers   # inventory\n"
+                         "python -m llm test        # wiring check after "
+                         "installing Ollama"),
+                ("p", "Or via the GUI: tick 'AI narration (draft)' and pick "
+                      "the provider next to 'Delta briefing …'; the "
+                      "test-data generator shows the complete flow through "
+                      "the mock provider — no installation at all. Setting "
+                      "up Ollama: separate guide "
+                      "ollama_Installationsanleitung_EN.pdf (docs site → "
+                      "Tutorials)."),
+                ("h", "Three guards, wired in"),
+                ("li", "Numbers guard: every number must occur verbatim in "
+                       "the briefing, otherwise the text is discarded — "
+                       "'the LLM writes, it does not calculate'"),
+                ("li", "AI label (Art. 50 EU AI Act): every draft visibly "
+                       "carries model, deployment class and prompt version "
+                       "— only the editing human can approve"),
+                ("li", "Operator evidence: llm_audit.jsonl logs every "
+                       "request with SHA-256 hashes — never full texts, "
+                       "never keys"),
+                ("h", "Guardrails"),
+                ("p", "Without --narrate the briefing stays exactly as "
+                      "before — AI is an add-on, never a prerequisite. The "
+                      "model sees only the delta Markdown (teams, never "
+                      "persons); a provider is ONE file in llm/providers/ — "
+                      "exchangeable like the data sources. API keys only "
+                      "from environment variables."),
             ],
         },
     },

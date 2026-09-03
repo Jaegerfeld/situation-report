@@ -155,6 +155,9 @@ _T: dict[str, dict[str, str]] = {
         "msg_snapshot_error": "Snapshot fehlgeschlagen: {error}",
         "msg_delta_done": "Delta-Briefing im Browser geöffnet",
         "msg_delta_error": "Delta-Briefing fehlgeschlagen: {error}",
+        "chk_narrate": "KI-Narration (Entwurf)",
+        "msg_narrate_running": "KI-Narration wird erzeugt — lokale Modelle "
+                               "brauchen bis zu einer Minute …",
         "btn_conference": "Konferenzmappe …",
         "dlg_save_conference": "Konferenzmappe speichern",
         "msg_conference_building": "Konferenzmappe wird erzeugt …",
@@ -209,6 +212,9 @@ _T: dict[str, dict[str, str]] = {
         "msg_snapshot_error": "Snapshot failed: {error}",
         "msg_delta_done": "Delta briefing opened in the browser",
         "msg_delta_error": "Delta briefing failed: {error}",
+        "chk_narrate": "AI narration (draft)",
+        "msg_narrate_running": "Drafting AI narration — local models can "
+                               "take up to a minute …",
         "btn_conference": "Conference pre-read …",
         "dlg_save_conference": "Save conference pre-read",
         "msg_conference_building": "Building conference pre-read …",
@@ -263,6 +269,9 @@ _T: dict[str, dict[str, str]] = {
         "msg_snapshot_error": "Snapshot eșuat: {error}",
         "msg_delta_done": "Delta briefing deschis în browser",
         "msg_delta_error": "Delta briefing eșuat: {error}",
+        "chk_narrate": "Narațiune AI (schiță)",
+        "msg_narrate_running": "Se generează narațiunea AI — modelele "
+                               "locale pot dura până la un minut …",
         "btn_conference": "Mapa conferinței …",
         "dlg_save_conference": "Salvează mapa conferinței",
         "msg_conference_building": "Se creează mapa conferinței …",
@@ -317,6 +326,9 @@ _T: dict[str, dict[str, str]] = {
         "msg_snapshot_error": "Snapshot falhou: {error}",
         "msg_delta_done": "Delta briefing aberto no browser",
         "msg_delta_error": "Delta briefing falhou: {error}",
+        "chk_narrate": "Narração por IA (rascunho)",
+        "msg_narrate_running": "A gerar a narração por IA — modelos locais "
+                               "podem demorar até um minuto …",
         "btn_conference": "Dossier da conferência …",
         "dlg_save_conference": "Guardar o dossier da conferência",
         "msg_conference_building": "A criar o dossier da conferência …",
@@ -371,6 +383,9 @@ _T: dict[str, dict[str, str]] = {
         "msg_snapshot_error": "Échec du snapshot : {error}",
         "msg_delta_done": "Delta briefing ouvert dans le navigateur",
         "msg_delta_error": "Échec du delta briefing : {error}",
+        "chk_narrate": "Narration IA (brouillon)",
+        "msg_narrate_running": "Narration IA en cours — les modèles locaux "
+                               "peuvent prendre jusqu'à une minute …",
         "btn_conference": "Dossier de conférence …",
         "dlg_save_conference": "Enregistrer le dossier de conférence",
         "msg_conference_building": "Création du dossier de conférence …",
@@ -384,16 +399,32 @@ _T: dict[str, dict[str, str]] = {
 # Display-independent logic (unit-tested without tkinter)
 # ---------------------------------------------------------------------------
 
-def _build_delta_html_file(prev_path: Path, now_path: Path) -> str:
+def _llm_provider_ids() -> list[str]:
+    """Provider ids for the narration dropdown (discovery; safe fallback)."""
+    try:
+        from llm.base import discover_providers
+        return list(discover_providers())
+    except Exception:
+        return ["ollama", "claude", "mock"]
+
+
+def _build_delta_html_file(prev_path: Path, now_path: Path,
+                           narrate_with: str | None = None,
+                           llm_lang: str = "de") -> str:
     """
     Render the delta briefing for two snapshot files into a temp HTML file.
 
     Imports the delta machinery lazily so the manager window opens without
-    pulling it until a briefing is actually requested.
+    pulling it until a briefing is actually requested. With ``narrate_with``
+    an AI-drafted, labeled narration section is appended (same building
+    block as the CLI); the operator-evidence file llm_audit.jsonl is
+    written next to the LATER snapshot — data outlives temp files.
 
     Args:
-        prev_path: Earlier snapshot JSON.
-        now_path:  Later snapshot JSON.
+        prev_path:    Earlier snapshot JSON.
+        now_path:     Later snapshot JSON.
+        narrate_with: LLM provider id or None (deterministic briefing).
+        llm_lang:     Narration language.
 
     Returns:
         Path of the written temporary .html file.
@@ -404,11 +435,23 @@ def _build_delta_html_file(prev_path: Path, now_path: Path) -> str:
     """
     import tempfile
 
-    from .delta import compute_delta, render_delta_html
+    from .delta import compute_delta, delta_to_markdown, render_delta_html
     from .snapshot import load_snapshot
 
-    html = render_delta_html(
-        compute_delta(load_snapshot(prev_path), load_snapshot(now_path)))
+    delta = compute_delta(load_snapshot(prev_path), load_snapshot(now_path))
+    html = render_delta_html(delta)
+    if narrate_with:
+        from llm.audit import AUDIT_FILENAME
+        from llm.narrate import narrate
+
+        from .cli import narration_html_section
+
+        narration = narrate(delta_to_markdown(delta),
+                            provider_id=narrate_with, lang=llm_lang,
+                            audit_path=now_path.parent / AUDIT_FILENAME)
+        html = html.replace("</body></html>",
+                            narration_html_section(narration)
+                            + "</body></html>", 1)
     with tempfile.NamedTemporaryFile(
         mode="w", suffix=".html", delete=False, encoding="utf-8"
     ) as f:
@@ -516,6 +559,8 @@ class SolutionManagerApp(tk.Tk):
         self._from = tk.StringVar()
         self._to = tk.StringVar()
         self._mode = tk.StringVar(value=MODE_POOLED)
+        self._narrate = tk.BooleanVar(value=False)
+        self._llm_provider = tk.StringVar(value="ollama")
         self._member_rows: list[dict] = []
         self._col_source_lbl: tk.Label | None = None
         self._flag_imgs: dict[str, tk.PhotoImage] = {}
@@ -667,6 +712,14 @@ class SolutionManagerApp(tk.Tk):
                         variable=self._mode, value=MODE_POOLED).pack(side="left", padx=(8, 0))
         ttk.Radiobutton(mode_frame, text=self._tr("mode_comparison"),
                         variable=self._mode, value=MODE_COMPARISON).pack(side="left", padx=(8, 0))
+
+        ki_frame = tk.Frame(self)
+        ki_frame.pack(fill="x", pady=(6, 0))
+        ttk.Checkbutton(ki_frame, text=self._tr("chk_narrate"),
+                        variable=self._narrate).pack(side="left")
+        ttk.Combobox(ki_frame, textvariable=self._llm_provider,
+                     values=_llm_provider_ids(), width=10,
+                     state="readonly").pack(side="left", padx=(8, 0))
 
         btns = tk.Frame(self)
         btns.pack(fill="x", pady=(12, 0))
@@ -912,10 +965,20 @@ class SolutionManagerApp(tk.Tk):
             title=self._tr("dlg_delta_now"), filetypes=[("JSON", "*.json")])
         if not now:
             return
+        narrate_with = (self._llm_provider.get()
+                        if self._narrate.get() else None)
+        if narrate_with:
+            # Lokale Inferenz darf dauern — Status VOR dem Start setzen.
+            self._status.set(self._tr("msg_narrate_running"))
+            self.update_idletasks()
 
         def worker() -> None:
             try:
-                tmp = _build_delta_html_file(Path(prev), Path(now))
+                tmp = _build_delta_html_file(Path(prev), Path(now),
+                                             narrate_with=narrate_with,
+                                             llm_lang=self._lang if
+                                             self._lang in ("de", "en")
+                                             else "en")
                 webbrowser.open(Path(tmp).resolve().as_uri())
                 msg = self._tr("msg_delta_done")
             except Exception as exc:
