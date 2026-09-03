@@ -28,7 +28,7 @@ markers = [
 addopts = "-m 'not ollama_live'"
 
 [tool.coverage.run]
-source = ["build_reports", "transform_data", "get_data", "simulate", "testdata_generator", "helper", "portfolio", "launcher", "llm"]
+source = ["build_reports", "transform_data", "get_data", "simulate", "testdata_generator", "helper", "portfolio", "launcher", "llm", "sources"]
 omit = ["*/tests/*", "*/docs/*", "*_gui.pyw", "*_gui.py", "*/gui.py", "*/__main__.py"]
 
 [tool.coverage.report]
