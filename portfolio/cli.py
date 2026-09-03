@@ -23,6 +23,7 @@ import webbrowser
 from collections.abc import Callable
 from datetime import date
 from pathlib import Path
+from typing import Any
 
 from build_reports.metrics.flow_time import CT_METHOD_A, CT_METHOD_B
 from build_reports.terminology import GLOBAL, SAFE
@@ -96,15 +97,40 @@ def run_solution_report(
     return html
 
 
+def narration_html_section(narration: Any) -> str:
+    """
+    The "Narration (Entwurf)" HTML block for a briefing page: mandatory
+    AI banner (Art. 50 labeling) plus the draft text. Shared by the CLI
+    and the GUI so the labeling can never diverge between the two paths.
+    """
+    import html as _html
+
+    return ("<h2>Narration (Entwurf)</h2>"
+            "<p style='background:#fff3cd;border:1px solid #d0a900;"
+            "padding:6px 10px;font-weight:600'>🤖 "
+            f"{_html.escape(narration.banner)}</p>"
+            f"<p>{_html.escape(narration.text)}</p>")
+
+
 def run_delta_briefing(
     prev_path: Path,
     now_path: Path,
     output: Path | None = None,
     open_browser: bool = False,
+    narrate_with: str | None = None,
+    llm_model: str | None = None,
+    llm_lang: str = "de",
     log: Callable[[str], None] = print,
 ) -> None:
     """
     Compare two snapshot files and emit the delta briefing (D2).
+
+    With ``narrate_with`` set, an AI-drafted narration section is added
+    (D2 part 2): the provider only ever sees the deterministic Markdown,
+    the numbers guard discards inventions, the mandatory AI banner marks
+    the text as an unreviewed draft, and an operator-evidence record is
+    appended to llm_audit.jsonl next to the output. Without it, behaviour
+    is exactly the deterministic briefing (clean degradation).
 
     Args:
         prev_path:    Earlier snapshot JSON.
@@ -112,14 +138,39 @@ def run_delta_briefing(
         output:       Destination file — ``*.md`` writes Markdown, any other
                       suffix writes the HTML page; None prints Markdown.
         open_browser: Open a written HTML file in the default browser.
+        narrate_with: LLM provider id ("ollama", "claude", "mock") or None.
+        llm_model:    Model override (None = provider default).
+        llm_lang:     Narration language (default: de).
         log:          Progress callback.
     """
     from .delta import compute_delta, delta_to_markdown, render_delta_html
     from .snapshot import load_snapshot
 
     delta = compute_delta(load_snapshot(prev_path), load_snapshot(now_path))
+    delta_md = delta_to_markdown(delta)
+
+    narration = None
+    if narrate_with:
+        from llm.audit import AUDIT_FILENAME
+        from llm.narrate import narrate
+
+        audit_path = ((output.parent if output else Path.cwd())
+                      / AUDIT_FILENAME)
+        log(f"Narration draft via '{narrate_with}' ...")
+        narration = narrate(delta_md, provider_id=narrate_with,
+                            lang=llm_lang,
+                            config={"model": llm_model} if llm_model else None,
+                            audit_path=audit_path)
+        log(f"  audit: {audit_path}")
+
+    def _md_with_narration() -> str:
+        if narration is None:
+            return delta_md
+        return (delta_md + "\n\n## Narration (Entwurf)\n"
+                f"> {narration.banner}\n\n{narration.text}\n")
+
     if output is None:
-        text = delta_to_markdown(delta)
+        text = _md_with_narration()
         try:
             print(text)
         except UnicodeEncodeError:
@@ -128,11 +179,21 @@ def run_delta_briefing(
             sys.stdout.buffer.flush()
         return
     if output.suffix.lower() == ".md":
-        output.write_text(delta_to_markdown(delta), encoding="utf-8")
+        output.write_text(_md_with_narration(), encoding="utf-8")
     else:
-        output.write_text(render_delta_html(delta), encoding="utf-8")
+        html_doc = render_delta_html(delta)
+        if narration is not None:
+            html_doc = html_doc.replace(
+                "</body></html>",
+                narration_html_section(narration) + "</body></html>", 1)
+        output.write_text(html_doc, encoding="utf-8")
         if open_browser:
             webbrowser.open(output.resolve().as_uri())
+    if narration is not None and output is not None:
+        draft = output.with_suffix(output.suffix + ".narration.md")
+        draft.write_text(
+            f"> {narration.banner}\n\n{narration.text}\n", encoding="utf-8")
+        log(f"Narration draft (for human editing): {draft}")
     log(f"Delta briefing written: {output}")
 
 
@@ -194,12 +255,30 @@ def main() -> None:
                         metavar="YYYY-MM-DD",
                         help="Conference date shown in the pre-read header "
                              "(default: today).")
+    parser.add_argument("--narrate", nargs="?", const="ollama", default=None,
+                        metavar="PROVIDER",
+                        help="With --delta: add an AI-drafted narration "
+                             "section (D2 part 2). Optional provider id "
+                             "(default: ollama; also: claude, mock). The "
+                             "draft is always labeled as unreviewed; an "
+                             "operator-evidence record goes to "
+                             "llm_audit.jsonl.")
+    parser.add_argument("--llm-model", default=None, dest="llm_model",
+                        metavar="MODEL",
+                        help="Model override for --narrate (default: the "
+                             "provider's default, e.g. mistral-nemo / "
+                             "claude-sonnet-5).")
+    parser.add_argument("--llm-lang", default="de", dest="llm_lang",
+                        choices=["de", "en"],
+                        help="Narration language (default: de).")
 
     args = parser.parse_args()
 
     if args.delta:
         run_delta_briefing(args.delta[0], args.delta[1],
-                           output=args.output, open_browser=args.browser)
+                           output=args.output, open_browser=args.browser,
+                           narrate_with=args.narrate,
+                           llm_model=args.llm_model, llm_lang=args.llm_lang)
         return
     if args.config is None:
         parser.error("config is required (except with --delta).")
