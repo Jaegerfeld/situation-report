@@ -5,7 +5,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
-## [Unreleased]
+## [0.23.0] – 2026-09-03
 
 ### Added
 - **AI narration of the delta briefing (D2 part 2)** — a pluggable LLM
@@ -42,6 +42,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ### Fixed
 - The modules overview on the docs site now lists `sources` (and the
   new `llm`) and no longer shows `get_data` as "planned".
+- The Ollama installation guide's troubleshooting now covers Windows'
+  "Python was not found" Store stub (run in the repo folder with the
+  venv Python, `py` launcher, or disable the app execution aliases) —
+  hit on the very first real-world wiring check.
+
+### Changed
+- Coverage measurement now includes the `sources` and `llm` packages
+  (the `sources` package had been missed when C1/C2 shipped in 0.21.0;
+  the coverage badge reflects the enlarged measurement base).
 
 ## [0.22.1] – 2026-09-03
 
