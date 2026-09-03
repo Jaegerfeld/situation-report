@@ -5,7 +5,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
-## [Unreleased]
+## [0.22.0] – 2026-09-03
 
 ### Fixed
 - **Release bundles were missing the `sources` package** — in v0.21.0,
