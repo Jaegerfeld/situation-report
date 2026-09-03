@@ -220,6 +220,10 @@ class TestGuiNarration:
         ids = _llm_provider_ids()
         assert {"ollama", "claude", "mock"} <= set(ids)
 
+    def test_demo_dropdown_lists_discovery_too(self) -> None:
+        from testdata_generator.gui import _llm_provider_ids
+        assert {"ollama", "claude", "mock"} <= set(_llm_provider_ids())
+
     def test_portfolio_gui_helper_appends_labeled_section(
             self, tmp_path) -> None:
         from pathlib import Path
@@ -238,14 +242,14 @@ class TestGuiNarration:
         # nicht bei der Temp-Datei.
         assert (tmp_path / "llm_audit.jsonl").exists()
 
-    def test_testdata_demo_helper_uses_mock(self, tmp_path) -> None:
+    def test_testdata_demo_helper_takes_provider_id(self, tmp_path) -> None:
         from pathlib import Path
 
         from testdata_generator.gui import _build_delta_html_file
         prev_p, now_p = self._snaps(tmp_path)
         out = Path(_build_delta_html_file(prev_p, now_p,
                                           log=lambda m: None,
-                                          narrate_mock=True, lang="en"))
+                                          narrate_with="mock", lang="en"))
         try:
             html = out.read_text(encoding="utf-8")
         finally:
@@ -253,6 +257,13 @@ class TestGuiNarration:
         assert "MOCK" in html
         assert "AI-drafted" in html
         assert (tmp_path / "llm_audit.jsonl").exists()
+        # Ohne Provider bleibt die Demo deterministisch.
+        out2 = Path(_build_delta_html_file(prev_p, now_p,
+                                           log=lambda m: None))
+        try:
+            assert "Narration" not in out2.read_text(encoding="utf-8")
+        finally:
+            out2.unlink(missing_ok=True)
 
     def test_helpers_stay_deterministic_without_narration(
             self, tmp_path) -> None:

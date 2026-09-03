@@ -515,10 +515,11 @@ ONEPAGERS: dict[str, dict[str, dict]] = {
                          "python -m llm test        # Verkabelungs-Check "
                          "nach der Ollama-Installation"),
                 ("p", "Oder per GUI: Checkbox „KI-Narration (Entwurf)“ plus "
-                      "Provider-Auswahl neben „Delta-Briefing …“; der "
-                      "Testdaten-Generator zeigt den kompletten Ablauf über "
-                      "den mock-Provider — ohne jede Installation. Ollama "
-                      "einrichten: separate Anleitung "
+                      "Provider-Auswahl neben „Delta-Briefing …“; im "
+                      "Testdaten-Generator läuft dieselbe Strecke am "
+                      "Demo-Portfolio mit wählbarem Provider — Default mock "
+                      "(ohne jede Installation), umschaltbar auf "
+                      "ollama/claude. Ollama einrichten: separate Anleitung "
                       "ollama_Installationsanleitung_DE.pdf (Doku-Site → "
                       "Tutorials)."),
                 ("h", "Drei Wächter, fest verdrahtet"),
@@ -564,9 +565,10 @@ ONEPAGERS: dict[str, dict[str, dict]] = {
                          "installing Ollama"),
                 ("p", "Or via the GUI: tick 'AI narration (draft)' and pick "
                       "the provider next to 'Delta briefing …'; the "
-                      "test-data generator shows the complete flow through "
-                      "the mock provider — no installation at all. Setting "
-                      "up Ollama: separate guide "
+                      "test-data generator runs the same flow on the demo "
+                      "portfolio with a selectable provider — default mock "
+                      "(no installation at all), switchable to "
+                      "ollama/claude. Setting up Ollama: separate guide "
                       "ollama_Installationsanleitung_EN.pdf (docs site → "
                       "Tutorials)."),
                 ("h", "Three guards, wired in"),

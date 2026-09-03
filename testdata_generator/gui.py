@@ -172,7 +172,7 @@ _T: dict[str, dict[str, str]] = {
         "log_delta_done":     "--- Delta-Briefing im Browser geöffnet ---",
         "log_delta_error":    "FEHLER beim Delta-Briefing: {}",
         "btn_scenario_narrate": "KI-Narration (Demo) öffnen",
-        "log_narrate_started": "--- Delta-Briefing mit KI-Narration (mock-Provider, ohne Modell) wird erstellt ---",
+        "log_narrate_started": "--- Delta-Briefing mit KI-Narration wird erstellt (Provider: {}; lokale Modelle brauchen bis zu einer Minute) ---",
         "log_narrate_done":   "--- Briefing mit gekennzeichnetem Narrations-Entwurf geöffnet; Nachweis: llm_audit.jsonl im Szenario-Ordner ---",
         "log_narrate_error":  "FEHLER bei der KI-Narration: {}",
     },
@@ -251,7 +251,7 @@ _T: dict[str, dict[str, str]] = {
         "log_delta_done":     "--- Delta briefing opened in browser ---",
         "log_delta_error":    "ERROR building delta briefing: {}",
         "btn_scenario_narrate": "Open AI Narration (Demo)",
-        "log_narrate_started": "--- Building delta briefing with AI narration (mock provider, no model) ---",
+        "log_narrate_started": "--- Building delta briefing with AI narration (provider: {}; local models can take up to a minute) ---",
         "log_narrate_done":   "--- Briefing with labeled narration draft opened; evidence: llm_audit.jsonl in the scenario folder ---",
         "log_narrate_error":  "ERROR building AI narration: {}",
     },
@@ -369,24 +369,33 @@ def _build_conference_html_file(portfolio_json: Path, log=print) -> str:
         return f.name
 
 
+def _llm_provider_ids() -> list[str]:
+    """Provider ids for the demo narration dropdown (discovery; fallback)."""
+    try:
+        from llm.base import discover_providers
+        return list(discover_providers())
+    except Exception:
+        return ["claude", "mock", "ollama"]
+
+
 def _build_delta_html_file(prev_path: Path, now_path: Path, log=print,
-                           narrate_mock: bool = False,
+                           narrate_with: str | None = None,
                            lang: str = "en") -> str:
     """
     Render the delta briefing for the demo scenario's two snapshots into a
     temporary HTML file (lazy portfolio import, like the report helpers).
 
-    With ``narrate_mock`` the labeled AI-narration section is appended via
-    the mock provider — the demo shows the complete flow (draft, Art.-50
+    With ``narrate_with`` the labeled AI-narration section is appended via
+    that llm provider — "mock" shows the complete flow (draft, Art.-50
     banner, llm_audit.jsonl next to the snapshots) without any model or
-    installation involved.
+    installation involved; "ollama"/"claude" run the real thing.
 
     Args:
         prev_path:    Earlier snapshot JSON (scenario's snapshot_prev.json).
         now_path:     Later snapshot JSON (scenario's snapshot_now.json).
         log:          Progress callback.
-        narrate_mock: Append the mock-provider narration section.
-        lang:         Narration language for the mock text/banner.
+        narrate_with: Llm provider id for the narration section, or None.
+        lang:         Narration language.
 
     Returns:
         Path of the written temporary .html file.
@@ -402,13 +411,13 @@ def _build_delta_html_file(prev_path: Path, now_path: Path, log=print,
 
     delta = compute_delta(load_snapshot(prev_path), load_snapshot(now_path))
     html = render_delta_html(delta)
-    if narrate_mock:
+    if narrate_with:
         from llm.audit import AUDIT_FILENAME
         from llm.narrate import narrate
         from portfolio.cli import narration_html_section
 
-        narration = narrate(delta_to_markdown(delta), provider_id="mock",
-                            lang=lang,
+        narration = narrate(delta_to_markdown(delta),
+                            provider_id=narrate_with, lang=lang,
                             audit_path=now_path.parent / AUDIT_FILENAME)
         html = html.replace("</body></html>",
                             narration_html_section(narration)
@@ -610,7 +619,14 @@ class _App:
             scen_frame, text="Open AI Narration (Demo)",
             command=self._open_narrated_briefing, state="disabled",
         )
-        self._btn_scenario_narrate.pack(side="left")
+        self._btn_scenario_narrate.pack(side="left", padx=(0, 6))
+        # mock = Default: Demo laeuft ohne Modell/Installation; ollama/claude
+        # fahren dieselbe Strecke echt.
+        self._llm_provider = tk.StringVar(value="mock")
+        ttk.Combobox(
+            scen_frame, textvariable=self._llm_provider,
+            values=_llm_provider_ids(), width=8, state="readonly",
+        ).pack(side="left")
 
         self._progress = ttk.Progressbar(frame, mode="indeterminate")
         self._progress.grid(row=21, column=0, columnspan=3, sticky="ew")
@@ -1225,11 +1241,13 @@ class _App:
         threading.Thread(target=_do, daemon=True).start()
 
     def _open_narrated_briefing(self) -> None:
-        """Render the demo delta briefing WITH the mock-provider narration
-        (labeled draft + audit file) — the full AI flow, no model needed."""
+        """Render the demo delta briefing WITH the AI narration through the
+        selected provider (labeled draft + audit file) — mock needs no
+        model, ollama/claude run the real thing."""
         if self._running or self._last_snapshots is None:
             return
         prev_path, now_path = self._last_snapshots
+        provider = self._llm_provider.get() or "mock"
 
         self._running = True
         self._btn_run.configure(state="disabled")
@@ -1238,7 +1256,7 @@ class _App:
         self._btn_scenario_delta.configure(state="disabled")
         self._btn_scenario_conference.configure(state="disabled")
         self._btn_scenario_narrate.configure(state="disabled")
-        self._log_msg(self._t("log_narrate_started"))
+        self._log_msg(self._t("log_narrate_started").format(provider))
 
         _timer: list = []
 
@@ -1252,7 +1270,7 @@ class _App:
             try:
                 tmp_path = _build_delta_html_file(
                     prev_path, now_path, log=self._log_msg,
-                    narrate_mock=True, lang=self._lang_var.get(),
+                    narrate_with=provider, lang=self._lang_var.get(),
                 )
                 webbrowser.open(f"file:///{tmp_path.replace(chr(92), '/')}")
                 self._root.after(

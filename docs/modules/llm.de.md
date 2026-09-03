@@ -56,8 +56,9 @@ Ohne `--narrate` ist das Briefing exakt die deterministische D2-Ausgabe
 Abschnitt **„Narration (Entwurf)“**; die Markdown-Ausgabe schreibt
 zusätzlich `<output>.narration.md` — den Entwurf, den ein Mensch
 redigiert und freigibt. In der GUI: Checkbox „KI-Narration (Entwurf)“
-plus Provider-Auswahl; der Testdaten-Generator führt den Ablauf über
-`mock` vor.
+plus Provider-Auswahl; der Testdaten-Generator führt den Ablauf am
+Demo-Portfolio mit wählbarem Provider vor (Default `mock` — ohne
+Installation; für den echten Lauf auf `ollama`/`claude` umschalten).
 
 Das Modell sieht ausschließlich den Markdown-Contract des
 Delta-Briefings — der nennt per Konstruktion Teams, ARTs und Solutions,
