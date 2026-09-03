@@ -360,6 +360,15 @@ def content_de(st: dict) -> list:
              "jedem Mitglied auf eine solche gespeicherte Solution-Datei.", st),
         _SP(6),
 
+        _box("Portfolio-Datenraum: Liegen Config und Daten in einem gemeinsamen "
+             "Ordner, dürfen alle Pfade in der Config <b>relativ</b> sein — sie "
+             "werden relativ zur Config-Datei aufgelöst, absolute Pfade bleiben "
+             "unverändert. Der Ordner ist dann als Ganzes verschieb-, kopier- "
+             "und zipbar. Das Demo-Szenario des Testdaten-Generators erzeugt "
+             "genau diese Struktur: solutions/&lt;Name&gt;/ mit solution.json, "
+             "arts/ und registers/ (Standardnamen), dazu snapshots/ und raw/.", st),
+        _SP(6),
+
         _H1("5. Der Report", st), _hr(st),
         _H2("5.1  Management-Summary", st),
         _P("Ganz oben steht eine kompakte Kennzahlen-Tabelle — eine Zeile je Einheit "
@@ -736,6 +745,15 @@ def content_en(st: dict) -> list:
              "solution file.", st),
         _SP(6),
 
+        _box("Portfolio data folder: when config and data live in one shared "
+             "folder, every path in the config may be <b>relative</b> — it "
+             "resolves against the config file's folder; absolute paths stay "
+             "unchanged. The folder then moves, copies and zips as a whole. "
+             "The test-data generator's demo scenario produces exactly this "
+             "structure: solutions/&lt;name&gt;/ with solution.json, arts/ and "
+             "registers/ (standard names), plus snapshots/ and raw/.", st),
+        _SP(6),
+
         _H1("5. The report", st), _hr(st),
         _H2("5.1  Management summary", st),
         _P("At the very top sits a compact figures table — one row per unit (in pooled "
@@ -1103,6 +1121,15 @@ def content_ro(st: dict) -> list:
         _box("Sfat: un fisier de solutie salvat este <b>template-ul de solutie</b>. "
              "Pentru un portofoliu, alegeti Tip = portfolio si indicati fiecare membru "
              "catre un astfel de fisier de solutie salvat.", st),
+        _SP(6),
+
+        _box("Folder de date al portofoliului: cand configul si datele stau "
+             "intr-un folder comun, toate caile din config pot fi <b>relative</b> "
+             "— se rezolva fata de folderul fisierului de config; caile absolute "
+             "raman neschimbate. Folderul se muta, se copiaza si se arhiveaza ca "
+             "intreg. Scenariul demo al generatorului de date de test produce "
+             "exact aceasta structura: solutions/&lt;nume&gt;/ cu solution.json, "
+             "arts/ si registers/ (nume standard), plus snapshots/ si raw/.", st),
         _SP(6),
 
         _H1("5. Raportul", st), _hr(st),
@@ -1475,6 +1502,16 @@ def content_pt(st: dict) -> list:
              "ficheiro de solucao guardado.", st),
         _SP(6),
 
+        _box("Pasta de dados do portefolio: quando config e dados vivem numa "
+             "pasta comum, todos os caminhos no config podem ser <b>relativos</b> "
+             "— resolvem-se em relacao a pasta do ficheiro de config; caminhos "
+             "absolutos ficam inalterados. A pasta move-se, copia-se e "
+             "comprime-se como um todo. O cenario demo do gerador de dados de "
+             "teste produz exatamente esta estrutura: solutions/&lt;nome&gt;/ com "
+             "solution.json, arts/ e registers/ (nomes padrao), mais snapshots/ "
+             "e raw/.", st),
+        _SP(6),
+
         _H1("5. O relatorio", st), _hr(st),
         _H2("5.1  Resumo de gestao", st),
         _P("No topo esta uma tabela compacta de indicadores — uma linha por unidade (no "
@@ -1844,6 +1881,16 @@ def content_fr(st: dict) -> list:
         _box("Astuce : un fichier de solution enregistre est votre <b>template de "
              "solution</b>. Pour un portefeuille, choisissez Type = portfolio et pointez "
              "chaque membre vers un tel fichier de solution enregistre.", st),
+        _SP(6),
+
+        _box("Dossier de donnees du portefeuille : quand config et donnees "
+             "vivent dans un dossier commun, tous les chemins du config peuvent "
+             "etre <b>relatifs</b> — ils se resolvent par rapport au dossier du "
+             "fichier de config ; les chemins absolus restent inchanges. Le "
+             "dossier se deplace, se copie et se compresse d'un bloc. Le "
+             "scenario demo du generateur de donnees de test produit exactement "
+             "cette structure : solutions/&lt;nom&gt;/ avec solution.json, arts/ "
+             "et registers/ (noms standard), plus snapshots/ et raw/.", st),
         _SP(6),
 
         _H1("5. Le rapport", st), _hr(st),

@@ -22,6 +22,7 @@
 
 from __future__ import annotations
 
+import dataclasses
 import json
 from collections.abc import Callable
 from datetime import date
@@ -78,6 +79,7 @@ from .solution_config import (
     SolutionConfig,
     StageMap,
     load_solution_config,
+    resolve_config_path,
 )
 from .summary import (
     SourceQuality,
@@ -125,13 +127,33 @@ DEFAULT_COMPARISON_METRICS = [FLOW_VELOCITY, FLOW_TIME, FLOW_DISTRIBUTION,
 DEFAULT_METRICS = DEFAULT_POOLED_METRICS
 
 
+def _absolutize_member(member: Member, base: Path | None) -> Member:
+    """
+    Resolve a member's path fields against its owning config's folder.
+
+    Applied once when members are gathered for loading, so everything
+    downstream works with plain paths; the config object itself keeps the
+    stated (possibly relative) strings — serialisation stays portable.
+    """
+    if base is None:
+        return member
+    updates = {
+        key: str(resolve_config_path(base, value))
+        for key in ("template", "issue_times", "cfd", "workflow",
+                    "transitions")
+        if (value := getattr(member, key).strip())
+    }
+    return dataclasses.replace(member, **updates) if updates else member
+
+
 def _resolve_member_paths(member: Member) -> dict[str, Path | None]:
     """
     Resolve a member's data file paths.
 
     A direct ``issue_times`` on the member takes precedence; otherwise the
     member's project template is read and its build_reports section supplies
-    the paths.
+    the paths (relative template entries resolve against the template's own
+    folder — the Datenraum rule).
 
     Args:
         member: The solution member to resolve.
@@ -151,11 +173,19 @@ def _resolve_member_paths(member: Member) -> dict[str, Path | None]:
         issue_times = _p(member.issue_times)
         cfd, workflow, transitions = _p(member.cfd), _p(member.workflow), _p(member.transitions)
     elif member.template:
-        section = get_section(load_template(Path(member.template)), MODULE_BUILD_REPORTS)
-        issue_times = _p(str(section.get("issue_times", "")))
-        cfd = _p(str(section.get("cfd", "")))
-        workflow = _p(str(section.get("workflow", "")))
-        transitions = _p(str(section.get("transitions", "")))
+        template_path = Path(member.template)
+        section = get_section(load_template(template_path), MODULE_BUILD_REPORTS)
+
+        def _t(value: str) -> Path | None:
+            value = (value or "").strip()
+            if not value:
+                return None
+            return resolve_config_path(template_path.resolve().parent, value)
+
+        issue_times = _t(str(section.get("issue_times", "")))
+        cfd = _t(str(section.get("cfd", "")))
+        workflow = _t(str(section.get("workflow", "")))
+        transitions = _t(str(section.get("transitions", "")))
     else:
         raise ValueError(f"Member '{member.name}' has neither template nor issue_times.")
 
@@ -185,16 +215,18 @@ def _iter_art_members(
         Flat list of ART-level Members.
     """
     if config.kind == KIND_SOLUTION:
-        return list(config.members)
+        return [_absolutize_member(m, config.base_dir)
+                for m in config.members]
 
     visited = _visited if _visited is not None else set()
     arts: list[Member] = []
     for member in config.members:
-        resolved = str(Path(member.template).resolve())
+        template = resolve_config_path(config.base_dir, member.template)
+        resolved = str(template.resolve())
         if resolved in visited:
             continue
         visited.add(resolved)
-        sub = load_solution_config(Path(member.template))
+        sub = load_solution_config(template)
         arts.extend(_iter_art_members(sub, visited))
     return arts
 
@@ -386,7 +418,7 @@ def load_members(
     cfg = FilterConfig(from_date=config.from_date, to_date=config.to_date)
     out: list[ReportData] = []
     for member in config.members:
-        data = _load_member(member)
+        data = _load_member(_absolutize_member(member, config.base_dir))
         data = apply_filters(data, cfg)
         log(f"  {member.name}: {len(data.issues)} issues after filter")
         out.append(data)
@@ -422,7 +454,8 @@ def load_comparison_units(
     cfg = FilterConfig(from_date=config.from_date, to_date=config.to_date)
     units: list[ReportData] = []
     for member in config.members:
-        sub = load_solution_config(Path(member.template))
+        sub = load_solution_config(
+            resolve_config_path(config.base_dir, member.template))
         data = build_pooled_report_data(sub, log=log)  # source_prefix = solution name
         data = apply_filters(data, cfg)
         log(f"  Solution '{sub.name}': {len(data.issues)} issues after filter")
@@ -517,7 +550,8 @@ def _governance_sources(
     sources: list[tuple[str, SolutionConfig]] = []
     for member in config.members:
         try:
-            sub = load_solution_config(Path(member.template))
+            sub = load_solution_config(
+                resolve_config_path(config.base_dir, member.template))
         except (OSError, ValueError, json.JSONDecodeError) as exc:
             log(f"  WARNING [{member.name}]: solution config not readable "
                 f"for governance data ({exc})")
@@ -551,7 +585,7 @@ def _collect_capabilities(
         if not sub.capabilities:
             continue
         try:
-            cap_map = load_capabilities(Path(sub.capabilities))
+            cap_map = load_capabilities(resolve_config_path(sub.base_dir, sub.capabilities, log))
         except (OSError, ValueError, json.JSONDecodeError) as exc:
             log(f"  WARNING [{label}]: capabilities file skipped ({exc})")
             continue
@@ -588,7 +622,7 @@ def _collect_decisions(
         if not sub.decisions:
             continue
         try:
-            decision_log = load_decisions(Path(sub.decisions))
+            decision_log = load_decisions(resolve_config_path(sub.base_dir, sub.decisions, log))
         except (OSError, ValueError, json.JSONDecodeError) as exc:
             log(f"  WARNING [{label}]: decisions file skipped ({exc})")
             continue
@@ -609,7 +643,7 @@ def _collect_flow_problems(
         if not sub.flow_problems:
             continue
         try:
-            register = load_flow_problems(Path(sub.flow_problems))
+            register = load_flow_problems(resolve_config_path(sub.base_dir, sub.flow_problems, log))
         except (OSError, ValueError, json.JSONDecodeError) as exc:
             log(f"  WARNING [{label}]: flow-problems file skipped ({exc})")
             continue
@@ -632,7 +666,7 @@ def _collect_themes(
         if not sub.themes:
             continue
         try:
-            register = load_themes(Path(sub.themes))
+            register = load_themes(resolve_config_path(sub.base_dir, sub.themes, log))
         except (OSError, ValueError, json.JSONDecodeError) as exc:
             log(f"  WARNING [{label}]: themes file skipped ({exc})")
             continue
@@ -654,7 +688,7 @@ def _collect_slo(
         if not sub.slo:
             continue
         try:
-            register = load_slo(Path(sub.slo))
+            register = load_slo(resolve_config_path(sub.base_dir, sub.slo, log))
         except (OSError, ValueError, json.JSONDecodeError) as exc:
             log(f"  WARNING [{label}]: slo file skipped ({exc})")
             continue
@@ -676,7 +710,7 @@ def _collect_delivery(
         if not sub.dora:
             continue
         try:
-            register = load_delivery(Path(sub.dora))
+            register = load_delivery(resolve_config_path(sub.base_dir, sub.dora, log))
         except (OSError, ValueError, json.JSONDecodeError) as exc:
             log(f"  WARNING [{label}]: dora file skipped ({exc})")
             continue
@@ -711,7 +745,7 @@ def _collect_dependencies(
         if not sub.dependencies:
             continue
         try:
-            register = load_dependencies(Path(sub.dependencies))
+            register = load_dependencies(resolve_config_path(sub.base_dir, sub.dependencies, log))
         except (OSError, ValueError, json.JSONDecodeError) as exc:
             log(f"  WARNING [{label}]: dependencies file skipped ({exc})")
             continue
@@ -742,7 +776,7 @@ def _collect_risks(
         if not sub.risks:
             continue
         try:
-            register = load_risks(Path(sub.risks))
+            register = load_risks(resolve_config_path(sub.base_dir, sub.risks, log))
         except (OSError, ValueError, json.JSONDecodeError) as exc:
             log(f"  WARNING [{label}]: risks file skipped ({exc})")
             continue
@@ -774,7 +808,7 @@ def _collect_nfr(
         if not sub.nfr:
             continue
         try:
-            register = load_nfr(Path(sub.nfr))
+            register = load_nfr(resolve_config_path(sub.base_dir, sub.nfr, log))
         except (OSError, ValueError, json.JSONDecodeError) as exc:
             log(f"  WARNING [{label}]: NFR file skipped ({exc})")
             continue

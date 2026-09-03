@@ -19,6 +19,7 @@
 from __future__ import annotations
 
 import json
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import date
 from pathlib import Path
@@ -195,6 +196,53 @@ class SolutionConfig:
     dora: str = ""
     flow_problems: str = ""
     themes: str = ""
+    #: Folder of the file this config was loaded from (set by
+    #: load_solution_config, never serialised). Relative paths inside the
+    #: config resolve against it — the Datenraum rule that makes a
+    #: portfolio folder portable. None = built in memory (legacy CWD
+    #: behaviour).
+    base_dir: Path | None = field(default=None, compare=False, repr=False)
+
+
+def resolve_config_path(
+    base: Path | None,
+    value: str,
+    log: Callable[[str], None] | None = None,
+) -> Path:
+    """
+    Resolve a path stated in a config file (the Datenraum rule).
+
+    Absolute values pass through unchanged. Relative values resolve
+    against ``base`` (the folder of the config file that states them) —
+    that is what makes a portfolio folder movable and copyable as a
+    whole. Legacy configs that meant "relative to the working directory"
+    keep working: when nothing exists at the config-relative location but
+    the CWD-relative one does, that path is used and a warning suggests
+    storing the path relative to the config.
+
+    Args:
+        base:  Folder of the config file (``config.base_dir``), or None
+               for in-memory configs (plain CWD behaviour).
+        value: The path string exactly as stated in the config.
+        log:   Optional warning callback for the legacy fallback.
+
+    Returns:
+        The resolved path (config-relative candidate when nothing exists
+        yet, so error messages point at the intended location).
+    """
+    raw = Path(str(value).strip())
+    if raw.is_absolute() or base is None:
+        return raw
+    candidate = Path(base) / raw
+    if candidate.exists():
+        return candidate
+    if raw.exists():
+        if log is not None:
+            log(f"  WARNING: '{value}' was resolved relative to the "
+                f"working directory (legacy behaviour); store it relative "
+                f"to the config file to make the folder portable.")
+        return raw
+    return candidate
 
 
 def _parse_date(value: Any) -> date | None:
@@ -304,7 +352,9 @@ def load_solution_config(path: Path) -> SolutionConfig:
         OSError / json.JSONDecodeError: On read/parse failure.
     """
     raw = json.loads(Path(path).read_text(encoding="utf-8"))
-    return parse_solution_config(raw)
+    config = parse_solution_config(raw)
+    config.base_dir = Path(path).resolve().parent
+    return config
 
 
 def to_dict(config: SolutionConfig) -> dict[str, Any]:
