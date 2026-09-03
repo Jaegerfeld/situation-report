@@ -18,6 +18,7 @@
 
 from __future__ import annotations
 
+import dataclasses
 import json
 import threading
 import tkinter as tk
@@ -538,6 +539,31 @@ def default_metrics_for_mode(mode: str) -> list[str]:
             else DEFAULT_POOLED_METRICS)
 
 
+#: Fields a loaded config may carry that the manager form does NOT edit.
+#: They must survive every rebuild from the form (save, report, snapshot,
+#: conference) — otherwise the GUI silently deletes data (found
+#: 2026-09-04, Konzept Portfolio-Datenraum, Phase 0).
+_PRESERVED_FIELDS = ("framework", "stage_map", "risks", "nfr",
+                     "capabilities", "dependencies", "decisions", "slo",
+                     "dora", "flow_problems", "themes")
+
+
+def merge_preserved_fields(cfg: SolutionConfig,
+                           loaded: SolutionConfig | None) -> SolutionConfig:
+    """
+    Carry the non-form fields of the loaded config into a rebuilt one.
+
+    The manager window edits name, kind, terminology, dates, mode and
+    members; everything else (the nine register paths, a custom
+    stage_map, the framework) is taken verbatim from the file the user
+    loaded. With no loaded file the rebuilt config passes through.
+    """
+    if loaded is None:
+        return cfg
+    return dataclasses.replace(
+        cfg, **{f: getattr(loaded, f) for f in _PRESERVED_FIELDS})
+
+
 # ---------------------------------------------------------------------------
 # tkinter application (not unit-tested — requires a display)
 # ---------------------------------------------------------------------------
@@ -565,6 +591,7 @@ class SolutionManagerApp(tk.Tk):
         self._col_source_lbl: tk.Label | None = None
         self._flag_imgs: dict[str, tk.PhotoImage] = {}
         self._flag_btn: tk.Button | None = None
+        self._loaded_cfg: SolutionConfig | None = None
         self._status = tk.StringVar()
 
         self._create_flag_imgs()
@@ -794,6 +821,7 @@ class SolutionManagerApp(tk.Tk):
         return [(r["name"].get(), r["source"].get()) for r in self._member_rows]
 
     def _new(self) -> None:
+        self._loaded_cfg = None
         self._name.set("")
         self._from.set("")
         self._to.set("")
@@ -818,6 +846,7 @@ class SolutionManagerApp(tk.Tk):
             messagebox.showerror(self._tr("window_title"),
                                  self._tr("msg_load_error").format(error=exc))
             return
+        self._loaded_cfg = cfg
         self._name.set(cfg.name)
         self._terminology.set(cfg.terminology)
         self._kind.set(cfg.kind)
@@ -838,11 +867,12 @@ class SolutionManagerApp(tk.Tk):
 
     def _build_config(self) -> SolutionConfig | None:
         try:
-            return build_config_from_fields(
+            return merge_preserved_fields(build_config_from_fields(
                 self._name.get(), FRAMEWORK_SAFE,
                 self._from.get(), self._to.get(),
                 self._collect_members(), self._mode.get(),
-                kind=self._kind.get(), terminology=self._terminology.get())
+                kind=self._kind.get(), terminology=self._terminology.get()),
+                self._loaded_cfg)
         except ValueError as exc:
             messagebox.showwarning(self._tr("window_title"),
                                    self._tr("msg_invalid").format(error=exc))
