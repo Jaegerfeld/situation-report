@@ -72,6 +72,7 @@ from portfolio.dependency_config import (
     DependencyRegister,
     save_dependencies,
 )
+from portfolio.dora_config import DeliveryRegister, save_delivery
 from portfolio.nfr_config import (
     RUNWAY_BUILDING,
     RUNWAY_GAP,
@@ -96,6 +97,7 @@ from portfolio.risks_config import (
     RiskRegister,
     save_risks,
 )
+from portfolio.slo_config import SloRegister, save_slo
 from portfolio.solution_config import (
     KIND_PORTFOLIO,
     Member,
@@ -103,6 +105,7 @@ from portfolio.solution_config import (
     StageMap,
     save_solution_config,
 )
+from sources.base import DoraRecord, QualityRecord, SloRecord
 from transform_data.processor import process_issues
 from transform_data.workflow import parse_workflow
 from transform_data.writers import write_cfd, write_issue_times, write_transitions
@@ -282,6 +285,84 @@ def _beta_capabilities(reference: date) -> CapabilityMap:
                    arts=["ART Beta-2"], owner="ART Beta-2",
                    assessed_on=reference - timedelta(days=7)),
     ])
+
+
+def _alpha_slo(reference: date) -> SloRegister:
+    """SLOs of Solution Alpha: healthy, one budget running low."""
+    src = "demo-scenario"
+    at = reference.isoformat()
+    return SloRegister(records=[
+        SloRecord("Order API", "p95 latency < 200 ms", 99.9, sli_pct=99.97,
+                  source=src, fetched_at=at),
+        # Budget fast aufgebraucht: SLI knapp ueber Ziel -> at_risk.
+        SloRecord("Checkout", "availability", 99.5, sli_pct=99.55,
+                  source=src, fetched_at=at),
+        SloRecord("Search", "p99 latency < 800 ms", 99.0, sli_pct=99.8,
+                  source=src, fetched_at=at),
+    ])
+
+
+def _beta_slo(reference: date) -> SloRegister:
+    """SLOs of Solution Beta: the sync service has burned its budget."""
+    src = "demo-scenario"
+    at = reference.isoformat()
+    return SloRegister(records=[
+        # Die Geschichte: der Sync-Dienst (Beta-3-Umfeld) reisst sein SLO.
+        SloRecord("Order Sync API", "availability", 99.5, sli_pct=99.1,
+                  source=src, fetched_at=at),
+        SloRecord("Reporting", "p95 latency < 500 ms", 99.0, sli_pct=99.6,
+                  source=src, fetched_at=at),
+    ])
+
+
+def _alpha_delivery(reference: date) -> DeliveryRegister:
+    """Delivery health of Solution Alpha: solid, the outlier ships slowly."""
+    src = "demo-scenario"
+    at = reference.isoformat()
+    return DeliveryRegister(
+        dora=[
+            DoraRecord("ART Alpha-1", deployments_per_day=1.4,
+                       lead_time_hours=18.0, change_failure_rate_pct=4.0,
+                       time_to_restore_hours=0.8, source=src, fetched_at=at),
+            DoraRecord("ART Alpha-2", deployments_per_day=0.6,
+                       lead_time_hours=40.0, change_failure_rate_pct=8.0,
+                       time_to_restore_hours=6.0, source=src, fetched_at=at),
+            # Der Ausreisser liefert auch selten und langsam.
+            DoraRecord("ART Alpha-3", deployments_per_day=0.05,
+                       lead_time_hours=520.0, change_failure_rate_pct=14.0,
+                       time_to_restore_hours=20.0, source=src, fetched_at=at),
+        ],
+        quality=[
+            QualityRecord("ART Alpha-1", coverage_pct=78.0,
+                          maintainability="A", critical_issues=0,
+                          source=src, fetched_at=at),
+            QualityRecord("ART Alpha-3", coverage_pct=55.0,
+                          maintainability="C", critical_issues=2,
+                          source=src, fetched_at=at),
+        ],
+    )
+
+
+def _beta_delivery(reference: date) -> DeliveryRegister:
+    """Delivery health of Solution Beta: the weak source is low tier."""
+    src = "demo-scenario"
+    at = reference.isoformat()
+    return DeliveryRegister(
+        dora=[
+            DoraRecord("ART Beta-1", deployments_per_day=0.9,
+                       lead_time_hours=30.0, change_failure_rate_pct=6.0,
+                       time_to_restore_hours=3.0, source=src, fetched_at=at),
+            # Die Geschichte: Beta-3 auch im Delivery-Bild low.
+            DoraRecord("ART Beta-3", deployments_per_day=0.02,
+                       lead_time_hours=800.0, change_failure_rate_pct=38.0,
+                       time_to_restore_hours=30.0, source=src, fetched_at=at),
+        ],
+        quality=[
+            QualityRecord("ART Beta-3", coverage_pct=31.0,
+                          maintainability="D", critical_issues=7,
+                          source=src, fetched_at=at),
+        ],
+    )
 
 
 def _alpha_decisions(reference: date) -> DecisionLog:
@@ -528,6 +609,14 @@ def build_portfolio_scenario(
     save_decisions(decisions_alpha, _alpha_decisions(reference))
     decisions_beta = out / "decisions_beta.json"
     save_decisions(decisions_beta, _beta_decisions(reference))
+    slo_alpha = out / "slo_alpha.json"
+    save_slo(slo_alpha, _alpha_slo(reference))
+    slo_beta = out / "slo_beta.json"
+    save_slo(slo_beta, _beta_slo(reference))
+    dora_alpha = out / "dora_alpha.json"
+    save_delivery(dora_alpha, _alpha_delivery(reference))
+    dora_beta = out / "dora_beta.json"
+    save_delivery(dora_beta, _beta_delivery(reference))
 
     solution_alpha = out / "solution_alpha.json"
     save_solution_config(solution_alpha, SolutionConfig(
@@ -535,14 +624,16 @@ def build_portfolio_scenario(
         from_date=reference - timedelta(days=window_days), to_date=reference,
         risks=str(risks_alpha), nfr=str(nfr_alpha),
         capabilities=str(caps_alpha), dependencies=str(deps_alpha),
-        decisions=str(decisions_alpha)))
+        decisions=str(decisions_alpha), slo=str(slo_alpha),
+        dora=str(dora_alpha)))
     solution_beta = out / "solution_beta.json"
     save_solution_config(solution_beta, SolutionConfig(
         name="Solution Beta", members=members["beta"],
         from_date=reference - timedelta(days=window_days), to_date=reference,
         stage_map=_BETA_STAGE_MAP, risks=str(risks_beta), nfr=str(nfr_beta),
         capabilities=str(caps_beta), dependencies=str(deps_beta),
-        decisions=str(decisions_beta)))
+        decisions=str(decisions_beta), slo=str(slo_beta),
+        dora=str(dora_beta)))
 
     portfolio_cfg = out / "portfolio.json"
     save_solution_config(portfolio_cfg, SolutionConfig(
@@ -605,6 +696,14 @@ def build_portfolio_scenario(
         "  Alphas Stage-Map-Entscheidung ersetzt eine ältere (supersedes),",
         "  Betas offene Annahme „Beta-3 heilt sich selbst\" hat ihr Prüfdatum",
         "  überschritten — im Log rot als „review due\" markiert.",
+        "- **SLO & Error-Budgets (C1)**: `slo_alpha.json`/`slo_beta.json`;",
+        "  Betas „Order Sync API\" reißt ihr SLO (breached), Alphas",
+        "  „Checkout\" hat sein Budget fast aufgebraucht (at risk).",
+        "- **DORA & Code-Qualität (C2)**: `dora_alpha.json`/`dora_beta.json`;",
+        "  ART Beta-3 ist auch im Delivery-Bild low (CFR 38 %, MTTR 30 h,",
+        "  Coverage 31 %, Rating D) — die schwache Quelle von allen Seiten.",
+        "  Erzeugt/austauschbar über `python -m sources fetch` (Provider:",
+        "  file, prometheus, github, gitlab, sonarqube — kombinierbar).",
         "- **Delta-Briefing (D2)**: `snapshot_prev.json` (Stand vor 14 Tagen)",
         "  und `snapshot_now.json` liegen bei —",
         "  `python -m portfolio --delta snapshot_prev.json snapshot_now.json`",
@@ -651,5 +750,7 @@ def build_portfolio_scenario(
             "capabilities_beta": caps_beta, "dependencies_alpha": deps_alpha,
             "dependencies_beta": deps_beta, "decisions_alpha": decisions_alpha,
             "decisions_beta": decisions_beta, "pi_config": pi_cfg,
+            "slo_alpha": slo_alpha, "slo_beta": slo_beta,
+            "dora_alpha": dora_alpha, "dora_beta": dora_beta,
             "snapshot_prev": snapshot_prev, "snapshot_now": snapshot_now,
             "readme": readme}

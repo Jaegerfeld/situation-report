@@ -58,12 +58,15 @@ METRIC_CFD = "cfd"
 _CANON_STAGES = [GROUP_TODO, GROUP_IN_PROGRESS, GROUP_DONE]
 
 from project_template import MODULE_BUILD_REPORTS, get_section, load_template
+from sources.base import DoraRecord, QualityRecord, SloRecord
 
 from .capability_config import Capability, load_capabilities
 from .decision_config import LogEntry, load_decisions
 from .dependency_config import Dependency, load_dependencies
+from .dora_config import load_delivery
 from .nfr_config import Nfr, RunwayItem, load_nfr
 from .risks_config import Risk, load_risks
+from .slo_config import load_slo
 from .solution_config import (
     KIND_PORTFOLIO,
     KIND_SOLUTION,
@@ -81,16 +84,20 @@ from .summary import (
     compute_summary,
     decisions_figure,
     dependency_figure,
+    dora_figure,
     nfr_figure,
     quality_figure,
     render_capabilities_html,
     render_decisions_html,
     render_dependencies_html,
+    render_dora_html,
     render_nfr_html,
     render_quality_html,
     render_roam_html,
+    render_slo_html,
     render_summary_html,
     roam_figure,
+    slo_figure,
     summary_figure,
 )
 
@@ -582,6 +589,50 @@ def _collect_decisions(
     return entries
 
 
+def _collect_slo(
+    config: SolutionConfig,
+    log: Callable[[str], None] = print,
+) -> list[tuple[str, SloRecord]]:
+    """
+    Collect SLO records for the report (C1) — same rules as the other
+    governance registers; broken or missing files are logged and skipped.
+    """
+    entries: list[tuple[str, SloRecord]] = []
+    for label, sub in _governance_sources(config, log):
+        if not sub.slo:
+            continue
+        try:
+            register = load_slo(Path(sub.slo))
+        except (OSError, ValueError, json.JSONDecodeError) as exc:
+            log(f"  WARNING [{label}]: slo file skipped ({exc})")
+            continue
+        entries.extend((label, record) for record in register.records)
+    return entries
+
+
+def _collect_delivery(
+    config: SolutionConfig,
+    log: Callable[[str], None] = print,
+) -> tuple[list[tuple[str, DoraRecord]], list[tuple[str, QualityRecord]]]:
+    """
+    Collect DORA and quality records for the report (C2) — same rules as
+    the other governance registers; broken files are logged and skipped.
+    """
+    dora: list[tuple[str, DoraRecord]] = []
+    quality: list[tuple[str, QualityRecord]] = []
+    for label, sub in _governance_sources(config, log):
+        if not sub.dora:
+            continue
+        try:
+            register = load_delivery(Path(sub.dora))
+        except (OSError, ValueError, json.JSONDecodeError) as exc:
+            log(f"  WARNING [{label}]: dora file skipped ({exc})")
+            continue
+        dora.extend((label, record) for record in register.dora)
+        quality.extend((label, record) for record in register.quality)
+    return dora, quality
+
+
 def _collect_dependencies(
     config: SolutionConfig,
     log: Callable[[str], None] = print,
@@ -715,9 +766,13 @@ def render_html(
     nfr = render_nfr_html(*_collect_nfr(config, log=log))
     deps = render_dependencies_html(_collect_dependencies(config, log=log))
     decisions = render_decisions_html(_collect_decisions(config, log=log))
+    slo = render_slo_html(_collect_slo(config, log=log))
+    dora_entries, quality_entries = _collect_delivery(config, log=log)
+    dora = render_dora_html(dora_entries, quality_entries)
     return html.replace(
         "<body>",
-        "<body>" + summary + quality + caps + roam + nfr + deps + decisions, 1)
+        "<body>" + summary + quality + caps + roam + nfr + deps + decisions
+        + slo + dora, 1)
 
 
 def render_pdf(
@@ -765,6 +820,12 @@ def render_pdf(
     log_entries = _collect_decisions(config, log=log)
     if log_entries:
         extra.append(decisions_figure(log_entries))
+    slo_entries = _collect_slo(config, log=log)
+    if slo_entries:
+        extra.append(slo_figure(slo_entries))
+    dora_entries, quality_entries = _collect_delivery(config, log=log)
+    if dora_entries or quality_entries:
+        extra.append(dora_figure(dora_entries, quality_entries))
     pages[1:1] = extra
     export_pdf(pages, Path(output_path))
     log(f"PDF written to: {output_path}")

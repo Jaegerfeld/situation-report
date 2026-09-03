@@ -141,6 +141,14 @@ Built-in stories (deterministic per seed):
 - **Decision log**: three decisions and two assumptions; Alpha's stage-map
   decision supersedes an older one, and Beta's open assumption has passed
   its review date — flagged red as "review due".
+- **SLO & error budgets**: `slo_alpha.json`/`slo_beta.json` — Beta's
+  "Order Sync API" breaches its SLO, Alpha's "Checkout" has nearly burned
+  its budget (at risk).
+- **DORA & code quality**: `dora_alpha.json`/`dora_beta.json` — ART
+  Beta-3 is low tier in the delivery picture too (CFR 38 %, MTTR 30 h,
+  coverage 31 %, rating D); producible/exchangeable via
+  `python -m sources fetch` (providers: file, prometheus, github, gitlab,
+  sonarqube — combinable).
 - **Delta briefing**: `snapshot_prev.json` (the same world two weeks
   earlier) and `snapshot_now.json` ship with the scenario —
   `python -m portfolio --delta snapshot_prev.json snapshot_now.json` shows

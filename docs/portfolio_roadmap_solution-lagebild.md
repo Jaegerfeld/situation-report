@@ -106,11 +106,13 @@ Nicht nach „Feature-Wunschliste", sondern nach **Datenherkunft** (das BGS-Prin
 
 *Größter Aufwand, externe Abhängigkeiten; liefert das technische Gesundheitsbild neben dem Fluss.*
 
-### C1 · SLO/SLI & Error-Budget
+### C1 · SLO/SLI & Error-Budget ✅ (umgesetzt 03.09.2026)
 - **Quelle:** Monitoring (Azure Monitor / Prometheus / Grafana). **Warum:** Zuverlässigkeit gemessen & budgetiert (*SRE with Azure*), technische Ergänzung zur ökonomischen Flow-Sicht. **Aufwand:** L.
+- **Ist-Stand:** Über das neue steckbare `sources`-Framework (Vorgabe Robert: austauschbar, kombinierbar, neue Quelle = eine Datei): Referenz-Provider **prometheus** (De-facto-OSS-Standard, ~77 % Produktionsnutzung; Marktrecherche 03.09.) + universeller **file**-Provider (jedes System per JSON-Export, ohne API-Freigabe — Datadog/Dynatrace/Azure docken so an). Report-Sektion „Service Levels & Error Budgets" mit ZENTRALER Budget-/Status-Regel (verbraucht = (100−SLI)/(100−Ziel); at_risk < 25 % Rest) — jede Quelle wird gleich beurteilt. Config-Feld `slo`; Szenario liefert slo_alpha/beta.json mit.
 
-### C2 · DORA + Qualitäts-/Fehlermetriken
+### C2 · DORA + Qualitäts-/Fehlermetriken ✅ (umgesetzt 03.09.2026)
 - **Quelle:** CI/CD + Git + SonarQube. **Was:** Deployment Frequency, Lead Time for Changes, Change Failure Rate, Time to Restore; Coupling/Cohesion → Fehlerneigung (*Fault Detection*). **Aufwand:** L.
+- **Ist-Stand:** Referenz-Provider **github** (Wunsch Robert; keine native DORA-API — die vier Kennzahlen werden aus Deployments/PRs/Incident-Issues ABGELEITET, Näherungen dokumentiert und konfigurierbar), **gitlab** als zweite Referenz (einzige native DORA-API am Markt — Austauschbarkeits-Beweis) und **sonarqube** (Qualität: Coverage/Rating/kritische Verstöße). Report-Sektion „Delivery Performance (DORA) & Code Quality" mit Tier je Kennzahl an den veröffentlichten DORA-Schwellen (Unit-Tier = schwächste Kennzahl). Config-Feld `dora`; Szenario liefert dora_alpha/beta.json mit. **Offen:** Praxistest gegen echte Instanzen; Coupling/Cohesion-Fehlerneigung (Fault-Detection-Teil) später.
 
 ### C3 · `get_data`-Modul (Jira REST) fertigstellen ✅ (umgesetzt 03.09.2026)
 - **Was:** direkter Jira-Abruf statt manuellem Export (bereits als Modul geplant). **Warum:** senkt Erhebungsaufwand → METRIKS-MINDSET „Metriken als automatisiertes Nebenprodukt". **Aufwand:** M–L.

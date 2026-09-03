@@ -301,6 +301,27 @@ Browser. Der Demo-Weg ist noch kürzer: Der Demo-Portfolio-Bereich des
 Testdaten-Generators bekommt **Delta-Briefing öffnen** und rendert direkt
 das mitgelieferte Paar `snapshot_prev/now.json`.
 
+## SLO- & DORA-Register (optional, C1/C2)
+
+Eine Solution-Config kann zwei weitere Register referenzieren, beide vom
+steckbaren `sources`-Framework erzeugt (Provider und das 30-Zeilen-Rezept
+für neue Quellen: siehe dessen Modulseite):
+
+- `"slo": "slo.json"` rendert **Service Levels & Error Budgets**: je SLO
+  Ziel, aktueller SLI, Rest-Error-Budget (zentrale Regel: verbraucht =
+  (100−SLI)/(100−Ziel)) und Status — met / at risk (< 25 % Restbudget) /
+  breached / unknown, breached zuerst. Jede Datenquelle wird nach
+  derselben Regel beurteilt.
+- `"dora": "dora.json"` rendert **Delivery Performance (DORA) & Code
+  Quality**: die vier DORA-Kennzahlen je Einheit, jede Zelle an den
+  veröffentlichten Schwellen eingestuft (elite/high/medium/low),
+  Gesamt-Tier = schwächste Kennzahl; darunter die Qualitätstabelle
+  (Coverage, Maintainability-Rating, kritische Verstöße).
+
+Jede Zeile behält ihre Datenquelle (kombinierbare Quellen); ein Portfolio
+aggregiert Member-Register mit Solution-Spalte; defekte Dateien werden
+geloggt und übersprungen.
+
 ## Eigene Stage-Map (optional, Config-Schema 2)
 
 Standardmäßig poolen unterschiedliche ART-Workflows in die drei kanonischen
@@ -335,6 +356,8 @@ portfolio/
 ├── capability_config.py Capability-Map (B1): Schema, parse/load/save
 ├── dependency_config.py Dependency-Register (B5): Schema, parse/load/save
 ├── decision_config.py Decision-/Assumption-Log (B4): Schema, parse/load/save
+├── slo_config.py      SLO-Register (C1): zentrale Budget-/Status-Regel
+├── dora_config.py     Delivery-Register (C2): DORA-Tiers + Qualität
 ├── snapshot.py        Report-Snapshot (D2): Kennzahlen/Qualität/Governance einfrieren
 ├── delta.py           Delta-Briefing (D2): zwei Snapshots vergleichen, HTML/Markdown
 ├── aggregator.py      Zusammenführung auf Datensatz-Ebene + Rendering (HTML/PDF)

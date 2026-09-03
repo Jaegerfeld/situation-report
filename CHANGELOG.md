@@ -8,6 +8,27 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- **External metric sources + SLO/DORA views** (roadmap C1/C2) — new
+  pluggable `sources` framework: normalised record contracts (SLO, DORA,
+  quality) decouple the report from any vendor; providers are
+  exchangeable, **combinable** (several sources merge into one register,
+  each row keeping its origin) and easy to extend (a new source is one
+  file in `sources/providers/` with a `PROVIDER` object — auto-discovered,
+  ~30-line recipe on the module page). Shipped providers: `file`
+  (universal path, no API approval needed), `prometheus` (C1 reference,
+  SLO/SLI via instant query), `github` (C2 reference per Robert — DORA
+  derived from deployments/PRs/incident issues with documented,
+  configurable approximations), `gitlab` (native DORA API, second
+  reference), `sonarqube` (quality measures). Tokens only via environment
+  variables, never stored or logged. CLI: `python -m sources fetch|
+  providers`. The report gains two sections via the new config fields
+  `slo`/`dora`: **Service Levels & Error Budgets** (central budget rule,
+  breached first) and **Delivery Performance (DORA) & Code Quality**
+  (per-metric tiers at the published DORA thresholds, unit tier = worst
+  metric; quality table below) — HTML and PDF, portfolio-aggregated with
+  Solution column. The demo scenario ships `slo_*/dora_*.json` (Beta's
+  sync API breached, ART Beta-3 low tier, coverage 31 %, rating D);
+  manual section 5.13 in all five languages; one-pager (DE+EN).
 - **get_data implemented** (roadmap C3) — two equal acquisition paths for
   Jira data, ending in the same JSON `transform_data` consumes. Path 1,
   REST fetch (`python -m get_data fetch`): API v3 (`POST /search/jql`,
