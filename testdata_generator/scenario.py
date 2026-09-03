@@ -612,6 +612,10 @@ def build_portfolio_scenario(
         "  AD-1 at_risk → blocked, Risiko BR-2 neu, Runway-Lücke und Annahme",
         "  AS-B1 frisch überfällig.",
         "",
+        "Die Roh-JSONs unter `raw/` sind zugleich Demo-Futter für get_data:",
+        "`python -m get_data check raw/Alpha-1_jira.json` zeigt die",
+        "Export-Prüfung (Weg 2) am Beispiel.",
+        "",
         "Die Pfade in den Configs sind absolut — nach dem Verschieben des",
         "Ordners das Szenario neu erzeugen.",
     ]), encoding="utf-8")

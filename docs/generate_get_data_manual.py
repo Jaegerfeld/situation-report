@@ -464,7 +464,39 @@ def content_de(st: dict) -> list:
                 "<b>transform_data</b> beschrieben.", st)]
 
     story += [PageBreak(),
-              H1("2  Häufige Fragen (FAQ)", st), HR(),
+              H1("2  Automatischer Abruf mit get_data", st), HR(),
+              P("get_data automatisiert den Export aus Kapitel 1: Es ruft die "
+                "Issues inklusive Changelog direkt per REST ab, blättert alle "
+                "Seiten durch, entfernt Duplikate und schreibt <b>dieselbe "
+                "JSON-Datei</b>, die auch der manuelle Export liefert. Beide "
+                "Erhebungswege sind gleichwertig — in großen Organisationen "
+                "kann die Freigabe für API-Zugriffe lange dauern; bis dahin "
+                "(und darüber hinaus) bleibt der manuelle Weg vollwertig.", st),
+              PRE("# REST-Abruf (Token NUR per Umgebungsvariable):\n"
+                  "set JIRA_TOKEN=IhrAPIToken\n"
+                  "python -m get_data fetch --url https://firma.atlassian.net \\\n"
+                  "  --project ART_A --email name@firma.de --output ART_A.json\n\n"
+                  "# Server/Data Center mit PAT und aelterer API:\n"
+                  "python -m get_data fetch --url https://jira.firma.de \\\n"
+                  "  --project ART_A --auth bearer --api v2 --output ART_A.json\n\n"
+                  "# Vorhandenen manuellen Export pruefen (Weg 2):\n"
+                  "python -m get_data check ART_A_merged.json", st),
+              P("Die Prüfung (<font name='Courier'>check</font>) erkennt die "
+                "typischen Export-Fehler, bevor transform_data stolpert: "
+                "fehlende Pflichtfelder, fehlenden Changelog (expand "
+                "vergessen), Duplikate — und vergessene Folgeseiten "
+                "(total größer als die Anzahl der Issues in der Datei).", st),
+              P("<b>GUI:</b> <font name='Courier'>python -m get_data</font> "
+                "(oder die Get-Data-Karte im Launcher) öffnet ein Fenster mit "
+                "beiden Wegen als Umschalter: „Jira REST-Abruf“ (URL, Projekt "
+                "oder JQL, API v3/v2, Anmeldung Cloud/Bearer, Token-Feld) und "
+                "„Vorhandener Export“ (Datei wählen → Prüfen).", st),
+              HI("Sicherheit: Das Token wird nie gespeichert und nie geloggt — "
+                 "CLI liest es aus der Umgebungsvariable (Standard "
+                 "JIRA_TOKEN), die GUI hält es nur im Speicher.", st),
+              SP(6),
+
+              H1("3  Häufige Fragen (FAQ)", st), HR(),
 
               H2("Was passiert, wenn expand=changelog fehlt?", st),
               P("transform_data findet keine Statusübergänge und gibt für alle Issues "
@@ -499,7 +531,7 @@ def content_de(st: dict) -> list:
                 "den tatsächlichen Workflow-Zustand wider.", st)]
 
     story += [PageBreak(),
-              H1("3  Glossar", st), HR(),
+              H1("4  Glossar", st), HR(),
               tbl(["Begriff", "Erklärung"],
                   [["ART",       "Agile Release Train — ein Team aus mehreren Scrum-Teams in SAFe"],
                    ["API",       "Application Programming Interface — Programmierschnittstelle"],
@@ -725,7 +757,39 @@ def content_en(st: dict) -> list:
                 "User Manual.", st)]
 
     story += [PageBreak(),
-              H1("2  Frequently Asked Questions (FAQ)", st), HR(),
+              H1("2  Automatic fetch with get_data", st), HR(),
+              P("get_data automates the export from chapter 1: it fetches the "
+                "issues including changelog directly via REST, walks through "
+                "all pages, removes duplicates and writes <b>the same JSON "
+                "file</b> the manual export produces. Both acquisition paths "
+                "are equal — in large organisations, approval for API access "
+                "can take a long time; until then (and beyond) the manual "
+                "path stays first-class.", st),
+              PRE("# REST fetch (token ONLY via environment variable):\n"
+                  "set JIRA_TOKEN=YourAPIToken\n"
+                  "python -m get_data fetch --url https://company.atlassian.net \\\n"
+                  "  --project ART_A --email name@company.com --output ART_A.json\n\n"
+                  "# Server/Data Center with PAT and the older API:\n"
+                  "python -m get_data fetch --url https://jira.company.com \\\n"
+                  "  --project ART_A --auth bearer --api v2 --output ART_A.json\n\n"
+                  "# Check an existing manual export (path 2):\n"
+                  "python -m get_data check ART_A_merged.json", st),
+              P("The check catches the classic export mistakes before "
+                "transform_data stumbles: missing required fields, missing "
+                "changelog (expand forgotten), duplicates — and forgotten "
+                "follow-up pages (total larger than the issues in the "
+                "file).", st),
+              P("<b>GUI:</b> <font name='Courier'>python -m get_data</font> "
+                "(or the Get Data card in the launcher) opens a window with "
+                "both paths as a toggle: 'Jira REST fetch' (URL, project or "
+                "JQL, API v3/v2, cloud/bearer auth, token field) and "
+                "'Existing export' (pick file → check).", st),
+              HI("Security: the token is never stored and never logged — the "
+                 "CLI reads it from an environment variable (default "
+                 "JIRA_TOKEN), the GUI keeps it in memory only.", st),
+              SP(6),
+
+              H1("3  Frequently Asked Questions (FAQ)", st), HR(),
 
               H2("What happens if expand=changelog is missing?", st),
               P("transform_data finds no status transitions and outputs empty time values "
@@ -755,7 +819,7 @@ def content_en(st: dict) -> list:
                 "and decisions, actual Jira data reflects the true workflow state.", st)]
 
     story += [PageBreak(),
-              H1("3  Glossary", st), HR(),
+              H1("4  Glossary", st), HR(),
               tbl(["Term", "Explanation"],
                   [["ART",       "Agile Release Train — a team-of-teams structure in SAFe"],
                    ["API",       "Application Programming Interface — programming interface"],
@@ -983,7 +1047,35 @@ def content_ro(st: dict) -> list:
                 "<b>transform_data</b>.", st)]
 
     story += [PageBreak(),
-              H1("2  Întrebări frecvente (FAQ)", st), HR(),
+              H1("2  Preluare automată cu get_data", st), HR(),
+              P("get_data automatizează exportul din capitolul 1: preia "
+                "issue-urile inclusiv changelog direct prin REST, parcurge "
+                "toate paginile, elimină duplicatele și scrie <b>același "
+                "fișier JSON</b> pe care îl produce exportul manual. Ambele "
+                "căi de achiziție sunt egale — în organizațiile mari, "
+                "aprobarea accesului API poate dura mult; până atunci (și "
+                "după) calea manuală rămâne de primă clasă.", st),
+              PRE("set JIRA_TOKEN=TokenulDvs\n"
+                  "python -m get_data fetch --url https://firma.atlassian.net \\\n"
+                  "  --project ART_A --email nume@firma.ro --output ART_A.json\n\n"
+                  "python -m get_data fetch --url https://jira.firma.ro \\\n"
+                  "  --project ART_A --auth bearer --api v2 --output ART_A.json\n\n"
+                  "python -m get_data check ART_A_merged.json", st),
+              P("Verificarea (<font name='Courier'>check</font>) prinde "
+                "greșelile clasice de export înainte ca transform_data să se "
+                "împiedice: câmpuri obligatorii lipsă, changelog lipsă, "
+                "duplicate — și pagini următoare uitate (total mai mare decât "
+                "issue-urile din fișier).", st),
+              P("<b>GUI:</b> <font name='Courier'>python -m get_data</font> "
+                "(sau cardul Get Data din launcher) deschide o fereastră cu "
+                "ambele căi comutabile: 'Jira REST fetch' și 'Existing "
+                "export' (alege fișierul → verifică).", st),
+              HI("Securitate: tokenul nu este niciodată salvat sau logat — "
+                 "CLI îl citește din variabila de mediu (implicit "
+                 "JIRA_TOKEN), GUI îl ține doar în memorie.", st),
+              SP(6),
+
+              H1("3  Întrebări frecvente (FAQ)", st), HR(),
 
               H2("Ce se întâmplă dacă expand=changelog lipsește?", st),
               P("transform_data nu găsește nicio tranziție de status și produce valori de "
@@ -1017,7 +1109,7 @@ def content_ro(st: dict) -> list:
                 "starea reală a fluxului de lucru.", st)]
 
     story += [PageBreak(),
-              H1("3  Glosar", st), HR(),
+              H1("4  Glosar", st), HR(),
               tbl(["Termen", "Explicație"],
                   [["ART",       "Agile Release Train — o structură de echipe în SAFe"],
                    ["API",       "Application Programming Interface — interfață de programare"],
@@ -1245,7 +1337,35 @@ def content_pt(st: dict) -> list:
                 "do <b>transform_data</b>.", st)]
 
     story += [PageBreak(),
-              H1("2  Perguntas Frequentes (FAQ)", st), HR(),
+              H1("2  Recolha automática com get_data", st), HR(),
+              P("get_data automatiza o export do capítulo 1: obtém os issues "
+                "incluindo o changelog diretamente via REST, percorre todas "
+                "as páginas, remove duplicados e escreve <b>o mesmo ficheiro "
+                "JSON</b> que o export manual produz. Ambos os caminhos de "
+                "recolha são iguais — em organizações grandes, a aprovação do "
+                "acesso à API pode demorar muito; até lá (e depois) o caminho "
+                "manual continua de primeira classe.", st),
+              PRE("set JIRA_TOKEN=OSeuToken\n"
+                  "python -m get_data fetch --url https://firma.atlassian.net \\\n"
+                  "  --project ART_A --email nome@firma.pt --output ART_A.json\n\n"
+                  "python -m get_data fetch --url https://jira.firma.pt \\\n"
+                  "  --project ART_A --auth bearer --api v2 --output ART_A.json\n\n"
+                  "python -m get_data check ART_A_merged.json", st),
+              P("A verificação (<font name='Courier'>check</font>) apanha os "
+                "erros clássicos de export antes de o transform_data "
+                "tropeçar: campos obrigatórios em falta, changelog em falta, "
+                "duplicados — e páginas seguintes esquecidas (total maior do "
+                "que os issues no ficheiro).", st),
+              P("<b>GUI:</b> <font name='Courier'>python -m get_data</font> "
+                "(ou o cartão Get Data no launcher) abre uma janela com os "
+                "dois caminhos comutáveis: 'Jira REST fetch' e 'Existing "
+                "export' (escolher ficheiro → verificar).", st),
+              HI("Segurança: o token nunca é guardado nem registado — a CLI "
+                 "lê-o da variável de ambiente (padrão JIRA_TOKEN), a GUI "
+                 "mantém-no apenas em memória.", st),
+              SP(6),
+
+              H1("3  Perguntas Frequentes (FAQ)", st), HR(),
 
               H2("O que acontece se expand=changelog estiver em falta?", st),
               P("O transform_data não encontra transições de estado e produz valores de "
@@ -1279,7 +1399,7 @@ def content_pt(st: dict) -> list:
                 "refletem o estado verdadeiro do fluxo de trabalho.", st)]
 
     story += [PageBreak(),
-              H1("3  Glossário", st), HR(),
+              H1("4  Glossário", st), HR(),
               tbl(["Termo", "Explicação"],
                   [["ART",       "Agile Release Train — uma estrutura de equipas em SAFe"],
                    ["API",       "Application Programming Interface — interface de programação"],
@@ -1507,7 +1627,35 @@ def content_fr(st: dict) -> list:
                 "de <b>transform_data</b>.", st)]
 
     story += [PageBreak(),
-              H1("2  Foire aux Questions (FAQ)", st), HR(),
+              H1("2  Récupération automatique avec get_data", st), HR(),
+              P("get_data automatise l'export du chapitre 1 : il récupère les "
+                "issues avec le changelog directement via REST, parcourt "
+                "toutes les pages, supprime les doublons et écrit <b>le même "
+                "fichier JSON</b> que l'export manuel. Les deux voies "
+                "d'acquisition sont égales — dans les grandes organisations, "
+                "l'approbation de l'accès API peut prendre longtemps ; d'ici "
+                "là (et au-delà) la voie manuelle reste de premier rang.", st),
+              PRE("set JIRA_TOKEN=VotreToken\n"
+                  "python -m get_data fetch --url https://firme.atlassian.net \\\n"
+                  "  --project ART_A --email nom@firme.fr --output ART_A.json\n\n"
+                  "python -m get_data fetch --url https://jira.firme.fr \\\n"
+                  "  --project ART_A --auth bearer --api v2 --output ART_A.json\n\n"
+                  "python -m get_data check ART_A_merged.json", st),
+              P("La vérification (<font name='Courier'>check</font>) attrape "
+                "les erreurs d'export classiques avant que transform_data ne "
+                "trébuche : champs obligatoires manquants, changelog "
+                "manquant, doublons — et pages suivantes oubliées (total "
+                "supérieur aux issues du fichier).", st),
+              P("<b>GUI :</b> <font name='Courier'>python -m get_data</font> "
+                "(ou la carte Get Data du launcher) ouvre une fenêtre avec "
+                "les deux voies commutables : 'Jira REST fetch' et 'Existing "
+                "export' (choisir le fichier → vérifier).", st),
+              HI("Sécurité : le token n'est jamais stocké ni journalisé — la "
+                 "CLI le lit depuis une variable d'environnement (JIRA_TOKEN "
+                 "par défaut), la GUI le garde uniquement en mémoire.", st),
+              SP(6),
+
+              H1("3  Foire aux Questions (FAQ)", st), HR(),
 
               H2("Que se passe-t-il si expand=changelog est absent ?", st),
               P("transform_data ne trouve aucune transition de statut et produit des "
@@ -1541,7 +1689,7 @@ def content_fr(st: dict) -> list:
                 "travail.", st)]
 
     story += [PageBreak(),
-              H1("3  Glossaire", st), HR(),
+              H1("4  Glossaire", st), HR(),
               tbl(["Terme", "Explication"],
                   [["ART",       "Agile Release Train — une structure d'équipes dans SAFe"],
                    ["API",       "Application Programming Interface — interface de programmation"],

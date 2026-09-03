@@ -59,6 +59,88 @@ _FOOT = ParagraphStyle("foot", fontName="Helvetica", fontSize=8, leading=10,
 #: Onepager je Feature: slug -> {lang -> {title, tagline, sections, footer_note}}
 #: sections: Liste aus ("h", Text) | ("p", Text) | ("code", Text) | ("li", Text)
 ONEPAGERS: dict[str, dict[str, dict]] = {
+    "get_data": {
+        "de": {
+            "title": "Get Data",
+            "tagline": "Feature C3 · Jira-Daten holen — zwei gleichwertige "
+                       "Wege, ein Artefakt.",
+            "sections": [
+                ("h", "Worum geht es?"),
+                ("p", "Das Lagebild braucht Rohdaten aus Jira. get_data "
+                      "bietet dafür zwei Wege, die bewusst gleichwertig "
+                      "sind: den automatischen REST-Abruf — und den "
+                      "manuellen Export, denn in großen Organisationen kann "
+                      "die Freigabe für API-Zugriffe lange dauern. Beide "
+                      "Wege münden in derselben JSON-Datei; die Pipeline "
+                      "dahinter ist identisch."),
+                ("h", "So benutzt du es"),
+                ("code", "set JIRA_TOKEN=IhrAPIToken\n"
+                         "python -m get_data fetch --url https://firma.atlassian.net ^\n"
+                         "  --project ART_A --email name@firma.de --output ART_A.json\n"
+                         "python -m get_data check ART_A_merged.json   # Export pruefen"),
+                ("p", "Oder per GUI: python -m get_data (bzw. die "
+                      "Get-Data-Karte im Launcher) — ein Fenster, beide "
+                      "Wege als Umschalter: „Jira REST-Abruf“ und "
+                      "„Vorhandener Export“ mit Prüfung."),
+                ("h", "Was es kann"),
+                ("li", "API v3 (Cursor) und v2 (Offset) mit vollständiger "
+                       "Paginierung, expand=changelog immer gesetzt"),
+                ("li", "Anmeldung Cloud (E-Mail + API-Token) oder "
+                       "Server/DC (Bearer-PAT)"),
+                ("li", "Export-Prüfung erkennt die Klassiker: fehlender "
+                       "Changelog, vergessene Folgeseiten, Duplikate"),
+                ("li", "Fehlermeldungen zeigen bei 401/403 auch auf die "
+                       "fehlende Freigabe — und den manuellen Ausweichweg"),
+                ("h", "Leitplanken"),
+                ("p", "Das Token wird nie gespeichert und nie geloggt: CLI "
+                      "liest es aus einer Umgebungsvariable (JIRA_TOKEN), "
+                      "die GUI hält es nur im Speicher. Nur "
+                      "Standardbibliothek — keine neuen Abhängigkeiten. Ein "
+                      "Contract-Test garantiert: Abruf und manueller Export "
+                      "derselben Daten werden identisch verarbeitet."),
+            ],
+        },
+        "en": {
+            "title": "Get Data",
+            "tagline": "Feature C3 · Fetching Jira data — two equal paths, "
+                       "one artifact.",
+            "sections": [
+                ("h", "What is it?"),
+                ("p", "The situational picture needs raw data from Jira. "
+                      "get_data offers two deliberately equal paths: the "
+                      "automated REST fetch — and the manual export, "
+                      "because in large organisations, approval for API "
+                      "access can take a long time. Both paths end in the "
+                      "same JSON file; the pipeline behind them is "
+                      "identical."),
+                ("h", "How to use it"),
+                ("code", "set JIRA_TOKEN=YourAPIToken\n"
+                         "python -m get_data fetch --url https://company.atlassian.net ^\n"
+                         "  --project ART_A --email name@company.com --output ART_A.json\n"
+                         "python -m get_data check ART_A_merged.json   # validate an export"),
+                ("p", "Or via the GUI: python -m get_data (or the Get Data "
+                      "card in the launcher) — one window, both paths as a "
+                      "toggle: 'Jira REST fetch' and 'Existing export' "
+                      "with validation."),
+                ("h", "What it does"),
+                ("li", "API v3 (cursor) and v2 (offset) with full "
+                       "pagination, expand=changelog always set"),
+                ("li", "Auth for Cloud (e-mail + API token) or Server/DC "
+                       "(bearer PAT)"),
+                ("li", "Export validation catches the classics: missing "
+                       "changelog, forgotten follow-up pages, duplicates"),
+                ("li", "Error messages point 401/403 at the missing "
+                       "approval too — and at the manual fallback path"),
+                ("h", "Guardrails"),
+                ("p", "The token is never stored and never logged: the CLI "
+                      "reads it from an environment variable (JIRA_TOKEN), "
+                      "the GUI keeps it in memory only. Standard library "
+                      "only — no new dependencies. A contract test "
+                      "guarantees: a fetch and a manual export of the same "
+                      "data are processed identically."),
+            ],
+        },
+    },
     "delta_briefing": {
         "de": {
             "title": "Delta-Briefing",

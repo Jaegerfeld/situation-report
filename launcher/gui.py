@@ -361,7 +361,7 @@ _MODULES: list[_ModuleEntry] = [
     _ModuleEntry("portfolio",          "🗂️", True,  "alpha", section="solution"),
     _ModuleEntry("transform_data",     "🔄", True,  "beta"),
     _ModuleEntry("build_reports",      "📊", True,  "beta"),
-    _ModuleEntry("get_data",           "📥", False, None,  has_info=True),
+    _ModuleEntry("get_data",           "📥", True,  "alpha", has_info=True),
     _ModuleEntry("simulate",           "🎲", True,  "alpha"),
     _ModuleEntry("testdata_generator", "🧪", True,  "beta"),
     _ModuleEntry("helper",             "🔧", True,  "alpha"),
