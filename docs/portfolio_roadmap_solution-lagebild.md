@@ -100,6 +100,19 @@ Nicht nach „Feature-Wunschliste", sondern nach **Datenherkunft** (das BGS-Prin
 - **Aufwand:** M.
 - **Ist-Stand:** `portfolio/dependency_config.py` (Schema v1: from/to/status blocked|at_risk|on_track|done + due), Heatmap (offene Abhängigkeiten je from/to-Paar, Zellfarbe = dringlichster Status) + Detail-Tabelle unter dem NFR-Dashboard (PDF: eigene Seite), blocked zuerst, Overdue-Hervorhebung (due verstrichen ∧ nicht done); `to` bewusst nicht gegen Member validiert — Cross-Solution-/Extern-Ziele erlaubt und im Portfolio-Report sichtbar; Szenario liefert je Solution ein Register mit (DoD erfüllt).
 
+### B6 · Flussproblem-Backlog & Konferenzmappe *(VSC-1; Workshop Wolfsburg 08/2026)* ✅ (umgesetzt 03.09.2026)
+- **Was:** `flow_problems` als eigenes Input-Artefakt mit eigener `SCHEMA_VERSION` (Quelle, betroffene Value Streams/ARTs, Cross-VS-Flag, Alter, Status, Resolution-Commitment, Wiedervorlage-PI). Report-Profil **„Konferenzmappe"** bündelt die Inputs der Value-Stream-Konferenz zu einem Pre-Read. **Resolution-Tracking mit Aging** über PI-Grenzen: Impediments, die n Konferenzen überleben, eskalieren sichtbar (baut auf B3 und B5 auf).
+- **Warum:** Die VSC ist das im Workshop definierte Ritual der Solution-Ebene; der Impediment-Backlog ist laut Workshop ihr wichtigster Input. Das dort benannte Muster „Risiken werden geloggt, nie mitigiert, tauchen nächstes PI wieder auf" wird damit messbar statt anekdotisch. Herleitung: `Quellen/bilder workshop/Analyse_Workshop-Notizen_Denkschriften+Software.md` (dort P1).
+- **Aufwand:** M. **Voraussetzung:** B3/B5 (gemeinsame Datenobjekte).
+- **Ist-Stand:** `portfolio/flow_problems_config.py` (Schema v1; Status open|committed|resolved|dropped; **Cross-VS abgeleitet**, nicht behauptet: > 1 value_stream; `conferences`-Zähler von Menschen gepflegt), **Survivor-Regel** ungelöst ∧ ≥ 3 Konferenzen → sortiert zuerst, roter Zähler; Report-Sektion (HTML+PDF, Portfolio-aggregiert) + **Konferenzmappe** via `--conference FILE [--conference-date]` (leichte druckbare Seite: Input 1 Daten/Qualität · Input 2 Impediments/ROAM/Dependencies · Input 3 Capabilities/SLOs; Roadmap-Input folgt mit B7); Szenario liefert flow_problems_alpha/beta.json mit (FP-A1/FP-B1 als Survivors, DoD erfüllt).
+
+### B7 · Integrierte Roadmap-Sicht & Strategic Themes *(VSC-2; Workshop Wolfsburg 08/2026)*
+- **Was:** Roadmap-Aggregation über Trains mit Initiative-Swimlanes (Zeithorizont nah granular, fern grob: P1 · P2 · Y1 · Y2 · Y3). `strategic_themes` als Entität mit Epic-Verknüpfung und **Orphan-Detection in beide Richtungen** (Theme ohne Epics = deklariert und vergessen; Epic ohne Theme = Zombie-Initiative). Der Report-Diff (D2) auf die integrierte Sicht dokumentiert die „updated roadmaps" je Konferenz automatisch.
+- **Warum:** Schließt die im Workshop konsolidierten SAFe-Lücken „no large-solution roadmap with initiative-level swim lanes" und „strategic themes haben kein strukturiertes Zuhause". Herleitung: Workshop-Analyse (dort P2).
+- **Aufwand:** M–L. **Voraussetzung:** B6; profitiert von D2, braucht es aber nicht.
+
+> *Einordnung B6/B7:* Am 31.08.2026 zunächst hinter Phase D gelegt, am 01.09.2026 in Phase B eingegliedert — wohin sie typologisch immer gehörten (lokale Input-Contracts im deterministischen Kern, keine KI-Abhängigkeit); Priorisierung nach dem D2-Piloten. Umsetzung beauftragt am 03.09.2026 (ursprünglich als PR #149 vorgeschlagen; dort wegen Roadmap-Konflikten geschlossen und hier aktuell eingepflegt).
+
 ---
 
 ## Phase C — externe Integration (S aus Fremdsystemen)
@@ -187,9 +200,11 @@ Nicht nach „Feature-Wunschliste", sondern nach **Datenherkunft** (das BGS-Prin
 | 9 | C3 get_data (Jira REST) | C | M–L | hoch (Aufwand runter) |
 | 10 | C1/C2 SLO + DORA/Qualität | C | L | hoch (technisches Gesundheitsbild) |
 | 11 | **D2 Delta-Briefing (Phase-D-Pilot)** | D | M | hoch (sofort spürbar, geringstes KI-Risiko) |
-| 12 | D1 Exec-Summary · D6 Sprachen | D | S–M | mittel–hoch |
-| 13 | D4 Anomalie · D5 Red-Team · D3 Q&A (mit Hygiene-Vorgabe) | D | M–L | hoch (Lagedienst-Ausbau) |
-| 14 | D7 Noise-Audit-Unterstützung | D | M | mittel–hoch (Vertrauen messbar machen) |
+| 12 | ✅ B6 Flussproblem-Backlog & Konferenzmappe (VSC-1) | B | M | hoch (füttert das VSC-Ritual; Aging macht Nicht-Mitigation messbar) |
+| 13 | B7 Integrierte Roadmap & Strategic Themes (VSC-2) | B | M–L | hoch (SAFe-Lücken; Orphan-Detection; nutzt D2 für Konferenz-Nachberichte) |
+| 14 | D1 Exec-Summary · D6 Sprachen | D | S–M | mittel–hoch |
+| 15 | D4 Anomalie · D5 Red-Team · D3 Q&A (mit Hygiene-Vorgabe) | D | M–L | hoch (Lagedienst-Ausbau) |
+| 16 | D7 Noise-Audit-Unterstützung | D | M | mittel–hoch (Vertrauen messbar machen) |
 
 **Empfohlene Sequenz:** ✅ Phase A vollständig (umgesetzt 02.09.2026) → B3/B2/B1 (EA-Kern: Governance, Schuld, Strategie) → restliche B → C nach Bedarf/Reife. **Phase D** startet unabhängig davon mit dem Piloten D2, sobald zwei Report-Stände vorliegen (Beschluss vom 13.08.2026; fachliche Leitplanken in `Quellen/KI-und-Lagebild_v1.0.md`, Teil D).
 

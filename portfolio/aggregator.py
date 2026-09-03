@@ -24,6 +24,7 @@ from __future__ import annotations
 
 import json
 from collections.abc import Callable
+from datetime import date
 from pathlib import Path
 
 from build_reports.export import _build_combined_html, export_pdf
@@ -64,6 +65,7 @@ from .capability_config import Capability, load_capabilities
 from .decision_config import LogEntry, load_decisions
 from .dependency_config import Dependency, load_dependencies
 from .dora_config import load_delivery
+from .flow_problems_config import FlowProblem, load_flow_problems
 from .nfr_config import Nfr, RunwayItem, load_nfr
 from .risks_config import Risk, load_risks
 from .slo_config import load_slo
@@ -85,12 +87,14 @@ from .summary import (
     decisions_figure,
     dependency_figure,
     dora_figure,
+    flow_problems_figure,
     nfr_figure,
     quality_figure,
     render_capabilities_html,
     render_decisions_html,
     render_dependencies_html,
     render_dora_html,
+    render_flow_problems_html,
     render_nfr_html,
     render_quality_html,
     render_roam_html,
@@ -589,6 +593,27 @@ def _collect_decisions(
     return entries
 
 
+def _collect_flow_problems(
+    config: SolutionConfig,
+    log: Callable[[str], None] = print,
+) -> list[tuple[str, FlowProblem]]:
+    """
+    Collect flow problems for the report (B6) — same rules as the other
+    governance registers; broken or missing files are logged and skipped.
+    """
+    entries: list[tuple[str, FlowProblem]] = []
+    for label, sub in _governance_sources(config, log):
+        if not sub.flow_problems:
+            continue
+        try:
+            register = load_flow_problems(Path(sub.flow_problems))
+        except (OSError, ValueError, json.JSONDecodeError) as exc:
+            log(f"  WARNING [{label}]: flow-problems file skipped ({exc})")
+            continue
+        entries.extend((label, problem) for problem in register.problems)
+    return entries
+
+
 def _collect_slo(
     config: SolutionConfig,
     log: Callable[[str], None] = print,
@@ -766,13 +791,14 @@ def render_html(
     nfr = render_nfr_html(*_collect_nfr(config, log=log))
     deps = render_dependencies_html(_collect_dependencies(config, log=log))
     decisions = render_decisions_html(_collect_decisions(config, log=log))
+    flow = render_flow_problems_html(_collect_flow_problems(config, log=log))
     slo = render_slo_html(_collect_slo(config, log=log))
     dora_entries, quality_entries = _collect_delivery(config, log=log)
     dora = render_dora_html(dora_entries, quality_entries)
     return html.replace(
         "<body>",
         "<body>" + summary + quality + caps + roam + nfr + deps + decisions
-        + slo + dora, 1)
+        + flow + slo + dora, 1)
 
 
 def render_pdf(
@@ -820,6 +846,9 @@ def render_pdf(
     log_entries = _collect_decisions(config, log=log)
     if log_entries:
         extra.append(decisions_figure(log_entries))
+    flow_entries = _collect_flow_problems(config, log=log)
+    if flow_entries:
+        extra.append(flow_problems_figure(flow_entries))
     slo_entries = _collect_slo(config, log=log)
     if slo_entries:
         extra.append(slo_figure(slo_entries))
@@ -858,3 +887,69 @@ def render_comparison_html(
     """Render the per-unit comparison report as HTML (thin wrapper over render_html)."""
     return render_html(config, MODE_COMPARISON, metrics, terminology,
                        ct_method, target_ct, pi_config, log)
+
+
+def render_conference_html(
+    config: SolutionConfig,
+    conference_date: date | None = None,
+    log: Callable[[str], None] = print,
+) -> str:
+    """
+    Render the Value-Stream-Conference pre-read ("Konferenzmappe", B6).
+
+    A deliberately light, printable page bundling the conference inputs in
+    their meeting order: current data (summary + source quality), the
+    impediment backlog (flow problems, with ROAM risks and dependencies as
+    the related governance views) and the business objectives proxy
+    (capability map + SLOs). The integrated roadmap view joins with B7.
+    No plotly figures — the pre-read is meant to be read, the full report
+    to be explored.
+
+    Args:
+        config:          The solution or portfolio configuration.
+        conference_date: Date shown in the header (default: today).
+        log:             Progress callback.
+
+    Returns:
+        A complete standalone HTML document.
+    """
+    conference_date = conference_date or date.today()
+    qualities: list[SourceQuality] = []
+    build_pooled_report_data(config, log=log, quality_sink=qualities)
+    units = load_comparison_units(config, log=log)
+    summary = render_summary_html(
+        [compute_summary(u, u.source_prefix, 90) for u in units])
+    quality = render_quality_html(qualities)
+    flow = render_flow_problems_html(_collect_flow_problems(config, log=log))
+    roam = render_roam_html(_collect_risks(config, log=log))
+    deps = render_dependencies_html(_collect_dependencies(config, log=log))
+    caps = render_capabilities_html(_collect_capabilities(config, log=log))
+    slo = render_slo_html(_collect_slo(config, log=log))
+
+    def block(label: str, *fragments: str) -> str:
+        body = "".join(f for f in fragments if f)
+        if not body:
+            return ""
+        return (f"<h1 style='font-size:1.25rem;margin-top:28px;"
+                f"border-bottom:2px solid #2b5b84;padding-bottom:4px'>"
+                f"{label}</h1>{body}")
+
+    head = (
+        "<!DOCTYPE html><html><head><meta charset='utf-8'>"
+        f"<title>VSC Pre-Read — {config.name}</title>"
+        "<style>body{font-family:'Segoe UI',Arial,sans-serif;margin:24px;"
+        "color:#222;} p.meta{color:#555;}</style></head><body>"
+        f"<h1 style='font-size:1.5rem'>Value-Stream Conference — Pre-Read</h1>"
+        f"<p class='meta'>{config.name} · Konferenz "
+        f"{conference_date.strftime('%d.%m.%Y')} · Stand "
+        f"{date.today().strftime('%d.%m.%Y')} — Inputs in Sitzungsreihenfolge; "
+        f"der vollständige interaktive Report bleibt die Detailquelle.</p>"
+    )
+    body = (
+        block("Input 1 · Aktuelle Daten", summary, quality)
+        + block("Input 2 · Impediment-Backlog & Governance",
+                flow, roam, deps)
+        + block("Input 3 · Business Objectives (Capability-Map & SLOs)",
+                caps, slo)
+    )
+    return head + body + "</body></html>"

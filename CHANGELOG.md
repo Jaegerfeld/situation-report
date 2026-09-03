@@ -5,6 +5,30 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [Unreleased]
+
+### Added
+- Portfolio: **flow-problem backlog & conference pre-read** (roadmap B6,
+  VSC-1 from the Wolfsburg workshop) — a solution config can reference
+  the Value-Stream Conference's impediment backlog
+  (`"flow_problems": "flow_problems.json"`; new module
+  `portfolio/flow_problems_config.py`, schema v1: status
+  open/committed/resolved/dropped, affected value_streams with *derived*
+  cross-VS, raiser, owning team, raised_on, a people-maintained
+  `conferences` counter, resolution_commitment, follow_up_pi). The
+  workshop pattern "logged, never mitigated, back next PI" becomes
+  measurable: unresolved problems seen in ≥ 3 conferences sort first
+  with a red counter. New report section (HTML + PDF,
+  portfolio-aggregated) plus the **conference pre-read**
+  (`--conference FILE [--conference-date]`): a light, printable page
+  bundling the meeting inputs — current data, impediment backlog with
+  ROAM/dependencies, business objectives (capabilities + SLOs); the
+  integrated roadmap view joins with B7. The demo scenario ships
+  `flow_problems_alpha/beta.json` (FP-A1/FP-B1 survive 3 resp. 4
+  conferences, FP-B1 cross-VS); manual section 5.14 in all five
+  languages; one-pager (DE+EN). Roadmap: B6/B7 sections folded in from
+  PR #149 (closed there due to conflicts).
+
 ## [0.21.0] – 2026-09-03
 
 ### Added

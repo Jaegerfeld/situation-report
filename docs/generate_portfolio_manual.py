@@ -549,6 +549,23 @@ def content_de(st: dict) -> list:
            "Modulseite). Tokens nur per Umgebungsvariable, nie gespeichert.", st),
         _SP(6),
 
+        _H2("5.14  Flussproblem-Backlog & Konferenzmappe (B6, VSC)", st),
+        _P("Über das Config-Feld <font name='Courier'>flow_problems</font> "
+           "zeigt der Report den Impediment-Backlog der "
+           "Value-Stream-Konferenz: je Problem Status (open/committed/"
+           "resolved/dropped), betroffene Value Streams (Cross-VS wird "
+           "abgeleitet: mehr als ein Stream), Einbringer, Owner-Team, "
+           "Commitment und Wiedervorlage-PI — plus ein Konferenzen-Zähler. "
+           "Das Workshop-Muster „geloggt, nie mitigiert, taucht nächstes PI "
+           "wieder auf“ wird messbar: Ungelöste Probleme ab der dritten "
+           "Konferenz sortieren nach oben und tragen einen roten Zähler. "
+           "Die <b>Konferenzmappe</b> (<font name='Courier'>--conference "
+           "mappe.html --conference-date JJJJ-MM-TT</font>) bündelt die "
+           "Sitzungs-Inputs druckbar: Aktuelle Daten, Impediment-Backlog "
+           "samt ROAM/Dependencies, Business Objectives (Capabilities + "
+           "SLOs); die integrierte Roadmap-Sicht kommt mit B7 dazu.", st),
+        _SP(6),
+
         _H1("6. Kommandozeile (CLI)", st), _hr(st),
         _P("Für Automatisierung und reproduzierbare Reports:", st),
         _CD("python -m portfolio meine_solution.json --output report.html", st),
@@ -857,6 +874,23 @@ def content_en(st: dict) -> list:
            "needed), prometheus, github, gitlab, sonarqube. A new source is "
            "a single file in sources/providers/ (recipe on the module "
            "page). Tokens only via environment variables, never stored.", st),
+        _SP(6),
+
+        _H2("5.14  Flow-problem backlog & conference pre-read (B6, VSC)", st),
+        _P("Via the config field <font name='Courier'>flow_problems</font> "
+           "the report shows the Value-Stream Conference's impediment "
+           "backlog: per problem the status (open/committed/resolved/"
+           "dropped), affected value streams (cross-VS is derived: more "
+           "than one stream), who raised it, the owning team, commitment "
+           "and follow-up PI — plus a conference counter. The workshop "
+           "pattern 'logged, never mitigated, back next PI' becomes "
+           "measurable: unresolved problems from the third conference on "
+           "sort first with a red counter. The <b>conference pre-read</b> "
+           "(<font name='Courier'>--conference preread.html "
+           "--conference-date YYYY-MM-DD</font>) bundles the meeting "
+           "inputs printably: current data, impediment backlog with "
+           "ROAM/dependencies, business objectives (capabilities + SLOs); "
+           "the integrated roadmap view joins with B7.", st),
         _SP(6),
 
         _H1("6. Command line (CLI)", st), _hr(st),
@@ -1170,6 +1204,21 @@ def content_ro(st: dict) -> list:
            "niciodata salvate.", st),
         _SP(6),
 
+        _H2("5.14  Backlog de probleme de flux & mapa conferintei (B6)", st),
+        _P("Prin campul <font name='Courier'>flow_problems</font> raportul "
+           "arata backlog-ul de impedimente al Conferintei Value-Stream: "
+           "per problema statusul (open/committed/resolved/dropped), "
+           "value-stream-urile afectate (cross-VS derivat: mai mult de un "
+           "stream), cine a ridicat-o, echipa owner, angajamentul si PI-ul "
+           "de revenire — plus un contor de conferinte. Tiparul din "
+           "workshop 'logat, niciodata mitigat, revine in PI-ul urmator' "
+           "devine masurabil: problemele nerezolvate de la a treia "
+           "conferinta se sorteaza primele, cu contor rosu. Mapa "
+           "conferintei (<font name='Courier'>--conference mapa.html"
+           "</font>) aduna inputurile sedintei intr-o pagina printabila; "
+           "vederea de roadmap integrata vine cu B7.", st),
+        _SP(6),
+
         _H1("6. Linia de comanda (CLI)", st), _hr(st),
         _P("Pentru automatizare si rapoarte reproductibile:", st),
         _CD("python -m portfolio solutia_mea.json --output report.html", st),
@@ -1480,6 +1529,21 @@ def content_pt(st: dict) -> list:
            "sonarqube. Uma fonte nova e um unico ficheiro em "
            "sources/providers/. Tokens so por variaveis de ambiente, nunca "
            "guardados.", st),
+        _SP(6),
+
+        _H2("5.14  Backlog de problemas de fluxo & dossier da conferencia (B6)", st),
+        _P("Atraves do campo <font name='Courier'>flow_problems</font> o "
+           "relatorio mostra o backlog de impedimentos da Conferencia "
+           "Value-Stream: por problema o estado (open/committed/resolved/"
+           "dropped), os value streams afetados (cross-VS derivado: mais "
+           "de um stream), quem o levantou, a equipa owner, o compromisso "
+           "e o PI de retorno — mais um contador de conferencias. O padrao "
+           "do workshop 'registado, nunca mitigado, volta no proximo PI' "
+           "torna-se mensuravel: problemas nao resolvidos a partir da "
+           "terceira conferencia ordenam primeiro, com contador vermelho. "
+           "O dossier da conferencia (<font name='Courier'>--conference "
+           "dossier.html</font>) reune os inputs da reuniao numa pagina "
+           "imprimivel; a vista de roadmap integrada chega com B7.", st),
         _SP(6),
 
         _H1("6. Linha de comandos (CLI)", st), _hr(st),
@@ -1799,6 +1863,21 @@ def content_fr(st: dict) -> list:
            "API), prometheus, github, gitlab, sonarqube. Une nouvelle "
            "source est un seul fichier dans sources/providers/. Les tokens "
            "uniquement via variables d'environnement, jamais stockes.", st),
+        _SP(6),
+
+        _H2("5.14  Backlog des problemes de flux & dossier de conference (B6)", st),
+        _P("Via le champ <font name='Courier'>flow_problems</font>, le "
+           "rapport montre le backlog d'impediments de la conference "
+           "Value-Stream : par probleme le statut (open/committed/resolved/"
+           "dropped), les value streams concernes (cross-VS derive : plus "
+           "d'un stream), qui l'a souleve, l'equipe owner, l'engagement et "
+           "le PI de retour — plus un compteur de conferences. Le motif du "
+           "workshop 'logue, jamais mitige, revient au PI suivant' devient "
+           "mesurable : les problemes non resolus des la troisieme "
+           "conference se classent en premier, avec compteur rouge. Le "
+           "dossier de conference (<font name='Courier'>--conference "
+           "dossier.html</font>) rassemble les inputs de la seance en une "
+           "page imprimable ; la vue roadmap integree arrive avec B7.", st),
         _SP(6),
 
         _H1("6. Ligne de commande (CLI)", st), _hr(st),

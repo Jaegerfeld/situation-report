@@ -141,6 +141,10 @@ Built-in stories (deterministic per seed):
 - **Decision log**: three decisions and two assumptions; Alpha's stage-map
   decision supersedes an older one, and Beta's open assumption has passed
   its review date — flagged red as "review due".
+- **Flow-problem backlog (B6, VSC)**: `flow_problems_alpha/beta.json` —
+  FP-A1 and FP-B1 have survived 3 resp. 4 conferences (the workshop
+  pattern "logged, never mitigated" — flagged red), FP-B1 is cross-VS;
+  `--conference preread.html` renders the conference pre-read.
 - **SLO & error budgets**: `slo_alpha.json`/`slo_beta.json` — Beta's
   "Order Sync API" breaches its SLO, Alpha's "Checkout" has nearly burned
   its budget (at risk).

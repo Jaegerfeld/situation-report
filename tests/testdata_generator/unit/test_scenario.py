@@ -48,6 +48,7 @@ class TestArtifacts:
                     "decisions_alpha", "decisions_beta",
                     "snapshot_prev", "snapshot_now",
                     "slo_alpha", "slo_beta", "dora_alpha", "dora_beta",
+                    "flow_alpha", "flow_beta",
                     "pi_config", "readme"):
             assert paths[key].exists(), key
         assert len(list((out / "arts").glob("*_IssueTimes.xlsx"))) == 6
@@ -299,6 +300,30 @@ class TestBuiltInStories:
         assert tiers["ART Alpha-1"] == "elite"
         weak = next(q for _, q in quality_entries if q.unit == "ART Beta-3")
         assert weak.maintainability == "D" and weak.critical_issues == 7
+
+    def test_flow_problem_backlog_tells_the_workshop_story(self, scenario) -> None:
+        from portfolio.aggregator import _collect_flow_problems
+        _, paths = scenario
+        cfg = load_solution_config(paths["portfolio"])
+        entries = _collect_flow_problems(cfg, log=lambda m: None)
+        assert len(entries) == 4
+        # Das Workshop-Muster: FP-A1 und FP-B1 überleben Konferenzen.
+        survivors = {p.problem_id for _, p in entries if p.survived}
+        assert survivors == {"FP-A1", "FP-B1"}
+        fp_b1 = next(p for _, p in entries if p.problem_id == "FP-B1")
+        assert fp_b1.cross_vs and fp_b1.conferences == 4
+
+    def test_conference_preread_bundles_the_inputs(self, scenario) -> None:
+        from portfolio.aggregator import render_conference_html
+        _, paths = scenario
+        cfg = load_solution_config(paths["portfolio"])
+        conf = render_conference_html(cfg, conference_date=REF,
+                                      log=lambda m: None)
+        for marker in ("Value-Stream Conference", "Input 1", "Input 2",
+                       "Input 3", "Flow-Problem Backlog"):
+            assert marker in conf
+        # Impediment-Backlog vor den verwandten Governance-Sichten.
+        assert conf.index("Flow-Problem Backlog") < conf.index("ROAM")
 
     def test_outlier_art_has_clearly_higher_cycle_time(self, scenario) -> None:
         from portfolio.aggregator import load_members

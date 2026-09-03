@@ -73,6 +73,14 @@ from portfolio.dependency_config import (
     save_dependencies,
 )
 from portfolio.dora_config import DeliveryRegister, save_delivery
+from portfolio.flow_problems_config import (
+    FLOW_COMMITTED,
+    FLOW_OPEN,
+    FLOW_RESOLVED,
+    FlowProblem,
+    FlowProblemRegister,
+    save_flow_problems,
+)
 from portfolio.nfr_config import (
     RUNWAY_BUILDING,
     RUNWAY_GAP,
@@ -284,6 +292,49 @@ def _beta_capabilities(reference: date) -> CapabilityMap:
         Capability("BC-3", "Payment processing", HEALTH_HEALTHY,
                    arts=["ART Beta-2"], owner="ART Beta-2",
                    assessed_on=reference - timedelta(days=7)),
+    ])
+
+
+def _alpha_flow_problems(reference: date) -> FlowProblemRegister:
+    """Flow problems of Solution Alpha: one has survived three conferences."""
+    return FlowProblemRegister(problems=[
+        # Das Workshop-Muster: geloggt, nie mitigiert, taucht wieder auf.
+        FlowProblem("FP-A1", "Test-environment provisioning takes weeks",
+                    FLOW_OPEN,
+                    value_streams=["ART Alpha-1", "ART Alpha-2",
+                                   "ART Alpha-3"],
+                    source="VSC", owner="System Team",
+                    raised_on=reference - timedelta(days=140),
+                    conferences=3,
+                    notes="Survivor: raised at three conferences, still open."),
+        FlowProblem("FP-A2", "Review bottleneck at architecture board",
+                    FLOW_COMMITTED,
+                    value_streams=["ART Alpha-2"],
+                    source="ART Alpha-2", owner="System Team",
+                    raised_on=reference - timedelta(days=40),
+                    conferences=1,
+                    resolution_commitment="Second review slot per week",
+                    follow_up_pi="PI 5"),
+    ])
+
+
+def _beta_flow_problems(reference: date) -> FlowProblemRegister:
+    """Flow problems of Solution Beta: the weak source blocks two streams."""
+    return FlowProblemRegister(problems=[
+        FlowProblem("FP-B1", "Beta-3 export quality blocks solution reporting",
+                    FLOW_OPEN,
+                    value_streams=["ART Beta-1", "ART Beta-3"],
+                    source="VSC", owner="ART Beta-3",
+                    raised_on=reference - timedelta(days=200),
+                    conferences=4,
+                    notes="Cross-VS survivor: matches the weak-source story."),
+        FlowProblem("FP-B2", "Shared staging window conflicts",
+                    FLOW_RESOLVED,
+                    value_streams=["ART Beta-1", "ART Beta-2"],
+                    source="ART Beta-1", owner="ART Beta-2",
+                    raised_on=reference - timedelta(days=90),
+                    conferences=2,
+                    resolution_commitment="Calendar-based slot booking"),
     ])
 
 
@@ -617,6 +668,10 @@ def build_portfolio_scenario(
     save_delivery(dora_alpha, _alpha_delivery(reference))
     dora_beta = out / "dora_beta.json"
     save_delivery(dora_beta, _beta_delivery(reference))
+    flow_alpha = out / "flow_problems_alpha.json"
+    save_flow_problems(flow_alpha, _alpha_flow_problems(reference))
+    flow_beta = out / "flow_problems_beta.json"
+    save_flow_problems(flow_beta, _beta_flow_problems(reference))
 
     solution_alpha = out / "solution_alpha.json"
     save_solution_config(solution_alpha, SolutionConfig(
@@ -625,7 +680,7 @@ def build_portfolio_scenario(
         risks=str(risks_alpha), nfr=str(nfr_alpha),
         capabilities=str(caps_alpha), dependencies=str(deps_alpha),
         decisions=str(decisions_alpha), slo=str(slo_alpha),
-        dora=str(dora_alpha)))
+        dora=str(dora_alpha), flow_problems=str(flow_alpha)))
     solution_beta = out / "solution_beta.json"
     save_solution_config(solution_beta, SolutionConfig(
         name="Solution Beta", members=members["beta"],
@@ -633,7 +688,7 @@ def build_portfolio_scenario(
         stage_map=_BETA_STAGE_MAP, risks=str(risks_beta), nfr=str(nfr_beta),
         capabilities=str(caps_beta), dependencies=str(deps_beta),
         decisions=str(decisions_beta), slo=str(slo_beta),
-        dora=str(dora_beta)))
+        dora=str(dora_beta), flow_problems=str(flow_beta)))
 
     portfolio_cfg = out / "portfolio.json"
     save_solution_config(portfolio_cfg, SolutionConfig(
@@ -696,6 +751,11 @@ def build_portfolio_scenario(
         "  Alphas Stage-Map-Entscheidung ersetzt eine ältere (supersedes),",
         "  Betas offene Annahme „Beta-3 heilt sich selbst\" hat ihr Prüfdatum",
         "  überschritten — im Log rot als „review due\" markiert.",
+        "- **Flussproblem-Backlog (B6, VSC)**: `flow_problems_alpha/beta.json`;",
+        "  FP-A1 und FP-B1 haben 3 bzw. 4 Konferenzen überlebt (das",
+        "  Workshop-Muster „geloggt, nie mitigiert\" — rot markiert), FP-B1",
+        "  ist Cross-VS. Konferenzmappe: `python -m portfolio portfolio.json",
+        "  --conference mappe.html`.",
         "- **SLO & Error-Budgets (C1)**: `slo_alpha.json`/`slo_beta.json`;",
         "  Betas „Order Sync API\" reißt ihr SLO (breached), Alphas",
         "  „Checkout\" hat sein Budget fast aufgebraucht (at risk).",
@@ -750,6 +810,7 @@ def build_portfolio_scenario(
             "capabilities_beta": caps_beta, "dependencies_alpha": deps_alpha,
             "dependencies_beta": deps_beta, "decisions_alpha": decisions_alpha,
             "decisions_beta": decisions_beta, "pi_config": pi_cfg,
+            "flow_alpha": flow_alpha, "flow_beta": flow_beta,
             "slo_alpha": slo_alpha, "slo_beta": slo_beta,
             "dora_alpha": dora_alpha, "dora_beta": dora_beta,
             "snapshot_prev": snapshot_prev, "snapshot_now": snapshot_now,

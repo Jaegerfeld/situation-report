@@ -144,6 +144,10 @@ Eingebaute Geschichten (deterministisch je Seed):
 - **Decision-Log**: drei Entscheidungen und zwei Annahmen; Alphas
   Stage-Map-Entscheidung ersetzt eine ältere (supersedes), Betas offene
   Annahme hat ihr Prüfdatum überschritten — rot als „review due" markiert.
+- **Flussproblem-Backlog (B6, VSC)**: `flow_problems_alpha/beta.json` —
+  FP-A1 und FP-B1 haben 3 bzw. 4 Konferenzen überlebt (das
+  Workshop-Muster „geloggt, nie mitigiert" — rot markiert), FP-B1 ist
+  Cross-VS; `--conference mappe.html` rendert die Konferenzmappe.
 - **SLO & Error-Budgets**: `slo_alpha.json`/`slo_beta.json` — Betas
   „Order Sync API" reißt ihr SLO, Alphas „Checkout" hat sein Budget fast
   aufgebraucht (at risk).

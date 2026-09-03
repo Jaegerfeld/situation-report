@@ -564,6 +564,7 @@ def content_de(st: dict) -> list:
                    ["decisions_*.json", "Decision-/Assumption-Log je Solution"],
                    ["snapshot_*.json", "Report-Snapshots fürs Delta-Briefing (prev/now)"],
                    ["slo_*.json / dora_*.json", "SLO- und DORA-/Qualitäts-Register je Solution"],
+                   ["flow_problems_*.json", "Flussproblem-Backlog der VSC je Solution"],
                    ["portfolio.json", "Portfolio-Config über beide Solutions"],
                    ["pi_config.json", "PI-Intervalle über den Datenzeitraum"],
                    ["README.md", "Beschreibung der eingebauten Geschichten"]],
@@ -594,7 +595,9 @@ def content_de(st: dict) -> list:
                   "--delta zeigt Durchsatz, Beta-3-Konfidenzverfall, AD-1-Eskalation, "
                   "neues Risiko BR-2, frisch Überfälliges.<br/>"
                   "- <b>SLO & DORA</b>: Betas Sync-API reißt ihr SLO (breached), "
-                  "ART Beta-3 ist auch im Delivery-Bild low (CFR 38 %, Coverage 31 %).", st),
+                  "ART Beta-3 ist auch im Delivery-Bild low (CFR 38 %, Coverage 31 %).<br/>"
+                  "- <b>Flussproblem-Backlog (VSC)</b>: FP-A1/FP-B1 überleben 3 bzw. 4 "
+                  "Konferenzen (rot); --conference rendert die Konferenzmappe.", st),
               SP(6),
               P("Der Ordner ist direkt verwendbar: "
                 "<font name='Courier'>python -m portfolio demo/portfolio.json</font> erzeugt "
@@ -898,6 +901,7 @@ def content_en(st: dict) -> list:
                    ["decisions_*.json", "decision/assumption log per solution"],
                    ["snapshot_*.json", "report snapshots for the delta briefing (prev/now)"],
                    ["slo_*.json / dora_*.json", "SLO and DORA/quality registers per solution"],
+                   ["flow_problems_*.json", "VSC flow-problem backlog per solution"],
                    ["portfolio.json", "portfolio config covering both solutions"],
                    ["pi_config.json", "PI intervals across the data window"],
                    ["README.md", "description of the built-in stories"]],
@@ -928,7 +932,9 @@ def content_en(st: dict) -> list:
                   "escalation, new risk BR-2, newly overdue items.<br/>"
                   "- <b>SLO & DORA</b>: Beta's sync API breaches its SLO, and ART "
                   "Beta-3 is low tier in the delivery picture too (CFR 38 %, "
-                  "coverage 31 %).", st),
+                  "coverage 31 %).<br/>"
+                  "- <b>Flow-problem backlog (VSC)</b>: FP-A1/FP-B1 survive 3 resp. 4 "
+                  "conferences (red); --conference renders the pre-read.", st),
               SP(6),
               P("The folder is directly usable: "
                 "<font name='Courier'>python -m portfolio demo/portfolio.json</font> builds "
@@ -1176,6 +1182,7 @@ def content_ro(st: dict) -> list:
                    ["decisions_*.json", "log de decizii/presupuneri per soluție"],
                    ["snapshot_*.json", "snapshot-uri de raport pentru delta briefing (prev/now)"],
                    ["slo_*.json / dora_*.json", "registre SLO și DORA/calitate per soluție"],
+                   ["flow_problems_*.json", "backlog de probleme de flux (VSC) per soluție"],
                    ["portfolio.json", "config de portofoliu peste ambele soluții"],
                    ["pi_config.json", "intervale PI pe fereastra de date"],
                    ["README.md", "descrierea poveștilor încorporate"]],
@@ -1210,7 +1217,9 @@ def content_ro(st: dict) -> list:
                   "AD-1, riscul nou BR-2, intrările proaspăt întârziate.<br/>"
                   "- <b>SLO & DORA</b>: API-ul de sincronizare al Beta își încalcă "
                   "SLO-ul, iar ART Beta-3 este low și în imaginea de livrare "
-                  "(CFR 38 %, coverage 31 %).", st),
+                  "(CFR 38 %, coverage 31 %).<br/>"
+                  "- <b>Backlog probleme de flux (VSC)</b>: FP-A1/FP-B1 supraviețuiesc "
+                  "3 resp. 4 conferințe (roșu); --conference redă mapa.", st),
               SP(6),
               P("Directorul este direct utilizabil: "
                 "<font name='Courier'>python -m portfolio demo/portfolio.json</font> "
@@ -1461,6 +1470,7 @@ def content_pt(st: dict) -> list:
                    ["decisions_*.json", "log de decisões/suposições por solution"],
                    ["snapshot_*.json", "snapshots do relatório para o delta briefing (prev/now)"],
                    ["slo_*.json / dora_*.json", "registos SLO e DORA/qualidade por solution"],
+                   ["flow_problems_*.json", "backlog de problemas de fluxo (VSC) por solution"],
                    ["portfolio.json", "config de portfólio sobre ambas as solutions"],
                    ["pi_config.json", "intervalos PI sobre a janela de dados"],
                    ["README.md", "descrição das histórias incorporadas"]],
@@ -1494,7 +1504,9 @@ def content_pt(st: dict) -> list:
                   "escalada de AD-1, o risco novo BR-2, itens recém-atrasados.<br/>"
                   "- <b>SLO & DORA</b>: a API de sincronização da Beta viola o seu "
                   "SLO, e o ART Beta-3 é low também na imagem de entrega "
-                  "(CFR 38 %, coverage 31 %).", st),
+                  "(CFR 38 %, coverage 31 %).<br/>"
+                  "- <b>Backlog de problemas de fluxo (VSC)</b>: FP-A1/FP-B1 sobrevivem "
+                  "a 3 resp. 4 conferências (vermelho); --conference gera o dossier.", st),
               SP(6),
               P("A pasta é diretamente utilizável: "
                 "<font name='Courier'>python -m portfolio demo/portfolio.json</font> gera "
@@ -1749,6 +1761,7 @@ def content_fr(st: dict) -> list:
                    ["decisions_*.json", "log de decisions/hypotheses par solution"],
                    ["snapshot_*.json", "snapshots du rapport pour le delta briefing (prev/now)"],
                    ["slo_*.json / dora_*.json", "registres SLO et DORA/qualite par solution"],
+                   ["flow_problems_*.json", "backlog des problemes de flux (VSC) par solution"],
                    ["portfolio.json", "config de portefeuille couvrant les deux solutions"],
                    ["pi_config.json", "intervalles PI sur la fenêtre de données"],
                    ["README.md", "description des histoires intégrées"]],
@@ -1783,7 +1796,9 @@ def content_fr(st: dict) -> list:
                   "l'escalade d'AD-1, le nouveau risque BR-2, le fraichement en retard.<br/>"
                   "- <b>SLO & DORA</b> : l'API de synchronisation de Beta viole son "
                   "SLO, et l'ART Beta-3 est low aussi dans l'image de livraison "
-                  "(CFR 38 %, coverage 31 %).", st),
+                  "(CFR 38 %, coverage 31 %).<br/>"
+                  "- <b>Backlog des problemes de flux (VSC)</b> : FP-A1/FP-B1 survivent "
+                  "a 3 resp. 4 conferences (rouge) ; --conference genere le dossier.", st),
               SP(6),
               P("Le dossier est directement utilisable : "
                 "<font name='Courier'>python -m portfolio demo/portfolio.json</font> "
