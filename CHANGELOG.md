@@ -7,6 +7,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Fixed
+- **Release bundles were missing the `sources` package** — in v0.21.0,
+  clicking *Solutions & Portfolios* (and every other GUI that imports
+  the portfolio module) failed with "No module named 'sources'": the
+  package introduced with C1/C2 had not been added to the copy lists in
+  the release workflow. Both platform lists now include it, and two
+  regression tests guard the whole failure class: every top-level
+  package of the repo must appear in both release copy lists, and a
+  mini-bundle built exactly from those lists must import every GUI
+  entry point in an isolated subprocess (both tests verified to fail
+  against the broken v0.21.0 state).
+
 ### Added
 - Portfolio: **strategic themes & integrated roadmap** (roadmap B7,
   VSC-2 from the Wolfsburg workshop) — `"themes": "themes.json"` (new
