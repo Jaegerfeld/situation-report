@@ -84,8 +84,9 @@ ONEPAGERS: dict[str, dict[str, dict]] = {
                       "Records landen in einem Register, jede Zeile behält "
                       "ihre Herkunft. Quellen sind jederzeit austauschbar."),
                 ("h", "Mitgelieferte Provider"),
-                ("li", "file — universeller Weg 1: jedes System ist per "
-                       "JSON-Export anbindbar, ganz ohne API-Freigabe"),
+                ("li", "file / csv — universeller Weg 1: jedes System ist "
+                       "per JSON- oder CSV-Export anbindbar, ganz ohne "
+                       "API-Freigabe"),
                 ("li", "prometheus — De-facto-Standard des Monitorings "
                        "(SLO/SLI per PromQL-Query)"),
                 ("li", "github — DORA aus Deployments, PRs und "
@@ -97,10 +98,12 @@ ONEPAGERS: dict[str, dict[str, dict]] = {
                        "kritische Verstöße"),
                 ("h", "Leitplanken"),
                 ("p", "Eine neue Quelle ist EINE Datei in "
-                      "sources/providers/ (~30 Zeilen, Rezept auf der "
-                      "Modulseite) — die Auto-Discovery findet sie. Tokens "
-                      "nur aus Umgebungsvariablen, nie gespeichert, nie "
-                      "geloggt; 401/403 verweist auf die ggf. fehlende "
+                      "sources/providers/ (~30 Zeilen) — die Auto-Discovery "
+                      "findet sie. Schritt-für-Schritt mit Beispiel: "
+                      "Tutorial „Eine eigene Datenquelle anbinden“ "
+                      "(sources_Tutorial_DE.pdf / online unter Tutorials). "
+                      "Tokens nur aus Umgebungsvariablen, nie gespeichert, "
+                      "nie geloggt; 401/403 verweist auf die ggf. fehlende "
                       "Freigabe und den Datei-Weg. Nur Standardbibliothek."),
             ],
         },
@@ -127,8 +130,8 @@ ONEPAGERS: dict[str, dict[str, dict]] = {
                       "in one register, each row keeping its origin. "
                       "Sources stay exchangeable at any time."),
                 ("h", "Shipped providers"),
-                ("li", "file — universal path 1: any system attaches via "
-                       "JSON export, no API approval needed"),
+                ("li", "file / csv — universal path 1: any system attaches "
+                       "via JSON or CSV export, no API approval needed"),
                 ("li", "prometheus — the de-facto monitoring standard "
                        "(SLO/SLI via PromQL query)"),
                 ("li", "github — DORA derived from deployments, PRs and "
@@ -140,11 +143,13 @@ ONEPAGERS: dict[str, dict[str, dict]] = {
                        "critical violations"),
                 ("h", "Guardrails"),
                 ("p", "A new source is ONE file in sources/providers/ "
-                      "(~30 lines, recipe on the module page) — "
-                      "auto-discovery picks it up. Tokens only from "
-                      "environment variables, never stored, never logged; "
-                      "401/403 points to the possibly missing approval and "
-                      "to the file path. Standard library only."),
+                      "(~30 lines) — auto-discovery picks it up. Step by "
+                      "step with an example: tutorial 'Attaching your own "
+                      "data source' (sources_Tutorial_EN.pdf / online under "
+                      "Tutorials). Tokens only from environment variables, "
+                      "never stored, never logged; 401/403 points to the "
+                      "possibly missing approval and to the file path. "
+                      "Standard library only."),
             ],
         },
     },

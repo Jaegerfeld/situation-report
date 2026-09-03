@@ -67,6 +67,17 @@ consumed = (100−SLI)/(100−target), at risk below 25 % remaining) and
 **Delivery Performance (DORA) & Code Quality** (per-metric tiers at the
 published DORA thresholds, unit tier = worst metric; quality table below).
 
+## Tutorial
+
+New to this? The step-by-step tutorial **[Attaching your own data
+source](../tutorials/attach-a-source.md)** builds a complete CSV provider
+from zero (no external systems needed, runs against the demo scenario),
+then shows swapping, combining and day-to-day management — every step
+with an example. Also available as PDF:
+[DE](../sources_Tutorial_DE.pdf) / [EN](../sources_Tutorial_EN.pdf).
+The shipped `csv` provider (`sources/providers/csv_slo.py`) is the
+tutorial's living reference solution.
+
 ## Recipe: your own source in ~30 lines
 
 Create `sources/providers/my_system.py`:

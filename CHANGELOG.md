@@ -8,6 +8,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- **Sources tutorial + management chapter** — a full step-by-step
+  tutorial "Attaching your own data source" written for developers who
+  have never attached a source: builds a CSV provider from zero against
+  the demo scenario (no external systems needed), then covers the REST
+  pattern, swapping (config-only), combining and day-to-day management —
+  every step with an example. Available on the docs site
+  (Tutorials → Attach a data source, en+de) and as PDFs
+  (`sources_Tutorial_DE/EN.pdf`, new generator
+  `docs/generate_sources_tutorial.py`). The get_data manual gains
+  chapter 3 "Managing metric sources" in all five languages (FAQ/glossary
+  renumbered). The tutorial's reference solution ships as a real
+  provider: `csv` (SLO records from CSV incl. German-Excel semicolons,
+  decimal commas and BOM).
 - **External metric sources + SLO/DORA views** (roadmap C1/C2) — new
   pluggable `sources` framework: normalised record contracts (SLO, DORA,
   quality) decouple the report from any vendor; providers are
