@@ -351,6 +351,17 @@ def content_de(st: dict) -> list:
             ["Speichern", "Die Konfiguration als JSON sichern (= wiederverwendbares "
                           "Template)."],
             ["Laden", "Eine gespeicherte Konfiguration öffnen."],
+            ["Datenquellen …", "Dialog mit den neun Register-Pfaden der "
+                               "Solution (Risiken, NFR, Capabilities, "
+                               "Dependencies, Decisions, SLO, DORA, "
+                               "Flussprobleme, Themes) samt Status je Feld "
+                               "(gefunden/leer/FEHLT). „Aus Datenraum "
+                               "übernehmen …“ füllt die Felder per "
+                               "Konvention aus registers/; beim Portfolio "
+                               "zeigt der Dialog nur an, welche Register "
+                               "die Member-Solutions mitbringen. Beim "
+                               "Speichern werden Pfade im Config-Ordner "
+                               "automatisch relativiert (Datenraum)."],
             ["Report erzeugen", "Erzeugt den Report. Endung <b>.html</b> = Webseite, "
                                 "<b>.pdf</b> = PDF. Öffnet sich anschließend."],
         ], col_widths=[3.6*cm, 11.9*cm]),
@@ -736,6 +747,17 @@ def content_en(st: dict) -> list:
             ["Report mode", "Pooled or Comparison (see section 5)."],
             ["Save", "Save the configuration as JSON (= a reusable template)."],
             ["Load", "Open a saved configuration."],
+            ["Data sources …", "Dialog with the solution's nine register "
+                               "paths (risks, NFR, capabilities, "
+                               "dependencies, decisions, SLO, DORA, flow "
+                               "problems, themes) plus a per-field status "
+                               "(found/empty/MISSING). 'Take from data "
+                               "folder …' fills the fields by convention "
+                               "from registers/; for a portfolio the "
+                               "dialog only shows which registers the "
+                               "member solutions bring. On save, paths "
+                               "inside the config folder are relativised "
+                               "automatically (Datenraum)."],
             ["Generate report", "Build the report. Extension <b>.html</b> = web page, "
                                 "<b>.pdf</b> = PDF. It opens afterwards."],
         ], col_widths=[3.6*cm, 11.9*cm]),
@@ -1114,6 +1136,17 @@ def content_ro(st: dict) -> list:
             ["Mod raport", "Pooled sau Comparison (vezi sectiunea 5)."],
             ["Salveaza", "Salvati configuratia ca JSON (= template reutilizabil)."],
             ["Incarca", "Deschideti o configuratie salvata."],
+            ["Surse de date …", "Dialog cu cele noua cai de registre ale "
+                               "solutiei (riscuri, NFR, capabilities, "
+                               "dependente, decizii, SLO, DORA, probleme "
+                               "de flux, teme) plus status per camp "
+                               "(gasit/gol/LIPSESTE). 'Preia din folderul "
+                               "de date …' umple campurile prin conventie "
+                               "din registers/; la portofoliu dialogul "
+                               "doar arata ce registre aduc solutiile "
+                               "membre. La salvare, caile din folderul "
+                               "configului devin automat relative "
+                               "(Datenraum)."],
             ["Genereaza raport", "Construieste raportul. Extensia <b>.html</b> = pagina "
                                  "web, <b>.pdf</b> = PDF. Se deschide apoi."],
         ], col_widths=[3.6*cm, 11.9*cm]),
@@ -1493,6 +1526,18 @@ def content_pt(st: dict) -> list:
             ["Modo de relatorio", "Pooled ou Comparison (ver seccao 5)."],
             ["Guardar", "Guardar a configuracao como JSON (= template reutilizavel)."],
             ["Carregar", "Abrir uma configuracao guardada."],
+            ["Fontes de dados …", "Dialogo com os nove caminhos de "
+                               "registos da solution (riscos, NFR, "
+                               "capabilities, dependencias, decisoes, "
+                               "SLO, DORA, problemas de fluxo, temas) e "
+                               "estado por campo (encontrado/vazio/EM "
+                               "FALTA). 'Assumir da pasta de dados …' "
+                               "preenche por convencao a partir de "
+                               "registers/; num portefolio o dialogo so "
+                               "mostra que registos as solutions membro "
+                               "trazem. Ao guardar, caminhos dentro da "
+                               "pasta do config tornam-se relativos "
+                               "automaticamente (Datenraum)."],
             ["Gerar relatorio", "Cria o relatorio. Extensao <b>.html</b> = pagina web, "
                                 "<b>.pdf</b> = PDF. Abre de seguida."],
         ], col_widths=[3.6*cm, 11.9*cm]),
@@ -1874,6 +1919,19 @@ def content_fr(st: dict) -> list:
             ["Mode de rapport", "Pooled ou Comparison (voir section 5)."],
             ["Enregistrer", "Enregistrer la configuration en JSON (= template reutilisable)."],
             ["Charger", "Ouvrir une configuration enregistree."],
+            ["Sources de donnees …", "Dialogue avec les neuf chemins de "
+                               "registres de la solution (risques, NFR, "
+                               "capabilities, dependances, decisions, "
+                               "SLO, DORA, problemes de flux, themes) et "
+                               "un etat par champ (trouve/vide/MANQUE). "
+                               "« Reprendre du dossier de donnees … » "
+                               "remplit les champs par convention depuis "
+                               "registers/ ; pour un portefeuille, le "
+                               "dialogue montre seulement quels registres "
+                               "les solutions membres apportent. A "
+                               "l'enregistrement, les chemins situes dans "
+                               "le dossier du config deviennent relatifs "
+                               "automatiquement (Datenraum)."],
             ["Generer le rapport", "Construit le rapport. Extension <b>.html</b> = page "
                                    "web, <b>.pdf</b> = PDF. Il s'ouvre ensuite."],
         ], col_widths=[3.6*cm, 11.9*cm]),
