@@ -545,7 +545,9 @@ def content_de(st: dict) -> list:
               P("<b>In der GUI:</b> Der Bereich „Demo-Portfolio\" unten im Fenster erzeugt "
                 "das Szenario per Knopfdruck in einen Ordner deiner Wahl (das Seed-Feld "
                 "wird übernommen, Standard 42); „Portfolio-Report öffnen\" rendert den "
-                "Portfolio-Report und öffnet ihn im Browser — ganz ohne Kommandozeile.", st),
+                "Portfolio-Report, „Delta-Briefing öffnen\" das „Was hat sich "
+                "geändert?\"-Briefing aus snapshot_prev/now.json — ganz ohne "
+                "Kommandozeile.", st),
               PRE("python -m testdata_generator --scenario portfolio \\\n"
                   "    --output demo/ --seed 42", st),
               P("Der Zielordner enthält danach:", st),
@@ -874,8 +876,9 @@ def content_en(st: dict) -> list:
               P("<b>In the GUI:</b> the 'Demo portfolio' section at the bottom of the "
                 "window generates the scenario into a folder of your choice at the click "
                 "of a button (the seed field is honoured, default 42); 'Open Portfolio "
-                "Report' renders the portfolio report and opens it in the browser — no "
-                "command line needed.", st),
+                "Report' renders the portfolio report, 'Open Delta Briefing' the "
+                "'what changed?' briefing from snapshot_prev/now.json — no command "
+                "line needed.", st),
               PRE("python -m testdata_generator --scenario portfolio \\\n"
                   "    --output demo/ --seed 42", st),
               P("The target folder then contains:", st),
@@ -1148,7 +1151,8 @@ def content_ro(st: dict) -> list:
               P("<b>În GUI:</b> secțiunea 'Demo portfolio' din partea de jos a ferestrei "
                 "generează scenariul într-un director la alegere printr-un clic (câmpul "
                 "seed este preluat, implicit 42); 'Open Portfolio Report' redă raportul "
-                "de portofoliu și îl deschide în browser — fără linie de comandă.", st),
+                "de portofoliu, 'Open Delta Briefing' briefingul 'ce s-a schimbat?' din "
+                "snapshot_prev/now.json — fără linie de comandă.", st),
               PRE("python -m testdata_generator --scenario portfolio \\\n"
                   "    --output demo/ --seed 42", st),
               P("Directorul țintă conține apoi:", st),
@@ -1428,7 +1432,8 @@ def content_pt(st: dict) -> list:
               P("<b>Na GUI:</b> a secção 'Demo portfolio' na parte inferior da janela "
                 "gera o cenário numa pasta à escolha com um clique (o campo seed é "
                 "respeitado, padrão 42); 'Open Portfolio Report' gera o relatório de "
-                "portfólio e abre-o no browser — sem linha de comandos.", st),
+                "portfólio, 'Open Delta Briefing' o briefing 'o que mudou?' a partir de "
+                "snapshot_prev/now.json — sem linha de comandos.", st),
               PRE("python -m testdata_generator --scenario portfolio \\\n"
                   "    --output demo/ --seed 42", st),
               P("A pasta de destino contém depois:", st),
@@ -1710,7 +1715,8 @@ def content_fr(st: dict) -> list:
               P("<b>Dans la GUI :</b> la section 'Demo portfolio' en bas de la fenêtre "
                 "génère le scénario dans un dossier de votre choix en un clic (le champ "
                 "seed est repris, 42 par défaut) ; 'Open Portfolio Report' génère le "
-                "rapport de portefeuille et l'ouvre dans le navigateur — sans ligne de "
+                "rapport de portefeuille, 'Open Delta Briefing' le briefing « qu'est-ce "
+                "qui a changé ? » à partir de snapshot_prev/now.json — sans ligne de "
                 "commande.", st),
               PRE("python -m testdata_generator --scenario portfolio \\\n"
                   "    --output demo/ --seed 42", st),

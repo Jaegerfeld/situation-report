@@ -94,9 +94,11 @@ python -m testdata_generator \
 
 **GUI:** Der Bereich *Demo-Portfolio* unten im Fenster erzeugt das komplette
 Szenario in einen Ordner deiner Wahl (das Seed-Feld wird übernommen, Standard
-42) — und **Portfolio-Report öffnen** rendert den Portfolio-Report und öffnet
-ihn im Browser. Zwei Klicks vom leeren Ordner zur vollständigen
-Portfolio-Evaluation, ganz ohne Kommandozeile.
+42) — **Portfolio-Report öffnen** rendert den Portfolio-Report, **Delta-
+Briefing öffnen** macht aus dem mitgelieferten Paar `snapshot_prev/now.json`
+das „Was hat sich geändert?"-Briefing; beides öffnet im Browser. Zwei Klicks
+vom leeren Ordner zur vollständigen Portfolio-Evaluation, ganz ohne
+Kommandozeile.
 
 **Kommandozeile:**
 

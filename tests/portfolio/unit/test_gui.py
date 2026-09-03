@@ -15,6 +15,7 @@
 from __future__ import annotations
 
 from datetime import date
+from pathlib import Path
 
 import pytest
 
@@ -25,6 +26,7 @@ from portfolio.gui import (
     LANG_FR,
     LANG_PT,
     LANG_RO,
+    _build_delta_html_file,
     _member_dict,
     build_config_from_fields,
     default_metrics_for_mode,
@@ -149,3 +151,44 @@ class TestDefaultMetricsForMode:
 
     def test_comparison_includes_flow_load(self) -> None:
         assert "flow_load" in default_metrics_for_mode(MODE_COMPARISON)
+
+
+class TestBuildDeltaHtmlFile:
+    def test_renders_delta_of_two_snapshot_files(self, tmp_path) -> None:
+        from datetime import date as _date
+
+        from portfolio.snapshot import Snapshot, save_snapshot
+
+        def snap(as_of: _date, completed: int) -> Snapshot:
+            return Snapshot(
+                name="Demo", kind="portfolio", as_of=as_of,
+                created="2025-06-30T12:00:00", target_ct=90,
+                total={"label": "Demo", "items": 100, "completed": completed,
+                       "open": 100 - completed, "median_ct": 8.0,
+                       "p85_ct": 18.0, "p95_ct": 30.0, "target_ct_pct": 95.0,
+                       "median_lt": 16.0, "p85_lt": 39.0},
+                governance={"risks": [], "dependencies": [], "nfr": [],
+                            "runway": [], "capabilities": [], "decisions": []})
+
+        prev_p = tmp_path / "prev.json"
+        now_p = tmp_path / "now.json"
+        save_snapshot(prev_p, snap(_date(2025, 6, 16), 60))
+        save_snapshot(now_p, snap(_date(2025, 6, 30), 75))
+
+        out = _build_delta_html_file(prev_p, now_p)
+        html = Path(out).read_text(encoding="utf-8")
+        assert html.startswith("<!DOCTYPE html>")
+        assert "+15 items completed" in html
+        Path(out).unlink()
+
+    def test_propagates_snapshot_errors(self, tmp_path) -> None:
+        from portfolio.snapshot import Snapshot, save_snapshot
+
+        a = tmp_path / "a.json"
+        b = tmp_path / "b.json"
+        save_snapshot(a, Snapshot(name="A", kind="solution", as_of=date(2025, 6, 1),
+                                  created="", target_ct=90, total={}))
+        save_snapshot(b, Snapshot(name="B", kind="solution", as_of=date(2025, 6, 2),
+                                  created="", target_ct=90, total={}))
+        with pytest.raises(ValueError, match="different reports"):
+            _build_delta_html_file(a, b)

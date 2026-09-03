@@ -286,6 +286,14 @@ The Markdown output is deliberately the input contract for the optional LLM
 narration layer (D2 part 2, not yet built): the LLM may rephrase it, never
 add numbers — the numbers are made here, deterministically.
 
+**In the GUI:** the manager window carries two matching buttons — **Save
+snapshot …** freezes the currently configured solution/portfolio to a JSON
+file (suggested name includes today's date), and **Delta briefing …** asks
+for the earlier and the later snapshot and opens the briefing in the
+browser. The demo path is even shorter: the test-data generator's
+demo-portfolio section gains **Open Delta Briefing**, which renders the
+scenario's shipped `snapshot_prev/now.json` pair directly.
+
 ## Custom stage map (optional, config schema 2)
 
 By default, differing ART workflows pool into the three canonical groups

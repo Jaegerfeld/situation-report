@@ -25,10 +25,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   world two weeks earlier: fewer completed items, Beta-3 confidence still
   medium, AD-1 only at risk, BR-2 absent, runway gap and assumption AS-B1
   not yet overdue); manual section 5.12 in all five languages.
+- Portfolio: **delta briefing in the GUIs** — the Solutions & Portfolios
+  window gains *Save snapshot …* (freezes the currently configured
+  solution/portfolio to a JSON file, suggested name with today's date) and
+  *Delta briefing …* (pick the earlier and the later snapshot, briefing
+  opens in the browser); labels in all five languages. The test-data
+  generator's demo-portfolio section gains *Open Delta Briefing*, rendering
+  the scenario's shipped `snapshot_prev/now.json` pair with one click.
 - Docs: **feature one-pagers** — every implemented feature now gets a
   one-page PDF (DE+EN) introducing the new function
   (`docs/generate_feature_onepagers.py` → `docs/onepager/`); first one:
-  the delta briefing.
+  the delta briefing (incl. the GUI path).
 
 ## [0.19.0] – 2026-09-03
 

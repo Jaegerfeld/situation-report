@@ -293,6 +293,14 @@ Das Markdown ist bewusst der Eingabe-Contract der optionalen LLM-Narration
 (D2 Teil 2, noch nicht gebaut): Das LLM darf umformulieren, nie Zahlen
 hinzufügen — die Zahlen entstehen hier, deterministisch.
 
+**In der GUI:** Das Manager-Fenster trägt zwei passende Knöpfe — **Snapshot
+speichern …** friert die aktuell konfigurierte Solution/das Portfolio in
+eine JSON-Datei ein (Namensvorschlag mit Tagesdatum), und **Delta-Briefing
+…** fragt nach Vorher- und Nachher-Snapshot und öffnet das Briefing im
+Browser. Der Demo-Weg ist noch kürzer: Der Demo-Portfolio-Bereich des
+Testdaten-Generators bekommt **Delta-Briefing öffnen** und rendert direkt
+das mitgelieferte Paar `snapshot_prev/now.json`.
+
 ## Eigene Stage-Map (optional, Config-Schema 2)
 
 Standardmäßig poolen unterschiedliche ART-Workflows in die drei kanonischen

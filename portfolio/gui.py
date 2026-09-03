@@ -145,6 +145,16 @@ _T: dict[str, dict[str, str]] = {
         "dlg_open_config": "Solution-Konfiguration öffnen",
         "dlg_save_config": "Solution-Konfiguration speichern",
         "dlg_save_report": "Report speichern",
+        "btn_snapshot": "Snapshot speichern …",
+        "btn_delta": "Delta-Briefing …",
+        "dlg_save_snapshot": "Snapshot speichern",
+        "dlg_delta_prev": "Vorher-Snapshot wählen",
+        "dlg_delta_now": "Nachher-Snapshot wählen",
+        "msg_snapshot_saving": "Snapshot wird erzeugt …",
+        "msg_snapshot_done": "Snapshot gespeichert: {path}",
+        "msg_snapshot_error": "Snapshot fehlgeschlagen: {error}",
+        "msg_delta_done": "Delta-Briefing im Browser geöffnet",
+        "msg_delta_error": "Delta-Briefing fehlgeschlagen: {error}",
     },
     LANG_EN: {
         "window_title": "Solutions & Portfolios",
@@ -184,6 +194,16 @@ _T: dict[str, dict[str, str]] = {
         "dlg_open_config": "Open solution configuration",
         "dlg_save_config": "Save solution configuration",
         "dlg_save_report": "Save report",
+        "btn_snapshot": "Save snapshot …",
+        "btn_delta": "Delta briefing …",
+        "dlg_save_snapshot": "Save snapshot",
+        "dlg_delta_prev": "Select earlier snapshot",
+        "dlg_delta_now": "Select later snapshot",
+        "msg_snapshot_saving": "Building snapshot …",
+        "msg_snapshot_done": "Snapshot saved: {path}",
+        "msg_snapshot_error": "Snapshot failed: {error}",
+        "msg_delta_done": "Delta briefing opened in the browser",
+        "msg_delta_error": "Delta briefing failed: {error}",
     },
     LANG_RO: {
         "window_title": "Soluții & Portofolii",
@@ -223,6 +243,16 @@ _T: dict[str, dict[str, str]] = {
         "dlg_open_config": "Deschide configurația soluției",
         "dlg_save_config": "Salvează configurația soluției",
         "dlg_save_report": "Salvează raportul",
+        "btn_snapshot": "Salvează snapshot …",
+        "btn_delta": "Delta briefing …",
+        "dlg_save_snapshot": "Salvează snapshot-ul",
+        "dlg_delta_prev": "Alege snapshot-ul anterior",
+        "dlg_delta_now": "Alege snapshot-ul recent",
+        "msg_snapshot_saving": "Se creează snapshot-ul …",
+        "msg_snapshot_done": "Snapshot salvat: {path}",
+        "msg_snapshot_error": "Snapshot eșuat: {error}",
+        "msg_delta_done": "Delta briefing deschis în browser",
+        "msg_delta_error": "Delta briefing eșuat: {error}",
     },
     LANG_PT: {
         "window_title": "Soluções & Portefólios",
@@ -262,6 +292,16 @@ _T: dict[str, dict[str, str]] = {
         "dlg_open_config": "Abrir configuração da solução",
         "dlg_save_config": "Guardar configuração da solução",
         "dlg_save_report": "Guardar relatório",
+        "btn_snapshot": "Guardar snapshot …",
+        "btn_delta": "Delta briefing …",
+        "dlg_save_snapshot": "Guardar snapshot",
+        "dlg_delta_prev": "Escolher o snapshot anterior",
+        "dlg_delta_now": "Escolher o snapshot recente",
+        "msg_snapshot_saving": "A criar o snapshot …",
+        "msg_snapshot_done": "Snapshot guardado: {path}",
+        "msg_snapshot_error": "Snapshot falhou: {error}",
+        "msg_delta_done": "Delta briefing aberto no browser",
+        "msg_delta_error": "Delta briefing falhou: {error}",
     },
     LANG_FR: {
         "window_title": "Solutions & Portefeuilles",
@@ -301,6 +341,16 @@ _T: dict[str, dict[str, str]] = {
         "dlg_open_config": "Ouvrir la configuration de la solution",
         "dlg_save_config": "Enregistrer la configuration de la solution",
         "dlg_save_report": "Enregistrer le rapport",
+        "btn_snapshot": "Enregistrer le snapshot …",
+        "btn_delta": "Delta briefing …",
+        "dlg_save_snapshot": "Enregistrer le snapshot",
+        "dlg_delta_prev": "Choisir le snapshot précédent",
+        "dlg_delta_now": "Choisir le snapshot récent",
+        "msg_snapshot_saving": "Création du snapshot …",
+        "msg_snapshot_done": "Snapshot enregistré : {path}",
+        "msg_snapshot_error": "Échec du snapshot : {error}",
+        "msg_delta_done": "Delta briefing ouvert dans le navigateur",
+        "msg_delta_error": "Échec du delta briefing : {error}",
     },
 }
 
@@ -308,6 +358,38 @@ _T: dict[str, dict[str, str]] = {
 # ---------------------------------------------------------------------------
 # Display-independent logic (unit-tested without tkinter)
 # ---------------------------------------------------------------------------
+
+def _build_delta_html_file(prev_path: Path, now_path: Path) -> str:
+    """
+    Render the delta briefing for two snapshot files into a temp HTML file.
+
+    Imports the delta machinery lazily so the manager window opens without
+    pulling it until a briefing is actually requested.
+
+    Args:
+        prev_path: Earlier snapshot JSON.
+        now_path:  Later snapshot JSON.
+
+    Returns:
+        Path of the written temporary .html file.
+
+    Raises:
+        ValueError: When the snapshots do not belong together or are in the
+                    wrong order (surfaced to the status line by the caller).
+    """
+    import tempfile
+
+    from .delta import compute_delta, render_delta_html
+    from .snapshot import load_snapshot
+
+    html = render_delta_html(
+        compute_delta(load_snapshot(prev_path), load_snapshot(now_path)))
+    with tempfile.NamedTemporaryFile(
+        mode="w", suffix=".html", delete=False, encoding="utf-8"
+    ) as f:
+        f.write(html)
+        return f.name
+
 
 def _member_dict(name: str, source: str, kind: str = KIND_SOLUTION) -> dict[str, str]:
     """
@@ -568,6 +650,10 @@ class SolutionManagerApp(tk.Tk):
         ttk.Button(btns, text=self._tr("btn_save"), command=self._save).pack(side="left", padx=(6, 0))
         ttk.Button(btns, text=self._tr("btn_generate"), command=self._generate).pack(
             side="right")
+        ttk.Button(btns, text=self._tr("btn_delta"), command=self._delta).pack(
+            side="right", padx=(0, 6))
+        ttk.Button(btns, text=self._tr("btn_snapshot"), command=self._snapshot).pack(
+            side="right", padx=(0, 6))
 
         tk.Label(self, textvariable=self._status, fg="#2980b9", anchor="w").pack(
             fill="x", pady=(10, 0))
@@ -733,6 +819,55 @@ class SolutionManagerApp(tk.Tk):
             webbrowser.open(Path(out).resolve().as_uri())
         else:
             self._status.set(self._tr("msg_no_figures"))
+
+    def _snapshot(self) -> None:
+        """Freeze the current configuration's report state to a JSON file (D2)."""
+        cfg = self._build_config()
+        if cfg is None:
+            return
+        path = filedialog.asksaveasfilename(
+            title=self._tr("dlg_save_snapshot"), defaultextension=".json",
+            initialfile=f"{cfg.name}_snapshot_{date.today().isoformat()}.json",
+            filetypes=[("JSON", "*.json")])
+        if not path:
+            return
+        self._status.set(self._tr("msg_snapshot_saving"))
+        self.update_idletasks()
+
+        def worker() -> None:
+            try:
+                from .snapshot import build_snapshot, save_snapshot
+
+                snap = build_snapshot(cfg, log=lambda *_: None)
+                save_snapshot(Path(path), snap)
+                msg = self._tr("msg_snapshot_done").format(path=path)
+            except Exception as exc:
+                msg = self._tr("msg_snapshot_error").format(error=exc)
+            self.after(0, lambda: self._status.set(msg))
+
+        threading.Thread(target=worker, daemon=True).start()
+
+    def _delta(self) -> None:
+        """Pick two snapshot files and open their delta briefing (D2)."""
+        prev = filedialog.askopenfilename(
+            title=self._tr("dlg_delta_prev"), filetypes=[("JSON", "*.json")])
+        if not prev:
+            return
+        now = filedialog.askopenfilename(
+            title=self._tr("dlg_delta_now"), filetypes=[("JSON", "*.json")])
+        if not now:
+            return
+
+        def worker() -> None:
+            try:
+                tmp = _build_delta_html_file(Path(prev), Path(now))
+                webbrowser.open(Path(tmp).resolve().as_uri())
+                msg = self._tr("msg_delta_done")
+            except Exception as exc:
+                msg = self._tr("msg_delta_error").format(error=exc)
+            self.after(0, lambda: self._status.set(msg))
+
+        threading.Thread(target=worker, daemon=True).start()
 
 
 def main() -> None:  # pragma: no cover - requires a display
