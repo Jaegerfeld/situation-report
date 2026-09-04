@@ -8,6 +8,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- **Red-team assistant (D5) — Phase 4 complete** — `--red-team FILE`
+  generates premortem and attack questions from the config's
+  decision/assumption log (B4): raw material for humanly moderated
+  sessions. The KI-Denkschrift mapping "D5 → judgement: raw material
+  only, no recommendation button" is machine-enforced: a **questions
+  guard** discards any output whose list lines do not end as questions
+  — on top of the numbers guard, the Art. 50 banner and the audit
+  (purpose `d5_red_team`). Deterministic log contract (IDs, kind,
+  status, owner teams, dates, supersedes), versioned prompt (de/en,
+  premortem framing for decisions, direct assumption attacks, 1–3
+  questions per entry grouped by ID), provider as everywhere; a config
+  without a B4 log gets a clear error, and the mock provider now
+  returns question-shaped output so demos and tests run without any
+  model. With D1 (executive summary) and D6 (multilingual delivery)
+  this completes Phase 4 on the llm framework.
 - **Multilingual delivery of report texts (D6)** — situational texts
   can now be delivered in all five house languages (de/en/ro/pt/fr) on
   the same guarded llm path: the numbers invariant is the perfect

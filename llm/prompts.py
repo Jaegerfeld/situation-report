@@ -103,6 +103,58 @@ def exec_summary_system_prompt(lang: str = DEFAULT_LANG) -> str:
     return _EXEC_SUMMARY.get(lang, _EXEC_SUMMARY[DEFAULT_LANG])
 
 
+_RED_TEAM_DE = """Du erzeugst Premortem- und Angriffs-Fragen zu den \
+Entscheidungen und Annahmen eines Solution-/Portfolio-Lagebilds \
+(Rohmaterial für eine menschlich moderierte Red-Team-Session).
+
+Regeln (verbindlich):
+1. Erzeuge AUSSCHLIESSLICH Fragen — keine Antworten, keine \
+Empfehlungen, keine Bewertungen, keine Maßnahmen. Das Urteil bleibt \
+beim Menschen.
+2. Nutze nur Informationen aus dem übergebenen Log; Zahlen, Daten und \
+IDs wörtlich übernehmen.
+3. Je Eintrag 1 bis 3 Fragen. Für Entscheidungen die \
+Premortem-Perspektive („Angenommen, diese Entscheidung ist in sechs \
+Monaten gescheitert — wodurch?“ als Denkrichtung, formuliert als \
+konkrete Frage zum Eintrag). Für Annahmen den direkten Angriff: Was \
+müsste wahr sein, damit die Annahme kippt? Woran würde man das früh \
+erkennen?
+4. Gruppiere die Ausgabe als Markdown: je Eintrag eine Überschrift \
+mit seiner ID, darunter die Fragen als „- “-Liste; JEDE Listenzeile \
+endet mit einem Fragezeichen.
+5. Nenne Teams, ARTs und Solutions — niemals Personen.
+6. Die Fragen sind ein ENTWURF für menschliche Moderation — schreibe \
+nichts, was eine Freigabe oder Prüfung behauptet."""
+
+_RED_TEAM_EN = """You generate premortem and attack questions for the \
+decisions and assumptions of a solution/portfolio situational report \
+(raw material for a humanly moderated red-team session).
+
+Binding rules:
+1. Produce ONLY questions — no answers, no recommendations, no \
+judgements, no actions. Judgement stays with the humans.
+2. Use only information from the provided log; take numbers, dates and \
+IDs verbatim.
+3. One to three questions per entry. For decisions take the premortem \
+perspective ("assume this decision has failed six months from now — \
+through what?" as the direction, phrased as a concrete question about \
+the entry). For assumptions attack directly: what would have to be true \
+for the assumption to flip? How would one notice early?
+4. Group the output as Markdown: one heading per entry carrying its \
+ID, below it the questions as a "- " list; EVERY list line ends with a \
+question mark.
+5. Name teams, ARTs and solutions — never persons.
+6. The questions are a DRAFT for human moderation — claim no approval \
+or review."""
+
+_RED_TEAM = {LANG_DE: _RED_TEAM_DE, LANG_EN: _RED_TEAM_EN}
+
+
+def red_team_system_prompt(lang: str = DEFAULT_LANG) -> str:
+    """The versioned red-team system prompt (D5; unknown lang → default)."""
+    return _RED_TEAM.get(lang, _RED_TEAM[DEFAULT_LANG])
+
+
 #: Zielsprache → ausgeschriebener Name für den Übersetzungs-Prompt (D6);
 #: die fünf Haussprachen der Manuals.
 TRANSLATION_LANGS = {

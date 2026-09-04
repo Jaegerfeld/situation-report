@@ -69,6 +69,11 @@ fans an edited, approved file out per language. The numbers invariant is
 the perfect translation guard; banners are written in the target
 language (all five house languages), audit purpose `d6_translation`.
 
+**Red-team questions (D5):** `--red-team FILE` on a config generates
+premortem/attack questions from the decision log — a **questions guard**
+machine-discards any non-question output (raw material for judgement,
+never judgements; audit purpose `d5_red_team`).
+
 Without `--narrate` the briefing is exactly the deterministic D2 output
 (clean degradation). With it, the briefing gains the labeled section
 **Narration (Entwurf)**; Markdown output additionally writes

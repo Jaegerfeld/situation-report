@@ -645,7 +645,12 @@ def content_de(st: dict) -> list:
            "Delta-Briefing selbst; jede Übersetzung ist gewächtert "
            "(Zahlen-Invariante), in der ZIELsprache gekennzeichnet und "
            "auditiert. Redigierte, freigegebene Texte übersetzt "
-           "python -m llm translate DATEI --to … in einem Schritt.", st),
+           "python -m llm translate DATEI --to … in einem Schritt. <b>Red-Team-Fragen "
+           "(D5):</b> --red-team fragen.md erzeugt Premortem- und "
+           "Angriffs-Fragen aus dem Decision-/Assumption-Log — NUR "
+           "Fragen, nie Empfehlungen (ein Fragen-Wächter verwirft alles "
+           "andere maschinell); Rohmaterial für menschlich moderierte "
+           "Sessions, gekennzeichnet und auditiert.", st),
         _SP(6),
 
         _H1("6. Kommandozeile (CLI)", st), _hr(st),
@@ -1051,7 +1056,12 @@ def content_en(st: dict) -> list:
            "every translation is guarded (numbers invariant), labeled in "
            "the TARGET language and audited. Edited, approved texts are "
            "translated in one step via python -m llm translate FILE "
-           "--to ….", st),
+           "--to …. <b>Red-team questions (D5):</b> --red-team questions.md "
+           "generates premortem and attack questions from the "
+           "decision/assumption log — ONLY questions, never "
+           "recommendations (a questions guard machine-discards "
+           "anything else); raw material for humanly moderated "
+           "sessions, labeled and audited.", st),
         _SP(6),
 
         _H1("6. Command line (CLI)", st), _hr(st),
@@ -1451,7 +1461,11 @@ def content_ro(st: dict) -> list:
            "exista naratiune, altfel delta briefingul determinist; "
            "fiecare traducere este pazita, etichetata in limba TINTA si "
            "auditata. Textele redactate se traduc cu python -m llm "
-           "translate FISIER --to ….", st),
+           "translate FISIER --to …. <b>Intrebari red-team (D5):</b> "
+           "--red-team intrebari.md genereaza intrebari premortem si de "
+           "atac din jurnalul de decizii — DOAR intrebari, niciodata "
+           "recomandari (un paznic al intrebarilor le respinge "
+           "automat); material brut pentru sesiuni moderate uman.", st),
         _SP(6),
 
         _H1("6. Linia de comanda (CLI)", st), _hr(st),
@@ -1855,7 +1869,11 @@ def content_pt(st: dict) -> list:
            "narracao, senao o proprio delta briefing determinista; cada "
            "traducao e guardada, rotulada na lingua ALVO e auditada. "
            "Textos redigidos traduzem-se com python -m llm translate "
-           "FICHEIRO --to ….", st),
+           "FICHEIRO --to …. <b>Perguntas red-team (D5):</b> --red-team "
+           "perguntas.md gera perguntas premortem e de ataque a partir "
+           "do registo de decisoes — SO perguntas, nunca recomendacoes "
+           "(um guarda de perguntas descarta o resto automaticamente); "
+           "material bruto para sessoes moderadas por humanos.", st),
         _SP(6),
 
         _H1("6. Linha de comandos (CLI)", st), _hr(st),
@@ -2270,7 +2288,12 @@ def content_fr(st: dict) -> list:
            "delta briefing deterministe lui-meme ; chaque traduction est "
            "gardee, etiquetee dans la langue CIBLE et auditee. Les "
            "textes rediges se traduisent via python -m llm translate "
-           "FICHIER --to ….", st),
+           "FICHIER --to …. <b>Questions red-team (D5) :</b> --red-team "
+           "questions.md genere des questions premortem et d'attaque a "
+           "partir du journal de decisions — QUE des questions, jamais "
+           "de recommandations (un garde des questions rejette le reste "
+           "automatiquement) ; matiere brute pour des sessions moderees "
+           "par des humains.", st),
         _SP(6),
 
         _H1("6. Ligne de commande (CLI)", st), _hr(st),

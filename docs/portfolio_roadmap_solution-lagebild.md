@@ -157,9 +157,10 @@ Nicht nach „Feature-Wunschliste", sondern nach **Datenherkunft** (das BGS-Prin
 - **Was:** Statistische Auffälligkeits-Erkennung im deterministischen Kern (stdlib), KI liefert nur den Erklärtext mit Kontext.
 - **Warum:** Muster M4 (Entscheidungspunkt-Wecker), gegen Alarm-Müdigkeit: nur entscheidungsrelevante Schwellen (EVI). **Aufwand:** M.
 
-### D5 · Red-Team-Assistent
+### D5 · Red-Team-Assistent — **✅ (04.09.2026, Phase 4 — damit ist Phase 4 komplett: D1, D6, D5 auf dem llm-Framework)**
 - **Was:** Premortem-/Annahmen-Angriffs-Fragen aus Decision-/Assumption-Log generieren (Rohmaterial für menschlich moderierte Sessions).
 - **Warum:** Red-Team-Kapazität für jeden Stab (Rolle 3 der KI-Denkschrift). **Voraussetzung:** B4. **Aufwand:** S–M.
+- **Ist-Stand:** `portfolio/red_team.py` — deterministischer Log-Contract (`decision_log_to_markdown` über `_collect_decisions`: IDs, Art, Status, Owner-Teams, Daten, supersedes), versionierter Prompt (`red_team_system_prompt` de/en: Premortem-Rahmung für Entscheidungen, direkter Annahmen-Angriff, 1–3 Fragen je Eintrag, gruppiert je ID). Die Denkschrift-Zuordnung „D5 → Urteil: NUR Rohmaterial, kein Empfehlungs-Button" ist MASCHINELL erzwungen: der **Fragen-Wächter** (`enforce_questions`) verwirft jede Ausgabe, deren „- "-Zeilen nicht als Frage enden — zusätzlich zu Zahlen-Wächter, Art.-50-Banner und Audit (purpose `d5_red_team`). CLI `--red-team FILE` an der Config (Provider via --narrate-Wert oder ollama); ohne referenziertes B4-Log klare Fehlermeldung. Mock liefert frage-förmige Attrappe (Demo/Tests ohne Modell).
 
 ### D6 · Mehrsprachige Report-Ausleitung — **✅ (04.09.2026, Phase 4)**
 - **Was:** Report-Texte in weitere Sprachen ausleiten (Muster M5; gelebte Praxis der Manuals).

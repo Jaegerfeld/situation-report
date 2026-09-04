@@ -302,6 +302,16 @@ def main() -> None:
     parser.add_argument("--llm-lang", default="de", dest="llm_lang",
                         choices=["de", "en"],
                         help="Narration language (default: de).")
+    parser.add_argument("--red-team", type=Path, default=None,
+                        dest="red_team", metavar="FILE",
+                        help="D5: write premortem/attack QUESTIONS drawn "
+                             "from the config's decision/assumption log "
+                             "(B4) to this Markdown file — raw material "
+                             "for a humanly moderated session, never "
+                             "recommendations (a questions guard discards "
+                             "non-question output). Provider via "
+                             "--narrate's value or ollama; labeled and "
+                             "audited (d5_red_team).")
     parser.add_argument("--translate", nargs="+", default=None,
                         dest="translate_langs",
                         choices=["de", "en", "ro", "pt", "fr"],
@@ -339,6 +349,14 @@ def main() -> None:
         if not args.output and not args.pdf and not args.conference:
             return
 
+    if args.red_team:
+        from .red_team import run_red_team
+        run_red_team(load_solution_config(args.config), args.red_team,
+                     provider_id=args.narrate or "ollama",
+                     lang=args.llm_lang, llm_model=args.llm_model)
+        if not args.output and not args.pdf and not args.conference:
+            return
+
     if args.conference:
         from .aggregator import render_conference_html
         html_doc = render_conference_html(
@@ -373,41 +391,47 @@ def main() -> None:
         print("Hint: --narrate on a report run needs an HTML --output; "
               "no executive summary was drafted.")
     if html and narrate_report:
-        from llm.audit import AUDIT_FILENAME
-
-        from .exec_summary import attach_exec_summary
-
-        audit_path = args.output.parent / AUDIT_FILENAME
-        html, narration = attach_exec_summary(
-            html, load_solution_config(args.config), args.narrate,
-            lang=args.llm_lang, llm_model=args.llm_model,
-            audit_path=audit_path, as_of=args.as_of,
-            target_ct=args.target_ct)
-        args.output.write_text(html, encoding="utf-8")
-        draft = args.output.with_suffix(
-            args.output.suffix + ".exec_summary.md")
-        draft.write_text(f"> {narration.banner}\n\n{narration.text}\n",
-                         encoding="utf-8")
-        print(f"Executive-summary draft (for human editing): {draft}")
-        if args.translate_langs:
-            from llm.translate import translate_text
-            for lang in args.translate_langs:
-                translated = translate_text(
-                    narration.text, lang, provider_id=args.narrate,
-                    config=({"model": args.llm_model}
-                            if args.llm_model else None),
-                    audit_path=audit_path)
-                target = args.output.with_suffix(
-                    args.output.suffix + f".exec_summary.{lang}.md")
-                target.write_text(
-                    f"> {translated.banner}\n\n{translated.text}\n",
-                    encoding="utf-8")
-                print(f"Translation ({lang}): {target}")
-        print(f"  audit: {audit_path}")
-        if args.browser:
-            webbrowser.open(args.output.resolve().as_uri())
+        _attach_report_exec_summary(args, html)
     if not args.output and not args.pdf:
         print("Report rendered (no --output/--pdf given, so nothing was written).")
+
+
+def _attach_report_exec_summary(args: argparse.Namespace,
+                                html: str) -> None:
+    """D1 post-processing of a report run: draft, translations, audit."""
+    from llm.audit import AUDIT_FILENAME
+
+    from .exec_summary import attach_exec_summary
+
+    audit_path = args.output.parent / AUDIT_FILENAME
+    html, narration = attach_exec_summary(
+        html, load_solution_config(args.config), args.narrate,
+        lang=args.llm_lang, llm_model=args.llm_model,
+        audit_path=audit_path, as_of=args.as_of,
+        target_ct=args.target_ct)
+    args.output.write_text(html, encoding="utf-8")
+    draft = args.output.with_suffix(
+        args.output.suffix + ".exec_summary.md")
+    draft.write_text(f"> {narration.banner}\n\n{narration.text}\n",
+                     encoding="utf-8")
+    print(f"Executive-summary draft (for human editing): {draft}")
+    if args.translate_langs:
+        from llm.translate import translate_text
+        for lang in args.translate_langs:
+            translated = translate_text(
+                narration.text, lang, provider_id=args.narrate,
+                config=({"model": args.llm_model}
+                        if args.llm_model else None),
+                audit_path=audit_path)
+            target = args.output.with_suffix(
+                args.output.suffix + f".exec_summary.{lang}.md")
+            target.write_text(
+                f"> {translated.banner}\n\n{translated.text}\n",
+                encoding="utf-8")
+            print(f"Translation ({lang}): {target}")
+    print(f"  audit: {audit_path}")
+    if args.browser:
+        webbrowser.open(args.output.resolve().as_uri())
 
 
 if __name__ == "__main__":

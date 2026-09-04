@@ -712,6 +712,93 @@ ONEPAGERS: dict[str, dict[str, dict]] = {
             ],
         },
     },
+    "red_team": {
+        "de": {
+            "title": "Red-Team-Assistent",
+            "tagline": "Feature D5 · Premortem-Fragen aus dem "
+                       "Decision-Log — nur Rohmaterial, nie Urteile",
+            "sections": [
+                ("h", "Worum geht es?"),
+                ("p", "Gute Stäbe greifen ihre eigenen Entscheidungen und "
+                      "Annahmen an, bevor die Realität es tut — aber "
+                      "Red-Team-Kapazität ist knapp. D5 erzeugt aus dem "
+                      "Decision-/Assumption-Log (B4) Premortem- und "
+                      "Angriffs-Fragen als Rohmaterial für eine menschlich "
+                      "moderierte Session: Für Entscheidungen die "
+                      "Rückschau aus der Zukunft („woran ist das in sechs "
+                      "Monaten gescheitert?“), für Annahmen der direkte "
+                      "Angriff („was müsste wahr sein, damit sie kippt — "
+                      "und woran merkt man das früh?“)."),
+                ("h", "So benutzt du es"),
+                ("code", "python -m portfolio meine_solution.json "
+                         "--red-team fragen.md\n"
+                         "# je Log-Eintrag 1–3 Fragen, gruppiert nach ID,\n"
+                         "# mit Art.-50-Banner + llm_audit.jsonl "
+                         "(d5_red_team)"),
+                ("p", "Provider wie überall: lokal ollama (Default), "
+                      "extern claude, mock für die modellfreie Demo. "
+                      "Voraussetzung ist ein referenziertes "
+                      "Decision-Log (Config-Feld decisions) — fehlt es, "
+                      "sagt die Fehlermeldung genau das."),
+                ("h", "Der Fragen-Wächter"),
+                ("p", "Die KI-Denkschrift ordnet D5 dem URTEIL zu — und "
+                      "verlangt: nur Rohmaterial, kein Empfehlungs-Button. "
+                      "Das ist hier maschinell erzwungen: Jede „- “-Zeile "
+                      "der Ausgabe muss als Frage enden, sonst wird der "
+                      "gesamte Entwurf verworfen — zusätzlich zu "
+                      "Zahlen-Wächter, Kennzeichnung und Audit. Das "
+                      "Werkzeug KANN keine Empfehlungen ausliefern."),
+                ("h", "Leitplanken"),
+                ("p", "Fragen nennen Teams und Einträge, nie Personen; "
+                      "Zahlen und IDs stammen wörtlich aus dem Log. Die "
+                      "Moderation, Auswahl und Beantwortung bleibt "
+                      "vollständig beim Menschen."),
+            ],
+        },
+        "en": {
+            "title": "Red-Team Assistant",
+            "tagline": "Feature D5 · Premortem questions from the "
+                       "decision log — raw material only, never "
+                       "judgements",
+            "sections": [
+                ("h", "What is it?"),
+                ("p", "Good staffs attack their own decisions and "
+                      "assumptions before reality does — but red-team "
+                      "capacity is scarce. D5 turns the decision/"
+                      "assumption log (B4) into premortem and attack "
+                      "questions as raw material for a humanly moderated "
+                      "session: for decisions the look back from the "
+                      "future ('what made this fail six months from "
+                      "now?'), for assumptions the direct attack ('what "
+                      "would have to be true for it to flip — and how "
+                      "would one notice early?')."),
+                ("h", "How to use it"),
+                ("code", "python -m portfolio my_solution.json "
+                         "--red-team questions.md\n"
+                         "# 1–3 questions per log entry, grouped by ID,\n"
+                         "# with the Art. 50 banner + llm_audit.jsonl "
+                         "(d5_red_team)"),
+                ("p", "Provider as everywhere: local ollama (default), "
+                      "external claude, mock for the model-free demo. "
+                      "Prerequisite is a referenced decision log (config "
+                      "field decisions) — if it is missing, the error "
+                      "says exactly that."),
+                ("h", "The questions guard"),
+                ("p", "The KI-Denkschrift maps D5 to JUDGEMENT — and "
+                      "demands: raw material only, no recommendation "
+                      "button. That is machine-enforced here: every "
+                      "'- ' line of the output must end as a question, "
+                      "otherwise the whole draft is discarded — on top "
+                      "of the numbers guard, labeling and audit. The "
+                      "tool CANNOT deliver recommendations."),
+                ("h", "Guardrails"),
+                ("p", "Questions name teams and entries, never persons; "
+                      "numbers and IDs come verbatim from the log. "
+                      "Moderation, selection and answering stay entirely "
+                      "with the humans."),
+            ],
+        },
+    },
     "llm_translate": {
         "de": {
             "title": "Mehrsprachige Ausleitung",

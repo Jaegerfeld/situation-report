@@ -70,6 +70,11 @@ Datei je Zielsprache auf. Die Zahlen-Invariante ist die perfekte
 Übersetzungs-Wache; Banner stehen in der Zielsprache (alle fünf
 Haussprachen), Audit-Zweck `d6_translation`.
 
+**Red-Team-Fragen (D5):** `--red-team DATEI` an einer Config erzeugt
+Premortem-/Angriffs-Fragen aus dem Decision-Log — ein **Fragen-Wächter**
+verwirft maschinell jede Nicht-Frage (Rohmaterial fürs Urteil, nie
+Urteile; Audit-Zweck `d5_red_team`).
+
 Ohne `--narrate` ist das Briefing exakt die deterministische D2-Ausgabe
 (saubere Degradation). Mit Flag bekommt es den gekennzeichneten
 Abschnitt **„Narration (Entwurf)“**; die Markdown-Ausgabe schreibt
