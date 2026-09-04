@@ -569,7 +569,11 @@ def content_de(st: dict) -> list:
                 "Werte gelten in BEIDEN Delta-Ständen (prev = 88 % der "
                 "Issues); alles andere behält seinen Story-Wert — wer die "
                 "Vorgaben von Alpha-3 (Ausreißer) oder Beta-3 (schwache "
-                "Quelle) ändert, verändert bewusst diese Geschichten.", st),
+                "Quelle) ändert, verändert bewusst diese Geschichten. Skala und "
+                "ART-Profile wandern beim Speichern mit ins Projekt-Template "
+                "(Menü Templates) und werden beim Laden wiederhergestellt — "
+                "die komplette Belegung der Portfolio-Erzeugung ist damit "
+                "reproduzierbar ablegbar.", st),
               P("Der Zielordner enthält danach:", st),
               tbl(["Artefakt", "Inhalt"],
                   [["workflows/", "zwei Workflow-Dateien (Alpha- und Beta-Stages)"],
@@ -918,7 +922,10 @@ def content_en(st: dict) -> list:
                 "values apply in BOTH delta stands (prev = 88 % of the "
                 "issues); everything else keeps its story value — changing "
                 "the defaults of Alpha-3 (outlier) or Beta-3 (weak source) "
-                "deliberately changes those stories.", st),
+                "deliberately changes those stories. Scale and ART profiles travel "
+                "with the project template on save (Templates menu) and are "
+                "restored on load — the full portfolio-generation setup can "
+                "be stored reproducibly.", st),
               P("The target folder then contains:", st),
               tbl(["Artifact", "Content"],
                   [["workflows/", "two workflow files (Alpha and Beta stages)"],
@@ -1210,7 +1217,9 @@ def content_ro(st: dict) -> list:
                 "cu intensitate (0–100) si saptamani PI. Campuri goale = "
                 "implicit. Valorile suprascrise se aplica in AMBELE stari "
                 "delta (prev = 88 % din issues); restul isi pastreaza "
-                "valoarea de poveste.", st),
+                "valoarea de poveste. Scara si profilurile ART se salveaza in "
+                "template-ul de proiect (meniul Templates) si se restaureaza "
+                "la incarcare.", st),
               P("Directorul țintă conține apoi:", st),
               tbl(["Artefact", "Conținut"],
                   [["workflows/", "două fișiere de flux de lucru (etape Alpha și Beta)"],
@@ -1509,7 +1518,9 @@ def content_pt(st: dict) -> list:
                 "flat_triangle/cluster/batch) com intensidade (0–100) e "
                 "semanas de PI. Campos vazios = padrao. Valores sobrepostos "
                 "aplicam-se em AMBOS os estados delta (prev = 88 % dos "
-                "issues); o resto mantem o seu valor de historia.", st),
+                "issues); o resto mantem o seu valor de historia. Escala e perfis de ART "
+                "viajam com o template de projeto (menu Templates) e sao "
+                "restaurados ao carregar.", st),
               P("A pasta de destino contém depois:", st),
               tbl(["Artefacto", "Conteúdo"],
                   [["workflows/", "dois ficheiros de fluxo de trabalho (etapas Alpha e Beta)"],
@@ -1812,7 +1823,9 @@ def content_fr(st: dict) -> list:
                 "flat_triangle/cluster/batch) avec intensite (0–100) et "
                 "semaines de PI. Champs vides = defaut. Les valeurs "
                 "surchargees s'appliquent aux DEUX etats du delta (prev = "
-                "88 % des issues) ; le reste garde sa valeur d'histoire.", st),
+                "88 % des issues) ; le reste garde sa valeur d'histoire. "
+                "L'echelle et les profils d'ART voyagent avec le template de "
+                "projet (menu Templates) et sont restaures au chargement.", st),
               P("Le dossier cible contient ensuite :", st),
               tbl(["Artefact", "Contenu"],
                   [["workflows/", "deux fichiers de flux de travail (étapes Alpha et Beta)"],
