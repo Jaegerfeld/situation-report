@@ -2,7 +2,7 @@
 
 **Version 0.28.0** ![Coverage](docs/coverage.svg)
 
-Toolsuite for querying Jira issue data and processing it into flow metrics and reports.
+Toolsuite for the situational picture at portfolio and solution level: flow metrics from Jira, governance registers, Value-Stream-Conference preparation, forecasts and AI-drafted narration — running locally on your own machine.
 
 **Documentation:** https://jaegerfeld.github.io/situation-report/  
 **Memoranda (Denkschriften):** [English](https://jaegerfeld.github.io/situation-report/denkschriften/) · [Deutsch](https://jaegerfeld.github.io/situation-report/de/denkschriften/)  
