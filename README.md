@@ -39,14 +39,16 @@ The software is the tool; the **memoranda (Denkschriften)** are its conceptual f
 
 | Module | Description | Status |
 |--------|-------------|--------|
-| [`launcher`](https://jaegerfeld.github.io/situation-report/modules/launcher/) | Central launcher GUI for all modules | available |
+| [`launcher`](https://jaegerfeld.github.io/situation-report/modules/launcher/) | Central entry point – launches all modules | available |
 | [`transform_data`](https://jaegerfeld.github.io/situation-report/modules/transform_data/) | Transform raw Jira data into stage-time metrics | available |
 | [`build_reports`](https://jaegerfeld.github.io/situation-report/modules/build_reports/) | Generate flow metrics and reports | available |
-| [`portfolio`](https://jaegerfeld.github.io/situation-report/modules/portfolio/) | Aggregated Large-Solution & Portfolio reports across several ARTs | available |
-| `get_data` | Fetch issue data from Jira via REST API | planned |
-| [`testdata_generator`](https://jaegerfeld.github.io/situation-report/modules/testdata_generator/) | Generate synthetic test data | available |
-| [`simulate`](https://jaegerfeld.github.io/situation-report/modules/simulate/) | Simulations and forecasting models | available |
-| [`helper`](https://jaegerfeld.github.io/situation-report/modules/helper/) | Helper tools (JSON Merger) | available |
+| [`portfolio`](https://jaegerfeld.github.io/situation-report/modules/portfolio/) | Aggregated Large-Solution & Portfolio reports across several ARTs | available (Alpha) |
+| [`helper`](https://jaegerfeld.github.io/situation-report/modules/helper/) | Helper tools (JSON Merger) | available (Alpha) |
+| [`testdata_generator`](https://jaegerfeld.github.io/situation-report/modules/testdata_generator/) | Generate synthetic test data | available (Beta) |
+| [`get_data`](https://jaegerfeld.github.io/situation-report/modules/get_data/) | Retrieve data from Jira — REST or export validation | available (Alpha) |
+| [`sources`](https://jaegerfeld.github.io/situation-report/modules/sources/) | Pluggable external metric sources (SLO, DORA, quality) | available (Alpha) |
+| [`llm`](https://jaegerfeld.github.io/situation-report/modules/llm/) | Pluggable AI narration (local Ollama, Claude API, mock) | available (Alpha) |
+| [`simulate`](https://jaegerfeld.github.io/situation-report/modules/simulate/) | Simulations and forecasting models | available (Alpha) |
 
 ## Setup
 
