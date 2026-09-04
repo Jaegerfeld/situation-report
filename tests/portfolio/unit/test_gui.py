@@ -352,3 +352,59 @@ class TestDatenquellenDialogCore:
         loaded = load_solution_config(target)
         assert loaded.risks == "registers/risks.json"
         assert resolve_config_path(loaded.base_dir, loaded.risks).is_file()
+
+
+class TestDatenraumBaseDirSurvivesRebuild:
+    """Feld-Bug 04.09.2026 (Screenshot feedback/bugs): Konferenzmappe auf
+    geladenem Demo-Portfolio schlug fehl mit "No such file or directory:
+    'solutions/alpha/solution.json'" — der Formular-Neuaufbau verlor
+    base_dir, den Anker der Datenraum-Pfadregel."""
+
+    def _datenraum(self, tmp_path):
+        from portfolio.solution_config import (
+            KIND_PORTFOLIO,
+            Member,
+            SolutionConfig,
+            load_solution_config,
+            save_solution_config,
+        )
+        sol_dir = tmp_path / "solutions" / "alpha"
+        sol_dir.mkdir(parents=True)
+        save_solution_config(sol_dir / "solution.json", SolutionConfig(
+            name="Solution Alpha",
+            members=[Member(name="A-1", issue_times="arts/a1.xlsx")]))
+        save_solution_config(tmp_path / "portfolio.json", SolutionConfig(
+            name="Demo Portfolio", kind=KIND_PORTFOLIO,
+            members=[Member(name="Solution Alpha",
+                            template="solutions/alpha/solution.json")]))
+        return load_solution_config(tmp_path / "portfolio.json")
+
+    def _rebuild_like_the_gui(self, loaded):
+        from portfolio.gui import merge_preserved_fields
+        return merge_preserved_fields(build_config_from_fields(
+            loaded.name, "SAFe", "", "",
+            [(m.name, m.template) for m in loaded.members],
+            MODE_POOLED, kind=loaded.kind), loaded)
+
+    def test_rebuild_keeps_the_datenraum_anchor(self, tmp_path) -> None:
+        loaded = self._datenraum(tmp_path)
+        assert loaded.base_dir == tmp_path.resolve()
+        # Der dokumentierte Alt-Fehler: der reine Formular-Neuaufbau
+        # kennt keinen base_dir.
+        assert build_config_from_fields(
+            loaded.name, "SAFe", "", "",
+            [(m.name, m.template) for m in loaded.members],
+            MODE_POOLED, kind=loaded.kind).base_dir is None
+        rebuilt = self._rebuild_like_the_gui(loaded)
+        assert rebuilt.base_dir == loaded.base_dir
+
+    def test_governance_sources_resolve_after_rebuild(
+            self, tmp_path, monkeypatch) -> None:
+        # Der exakte Fehlerpfad der Konferenzmappe: _governance_sources
+        # laedt Member-Templates — relativ zur Config, nicht zum CWD.
+        from portfolio.aggregator import _governance_sources
+        loaded = self._datenraum(tmp_path)
+        rebuilt = self._rebuild_like_the_gui(loaded)
+        monkeypatch.chdir(tmp_path.parent)  # fremdes Arbeitsverzeichnis
+        sources = _governance_sources(rebuilt, log=lambda m: None)
+        assert [name for name, _ in sources] == ["Solution Alpha"]

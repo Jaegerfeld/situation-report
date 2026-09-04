@@ -7,6 +7,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Fixed
+- **GUI actions on a loaded data-folder portfolio failed with "No such
+  file or directory"** (field report 2026-09-04: load the demo
+  portfolio, press *Konferenzmappe* → error). The form rebuild before
+  every GUI action dropped `base_dir`, the anchor of the Datenraum path
+  rule, so the config's relative member/register paths resolved against
+  the working directory. `base_dir` now counts among the preserved
+  non-form fields; regression tests document the old loss and replay
+  the literal field path (conference pre-read on a rebuilt scenario
+  portfolio from a foreign working directory) — which also covers
+  report, snapshot and register resolution on loaded relative configs.
+
 ### Added
 - **Red-team assistant (D5) — Phase 4 complete** — `--red-team FILE`
   generates premortem and attack questions from the config's
