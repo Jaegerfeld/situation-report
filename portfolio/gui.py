@@ -667,10 +667,14 @@ def default_metrics_for_mode(mode: str) -> list[str]:
 #: Fields a loaded config may carry that the manager form does NOT edit.
 #: They must survive every rebuild from the form (save, report, snapshot,
 #: conference) — otherwise the GUI silently deletes data (found
-#: 2026-09-04, Konzept Portfolio-Datenraum, Phase 0).
+#: 2026-09-04, Konzept Portfolio-Datenraum, Phase 0). ``base_dir`` is the
+#: Datenraum anchor: without it, relative member/register paths of a
+#: loaded config resolve against the working directory and every GUI
+#: action fails with "No such file or directory" (Feld-Bug 04.09.2026,
+#: Konferenzmappe auf geladenem Demo-Portfolio).
 _PRESERVED_FIELDS = ("framework", "stage_map", "risks", "nfr",
                      "capabilities", "dependencies", "decisions", "slo",
-                     "dora", "flow_problems", "themes")
+                     "dora", "flow_problems", "themes", "base_dir")
 
 #: The nine register fields, in dialog order (Datenquellen-Dialog).
 REGISTER_FIELDS = ("risks", "nfr", "capabilities", "dependencies",

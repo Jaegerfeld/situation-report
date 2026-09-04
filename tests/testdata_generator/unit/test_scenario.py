@@ -483,3 +483,26 @@ class TestExecSummaryE2E:
         html = out.read_text(encoding="utf-8")
         assert "Executive Summary (Entwurf)" not in html
         assert not (tmp_path / "llm_audit.jsonl").exists()
+
+
+class TestConferenceAfterGuiRebuild:
+    """Feld-Bug 04.09.2026: Demo-Portfolio in der GUI geladen →
+    „Konferenzmappe" schlug fehl (base_dir beim Formular-Neuaufbau
+    verloren). Hier der wortgetreue Nutzerpfad am echten Szenario."""
+
+    def test_conference_preread_works_on_rebuilt_config(
+            self, scenario, monkeypatch, tmp_path) -> None:
+        from portfolio.aggregator import render_conference_html
+        from portfolio.gui import build_config_from_fields, merge_preserved_fields
+        from portfolio.solution_config import MODE_POOLED
+        _, paths = scenario
+        loaded = load_solution_config(paths["portfolio"])
+        rebuilt = merge_preserved_fields(build_config_from_fields(
+            loaded.name, "SAFe", "", "",
+            [(m.name, m.template) for m in loaded.members],
+            MODE_POOLED, kind=loaded.kind), loaded)
+        monkeypatch.chdir(tmp_path)  # fremdes CWD wie im Feld
+        conf = render_conference_html(rebuilt, conference_date=REF,
+                                      log=lambda m: None)
+        for marker in ("Value-Stream Conference", "FP-B1", "Input 4"):
+            assert marker in conf, marker
