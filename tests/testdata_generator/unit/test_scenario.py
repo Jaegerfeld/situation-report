@@ -446,10 +446,14 @@ class TestExecSummaryE2E:
         out = tmp_path / "alpha_report.html"
         monkeypatch.setattr(_sys, "argv", [
             "portfolio", str(paths["solution_alpha"]),
-            "--output", str(out), "--narrate", "mock", "--llm-lang", "en"])
+            "--output", str(out), "--narrate", "mock", "--llm-lang", "en",
+            "--translate", "fr"])
         portfolio_main()
         html = out.read_text(encoding="utf-8")
         assert "Executive Summary (Entwurf)" in html
+        # D6: der Entwurf wird zusaetzlich in der Zielsprache ausgeliefert.
+        fr = out.with_suffix(out.suffix + ".exec_summary.fr.md")
+        assert "non relu" in fr.read_text(encoding="utf-8")
         assert "AI-drafted" in html and "MOCK" in html
         # Direkt unter der Management-Summary, nicht am Seitenende.
         assert (html.index("Executive Summary (Entwurf)")
@@ -460,9 +464,10 @@ class TestExecSummaryE2E:
         draft = out.with_suffix(out.suffix + ".exec_summary.md")
         assert "MOCK" in draft.read_text(encoding="utf-8")
         import json as _json
-        record = _json.loads(
-            (tmp_path / "llm_audit.jsonl").read_text(encoding="utf-8"))
-        assert record["purpose"] == "d1_exec_summary"
+        purposes = [_json.loads(line)["purpose"] for line in
+                    (tmp_path / "llm_audit.jsonl").read_text(
+                        encoding="utf-8").splitlines()]
+        assert purposes == ["d1_exec_summary", "d6_translation"]
 
     def test_without_narrate_report_is_unchanged(
             self, scenario, tmp_path, monkeypatch) -> None:

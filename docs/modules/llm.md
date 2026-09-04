@@ -45,6 +45,8 @@ bypass them without avoiding the module.
 ```
 python -m llm providers                 # inventory
 python -m llm test [--llm mock]         # wiring check (labeled sample)
+python -m llm translate FILE --to en ro # D6: deliver an edited text in
+                                        # other house languages
 
 python -m portfolio --delta prev.json now.json --narrate \
     [--llm ollama|claude|mock] [--llm-model NAME] [--llm-lang de|en] \
@@ -58,6 +60,14 @@ summary contract (metrics, source confidence, governance head counts —
 structurally without person/owner fields), plus
 `<output>.exec_summary.md` for editing (audit purpose
 `d1_exec_summary`).
+
+**Multilingual delivery (D6):** `--translate LANG …` on the portfolio
+CLI additionally delivers the run's primary text in the house languages
+(draft → `.narration.<lang>.md` / `.exec_summary.<lang>.md`;
+deterministic briefing → `.<lang>.md`), and `python -m llm translate`
+fans an edited, approved file out per language. The numbers invariant is
+the perfect translation guard; banners are written in the target
+language (all five house languages), audit purpose `d6_translation`.
 
 Without `--narrate` the briefing is exactly the deterministic D2 output
 (clean degradation). With it, the briefing gains the labeled section

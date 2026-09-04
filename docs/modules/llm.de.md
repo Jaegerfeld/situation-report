@@ -45,6 +45,8 @@ Aufrufer kann sie umgehen, ohne das Modul zu meiden.
 ```
 python -m llm providers                 # Inventar
 python -m llm test [--llm mock]         # Verkabelungs-Check (gekennzeichnete Probe)
+python -m llm translate DATEI --to en ro  # D6: redigierten Text in
+                                          # weitere Haussprachen ausleiten
 
 python -m portfolio --delta vorher.json jetzt.json --narrate \
     [--llm ollama|claude|mock] [--llm-model NAME] [--llm-lang de|en] \
@@ -58,6 +60,15 @@ deterministische Summary-Contract (Kennzahlen, Quell-Konfidenz,
 Governance-Kopfzahlen — strukturell ohne Personen-/Owner-Felder), dazu
 `<output>.exec_summary.md` zum Redigieren (Audit-Zweck
 `d1_exec_summary`).
+
+**Mehrsprachige Ausleitung (D6):** `--translate LANG …` an der
+portfolio-CLI liefert den Primärtext des Laufs zusätzlich in den
+Haussprachen (Entwurf → `.narration.<lang>.md` /
+`.exec_summary.<lang>.md`; deterministisches Briefing → `.<lang>.md`),
+und `python -m llm translate` fächert eine redigierte, freigegebene
+Datei je Zielsprache auf. Die Zahlen-Invariante ist die perfekte
+Übersetzungs-Wache; Banner stehen in der Zielsprache (alle fünf
+Haussprachen), Audit-Zweck `d6_translation`.
 
 Ohne `--narrate` ist das Briefing exakt die deterministische D2-Ausgabe
 (saubere Degradation). Mit Flag bekommt es den gekennzeichneten

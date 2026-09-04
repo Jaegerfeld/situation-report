@@ -638,7 +638,14 @@ def content_de(st: dict) -> list:
            "Personen), zusätzlich entsteht &lt;output&gt;.exec_summary.md "
            "zum Redigieren. In der GUI gilt dieselbe Checkbox auch für "
            "„Report erzeugen …“; schlägt die KI fehl, wird der Report "
-           "ohne Entwurf geschrieben (saubere Degradation).", st),
+           "ohne Entwurf geschrieben (saubere Degradation). <b>Mehrsprachige "
+           "Ausleitung (D6):</b> --translate LANG … liefert den primären "
+           "Text zusätzlich in den Haussprachen de/en/ro/pt/fr — mit "
+           "Narration den Entwurf, ohne sie das deterministische "
+           "Delta-Briefing selbst; jede Übersetzung ist gewächtert "
+           "(Zahlen-Invariante), in der ZIELsprache gekennzeichnet und "
+           "auditiert. Redigierte, freigegebene Texte übersetzt "
+           "python -m llm translate DATEI --to … in einem Schritt.", st),
         _SP(6),
 
         _H1("6. Kommandozeile (CLI)", st), _hr(st),
@@ -1037,7 +1044,14 @@ def content_en(st: dict) -> list:
            "without persons), plus &lt;output&gt;.exec_summary.md for "
            "editing. In the GUI the same checkbox also applies to "
            "'Generate report …'; if the AI fails, the report is written "
-           "without the draft (clean degradation).", st),
+           "without the draft (clean degradation). <b>Multilingual delivery "
+           "(D6):</b> --translate LANG … additionally delivers the primary "
+           "text in the house languages de/en/ro/pt/fr — the draft when "
+           "narrated, otherwise the deterministic delta briefing itself; "
+           "every translation is guarded (numbers invariant), labeled in "
+           "the TARGET language and audited. Edited, approved texts are "
+           "translated in one step via python -m llm translate FILE "
+           "--to ….", st),
         _SP(6),
 
         _H1("6. Command line (CLI)", st), _hr(st),
@@ -1431,7 +1445,13 @@ def content_ro(st: dict) -> list:
            "sectiunea etichetata 'Executive Summary (Entwurf)' — "
            "intrarea este contractul determinist de indicatori (fara "
            "persoane), plus &lt;output&gt;.exec_summary.md pentru "
-           "redactare; la esec raportul se scrie fara schita.", st),
+           "redactare; la esec raportul se scrie fara schita. <b>Livrare "
+           "multilingva (D6):</b> --translate LANG … livreaza textul "
+           "primar si in limbile casei de/en/ro/pt/fr — schita cand "
+           "exista naratiune, altfel delta briefingul determinist; "
+           "fiecare traducere este pazita, etichetata in limba TINTA si "
+           "auditata. Textele redactate se traduc cu python -m llm "
+           "translate FISIER --to ….", st),
         _SP(6),
 
         _H1("6. Linia de comanda (CLI)", st), _hr(st),
@@ -1829,7 +1849,13 @@ def content_pt(st: dict) -> list:
            "a seccao rotulada 'Executive Summary (Entwurf)' — a entrada "
            "e o contrato determinista de metricas (sem pessoas), mais "
            "&lt;output&gt;.exec_summary.md para redigir; em falha o "
-           "relatorio e escrito sem o rascunho.", st),
+           "relatorio e escrito sem o rascunho. <b>Entrega multilingue "
+           "(D6):</b> --translate LANG … entrega o texto primario tambem "
+           "nas linguas da casa de/en/ro/pt/fr — o rascunho quando ha "
+           "narracao, senao o proprio delta briefing determinista; cada "
+           "traducao e guardada, rotulada na lingua ALVO e auditada. "
+           "Textos redigidos traduzem-se com python -m llm translate "
+           "FICHEIRO --to ….", st),
         _SP(6),
 
         _H1("6. Linha de comandos (CLI)", st), _hr(st),
@@ -2237,7 +2263,14 @@ def content_fr(st: dict) -> list:
            "la section etiquetee 'Executive Summary (Entwurf)' — "
            "l'entree est le contrat deterministe de metriques (sans "
            "personnes), plus &lt;output&gt;.exec_summary.md a rediger ; "
-           "en cas d'echec, le rapport est ecrit sans le brouillon.", st),
+           "en cas d'echec, le rapport est ecrit sans le brouillon. "
+           "<b>Diffusion multilingue (D6) :</b> --translate LANG … livre "
+           "le texte primaire aussi dans les langues maison "
+           "de/en/ro/pt/fr — le brouillon s'il y a narration, sinon le "
+           "delta briefing deterministe lui-meme ; chaque traduction est "
+           "gardee, etiquetee dans la langue CIBLE et auditee. Les "
+           "textes rediges se traduisent via python -m llm translate "
+           "FICHIER --to ….", st),
         _SP(6),
 
         _H1("6. Ligne de commande (CLI)", st), _hr(st),

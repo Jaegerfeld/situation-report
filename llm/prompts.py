@@ -101,3 +101,46 @@ def narration_system_prompt(lang: str = DEFAULT_LANG) -> str:
 def exec_summary_system_prompt(lang: str = DEFAULT_LANG) -> str:
     """The versioned exec-summary system prompt (D1; unknown lang → default)."""
     return _EXEC_SUMMARY.get(lang, _EXEC_SUMMARY[DEFAULT_LANG])
+
+
+#: Zielsprache → ausgeschriebener Name für den Übersetzungs-Prompt (D6);
+#: die fünf Haussprachen der Manuals.
+TRANSLATION_LANGS = {
+    "de": "Deutsch",
+    "en": "English",
+    "ro": "Română",
+    "pt": "Português",
+    "fr": "Français",
+}
+
+
+def translation_system_prompt(target_lang: str) -> str:
+    """
+    The versioned translation system prompt (D6).
+
+    Args:
+        target_lang: One of TRANSLATION_LANGS (the house languages).
+
+    Raises:
+        ValueError: Unknown target language.
+    """
+    if target_lang not in TRANSLATION_LANGS:
+        raise ValueError(
+            f"Unknown target language '{target_lang}' — supported: "
+            f"{', '.join(sorted(TRANSLATION_LANGS))}.")
+    name = TRANSLATION_LANGS[target_lang]
+    return f"""Du übersetzt einen Lagebild-Text nach {name} \
+(Zielsprache: {target_lang}).
+
+Regeln (verbindlich):
+1. Übersetze VOLLSTÄNDIG und ausschließlich den übergebenen Text — \
+nichts hinzufügen, nichts weglassen, nichts zusammenfassen.
+2. Zahlen, Prozentwerte, Daten und IDs (z. B. BR-2, EP-A9) unverändert \
+wörtlich übernehmen.
+3. Eigennamen nicht übersetzen: Team-, ART-, Solution-, Service- und \
+Produktnamen bleiben exakt wie im Original.
+4. Fachbegriffe, die im Original englisch sind (z. B. Cycle Time, \
+Error Budget), bleiben englisch, wenn die Zielsprache sie so verwendet.
+5. Sachlicher Management-Ton der Vorlage; gleiche Absatzstruktur.
+6. Die Übersetzung ist ein ENTWURF für menschliche Redaktion — schreibe \
+nichts, was eine Freigabe oder Prüfung behauptet."""

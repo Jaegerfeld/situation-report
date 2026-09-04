@@ -712,6 +712,103 @@ ONEPAGERS: dict[str, dict[str, dict]] = {
             ],
         },
     },
+    "llm_translate": {
+        "de": {
+            "title": "Mehrsprachige Ausleitung",
+            "tagline": "Feature D6 · Briefings und Entwürfe in allen fünf "
+                       "Haussprachen — gewächtert, gekennzeichnet, "
+                       "auditiert",
+            "sections": [
+                ("h", "Worum geht es?"),
+                ("p", "Internationale Solutions brauchen dieselbe Lage in "
+                      "mehreren Sprachen. D6 leitet Lagebild-Texte nach "
+                      "de/en/ro/pt/fr aus — über dasselbe llm-Framework "
+                      "wie Narration und Executive Summary. Die "
+                      "Zahlen-Invariante ist dabei die perfekte "
+                      "Übersetzungs-Wache: Jede Zahl der Übersetzung muss "
+                      "wörtlich in der Vorlage stehen, sonst wird sie "
+                      "verworfen. Eigennamen (Teams, ARTs, Services) "
+                      "bleiben unübersetzt; das Art.-50-Banner steht in "
+                      "der Zielsprache."),
+                ("h", "So benutzt du es"),
+                ("code", "# Der Redaktions-Workflow: erst freigeben, dann "
+                         "ausleiten\n"
+                         "python -m llm translate delta.narration.md "
+                         "--to en ro pt fr\n\n"
+                         "# Direkt am Lauf: Entwurf bzw. Briefing "
+                         "mitliefern\n"
+                         "python -m portfolio --delta prev.json now.json "
+                         "--narrate \\\n"
+                         "    --translate en ro --output delta.html"),
+                ("p", "Am Report-Lauf entsteht je Zielsprache "
+                      "&lt;output&gt;.exec_summary.&lt;lang&gt;.md, am "
+                      "Delta-Lauf .narration.&lt;lang&gt;.md — ohne "
+                      "Narration wird das deterministische Briefing "
+                      "selbst übersetzt (.&lt;lang&gt;.md)."),
+                ("h", "Die Regeln"),
+                ("li", "Vollständig übersetzen, nichts hinzufügen oder "
+                       "weglassen; gleiche Absatzstruktur"),
+                ("li", "Zahlen, Daten und IDs (BR-2, EP-A9 …) wörtlich — "
+                       "maschinell erzwungen"),
+                ("li", "Banner in der Zielsprache, Audit-Zweck "
+                       "d6_translation, Provider frei wählbar (ollama "
+                       "lokal Default)"),
+                ("h", "Leitplanken"),
+                ("p", "Jede Übersetzung ist ein Entwurf für menschliche "
+                      "Redaktion — empfohlen ist der Weg „erst redigieren "
+                      "und freigeben, dann ausleiten“, damit alle "
+                      "Sprachfassungen vom freigegebenen Wortlaut "
+                      "abstammen (gelebte Praxis der Manuals)."),
+            ],
+        },
+        "en": {
+            "title": "Multilingual Delivery",
+            "tagline": "Feature D6 · Briefings and drafts in all five "
+                       "house languages — guarded, labeled, audited",
+            "sections": [
+                ("h", "What is it?"),
+                ("p", "International solutions need the same picture in "
+                      "several languages. D6 delivers situational texts "
+                      "in de/en/ro/pt/fr — through the same llm framework "
+                      "as narration and executive summary. The numbers "
+                      "invariant is the perfect translation guard: every "
+                      "number in the translation must occur verbatim in "
+                      "the source, or it is discarded. Proper names "
+                      "(teams, ARTs, services) stay untranslated; the "
+                      "Art. 50 banner is written in the target language."),
+                ("h", "How to use it"),
+                ("code", "# The editorial workflow: approve first, then "
+                         "fan out\n"
+                         "python -m llm translate delta.narration.md "
+                         "--to en ro pt fr\n\n"
+                         "# Inline with a run: deliver draft or briefing "
+                         "alongside\n"
+                         "python -m portfolio --delta prev.json now.json "
+                         "--narrate \\\n"
+                         "    --translate en ro --output delta.html"),
+                ("p", "A report run yields "
+                      "&lt;output&gt;.exec_summary.&lt;lang&gt;.md per "
+                      "target language, a delta run "
+                      ".narration.&lt;lang&gt;.md — without narration the "
+                      "deterministic briefing itself is translated "
+                      "(.&lt;lang&gt;.md)."),
+                ("h", "The rules"),
+                ("li", "Translate fully, add or drop nothing; keep the "
+                       "paragraph structure"),
+                ("li", "Numbers, dates and IDs (BR-2, EP-A9 …) verbatim — "
+                       "machine-enforced"),
+                ("li", "Banner in the target language, audit purpose "
+                       "d6_translation, provider freely chosen (ollama "
+                       "local by default)"),
+                ("h", "Guardrails"),
+                ("p", "Every translation is a draft for human editing — "
+                      "the recommended path is 'edit and approve first, "
+                      "then fan out', so every language version descends "
+                      "from the approved wording (the manuals' lived "
+                      "practice)."),
+            ],
+        },
+    },
     "exec_summary": {
         "de": {
             "title": "LLM-Executive-Summary",
