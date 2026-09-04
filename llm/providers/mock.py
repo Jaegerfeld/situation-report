@@ -40,6 +40,19 @@ _TEXT_EN = (
     "audit.")
 
 
+_QUESTIONS_DE = (
+    "[ATTRAPPE — kein Sprachmodell beteiligt]\n\n"
+    "## Beispiel-Eintrag\n"
+    "- Welche stille Voraussetzung dieses Eintrags wurde nie geprüft?\n"
+    "- Woran würde das betroffene Team ein Kippen zuerst erkennen?\n")
+
+_QUESTIONS_EN = (
+    "[MOCK — no language model involved]\n\n"
+    "## Sample entry\n"
+    "- Which silent precondition of this entry was never verified?\n"
+    "- How would the owning team notice a flip first?\n")
+
+
 class MockProvider:
     """Deterministic stand-in for tests and the installation-free demo."""
 
@@ -49,8 +62,14 @@ class MockProvider:
 
     def complete(self, system: str, prompt: str,
                  config: dict[str, Any]) -> LlmResult:
-        """Return the fixed placeholder narration (language via config)."""
-        text = _TEXT_EN if config.get("lang") == "en" else _TEXT_DE
+        """Return a fixed placeholder (language via config; the red-team
+        prompt gets question-shaped output so the questions guard can
+        pass structurally — still deliberately number-free)."""
+        english = config.get("lang") == "en"
+        if "remortem" in system:  # Premortem/premortem (D5)
+            text = _QUESTIONS_EN if english else _QUESTIONS_DE
+        else:
+            text = _TEXT_EN if english else _TEXT_DE
         return LlmResult(text=text, provider_id=self.provider_id,
                          model=self.default_model,
                          deployment_class=self.deployment_class,
