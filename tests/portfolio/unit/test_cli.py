@@ -24,6 +24,7 @@ import pytest
 import portfolio.cli as cli
 from build_reports.metrics.flow_time import CT_METHOD_A, CT_METHOD_B
 from build_reports.terminology import GLOBAL, SAFE
+from portfolio.cli import build_parser
 from portfolio.solution_config import MODE_COMPARISON, MODE_POOLED
 
 
@@ -199,3 +200,61 @@ class TestMain:
                   result="")
         captured = capsys.readouterr()
         assert captured.err == ""
+
+
+class TestArtDepthFlagContract:
+    """Der Schalter ist dreiwertig: nicht angegeben heisst „nimm die
+    Einstellung der Konfiguration“ — NICHT „aus“. Das haengt daran, dass
+    --art-depth ZUERST registriert wird: argparse setzt die Vorgabe einer
+    Aktion nur, solange das Attribut noch fehlt. Eine Umsortierung der
+    beiden add_argument-Aufrufe wuerde die Tiefe still fuer jeden Lauf
+    einschalten — darum steht der Kontrakt hier als Test."""
+
+    def test_not_given_defers_to_the_config(self) -> None:
+        args = build_parser().parse_args(["x.json"])
+        assert args.art_depth is None
+
+    def test_flag_turns_it_on(self) -> None:
+        args = build_parser().parse_args(["x.json", "--art-depth"])
+        assert args.art_depth is True
+
+    def test_counter_flag_forces_it_off(self) -> None:
+        """Auch gegen eine Konfiguration, die die Tiefe eingeschaltet hat."""
+        args = build_parser().parse_args(["x.json", "--no-art-depth"])
+        assert args.art_depth is False
+
+
+class TestArtDepthReachesTheRenderer:
+    """Die Aufloesung None -> config.art_depth passiert in
+    run_solution_report; ohne Test bliebe der eingeschaltete Fall ungeprueft,
+    weil das Test-Double die Tiefe aus guten Gruenden auf False setzt."""
+
+    def _run(self, monkeypatch, tmp_path, config_art_depth, cli_art_depth):
+        config = _FakeConfig(art_depth=config_art_depth)
+        monkeypatch.setattr(cli, "load_solution_config", lambda _p: config)
+        seen: dict = {}
+
+        def _fake_render(_cfg, **kwargs):
+            seen.update(kwargs)
+            return "<html>x</html>"
+
+        monkeypatch.setattr(cli, "render_pooled_html", _fake_render)
+        monkeypatch.setattr(cli, "render_comparison_html", _fake_render)
+        cli.run_solution_report(
+            config_path=tmp_path / "c.json", output_html=tmp_path / "r.html",
+            art_depth=cli_art_depth, log=lambda *_: None)
+        return seen
+
+    def test_config_setting_is_used_when_no_flag_was_given(
+            self, monkeypatch, tmp_path) -> None:
+        seen = self._run(monkeypatch, tmp_path, True, None)
+        assert seen["art_depth"] is True
+
+    def test_counter_flag_overrides_the_config(self, monkeypatch, tmp_path) -> None:
+        seen = self._run(monkeypatch, tmp_path, True, False)
+        assert seen["art_depth"] is False
+
+    def test_flag_overrides_a_config_that_has_it_off(
+            self, monkeypatch, tmp_path) -> None:
+        seen = self._run(monkeypatch, tmp_path, False, True)
+        assert seen["art_depth"] is True

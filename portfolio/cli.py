@@ -232,8 +232,17 @@ def run_delta_briefing(
     log(f"Delta briefing written: {output}")
 
 
-def main() -> None:
-    """Entry point for the portfolio CLI."""
+def build_parser() -> argparse.ArgumentParser:
+    """
+    Build the portfolio CLI parser.
+
+    Separate from main() so the flag contract itself is testable — notably
+    the tri-state of --art-depth/--no-art-depth, whose "not given" default
+    (None = take the config's own setting) relies on --art-depth being
+    registered FIRST: argparse only applies an action's default while the
+    attribute is still absent, so a reordering would silently turn the
+    drill-down on for every run.
+    """
     parser = argparse.ArgumentParser(
         prog="python -m portfolio",
         description="Generate an aggregated (pooled) Large-Solution / Portfolio report.",
@@ -348,6 +357,12 @@ def main() -> None:
                              "translate an EDITED draft, use "
                              "'python -m llm translate FILE --to ...'.")
 
+    return parser
+
+
+def main() -> None:
+    """Entry point for the portfolio CLI."""
+    parser = build_parser()
     args = parser.parse_args()
 
     if args.delta:
