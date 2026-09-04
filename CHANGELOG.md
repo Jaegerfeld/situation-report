@@ -5,7 +5,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
-## [Unreleased]
+## [0.28.0] – 2026-09-04
 
 ### Added
 - **Auswertung bis auf ART-Ebene (ART-Tiefe, optional)** — Solutions &
@@ -33,6 +33,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   Delta-Briefing (D2) bleiben bewusst auf der flachen Ebene: ein Snapshot hält
   den Report-Stand fest, und ein Vergleich über wechselnde Beschriftungen
   hinweg erzeugte genau das Driftrauschen, das Phase 3 beseitigt hat.
+
+
+### Fixed
+- **Modultabellen im README und auf den Doku-Startseiten** — drei von Hand
+  gepflegte Tabellen mit drei verschiedenen Wahrheiten: Das README führte
+  `get_data`, `sources` und `llm` gar nicht, die Startseiten (EN und DE)
+  kannten nur sechs Module und zeigten `get_data` und `simulate` als
+  „geplant“, obwohl beide längst ausgeliefert sind. Alle drei folgen jetzt
+  dem gepflegten Modul-Index; ein Test hält sie in Deckung (Modulnamen,
+  Status, Verlinkung — Beschreibungstexte dürfen bewusst abweichen).
 
 ---
 
