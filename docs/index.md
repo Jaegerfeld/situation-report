@@ -13,12 +13,16 @@ Toolsuite for retrieving Jira issue data and preparing it for metrics and report
 
 | Module | Description | Status |
 |--------|-------------|--------|
+| [`launcher`](modules/launcher.md) | Central entry point – launches all modules | available |
 | [`transform_data`](modules/transform_data.md) | Transform raw Jira data into stage-time metrics | available |
-| [`get_data`](modules/get_data.md) | Retrieve data from Jira via REST API | planned |
 | [`build_reports`](modules/build_reports.md) | Generate metrics and reports | available |
+| [`portfolio`](modules/portfolio.md) | Aggregated Large-Solution & Portfolio reports across several ARTs | available (Alpha) |
+| [`helper`](modules/helper.md) | Merge JSON files (Jira pagination) | available (Alpha) |
 | [`testdata_generator`](modules/testdata_generator.md) | Generate synthetic test data | available (Beta) |
-| [`simulate`](modules/simulate.md) | Simulations and prediction models | planned |
-| [`helper`](modules/helper.md) | Helper tools (JSON Merger etc.) | available (Alpha) |
+| [`get_data`](modules/get_data.md) | Retrieve data from Jira — REST or export validation | available (Alpha) |
+| [`sources`](modules/sources.md) | Pluggable external metric sources (SLO, DORA, quality) | available (Alpha) |
+| [`llm`](modules/llm.md) | Pluggable AI narration (local Ollama, Claude API, mock) | available (Alpha) |
+| [`simulate`](modules/simulate.md) | Simulations and prediction models | available (Alpha) |
 
 ## Setup
 
