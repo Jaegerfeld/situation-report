@@ -5,6 +5,37 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [Unreleased]
+
+### Added
+- **Auswertung bis auf ART-Ebene (ART-Tiefe, optional)** — Solutions &
+  Portfolios konnten bisher nur so tief schauen, wie die Ebene reicht: ein
+  Portfolio verglich seine Solutions, deren gepoolte Daten die Übergänge der
+  einzelnen ARTs nicht mehr enthalten. Die beiden workflow-gebundenen Analysen
+  aus *ART & Teams* (`process_flow`, `process_flow_time`) fielen dort deshalb
+  vollständig aus — angefordert lief der Report ins Leere und wurde gar nicht
+  erst geschrieben. Der neue Schalter (GUI-Haken *Bis auf ART-Ebene auswerten*,
+  CLI `--art-depth`/`--no-art-depth`, Konfigurationsfeld `report.art_depth`)
+  löst die Einheiten bis zum einzelnen ART auf:
+  - **Vergleichsmodus:** Figuren *und* Tabellen je ART — ein Portfolio
+    vergleicht dann ARTs statt Solutions, und die Prozessfluss-Analysen sind
+    verfügbar (neue Vorgabemenge `DEFAULT_ART_METRICS`).
+  - **Pooled-Modus:** die gepoolten Figuren bleiben gepoolt — das ist ja der
+    Zweck des Modus. Ergänzt werden eine eigene Zusammenfassungs- und
+    Qualitätstabelle *ART Detail* je ART (als eigene Tabelle, damit die
+    A3-Ausreißermarkierung unter Gleichrangigen bleibt: eine Aggregatzeile ist
+    kein Nachbar eines ARTs und würde den Spaltenmedian verzerren).
+  - **Konferenzmappe (VSC):** Input 1 trägt denselben ART-Block — die
+    Granularität, in der die ART-Teams selbst zur Konferenz kommen.
+  ARTs werden als „Solution · ART“ beschriftet, damit gleichnamige ARTs zweier
+  Solutions unterscheidbar bleiben statt still zu verschmelzen. Fehlen einem
+  ART die Übergänge, nennt das Protokoll ihn beim Namen. Snapshots und
+  Delta-Briefing (D2) bleiben bewusst auf der flachen Ebene: ein Snapshot hält
+  den Report-Stand fest, und ein Vergleich über wechselnde Beschriftungen
+  hinweg erzeugte genau das Driftrauschen, das Phase 3 beseitigt hat.
+
+---
+
 ## [0.27.0] – 2026-09-04
 
 ### Added

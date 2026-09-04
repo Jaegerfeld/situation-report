@@ -3,7 +3,7 @@
 # Repository:     https://github.com/Jaegerfeld/situation-report
 # KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
 # Erstellt:       22.06.2026
-# Geändert:       02.09.2026
+# Geändert:       04.09.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
@@ -44,6 +44,7 @@ def run_solution_report(
     pi_config: Path | None = None,
     open_browser: bool = False,
     log: Callable[[str], None] = print,
+    art_depth: bool | None = None,
 ) -> str:
     """
     Execute the solution-report pipeline: load config → aggregate → render.
@@ -61,6 +62,8 @@ def run_solution_report(
         pi_config:    Optional PI interval JSON for Flow Velocity.
         open_browser: If True, open the written HTML report in the browser.
         log:          Progress callback.
+        art_depth:    Drill down to the individual ARTs. None = take the
+                      config's own report.art_depth setting.
 
     Returns:
         The combined HTML string (empty if HTML was not generated). PDF output,
@@ -68,16 +71,20 @@ def run_solution_report(
     """
     config = load_solution_config(config_path)
     # The CLI --terminology overrides the config; otherwise the config's own
-    # terminology is used.
+    # terminology is used. --art-depth/--no-art-depth work the same way.
     if terminology is None:
         terminology = config.terminology
+    if art_depth is None:
+        art_depth = config.art_depth
     log(f"Solution '{config.name}' ({config.kind}, {config.framework}) "
-        f"with {len(config.members)} member(s) — mode: {mode}")
+        f"with {len(config.members)} member(s) — mode: {mode}"
+        + (" — ART depth" if art_depth else ""))
 
     if output_pdf:
         render_pdf(
             config, output_pdf, mode=mode, metrics=metrics, terminology=terminology,
-            ct_method=ct_method, target_ct=target_ct, pi_config=pi_config, log=log)
+            ct_method=ct_method, target_ct=target_ct, pi_config=pi_config, log=log,
+            art_depth=art_depth)
 
     # Generate HTML when explicitly requested, or when no other output was asked
     # for (so a bare run still produces the report string).
@@ -86,7 +93,7 @@ def run_solution_report(
         render = render_comparison_html if mode == MODE_COMPARISON else render_pooled_html
         html = render(
             config, metrics=metrics, terminology=terminology, ct_method=ct_method,
-            target_ct=target_ct, pi_config=pi_config, log=log)
+            target_ct=target_ct, pi_config=pi_config, log=log, art_depth=art_depth)
         if html and output_html:
             output_html.parent.mkdir(parents=True, exist_ok=True)
             output_html.write_text(html, encoding="utf-8")
@@ -225,8 +232,17 @@ def run_delta_briefing(
     log(f"Delta briefing written: {output}")
 
 
-def main() -> None:
-    """Entry point for the portfolio CLI."""
+def build_parser() -> argparse.ArgumentParser:
+    """
+    Build the portfolio CLI parser.
+
+    Separate from main() so the flag contract itself is testable — notably
+    the tri-state of --art-depth/--no-art-depth, whose "not given" default
+    (None = take the config's own setting) relies on --art-depth being
+    registered FIRST: argparse only applies an action's default while the
+    attribute is still absent, so a reordering would silently turn the
+    drill-down on for every run.
+    """
     parser = argparse.ArgumentParser(
         prog="python -m portfolio",
         description="Generate an aggregated (pooled) Large-Solution / Portfolio report.",
@@ -243,10 +259,22 @@ def main() -> None:
                         help=f"Aggregation mode (default: {MODE_POOLED}). "
                              f"pooled = solution as one system; "
                              f"comparison = ARTs side by side.")
+    parser.add_argument("--art-depth", action="store_true", default=None,
+                        dest="art_depth",
+                        help="Evaluate down to the individual ARTs. In comparison "
+                             "mode a portfolio is then compared ART by ART instead "
+                             "of solution by solution, and the workflow-bound "
+                             "ART & Teams analyses (Process Flow) become available; "
+                             "in pooled mode an ART detail table is added. "
+                             "Default: the config's report.art_depth.")
+    parser.add_argument("--no-art-depth", action="store_false", dest="art_depth",
+                        help="Force the ART drill-down off, even if the config "
+                             "enables it.")
     parser.add_argument("--metrics", nargs="+", metavar="ID", default=None,
-                        help="Metric IDs to compute. Default depends on --mode "
-                             "(pooled adds Flow Distribution; comparison also adds "
-                             "the stage-dependent Flow Load).")
+                        help="Metric IDs to compute. Default depends on --mode and "
+                             "--art-depth (pooled adds Flow Distribution; comparison "
+                             "also adds the stage-dependent Flow Load; ART depth adds "
+                             "the two Process-Flow analyses).")
     parser.add_argument("--terminology", choices=[SAFE, GLOBAL], default=None,
                         help=f"Terminology mode (default: {SAFE}).")
     parser.add_argument("--ct-method", choices=[CT_METHOD_A, CT_METHOD_B],
@@ -329,6 +357,12 @@ def main() -> None:
                              "translate an EDITED draft, use "
                              "'python -m llm translate FILE --to ...'.")
 
+    return parser
+
+
+def main() -> None:
+    """Entry point for the portfolio CLI."""
+    parser = build_parser()
     args = parser.parse_args()
 
     if args.delta:
@@ -359,9 +393,11 @@ def main() -> None:
 
     if args.conference:
         from .aggregator import render_conference_html
+        conf_config = load_solution_config(args.config)
         html_doc = render_conference_html(
-            load_solution_config(args.config),
-            conference_date=args.conference_date)
+            conf_config, conference_date=args.conference_date,
+            art_depth=(conf_config.art_depth if args.art_depth is None
+                       else args.art_depth))
         args.conference.write_text(html_doc, encoding="utf-8")
         print(f"Conference pre-read written: {args.conference}")
         if args.browser:
@@ -383,6 +419,7 @@ def main() -> None:
         target_ct=args.target_ct,
         pi_config=args.pi_config,
         open_browser=args.browser and not narrate_report,
+        art_depth=args.art_depth,
     )
     if not html and not args.pdf:
         print("ERROR: No report produced (no figures).", file=sys.stderr)

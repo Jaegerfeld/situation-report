@@ -3,7 +3,7 @@
 # Repository:     https://github.com/Jaegerfeld/situation-report
 # KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
 # Erstellt:       22.06.2026
-# Geändert:       22.06.2026
+# Geändert:       04.09.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
@@ -29,6 +29,7 @@ from tkinter import filedialog, messagebox, ttk
 from typing import Any
 
 from .aggregator import (
+    DEFAULT_ART_METRICS,
     DEFAULT_COMPARISON_METRICS,
     DEFAULT_POOLED_METRICS,
     render_comparison_html,
@@ -180,6 +181,7 @@ _T: dict[str, dict[str, str]] = {
         "msg_delta_done": "Delta-Briefing im Browser geöffnet",
         "msg_delta_error": "Delta-Briefing fehlgeschlagen: {error}",
         "chk_narrate": "KI-Narration (Entwurf)",
+        "chk_art_depth": "Bis auf ART-Ebene auswerten",
         "btn_red_team": "Red-Team-Fragen …",
         "btn_translate": "Übersetzen …",
         "dlg_save_red_team": "Red-Team-Fragen speichern",
@@ -274,6 +276,7 @@ _T: dict[str, dict[str, str]] = {
         "msg_delta_done": "Delta briefing opened in the browser",
         "msg_delta_error": "Delta briefing failed: {error}",
         "chk_narrate": "AI narration (draft)",
+        "chk_art_depth": "Evaluate down to ART level",
         "btn_red_team": "Red-team questions …",
         "btn_translate": "Translate …",
         "dlg_save_red_team": "Save red-team questions",
@@ -368,6 +371,7 @@ _T: dict[str, dict[str, str]] = {
         "msg_delta_done": "Delta briefing deschis în browser",
         "msg_delta_error": "Delta briefing eșuat: {error}",
         "chk_narrate": "Narațiune AI (schiță)",
+        "chk_art_depth": "Evaluare până la nivel de ART",
         "btn_red_team": "Întrebări red-team …",
         "btn_translate": "Traduce …",
         "dlg_save_red_team": "Salvează întrebările red-team",
@@ -462,6 +466,7 @@ _T: dict[str, dict[str, str]] = {
         "msg_delta_done": "Delta briefing aberto no browser",
         "msg_delta_error": "Delta briefing falhou: {error}",
         "chk_narrate": "Narração por IA (rascunho)",
+        "chk_art_depth": "Avaliar até ao nível de ART",
         "btn_red_team": "Perguntas red-team …",
         "btn_translate": "Traduzir …",
         "dlg_save_red_team": "Guardar as perguntas red-team",
@@ -556,6 +561,7 @@ _T: dict[str, dict[str, str]] = {
         "msg_delta_done": "Delta briefing ouvert dans le navigateur",
         "msg_delta_error": "Échec du delta briefing : {error}",
         "chk_narrate": "Narration IA (brouillon)",
+        "chk_art_depth": "Analyser jusqu'au niveau ART",
         "btn_red_team": "Questions red-team …",
         "btn_translate": "Traduire …",
         "dlg_save_red_team": "Enregistrer les questions red-team",
@@ -678,6 +684,7 @@ def build_config_from_fields(
     mode: str,
     kind: str = KIND_SOLUTION,
     terminology: str = TERMINOLOGY_SAFE,
+    art_depth: bool = False,
 ) -> SolutionConfig:
     """
     Build (and validate) a SolutionConfig from raw form field values.
@@ -694,6 +701,7 @@ def build_config_from_fields(
         mode:      MODE_POOLED or MODE_COMPARISON.
         kind:      KIND_SOLUTION (members are ARTs) or KIND_PORTFOLIO (members
                    are solution templates).
+        art_depth: Evaluate down to the individual ARTs (drill-down).
 
     Returns:
         Validated SolutionConfig.
@@ -703,6 +711,8 @@ def build_config_from_fields(
     """
     member_dicts = [_member_dict(n, s, kind) for n, s in members if s.strip()]
     report: dict[str, Any] = {"modes": [mode], "terminology": terminology}
+    if art_depth:
+        report["art_depth"] = True
     if from_str.strip():
         report["from_date"] = from_str.strip()
     if to_str.strip():
@@ -718,10 +728,11 @@ def build_config_from_fields(
     })
 
 
-def default_metrics_for_mode(mode: str) -> list[str]:
+def default_metrics_for_mode(mode: str, art_depth: bool = False) -> list[str]:
     """Return the default metric set used for the given report mode."""
-    return (DEFAULT_COMPARISON_METRICS if mode == MODE_COMPARISON
-            else DEFAULT_POOLED_METRICS)
+    if mode != MODE_COMPARISON:
+        return DEFAULT_POOLED_METRICS
+    return DEFAULT_ART_METRICS if art_depth else DEFAULT_COMPARISON_METRICS
 
 
 #: Fields a loaded config may carry that the manager form does NOT edit.
@@ -850,6 +861,7 @@ class SolutionManagerApp(tk.Tk):
         self._from = tk.StringVar()
         self._to = tk.StringVar()
         self._mode = tk.StringVar(value=MODE_POOLED)
+        self._art_depth = tk.BooleanVar(value=False)
         self._narrate = tk.BooleanVar(value=False)
         self._llm_provider = tk.StringVar(value="ollama")
         self._member_rows: list[dict] = []
@@ -1005,6 +1017,8 @@ class SolutionManagerApp(tk.Tk):
                         variable=self._mode, value=MODE_POOLED).pack(side="left", padx=(8, 0))
         ttk.Radiobutton(mode_frame, text=self._tr("mode_comparison"),
                         variable=self._mode, value=MODE_COMPARISON).pack(side="left", padx=(8, 0))
+        ttk.Checkbutton(mode_frame, text=self._tr("chk_art_depth"),
+                        variable=self._art_depth).pack(side="left", padx=(16, 0))
 
         ki_frame = tk.Frame(self)
         ki_frame.pack(fill="x", pady=(6, 0))
@@ -1100,6 +1114,7 @@ class SolutionManagerApp(tk.Tk):
         self._from.set("")
         self._to.set("")
         self._mode.set(MODE_POOLED)
+        self._art_depth.set(False)
         self._terminology.set(TERMINOLOGY_SAFE)
         self._kind.set(KIND_SOLUTION)
         self._on_kind_change()
@@ -1129,6 +1144,7 @@ class SolutionManagerApp(tk.Tk):
         self._from.set(cfg.from_date.isoformat() if cfg.from_date else "")
         self._to.set(cfg.to_date.isoformat() if cfg.to_date else "")
         self._mode.set(cfg.modes[0] if cfg.modes else MODE_POOLED)
+        self._art_depth.set(cfg.art_depth)
         for entry in list(self._member_rows[1:]):
             self._remove_member_row(entry)
         self._member_rows[0]["name"].set("")
@@ -1149,7 +1165,8 @@ class SolutionManagerApp(tk.Tk):
                 self._name.get(), FRAMEWORK_SAFE,
                 self._from.get(), self._to.get(),
                 self._collect_members(), self._mode.get(),
-                kind=self._kind.get(), terminology=self._terminology.get()),
+                kind=self._kind.get(), terminology=self._terminology.get(),
+                art_depth=self._art_depth.get()),
                 self._loaded_cfg)
             if self._register_values is not None:
                 cfg = dataclasses.replace(cfg, **self._register_values)
@@ -1187,6 +1204,7 @@ class SolutionManagerApp(tk.Tk):
         out_path = Path(out)
         is_pdf = out_path.suffix.lower() == ".pdf"
         mode = self._mode.get()
+        art_depth = cfg.art_depth
         terminology = cfg.terminology
 
         narrate_with = (self._llm_provider.get()
@@ -1201,11 +1219,12 @@ class SolutionManagerApp(tk.Tk):
             warning = ""
             if is_pdf:
                 ok = render_pdf(cfg, out_path, mode=mode, terminology=terminology,
-                                log=lambda *_: None)
+                                log=lambda *_: None, art_depth=art_depth)
             else:
                 render = (render_comparison_html if mode == MODE_COMPARISON
                           else render_pooled_html)
-                html = render(cfg, terminology=terminology, log=lambda *_: None)
+                html = render(cfg, terminology=terminology, log=lambda *_: None,
+                              art_depth=art_depth)
                 ok = bool(html)
                 if html and narrate_with:
                     try:
@@ -1291,7 +1310,8 @@ class SolutionManagerApp(tk.Tk):
             try:
                 from .aggregator import render_conference_html
 
-                html = render_conference_html(cfg, log=lambda *_: None)
+                html = render_conference_html(cfg, log=lambda *_: None,
+                                              art_depth=cfg.art_depth)
                 Path(path).write_text(html, encoding="utf-8")
                 webbrowser.open(Path(path).resolve().as_uri())
                 msg = self._tr("msg_conference_done").format(path=path)

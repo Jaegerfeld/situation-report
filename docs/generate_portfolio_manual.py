@@ -3,7 +3,7 @@
 # Repository:     https://github.com/Jaegerfeld/situation-report
 # KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
 # Erstellt:       22.06.2026
-# Geändert:       22.06.2026
+# Geändert:       04.09.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
@@ -403,6 +403,17 @@ def content_de(st: dict) -> list:
         _P("<b>Comparison</b> beantwortet: Welche Einheit ist der Ausreißer? Bei "
            "einer Solution wird jeder ART getrennt gezeigt, bei einem Portfolio jede "
            "Solution. Die Diagramme stehen pro Metrik nebeneinander.", st),
+        _P("<b>ART-Tiefe</b> (optional; Haken „Bis auf ART-Ebene auswerten“ "
+           "bzw. <font name='Courier'>--art-depth</font>) beantwortet: Welcher "
+           "ART ist der Ausreißer? Ein Portfolio vergleicht dann nicht mehr seine "
+           "Solutions, sondern deren einzelne ARTs — beschriftet als "
+           "„Solution · ART“, damit gleichnamige ARTs zweier Solutions "
+           "unterscheidbar bleiben. Erst dadurch werden die beiden "
+           "workflow-gebundenen Analysen aus „ART &amp; Teams“ (Process Flow) im "
+           "Portfolio überhaupt möglich: Sie brauchen die Übergänge des einzelnen "
+           "ARTs, die beim Poolen verlorengehen. Im Pooled-Modus bleiben die "
+           "Diagramme gepoolt — dort ergänzt die ART-Tiefe eine eigene Tabelle "
+           "„ART Detail“ je ART.", st),
         _SP(4),
         _H2("5.3  Die Metriken", st),
         tbl([
@@ -664,6 +675,7 @@ def content_de(st: dict) -> list:
             ["--output FILE", "HTML-Report in diese Datei schreiben."],
             ["--pdf FILE", "Mehrseitigen PDF-Report schreiben."],
             ["--mode pooled|comparison", "Aggregationsmodus (Standard: pooled)."],
+            ["--art-depth", "Bis auf ART-Ebene auswerten (Standard: aus)."],
             ["--metrics ID ...", "Bestimmte Metriken (Standard hängt vom Modus ab)."],
             ["--terminology SAFe|Global", "Beschriftungs-Modus (Standard: SAFe)."],
             ["--target-ct DAYS", "Zielwert der Cycle Time in Tagen (Standard: 90)."],
@@ -820,6 +832,15 @@ def content_en(st: dict) -> list:
         _P("<b>Comparison</b> answers: Which unit is the outlier? For a solution "
            "each ART is shown separately, for a portfolio each solution. Charts are "
            "placed side by side per metric.", st),
+        _P("<b>ART depth</b> (optional; checkbox „Evaluate down to ART level“ "
+           "or <font name='Courier'>--art-depth</font>) answers: Which ART is the "
+           "outlier? A portfolio then compares the individual ARTs instead of its "
+           "member solutions — labelled „Solution · ART“ so that equally named "
+           "ARTs of two solutions stay distinguishable. Only this makes the two "
+           "workflow-bound „ART &amp; Teams“ analyses (Process Flow) possible at "
+           "portfolio level at all: they need the individual ART's transitions, "
+           "which pooling discards. In pooled mode the charts stay pooled — there "
+           "ART depth adds its own „ART Detail“ table per ART.", st),
         _SP(4),
         _H2("5.3  The metrics", st),
         tbl([
@@ -1075,6 +1096,7 @@ def content_en(st: dict) -> list:
             ["--output FILE", "Write the HTML report to this file."],
             ["--pdf FILE", "Write a multi-page PDF report."],
             ["--mode pooled|comparison", "Aggregation mode (default: pooled)."],
+            ["--art-depth", "Evaluate down to ART level (default: off)."],
             ["--metrics ID ...", "Specific metrics (default depends on the mode)."],
             ["--terminology SAFe|Global", "Labelling mode (default: SAFe)."],
             ["--target-ct DAYS", "Target cycle time in days (default: 90)."],
@@ -1229,6 +1251,16 @@ def content_ro(st: dict) -> list:
         _P("<b>Comparison</b> raspunde: Care unitate este exceptia? La o solutie "
            "fiecare ART este afisat separat, la un portofoliu fiecare solutie. "
            "Diagramele stau alaturat per metrica.", st),
+        _P("<b>Adancimea ART</b> (optional; bifa „Evaluare pana la nivel de "
+           "ART“ sau <font name='Courier'>--art-depth</font>) raspunde: Care ART "
+           "este exceptia? Un portofoliu compara atunci ART-urile individuale in "
+           "loc de solutiile membre — etichetate „Solutie · ART“, ca ART-uri cu "
+           "acelasi nume din doua solutii sa ramana distincte. Abia asa devin "
+           "posibile la nivel de portofoliu cele doua analize legate de workflow "
+           "din „ART &amp; Teams“ (Process Flow): ele au nevoie de tranzitiile "
+           "ART-ului, pierdute la pooling. In modul pooled diagramele raman "
+           "pooled — acolo adancimea ART adauga un tabel propriu "
+           "„ART Detail“.", st),
         _SP(4),
         _H2("5.3  Metricile", st),
         tbl([
@@ -1479,6 +1511,7 @@ def content_ro(st: dict) -> list:
             ["--output FILE", "Scrie raportul HTML in acest fisier."],
             ["--pdf FILE", "Scrie un raport PDF cu mai multe pagini."],
             ["--mode pooled|comparison", "Mod de agregare (implicit: pooled)."],
+            ["--art-depth", "Evaluare pana la nivel de ART (implicit: oprit)."],
             ["--metrics ID ...", "Metrici specifice (implicit depinde de mod)."],
             ["--terminology SAFe|Global", "Mod de etichetare (implicit: SAFe)."],
             ["--target-ct DAYS", "Tinta cycle time in zile (implicit: 90)."],
@@ -1635,6 +1668,15 @@ def content_pt(st: dict) -> list:
         _P("<b>Comparison</b> responde: Que unidade e a excecao? Numa solucao cada "
            "ART e mostrado em separado, num portefolio cada solucao. Os graficos ficam "
            "lado a lado por metrica.", st),
+        _P("<b>Profundidade ART</b> (opcional; caixa „Avaliar ate ao nivel de "
+           "ART“ ou <font name='Courier'>--art-depth</font>) responde: Que ART e a "
+           "excecao? Um portefolio compara entao os ARTs individuais em vez das "
+           "solucoes membro — rotulados „Solucao · ART“, para que ARTs com o mesmo "
+           "nome de duas solucoes permanecam distinguiveis. So assim as duas "
+           "analises ligadas ao workflow de „ART &amp; Teams“ (Process Flow) se "
+           "tornam possiveis ao nivel do portefolio: precisam das transicoes do "
+           "ART, perdidas no pooling. No modo pooled os graficos ficam pooled — ai "
+           "a profundidade ART acrescenta a sua tabela „ART Detail“.", st),
         _SP(4),
         _H2("5.3  As metricas", st),
         tbl([
@@ -1887,6 +1929,7 @@ def content_pt(st: dict) -> list:
             ["--output FILE", "Escrever o relatorio HTML neste ficheiro."],
             ["--pdf FILE", "Escrever um relatorio PDF com varias paginas."],
             ["--mode pooled|comparison", "Modo de agregacao (predefinicao: pooled)."],
+            ["--art-depth", "Avaliar ate ao nivel de ART (predefinicao: off)."],
             ["--metrics ID ...", "Metricas especificas (predefinicao depende do modo)."],
             ["--terminology SAFe|Global", "Modo de rotulagem (predefinicao: SAFe)."],
             ["--target-ct DAYS", "Alvo do cycle time em dias (predefinicao: 90)."],
@@ -2045,6 +2088,16 @@ def content_fr(st: dict) -> list:
         _P("<b>Comparison</b> repond : Quelle unite est l'exception ? Pour une "
            "solution chaque ART est montre separement, pour un portefeuille chaque "
            "solution. Les graphiques sont cote a cote par metrique.", st),
+        _P("<b>Profondeur ART</b> (optionnel ; case „Analyser jusqu'au niveau "
+           "ART“ ou <font name='Courier'>--art-depth</font>) repond : Quel ART est "
+           "l'exception ? Un portefeuille compare alors les ARTs individuels au "
+           "lieu de ses solutions membres — etiquetes „Solution · ART“, pour que "
+           "des ARTs homonymes de deux solutions restent distinguables. C'est "
+           "seulement ainsi que les deux analyses liees au workflow de "
+           "„ART &amp; Teams“ (Process Flow) deviennent possibles au niveau du "
+           "portefeuille : elles ont besoin des transitions de l'ART, perdues lors "
+           "du pooling. En mode pooled les graphiques restent pooled — la "
+           "profondeur ART y ajoute sa propre table „ART Detail“.", st),
         _SP(4),
         _H2("5.3  Les metriques", st),
         tbl([
@@ -2307,6 +2360,7 @@ def content_fr(st: dict) -> list:
             ["--output FILE", "Ecrire le rapport HTML dans ce fichier."],
             ["--pdf FILE", "Ecrire un rapport PDF multi-pages."],
             ["--mode pooled|comparison", "Mode d'agregation (defaut : pooled)."],
+            ["--art-depth", "Analyser jusqu'au niveau ART (defaut : off)."],
             ["--metrics ID ...", "Metriques specifiques (defaut selon le mode)."],
             ["--terminology SAFe|Global", "Mode d'etiquetage (defaut : SAFe)."],
             ["--target-ct DAYS", "Cible du cycle time en jours (defaut : 90)."],

@@ -3,7 +3,7 @@
 # Repository:     https://github.com/Jaegerfeld/situation-report
 # KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
 # Erstellt:       22.06.2026
-# Geändert:       22.06.2026
+# Geändert:       04.09.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
@@ -47,6 +47,8 @@ from build_reports.terminology import (
     FLOW_LOAD,
     FLOW_TIME,
     FLOW_VELOCITY,
+    PROCESS_FLOW,
+    PROCESS_FLOW_TIME,
     SAFE,
     term,
 )
@@ -122,6 +124,14 @@ DEFAULT_POOLED_METRICS = [FLOW_VELOCITY, FLOW_TIME, FLOW_DISTRIBUTION, METRIC_CF
 #: the stage-dependent Flow Load is safe to include here too.
 DEFAULT_COMPARISON_METRICS = [FLOW_VELOCITY, FLOW_TIME, FLOW_DISTRIBUTION,
                               METRIC_CFD, FLOW_LOAD]
+
+#: Default metrics for the COMPARISON mode WITH ART depth. On top of the
+#: comparison set these add the two workflow-bound „ART & Teams" analyses:
+#: Process Flow needs each ART's own transitions and stages, which pooling
+#: discards — they are only meaningful on a single ART and would silently
+#: produce nothing on a pooled solution or portfolio unit.
+DEFAULT_ART_METRICS = DEFAULT_COMPARISON_METRICS + [PROCESS_FLOW,
+                                                    PROCESS_FLOW_TIME]
 
 # Backwards-compatible alias (Phase-1 name).
 DEFAULT_METRICS = DEFAULT_POOLED_METRICS
@@ -463,9 +473,153 @@ def load_comparison_units(
     return units
 
 
-def _default_metrics(config: SolutionConfig, mode: str) -> list[str]:
+#: Separator between the owning solution and the ART in a drill-down label.
+ART_LABEL_SEP = " · "
+
+
+def _iter_labelled_arts(
+    config: SolutionConfig,
+    _prefix: str = "",
+    _visited: set[str] | None = None,
+) -> list[tuple[Member, str]]:
+    """
+    Flatten a configuration to its ARTs, each with a label unique across solutions.
+
+    Same recursion as _iter_art_members, but every ART additionally carries the
+    chain of solutions it sits in ("Solution Alpha · ART Alpha-1"). Two member
+    solutions may well name an ART identically ("ART Team A"); without the
+    prefix their rows would silently merge in the summary and collide as
+    figure labels.
+
+    Args:
+        config:   The solution or portfolio configuration.
+        _prefix:  Internal label prefix accumulated while descending.
+        _visited: Internal set of resolved template paths already expanded.
+
+    Returns:
+        Flat list of (ART member, display label) pairs.
+    """
+    if config.kind == KIND_SOLUTION:
+        return [(_absolutize_member(m, config.base_dir), f"{_prefix}{m.name}")
+                for m in config.members]
+
+    visited = _visited if _visited is not None else set()
+    out: list[tuple[Member, str]] = []
+    for member in config.members:
+        template = resolve_config_path(config.base_dir, member.template)
+        resolved = str(template.resolve())
+        if resolved in visited:
+            continue
+        visited.add(resolved)
+        sub = load_solution_config(template)
+        out.extend(_iter_labelled_arts(
+            sub, f"{_prefix}{sub.name}{ART_LABEL_SEP}", visited))
+    return out
+
+
+def load_art_units(
+    config: SolutionConfig,
+    log: Callable[[str], None] = print,
+) -> list[ReportData]:
+    """
+    Load one ReportData per ART — the drill-down granularity (ART depth).
+
+    Unlike load_comparison_units this always descends to the ARTs themselves,
+    also for a portfolio, where the default comparison unit is the member
+    solution. Each ART keeps its own transitions and stages, which is what the
+    workflow-bound „ART & Teams" analyses (Process Flow) need — pooling
+    discards them.
+
+    Args:
+        config: Validated solution or portfolio configuration.
+        log:    Progress callback.
+
+    Returns:
+        One filtered ReportData per ART, labelled uniquely across solutions.
+    """
+    cfg = FilterConfig(from_date=config.from_date, to_date=config.to_date)
+    units: list[ReportData] = []
+    for member, label in _iter_labelled_arts(config):
+        data = _load_member(member)
+        data.source_prefix = label
+        data = apply_filters(data, cfg)
+        log(f"  {label}: {len(data.issues)} issues after filter")
+        if not data.transitions:
+            log(f"  NOTE [{label}]: no transition data — the Process-Flow "
+                f"analyses stay empty for this ART.")
+        units.append(data)
+    return units
+
+
+def _art_detail_units(
+    config: SolutionConfig,
+    unit_labels: list[str],
+    log: Callable[[str], None] = print,
+) -> list[ReportData]:
+    """
+    The ARTs to add as a drill-down — or [] when they are already on display.
+
+    A solution in comparison mode (and a solution pre-read) enumerates exactly
+    these ARTs anyway; repeating them would be noise. The labels are derived
+    from the configuration alone, so the redundant case costs no file access.
+
+    Args:
+        config:      The solution or portfolio configuration.
+        unit_labels: Labels of the units the main table already shows.
+        log:         Progress callback.
+
+    Returns:
+        One ReportData per ART, or [] if the drill-down adds nothing.
+    """
+    labels = [label for _member, label in _iter_labelled_arts(config)]
+    if not labels or labels == list(unit_labels):
+        return []
+    return load_art_units(config, log=log)
+
+
+def _art_detail_html(
+    config: SolutionConfig,
+    unit_labels: list[str],
+    target_ct: int,
+    log: Callable[[str], None] = print,
+) -> str:
+    """
+    Build the optional ART drill-down block (summary + quality table per ART).
+
+    Rendering the ARTs as their own table rather than as extra rows keeps the A3
+    outlier highlighting peer-to-peer: an aggregate row is not a peer of an ART
+    and would distort the column median it is compared against.
+
+    Args:
+        config:      The solution or portfolio configuration.
+        unit_labels: Labels of the units the main table already shows.
+        target_ct:   Target cycle time (column header + target share).
+        log:         Progress callback.
+
+    Returns:
+        An HTML fragment, or "" if there is nothing to add.
+    """
+    art_units = _art_detail_units(config, unit_labels, log=log)
+    if not art_units:
+        return ""
+    summary = render_summary_html(
+        [compute_summary(u, u.source_prefix, target_ct) for u in art_units],
+        title="ART Detail — Management Summary per ART", target_ct=target_ct)
+    quality = render_quality_html(
+        [assess_quality(u, u.source_prefix) for u in art_units],
+        title="ART Detail — Data Quality per ART")
+    return summary + quality
+
+
+def _default_metrics(
+    config: SolutionConfig, mode: str, art_depth: bool = False
+) -> list[str]:
     """Pick the default metric set for a config + mode (see the DEFAULT_* notes)."""
-    if mode == MODE_COMPARISON and config.kind != KIND_PORTFOLIO:
+    if mode != MODE_COMPARISON:
+        return DEFAULT_POOLED_METRICS
+    if art_depth:
+        return DEFAULT_ART_METRICS
+    if config.kind != KIND_PORTFOLIO:
         return DEFAULT_COMPARISON_METRICS
     return DEFAULT_POOLED_METRICS
 
@@ -479,13 +633,16 @@ def _collect_report(
     target_ct: int,
     pi_config: Path | None,
     log: Callable[[str], None],
+    art_depth: bool = False,
 ) -> tuple[list, dict[int, str], list[ReportData], list[SourceQuality]]:
     """
     Shared report core: resolve the report units, run the metrics, collect figures.
 
     Pooled mode has a single unit (the pooled solution/portfolio); comparison mode
-    has one unit per ART (solution) or per member solution (portfolio). The figures
-    are grouped by metric (one section heading per metric), and each figure is
+    has one unit per ART (solution) or per member solution (portfolio). With
+    art_depth the comparison units are always the individual ARTs, so a portfolio
+    is compared ART by ART instead of solution by solution. The figures are
+    grouped by metric (one section heading per metric), and each figure is
     labelled with its unit's name via source_prefix.
 
     Returns:
@@ -496,7 +653,8 @@ def _collect_report(
     """
     qualities: list[SourceQuality]
     if mode == MODE_COMPARISON:
-        units = load_comparison_units(config, log=log)
+        units = (load_art_units(config, log=log) if art_depth
+                 else load_comparison_units(config, log=log))
         qualities = [assess_quality(u, u.source_prefix) for u in units]
     else:
         qualities = []
@@ -506,7 +664,7 @@ def _collect_report(
         log(f"After date filter: {len(data.issues)} issues")
         units = [data]
 
-    metric_ids = metrics or _default_metrics(config, mode)
+    metric_ids = metrics or _default_metrics(config, mode, art_depth)
     plugins = _make_plugins(metric_ids, ct_method, target_ct, pi_config, log)
 
     all_figures: list = []
@@ -826,6 +984,7 @@ def render_html(
     target_ct: int = 90,
     pi_config: Path | None = None,
     log: Callable[[str], None] = print,
+    art_depth: bool = False,
 ) -> str:
     """
     Render a solution/portfolio report as a single self-contained HTML document.
@@ -834,11 +993,18 @@ def render_html(
     figures grouped by metric. See _collect_report for the pooled/comparison
     semantics.
 
+    art_depth drills down to the individual ARTs: in comparison mode the figures
+    and tables are computed per ART (which is what makes the workflow-bound
+    „ART & Teams" analyses possible at portfolio level at all); in pooled mode
+    the pooled figures stay pooled — pooling is the point there — and the ARTs
+    are added as their own summary and quality table.
+
     Returns:
         Complete HTML document, or "" if no figures were produced.
     """
     figures, section_breaks, units, qualities = _collect_report(
-        config, mode, metrics, terminology, ct_method, target_ct, pi_config, log)
+        config, mode, metrics, terminology, ct_method, target_ct, pi_config, log,
+        art_depth=art_depth)
     if not figures:
         log("No figures produced — nothing to render.")
         return ""
@@ -847,6 +1013,9 @@ def render_html(
         [compute_summary(u, u.source_prefix, target_ct) for u in units],
         target_ct=target_ct)
     quality = render_quality_html(qualities)
+    if art_depth:
+        quality += _art_detail_html(
+            config, [u.source_prefix for u in units], target_ct, log=log)
     caps = render_capabilities_html(_collect_capabilities(config, log=log))
     roam = render_roam_html(_collect_risks(config, log=log))
     nfr = render_nfr_html(*_collect_nfr(config, log=log))
@@ -874,18 +1043,22 @@ def render_pdf(
     target_ct: int = 90,
     pi_config: Path | None = None,
     log: Callable[[str], None] = print,
+    art_depth: bool = False,
 ) -> bool:
     """
     Render a solution/portfolio report to a multi-page PDF (kaleido).
 
     The management summary is rendered as the first page (a table figure), then
-    one page per metric figure.
+    one page per metric figure. art_depth behaves as in render_html; in pooled
+    mode it adds one ART summary page. Note that ART depth multiplies the page
+    count (ARTs × metrics) — it is opt-in for exactly that reason.
 
     Returns:
         True if a PDF was written, False if there were no figures.
     """
     figures, _section_breaks, units, qualities = _collect_report(
-        config, mode, metrics, terminology, ct_method, target_ct, pi_config, log)
+        config, mode, metrics, terminology, ct_method, target_ct, pi_config, log,
+        art_depth=art_depth)
     if not figures:
         log("No figures produced — nothing to export.")
         return False
@@ -894,6 +1067,15 @@ def render_pdf(
     extra = []
     if qualities:
         extra.append(quality_figure(qualities))
+    if art_depth:
+        art_units = _art_detail_units(
+            config, [u.source_prefix for u in units], log=log)
+        if art_units:
+            extra.append(summary_figure(
+                [compute_summary(u, u.source_prefix, target_ct)
+                 for u in art_units],
+                title="ART Detail — Management Summary per ART",
+                target_ct=target_ct))
     cap_entries = _collect_capabilities(config, log=log)
     if cap_entries:
         extra.append(capability_figure(cap_entries))
@@ -935,10 +1117,11 @@ def render_pooled_html(
     target_ct: int = 90,
     pi_config: Path | None = None,
     log: Callable[[str], None] = print,
+    art_depth: bool = False,
 ) -> str:
     """Render the pooled report as HTML (thin wrapper over render_html)."""
     return render_html(config, MODE_POOLED, metrics, terminology,
-                       ct_method, target_ct, pi_config, log)
+                       ct_method, target_ct, pi_config, log, art_depth)
 
 
 def render_comparison_html(
@@ -949,16 +1132,18 @@ def render_comparison_html(
     target_ct: int = 90,
     pi_config: Path | None = None,
     log: Callable[[str], None] = print,
+    art_depth: bool = False,
 ) -> str:
     """Render the per-unit comparison report as HTML (thin wrapper over render_html)."""
     return render_html(config, MODE_COMPARISON, metrics, terminology,
-                       ct_method, target_ct, pi_config, log)
+                       ct_method, target_ct, pi_config, log, art_depth)
 
 
 def render_conference_html(
     config: SolutionConfig,
     conference_date: date | None = None,
     log: Callable[[str], None] = print,
+    art_depth: bool = False,
 ) -> str:
     """
     Render the Value-Stream-Conference pre-read ("Konferenzmappe", B6).
@@ -971,10 +1156,16 @@ def render_conference_html(
     No plotly figures — the pre-read is meant to be read, the full report
     to be explored.
 
+    With art_depth, Input 1 additionally carries the drill-down to the
+    individual ARTs — the granularity the ART teams themselves prepare for the
+    conference. For a solution the pre-read is ART-level already, so the block
+    stays out (see _art_detail_html).
+
     Args:
         config:          The solution or portfolio configuration.
         conference_date: Date shown in the header (default: today).
         log:             Progress callback.
+        art_depth:       Add the per-ART drill-down to Input 1.
 
     Returns:
         A complete standalone HTML document.
@@ -986,6 +1177,9 @@ def render_conference_html(
     summary = render_summary_html(
         [compute_summary(u, u.source_prefix, 90) for u in units])
     quality = render_quality_html(qualities)
+    if art_depth:
+        quality += _art_detail_html(
+            config, [u.source_prefix for u in units], 90, log=log)
     flow = render_flow_problems_html(_collect_flow_problems(config, log=log))
     roam = render_roam_html(_collect_risks(config, log=log))
     deps = render_dependencies_html(_collect_dependencies(config, log=log))

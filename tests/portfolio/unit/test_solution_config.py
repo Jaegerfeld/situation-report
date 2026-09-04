@@ -3,7 +3,7 @@
 # Repository:     https://github.com/Jaegerfeld/situation-report
 # KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
 # Erstellt:       22.06.2026
-# Geändert:       22.06.2026
+# Geändert:       04.09.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
@@ -285,3 +285,28 @@ class TestResolveConfigPath:
         loaded = load_solution_config(cfg_file)
         assert loaded.base_dir == tmp_path.resolve()
         assert "base_dir" not in to_dict(loaded)
+
+
+class TestArtDepthSetting:
+    """Die ART-Tiefe gehoert zur Report-Einstellung und muss den Weg
+    Speichern → Laden unveraendert ueberstehen. Verallgemeinerte Lehre aus
+    dem base_dir-Feldbefund (04.09.2026): jedes neue Konfigurationsfeld
+    bekommt seinen Rundlauf-Test in derselben Aenderung."""
+
+    def test_defaults_to_off(self) -> None:
+        cfg = parse_solution_config(_valid_dict())  # report kennt art_depth nicht
+        assert cfg.art_depth is False
+
+    def test_parsed_and_serialised(self) -> None:
+        d = _valid_dict()
+        d["report"]["art_depth"] = True
+        cfg = parse_solution_config(d)
+        assert cfg.art_depth is True
+        assert to_dict(cfg)["report"]["art_depth"] is True
+        assert parse_solution_config(to_dict(cfg)) == cfg
+
+    def test_off_leaves_the_file_untouched(self) -> None:
+        """Ausgeschaltet schreibt die Einstellung nichts in die Datei —
+        bestehende Konfigurationen aendern sich durch das Feature nicht."""
+        cfg = parse_solution_config(_valid_dict())
+        assert "art_depth" not in to_dict(cfg)["report"]

@@ -60,6 +60,13 @@ Nicht nach „Feature-Wunschliste", sondern nach **Datenherkunft** (das BGS-Prin
 - **Wo:** `build_reports.stage_groups` + Verweis in `solution_config` (neuer optionaler Block); Schema-Bump beachten.
 - **Aufwand:** M.
 
+### A5 · ART-Tiefe: Auswertung optional bis auf ART-Ebene · ✅ umgesetzt (04.09.2026)
+- **Was:** Ein Schalter (GUI-Haken *Bis auf ART-Ebene auswerten*, CLI `--art-depth`, Konfigurationsfeld `report.art_depth`), der die Report-Einheiten bis zum einzelnen ART auflöst — im Vergleichsmodus als Figuren *und* Tabellen je ART, im Pooled-Modus als zusätzliche Tabelle *ART Detail*, und in der Konferenzmappe als Teil von Input 1. Erst damit sind die beiden workflow-gebundenen Analysen aus *ART & Teams* (`process_flow`, `process_flow_time`) auf Portfolio-Ebene überhaupt verfügbar.
+- **Warum:** A3 hat den Comparison-Modus geschärft, aber die Vergleichstiefe blieb an die Ebene gebunden: ein Portfolio verglich Solutions, deren gepoolte Daten die ART-Übergänge nicht mehr enthalten. Wer wissen will, *welcher ART* der Ausreißer ist — und wer die Prozessfluss-Analysen für die Value-Stream-Conference braucht —, musste bisher jede Solution einzeln öffnen.
+- **Wo:** `load_art_units`/`_iter_labelled_arts`/`_art_detail_units` in `aggregator.py`, durchgereicht bis `render_html`/`render_pdf`/`render_conference_html`; `DEFAULT_ART_METRICS`; GUI-Haken in fünf Sprachen.
+- **Bewusst nicht:** Snapshots und Delta-Briefing (D2) bleiben flach — ein Snapshot hält den Report-Stand fest, und ein Vergleich über wechselnde Beschriftungen hinweg erzeugte genau das Driftrauschen, das Phase 3 beseitigt hat. Ebenso bleiben die Pooled-Figuren gepoolt; ART-Figuren gibt es im Vergleichsmodus.
+- **Aufwand:** M.
+
 ---
 
 ## Phase B — neuer lokaler Input-Contract (G/B) · analog `solution_config`

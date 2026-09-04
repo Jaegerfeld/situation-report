@@ -3,7 +3,7 @@
 # Repository:     https://github.com/Jaegerfeld/situation-report
 # KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
 # Erstellt:       03.09.2026
-# Geändert:       03.09.2026
+# Geändert:       04.09.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
@@ -1078,6 +1078,104 @@ ONEPAGERS: dict[str, dict[str, dict]] = {
                       "persons); a provider is ONE file in llm/providers/ — "
                       "exchangeable like the data sources. API keys only "
                       "from environment variables."),
+            ],
+        },
+    },
+    "art_depth": {
+        "de": {
+            "title": "ART-Tiefe",
+            "tagline": "Solutions & Portfolios optional bis auf ART-Ebene "
+                       "auswerten — inklusive der Analysen aus ART & Teams",
+            "sections": [
+                ("h", "Worum geht es?"),
+                ("p", "Bisher schaute ein Report nur so tief, wie seine Ebene "
+                      "reicht: Eine Solution verglich ihre ARTs, ein "
+                      "Portfolio seine Solutions. Deren gepoolte Daten "
+                      "enthalten die Übergänge der einzelnen ARTs aber nicht "
+                      "mehr — die beiden workflow-gebundenen Analysen aus "
+                      "„ART & Teams“ (Process Flow) fielen auf "
+                      "Portfolio-Ebene deshalb vollständig aus. Die ART-Tiefe "
+                      "löst die Einheiten bis zum einzelnen ART auf: Ein "
+                      "Portfolio vergleicht dann ARTs statt Solutions, und "
+                      "die Frage „welcher ART ist der Ausreißer?“ ist "
+                      "beantwortbar, ohne jede Solution einzeln zu öffnen."),
+                ("h", "So benutzt du es"),
+                ("code", "python -m portfolio portfolio.json --mode "
+                         "comparison --art-depth --output report.html\n"
+                         "python -m portfolio portfolio.json --art-depth "
+                         "--conference mappe.html"),
+                ("p", "Oder per GUI: der Haken „Bis auf ART-Ebene auswerten“ "
+                      "neben der Modus-Auswahl in Solutions & Portfolios. Er "
+                      "wird mit der Konfiguration gespeichert "
+                      "(report.art_depth) und gilt für Report, PDF und "
+                      "Konferenzmappe gleichermaßen."),
+                ("h", "Was sich wo ändert"),
+                ("li", "Vergleichsmodus: Figuren UND Tabellen je ART; "
+                       "Process Flow und Process-Flow-Zeit kommen als "
+                       "Vorgabe hinzu"),
+                ("li", "Pooled-Modus: die gepoolten Figuren bleiben gepoolt "
+                       "— dazu kommt eine eigene Tabelle „ART Detail“ je ART"),
+                ("li", "Konferenzmappe (VSC): Input 1 trägt denselben "
+                       "ART-Block — die Granularität, in der die ART-Teams "
+                       "selbst zur Konferenz kommen"),
+                ("h", "Leitplanken"),
+                ("p", "Ausgeschaltet ändert sich nichts: gleiche Einheiten, "
+                      "gleiche Vorgabemetriken, gleiche Datei. ARTs heißen "
+                      "„Solution · ART“, damit gleichnamige ARTs zweier "
+                      "Solutions nicht still verschmelzen. Die ART-Zeilen "
+                      "stehen in einer eigenen Tabelle, damit die "
+                      "Ausreißermarkierung unter Gleichrangigen bleibt. "
+                      "Snapshots und Delta-Briefing bleiben bewusst flach — "
+                      "sonst entstünde Driftrauschen aus wechselnden "
+                      "Beschriftungen. Und: ARTs mal Metriken vervielfacht "
+                      "den PDF-Umfang, darum ist die Tiefe eine bewusste "
+                      "Entscheidung."),
+            ],
+        },
+        "en": {
+            "title": "ART Depth",
+            "tagline": "Evaluate Solutions & Portfolios down to ART level — "
+                       "including the ART & Teams analyses",
+            "sections": [
+                ("h", "What is it?"),
+                ("p", "Until now a report looked only as deep as its own "
+                      "level: a solution compared its ARTs, a portfolio its "
+                      "solutions. But their pooled data no longer carries the "
+                      "individual ARTs' transitions — so the two "
+                      "workflow-bound „ART & Teams“ analyses (Process Flow) "
+                      "produced nothing at all at portfolio level. ART depth "
+                      "resolves the units down to the single ART: a portfolio "
+                      "then compares ARTs instead of solutions, and „which "
+                      "ART is the outlier?“ becomes answerable without "
+                      "opening every solution one by one."),
+                ("h", "How to use it"),
+                ("code", "python -m portfolio portfolio.json --mode "
+                         "comparison --art-depth --output report.html\n"
+                         "python -m portfolio portfolio.json --art-depth "
+                         "--conference pre-read.html"),
+                ("p", "Or in the GUI: the checkbox „Evaluate down to ART "
+                      "level“ next to the mode selection in Solutions & "
+                      "Portfolios. It is stored with the configuration "
+                      "(report.art_depth) and applies to the report, the PDF "
+                      "and the conference pre-read alike."),
+                ("h", "What changes where"),
+                ("li", "Comparison mode: figures AND tables per ART; Process "
+                       "Flow and Process Flow Time join the defaults"),
+                ("li", "Pooled mode: pooled figures stay pooled — an „ART "
+                       "Detail“ table per ART is added"),
+                ("li", "Conference pre-read (VSC): Input 1 carries the same "
+                       "ART block — the granularity the ART teams themselves "
+                       "bring to the conference"),
+                ("h", "Guardrails"),
+                ("p", "Switched off nothing changes: same units, same default "
+                      "metrics, same file. ARTs are labelled „Solution · "
+                      "ART“ so equally named ARTs of two solutions do not "
+                      "silently merge. The ART rows live in their own table "
+                      "so outlier highlighting stays peer-to-peer. Snapshots "
+                      "and the delta briefing deliberately stay flat — "
+                      "otherwise changing labels would create drift noise. "
+                      "And ARTs times metrics multiplies the PDF page count, "
+                      "which is why the depth is a deliberate choice."),
             ],
         },
     },
