@@ -5,7 +5,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
-## [Unreleased]
+## [0.27.0] – 2026-09-04
 
 ### Added
 - **Tutorial „KI-Funktionen in der Praxis" (D1 · D6 · D5)** — a
