@@ -51,6 +51,14 @@ python -m portfolio --delta prev.json now.json --narrate \
     --output delta.html
 ```
 
+Since D1, `--narrate` also acts on a **report run** with an HTML
+`--output`: the labeled *Executive Summary (Entwurf)* lands directly
+below the Management-Summary table, its input being the deterministic
+summary contract (metrics, source confidence, governance head counts —
+structurally without person/owner fields), plus
+`<output>.exec_summary.md` for editing (audit purpose
+`d1_exec_summary`).
+
 Without `--narrate` the briefing is exactly the deterministic D2 output
 (clean degradation). With it, the briefing gains the labeled section
 **Narration (Entwurf)**; Markdown output additionally writes

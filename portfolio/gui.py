@@ -182,6 +182,8 @@ _T: dict[str, dict[str, str]] = {
         "chk_narrate": "KI-Narration (Entwurf)",
         "msg_narrate_running": "KI-Narration wird erzeugt — lokale Modelle "
                                "brauchen bis zu einer Minute …",
+        "msg_exec_error": "KI-Zusammenfassung fehlgeschlagen (Report ohne "
+                          "Entwurf geschrieben): {error}",
         "btn_conference": "Konferenzmappe …",
         "dlg_save_conference": "Konferenzmappe speichern",
         "msg_conference_building": "Konferenzmappe wird erzeugt …",
@@ -262,6 +264,8 @@ _T: dict[str, dict[str, str]] = {
         "chk_narrate": "AI narration (draft)",
         "msg_narrate_running": "Drafting AI narration — local models can "
                                "take up to a minute …",
+        "msg_exec_error": "AI summary failed (report written without the "
+                          "draft): {error}",
         "btn_conference": "Conference pre-read …",
         "dlg_save_conference": "Save conference pre-read",
         "msg_conference_building": "Building conference pre-read …",
@@ -342,6 +346,8 @@ _T: dict[str, dict[str, str]] = {
         "chk_narrate": "Narațiune AI (schiță)",
         "msg_narrate_running": "Se generează narațiunea AI — modelele "
                                "locale pot dura până la un minut …",
+        "msg_exec_error": "Rezumatul AI a eșuat (raport scris fără "
+                          "schiță): {error}",
         "btn_conference": "Mapa conferinței …",
         "dlg_save_conference": "Salvează mapa conferinței",
         "msg_conference_building": "Se creează mapa conferinței …",
@@ -422,6 +428,8 @@ _T: dict[str, dict[str, str]] = {
         "chk_narrate": "Narração por IA (rascunho)",
         "msg_narrate_running": "A gerar a narração por IA — modelos locais "
                                "podem demorar até um minuto …",
+        "msg_exec_error": "Resumo por IA falhou (relatório escrito sem o "
+                          "rascunho): {error}",
         "btn_conference": "Dossier da conferência …",
         "dlg_save_conference": "Guardar o dossier da conferência",
         "msg_conference_building": "A criar o dossier da conferência …",
@@ -502,6 +510,8 @@ _T: dict[str, dict[str, str]] = {
         "chk_narrate": "Narration IA (brouillon)",
         "msg_narrate_running": "Narration IA en cours — les modèles locaux "
                                "peuvent prendre jusqu'à une minute …",
+        "msg_exec_error": "Échec du résumé IA (rapport écrit sans le "
+                          "brouillon) : {error}",
         "btn_conference": "Dossier de conférence …",
         "dlg_save_conference": "Enregistrer le dossier de conférence",
         "msg_conference_building": "Création du dossier de conférence …",
@@ -1111,6 +1121,14 @@ class SolutionManagerApp(tk.Tk):
         mode = self._mode.get()
         terminology = cfg.terminology
 
+        narrate_with = (self._llm_provider.get()
+                        if self._narrate.get() and not is_pdf else None)
+        lang = self._lang if self._lang in ("de", "en") else "en"
+        if narrate_with:
+            # Lokale Inferenz darf dauern — Status VOR dem Start setzen.
+            self._status.set(self._tr("msg_narrate_running"))
+            self.update_idletasks()
+
         def worker() -> None:
             if is_pdf:
                 ok = render_pdf(cfg, out_path, mode=mode, terminology=terminology,
@@ -1120,6 +1138,24 @@ class SolutionManagerApp(tk.Tk):
                           else render_pooled_html)
                 html = render(cfg, terminology=terminology, log=lambda *_: None)
                 ok = bool(html)
+                if html and narrate_with:
+                    try:
+                        from llm.audit import AUDIT_FILENAME
+
+                        from .exec_summary import attach_exec_summary
+                        html, narration = attach_exec_summary(
+                            html, cfg, narrate_with, lang=lang,
+                            audit_path=out_path.parent / AUDIT_FILENAME,
+                            log=lambda *_: None)
+                        draft = out_path.with_suffix(
+                            out_path.suffix + ".exec_summary.md")
+                        draft.write_text(
+                            f"> {narration.banner}\n\n{narration.text}\n",
+                            encoding="utf-8")
+                    except Exception as exc:
+                        # Saubere Degradation: Report ohne Entwurf schreiben.
+                        msg = self._tr("msg_exec_error").format(error=exc)
+                        self.after(0, lambda m=msg: self._status.set(m))
                 if html:
                     out_path.write_text(html, encoding="utf-8")
             self.after(0, lambda: self._done(out, ok))

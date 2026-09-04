@@ -138,9 +138,10 @@ Nicht nach „Feature-Wunschliste", sondern nach **Datenherkunft** (das BGS-Prin
 
 *Fachlicher Rahmen: `Quellen/KI-und-Lagebild_v1.0.md` (sieben Lagedienst-Muster M1–M7, sechs KI-Prinzipien). Architektur-Grundsatz: **Das LLM textet, es rechnet nicht** — Zahlen entstehen ausschließlich in Pipeline/Simulate; die KI-Schicht formuliert, übersetzt, erklärt. Jedes D-Feature ist optional (eigenes Modell/eigener Schlüssel, lokal oder API) und degradiert sauber: Ohne KI bleibt der Report vollständig nutzbar. Aggregat-Regel als harte Vorgabe: Teams/ARTs, keine Personen (KI-Prinzip 6).*
 
-### D1 · LLM-Executive-Summary
+### D1 · LLM-Executive-Summary — **✅ (04.09.2026, Phase 4 auf dem llm-Framework)**
 - **Was:** Kennzahlen aus `summary.py` als Eingabe, LLM erzeugt die Management-Formulierung (Zwei-Lesarten-tauglich); Zahlen werden aus dem Datenpfad übernommen, nie generiert.
 - **Warum:** Rosetta-Stone-Arbeit (EA-Prinzip 3) wird bezahlbar; Muster M1/M6. **Aufwand:** S–M.
+- **Ist-Stand:** `portfolio/exec_summary.py` — deterministischer **Summary-Contract** `summary_to_markdown(build_snapshot(config))` (Kennzahlen gepoolt + je Einheit, Quell-Konfidenz, Governance-Kopfzahlen als Statuszählungen; strukturell OHNE Owner/Personen — Aggregat-Grenze per Test erzwungen, Contract-Gleichheit per Spy-Test). Versionierter Prompt `exec_summary_system_prompt` (de/en) in llm/prompts; `llm.narrate` mit `system_prompt`-Weiche — Zahlen-Wächter, Art.-50-Banner und Audit (purpose `d1_exec_summary`) gelten unverändert. CLI: `--narrate` wirkt auf Report-Läufe mit HTML-`--output` — Abschnitt „Executive Summary (Entwurf)" DIREKT unter der Management-Summary-Tabelle (Fallback Seitenende) + separates `<output>.exec_summary.md`; GUI: dieselbe Checkbox gilt für „Report erzeugen …", KI-Fehler degradieren sauber (Report ohne Entwurf + Statusmeldung). PDF-Läufe: Hinweis statt Entwurf.
 
 ### D2 · Delta-Briefing  ⟵ *Phase-D-Pilot (Beschluss 13.08.2026)* — **Teil 1 ✅ (deterministischer Kern) · Teil 2 ✅ (KI-Narration, beide 03.09.2026)**
 - **Was:** Deterministischer Diff zweier Report-Stände (neue/geschlossene Items, Kennzahl-Deltas, Ampelwechsel, Konfidenz-Änderungen) + LLM-Narration „Was hat sich geändert, was beschleunigt sich?".

@@ -629,7 +629,16 @@ def content_de(st: dict) -> list:
            "dem Delta-Briefing-Knopf. Ollama einrichten: separate "
            "Anleitung ollama_Installationsanleitung_DE.pdf bzw. Doku-Site "
            "→ Tutorials. Ohne --narrate bleibt das Briefing vollständig "
-           "deterministisch.", st),
+           "deterministisch. Seit D1 wirkt --narrate auch auf den "
+           "REPORT-Lauf (HTML-Ausgabe): direkt unter der "
+           "Management-Summary-Tabelle erscheint der gekennzeichnete "
+           "Abschnitt „Executive Summary (Entwurf)“ — Eingabe ist der "
+           "deterministische Kennzahlen-Contract (Kennzahlen, "
+           "Quell-Konfidenz, Governance-Kopfzahlen; strukturell ohne "
+           "Personen), zusätzlich entsteht &lt;output&gt;.exec_summary.md "
+           "zum Redigieren. In der GUI gilt dieselbe Checkbox auch für "
+           "„Report erzeugen …“; schlägt die KI fehl, wird der Report "
+           "ohne Entwurf geschrieben (saubere Degradation).", st),
         _SP(6),
 
         _H1("6. Kommandozeile (CLI)", st), _hr(st),
@@ -1020,7 +1029,15 @@ def content_en(st: dict) -> list:
            "the delta-briefing button. Setting up Ollama: separate guide "
            "ollama_Installationsanleitung_EN.pdf, or docs site → "
            "Tutorials. Without --narrate the briefing stays fully "
-           "deterministic.", st),
+           "deterministic. Since D1, --narrate also acts on the REPORT "
+           "run (HTML output): right below the Management-Summary table "
+           "the labeled section 'Executive Summary (Entwurf)' appears — "
+           "its input is the deterministic metrics contract (metrics, "
+           "source confidence, governance head counts; structurally "
+           "without persons), plus &lt;output&gt;.exec_summary.md for "
+           "editing. In the GUI the same checkbox also applies to "
+           "'Generate report …'; if the AI fails, the report is written "
+           "without the draft (clean degradation).", st),
         _SP(6),
 
         _H1("6. Command line (CLI)", st), _hr(st),
@@ -1409,7 +1426,12 @@ def content_ro(st: dict) -> list:
            "providerului. Instalarea Ollama: ghid separat "
            "ollama_Installationsanleitung_EN.pdf sau situl de documentatie "
            "→ Tutorials. Fara --narrate briefingul ramane complet "
-           "determinist.", st),
+           "determinist. De la D1, --narrate actioneaza si pe rularea de "
+           "RAPORT (iesire HTML): sub tabelul Management-Summary apare "
+           "sectiunea etichetata 'Executive Summary (Entwurf)' — "
+           "intrarea este contractul determinist de indicatori (fara "
+           "persoane), plus &lt;output&gt;.exec_summary.md pentru "
+           "redactare; la esec raportul se scrie fara schita.", st),
         _SP(6),
 
         _H1("6. Linia de comanda (CLI)", st), _hr(st),
@@ -1802,7 +1824,12 @@ def content_pt(st: dict) -> list:
            "mais a escolha do provider. Instalar o Ollama: guia separado "
            "ollama_Installationsanleitung_EN.pdf ou site de documentacao "
            "→ Tutorials. Sem --narrate o briefing fica totalmente "
-           "determinista.", st),
+           "determinista. Desde D1, --narrate tambem atua na execucao de "
+           "RELATORIO (saida HTML): sob a tabela Management-Summary surge "
+           "a seccao rotulada 'Executive Summary (Entwurf)' — a entrada "
+           "e o contrato determinista de metricas (sem pessoas), mais "
+           "&lt;output&gt;.exec_summary.md para redigir; em falha o "
+           "relatorio e escrito sem o rascunho.", st),
         _SP(6),
 
         _H1("6. Linha de comandos (CLI)", st), _hr(st),
@@ -2205,7 +2232,12 @@ def content_fr(st: dict) -> list:
            "Installer Ollama : guide separe "
            "ollama_Installationsanleitung_EN.pdf ou site de doc → "
            "Tutorials. Sans --narrate, le briefing reste entierement "
-           "deterministe.", st),
+           "deterministe. Depuis D1, --narrate agit aussi sur le RAPPORT "
+           "(sortie HTML) : sous le tableau Management-Summary apparait "
+           "la section etiquetee 'Executive Summary (Entwurf)' — "
+           "l'entree est le contrat deterministe de metriques (sans "
+           "personnes), plus &lt;output&gt;.exec_summary.md a rediger ; "
+           "en cas d'echec, le rapport est ecrit sans le brouillon.", st),
         _SP(6),
 
         _H1("6. Ligne de commande (CLI)", st), _hr(st),

@@ -712,6 +712,92 @@ ONEPAGERS: dict[str, dict[str, dict]] = {
             ],
         },
     },
+    "exec_summary": {
+        "de": {
+            "title": "LLM-Executive-Summary",
+            "tagline": "Feature D1 · Das Sprachmodell formuliert die "
+                       "Management-Zusammenfassung des Reports — Zahlen "
+                       "kommen nur aus dem Datenpfad",
+            "sections": [
+                ("h", "Worum geht es?"),
+                ("p", "Der Report zeigt die Management-Summary als "
+                      "Tabelle; die Executive Summary macht daraus 6–9 "
+                      "Sätze Management-Prosa: Gesamtlage, auffällige "
+                      "Einheiten, Datenvertrauen, Governance-Kopfzahlen. "
+                      "Formuliert vom austauschbaren llm-Framework (ollama "
+                      "lokal, claude extern, mock für Demos) — die Eingabe "
+                      "ist ausschließlich der deterministische "
+                      "Kennzahlen-Contract, den derselbe Datenpfad erzeugt "
+                      "wie Report und Snapshots."),
+                ("h", "So benutzt du es"),
+                ("code", "python -m portfolio meine_solution.json "
+                         "--output report.html --narrate\n"
+                         "# Abschnitt „Executive Summary (Entwurf)“ unter "
+                         "der Summary-Tabelle\n"
+                         "# + report.html.exec_summary.md zum Redigieren\n"
+                         "# + llm_audit.jsonl (Zweck d1_exec_summary)"),
+                ("p", "In der GUI gilt die vorhandene Checkbox "
+                      "„KI-Narration (Entwurf)“ jetzt auch für „Report "
+                      "erzeugen …“. Schlägt die KI fehl, wird der Report "
+                      "ohne Entwurf geschrieben — saubere Degradation."),
+                ("h", "Die Wächter (unverändert)"),
+                ("li", "Zahlen-Wächter: jede Zahl wörtlich im Contract, "
+                       "sonst wird der Text verworfen"),
+                ("li", "Art.-50-Banner: Modell, Deployment-Klasse, "
+                       "Prompt-Version — behauptet nie eine Freigabe"),
+                ("li", "Betreiber-Nachweis: llm_audit.jsonl mit "
+                       "SHA-256-Hashes, nie Volltexte"),
+                ("h", "Leitplanken"),
+                ("p", "Der Contract nennt Einheiten und Registerzählungen "
+                      "— Owner-/Personenfelder tauchen strukturell nicht "
+                      "auf (per Test erzwungen). Ohne --narrate bleibt der "
+                      "Report byte-identisch; PDF-Läufe erhalten einen "
+                      "Hinweis statt eines Entwurfs."),
+            ],
+        },
+        "en": {
+            "title": "LLM Executive Summary",
+            "tagline": "Feature D1 · The language model phrases the "
+                       "report's management summary — numbers come only "
+                       "from the data path",
+            "sections": [
+                ("h", "What is it?"),
+                ("p", "The report shows the management summary as a "
+                      "table; the executive summary turns it into 6–9 "
+                      "sentences of management prose: overall picture, "
+                      "standout units, data confidence, governance head "
+                      "counts. Phrased by the exchangeable llm framework "
+                      "(ollama local, claude external, mock for demos) — "
+                      "the input is exclusively the deterministic metrics "
+                      "contract produced by the same data path as report "
+                      "and snapshots."),
+                ("h", "How to use it"),
+                ("code", "python -m portfolio my_solution.json "
+                         "--output report.html --narrate\n"
+                         "# section 'Executive Summary (Entwurf)' below "
+                         "the summary table\n"
+                         "# + report.html.exec_summary.md for editing\n"
+                         "# + llm_audit.jsonl (purpose d1_exec_summary)"),
+                ("p", "In the GUI, the existing 'AI narration (draft)' "
+                      "checkbox now also covers 'Generate report …'. If "
+                      "the AI fails, the report is written without the "
+                      "draft — clean degradation."),
+                ("h", "The guards (unchanged)"),
+                ("li", "Numbers guard: every number verbatim in the "
+                       "contract, otherwise the text is discarded"),
+                ("li", "Art. 50 banner: model, deployment class, prompt "
+                       "version — never claims approval"),
+                ("li", "Operator evidence: llm_audit.jsonl with SHA-256 "
+                       "hashes, never full texts"),
+                ("h", "Guardrails"),
+                ("p", "The contract names units and register counts — "
+                      "owner/person fields structurally never appear "
+                      "(enforced by tests). Without --narrate the report "
+                      "stays byte-identical; PDF runs get a hint instead "
+                      "of a draft."),
+            ],
+        },
+    },
     "llm_narration": {
         "de": {
             "title": "KI-Narration",

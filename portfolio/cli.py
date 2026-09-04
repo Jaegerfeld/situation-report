@@ -97,15 +97,17 @@ def run_solution_report(
     return html
 
 
-def narration_html_section(narration: Any) -> str:
+def narration_html_section(narration: Any,
+                           title: str = "Narration (Entwurf)") -> str:
     """
-    The "Narration (Entwurf)" HTML block for a briefing page: mandatory
-    AI banner (Art. 50 labeling) plus the draft text. Shared by the CLI
-    and the GUI so the labeling can never diverge between the two paths.
+    The labeled draft block for a report page: mandatory AI banner
+    (Art. 50 labeling) plus the draft text. Shared by CLI and GUI — and
+    by every draft kind (D2 narration, D1 executive summary) — so the
+    labeling can never diverge between paths.
     """
     import html as _html
 
-    return ("<h2>Narration (Entwurf)</h2>"
+    return (f"<h2>{_html.escape(title)}</h2>"
             "<p style='background:#fff3cd;border:1px solid #d0a900;"
             "padding:6px 10px;font-weight:600'>🤖 "
             f"{_html.escape(narration.banner)}</p>"
@@ -257,12 +259,15 @@ def main() -> None:
                              "(default: today).")
     parser.add_argument("--narrate", nargs="?", const="ollama", default=None,
                         metavar="PROVIDER",
-                        help="With --delta: add an AI-drafted narration "
-                             "section (D2 part 2). Optional provider id "
-                             "(default: ollama; also: claude, mock). The "
-                             "draft is always labeled as unreviewed; an "
-                             "operator-evidence record goes to "
-                             "llm_audit.jsonl.")
+                        help="Add an AI-drafted section: with --delta the "
+                             "narration (D2 part 2), on a report run with "
+                             "an HTML --output the executive summary (D1) "
+                             "below the Management-Summary table (plus a "
+                             "separate <output>.exec_summary.md draft). "
+                             "Optional provider id (default: ollama; also: "
+                             "claude, mock). Drafts are always labeled as "
+                             "unreviewed; operator evidence goes to "
+                             "llm_audit.jsonl next to the output.")
     parser.add_argument("--llm-model", default=None, dest="llm_model",
                         metavar="MODEL",
                         help="Model override for --narrate (default: the "
@@ -303,6 +308,9 @@ def main() -> None:
         if not args.output and not args.pdf:
             return
 
+    narrate_report = bool(
+        args.narrate and args.output
+        and args.output.suffix.lower() != ".pdf")
     html = run_solution_report(
         config_path=args.config,
         output_html=args.output,
@@ -313,11 +321,34 @@ def main() -> None:
         ct_method=args.ct_method,
         target_ct=args.target_ct,
         pi_config=args.pi_config,
-        open_browser=args.browser,
+        open_browser=args.browser and not narrate_report,
     )
     if not html and not args.pdf:
         print("ERROR: No report produced (no figures).", file=sys.stderr)
         sys.exit(1)
+    if args.narrate and not narrate_report:
+        print("Hint: --narrate on a report run needs an HTML --output; "
+              "no executive summary was drafted.")
+    if html and narrate_report:
+        from llm.audit import AUDIT_FILENAME
+
+        from .exec_summary import attach_exec_summary
+
+        audit_path = args.output.parent / AUDIT_FILENAME
+        html, narration = attach_exec_summary(
+            html, load_solution_config(args.config), args.narrate,
+            lang=args.llm_lang, llm_model=args.llm_model,
+            audit_path=audit_path, as_of=args.as_of,
+            target_ct=args.target_ct)
+        args.output.write_text(html, encoding="utf-8")
+        draft = args.output.with_suffix(
+            args.output.suffix + ".exec_summary.md")
+        draft.write_text(f"> {narration.banner}\n\n{narration.text}\n",
+                         encoding="utf-8")
+        print(f"Executive-summary draft (for human editing): {draft}")
+        print(f"  audit: {audit_path}")
+        if args.browser:
+            webbrowser.open(args.output.resolve().as_uri())
     if not args.output and not args.pdf:
         print("Report rendered (no --output/--pdf given, so nothing was written).")
 
