@@ -528,6 +528,11 @@ ONEPAGERS: dict[str, dict[str, dict]] = {
                       "Speichern werden Pfade im Config-Ordner automatisch "
                       "relativiert."),
                 ("h", "Die Regeln"),
+                ("li", "Generierte Vielfalt: Die Register des Demo-Szenarios "
+                       "bestehen aus festen Story-Ankern plus seed-"
+                       "generierter Grundmenge — Skalen s/m/l (CLI --scale, "
+                       "GUI-Auswahl; Default m), Anker auf jeder Skala "
+                       "identisch"),
                 ("li", "Relative Pfade: relativ zur Config-Datei — die "
                        "Regel gilt überall (Member, Templates, alle neun "
                        "Register)"),
@@ -579,6 +584,10 @@ ONEPAGERS: dict[str, dict[str, dict]] = {
                       "fills them by convention, and on save, paths inside "
                       "the config folder are relativised automatically."),
                 ("h", "The rules"),
+                ("li", "Generated variety: the demo scenario's registers "
+                       "are fixed story anchors plus a seed-generated base "
+                       "population — scales s/m/l (CLI --scale, GUI picker; "
+                       "default m), anchors identical at every scale"),
                 ("li", "Relative paths: relative to the config file — one "
                        "rule everywhere (members, templates, all nine "
                        "registers)"),

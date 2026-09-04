@@ -36,6 +36,24 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   absolute paths inside the config's folder as relative ones, and the
   status line reports how many data sources a loaded config connects.
   All labels in five languages.
+- **Generated register test data with scales (Datenraum, part 3)** —
+  the demo scenario's nine registers are no longer small handwritten
+  fixtures only: a seeded generator (`testdata_generator/register_gen`)
+  adds a base population per solution with distributions, shared name
+  pools (owners are always teams) and coherence rules (dependencies,
+  capability ART lists and epic trains only ever reference the real
+  ARTs; every base theme has an epic, every base epic a theme). The
+  told story anchors stay handwritten and unique at every scale — the
+  base keeps invariants (never a second violated NFR, overdue gap,
+  overdue blocked dependency, breached SLO, conference survivor,
+  orphan/zombie, or risk aging beyond 30 days). The two-weeks-earlier
+  stand is derived deterministically (a checksum rule marks ~1/8 of
+  base entries as new since prev; shared entries are field-identical,
+  so the delta briefing shows genuine additions and zero drift noise).
+  Scales: `--scale s|m|l` on the CLI and a picker in the demo GUI —
+  s = anchors only, m = realistic demo (default), l = stress test.
+  Register volumes at m ≈ 10–20 per register and solution, at l ≈
+  40–60. Seed-reproducible at every scale.
 
 ## [0.24.0] – 2026-09-04
 
