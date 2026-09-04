@@ -432,3 +432,49 @@ class TestDatenraumPortability:
             load_snapshot(moved / "snapshots" / "snapshot_prev.json"),
             load_snapshot(moved / "snapshots" / "snapshot_now.json")))
         assert "BR-2" in md
+
+
+class TestExecSummaryE2E:
+    """D1 am echten Szenario: CLI-Reportlauf mit --narrate mock."""
+
+    def test_report_gains_labeled_exec_summary_below_the_table(
+            self, scenario, tmp_path, monkeypatch) -> None:
+        import sys as _sys
+
+        from portfolio.cli import main as portfolio_main
+        _, paths = scenario
+        out = tmp_path / "alpha_report.html"
+        monkeypatch.setattr(_sys, "argv", [
+            "portfolio", str(paths["solution_alpha"]),
+            "--output", str(out), "--narrate", "mock", "--llm-lang", "en"])
+        portfolio_main()
+        html = out.read_text(encoding="utf-8")
+        assert "Executive Summary (Entwurf)" in html
+        assert "AI-drafted" in html and "MOCK" in html
+        # Direkt unter der Management-Summary, nicht am Seitenende.
+        assert (html.index("Executive Summary (Entwurf)")
+                > html.index("Management Summary"))
+        assert (html.index("Executive Summary (Entwurf)")
+                < html.index("Data Quality")
+                if "Data Quality" in html else True)
+        draft = out.with_suffix(out.suffix + ".exec_summary.md")
+        assert "MOCK" in draft.read_text(encoding="utf-8")
+        import json as _json
+        record = _json.loads(
+            (tmp_path / "llm_audit.jsonl").read_text(encoding="utf-8"))
+        assert record["purpose"] == "d1_exec_summary"
+
+    def test_without_narrate_report_is_unchanged(
+            self, scenario, tmp_path, monkeypatch) -> None:
+        import sys as _sys
+
+        from portfolio.cli import main as portfolio_main
+        _, paths = scenario
+        out = tmp_path / "plain.html"
+        monkeypatch.setattr(_sys, "argv", [
+            "portfolio", str(paths["solution_alpha"]),
+            "--output", str(out)])
+        portfolio_main()
+        html = out.read_text(encoding="utf-8")
+        assert "Executive Summary (Entwurf)" not in html
+        assert not (tmp_path / "llm_audit.jsonl").exists()

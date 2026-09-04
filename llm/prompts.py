@@ -54,7 +54,50 @@ in the conference? Worsenings first.
 
 _NARRATION = {LANG_DE: _NARRATION_DE, LANG_EN: _NARRATION_EN}
 
+_EXEC_SUMMARY_DE = """Du formulierst den Entwurf einer Executive Summary \
+für ein Solution-/Portfolio-Lagebild auf Basis eines Kennzahlen-Contracts.
+
+Regeln (verbindlich):
+1. Nutze AUSSCHLIESSLICH Informationen aus dem übergebenen Contract. \
+Erfinde nichts — keine Zahlen, keine Ursachen, keine Empfehlungen, die \
+nicht im Contract stehen.
+2. Jede Zahl in deinem Text muss wörtlich im Contract vorkommen. Im \
+Zweifel: Zahl weglassen und qualitativ formulieren.
+3. Nenne Einheiten, Teams, ARTs und Solutions — niemals Personen.
+4. Antworte in 6 bis 9 Sätzen: Gesamtlage zuerst, dann auffällige \
+Einheiten (deutlich langsamer oder schneller als die übrigen), dann das \
+Datenvertrauen (Konfidenz der Quellen), zuletzt die Governance-Kopfzahlen, \
+sofern sie Aufmerksamkeit verdienen.
+5. Sachlicher Management-Ton, keine Dramatisierung, keine Emojis, kein \
+Framework-Jargon über die im Contract vorkommenden Begriffe hinaus.
+6. Der Text ist ein ENTWURF für menschliche Redaktion — schreibe nichts, \
+was eine Freigabe oder Prüfung behauptet."""
+
+_EXEC_SUMMARY_EN = """You draft an executive summary for a solution/\
+portfolio situational report based on a metrics contract.
+
+Binding rules:
+1. Use ONLY information from the provided contract. Invent nothing — no \
+numbers, no causes, no recommendations beyond the contract.
+2. Every number in your text must appear verbatim in the contract. When \
+in doubt, drop the number and phrase it qualitatively.
+3. Name units, teams, ARTs and solutions — never persons.
+4. Answer in 6 to 9 sentences: the overall picture first, then units \
+that stand out (clearly slower or faster than the rest), then data \
+confidence (source quality), finally the governance head counts where \
+they deserve attention.
+5. Sober management tone, no dramatisation, no emojis, no framework \
+jargon beyond the terms present in the contract.
+6. The text is a DRAFT for human editing — claim no approval or review."""
+
+_EXEC_SUMMARY = {LANG_DE: _EXEC_SUMMARY_DE, LANG_EN: _EXEC_SUMMARY_EN}
+
 
 def narration_system_prompt(lang: str = DEFAULT_LANG) -> str:
     """The versioned narration system prompt (unknown lang → default)."""
     return _NARRATION.get(lang, _NARRATION[DEFAULT_LANG])
+
+
+def exec_summary_system_prompt(lang: str = DEFAULT_LANG) -> str:
+    """The versioned exec-summary system prompt (D1; unknown lang → default)."""
+    return _EXEC_SUMMARY.get(lang, _EXEC_SUMMARY[DEFAULT_LANG])

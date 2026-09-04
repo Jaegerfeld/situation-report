@@ -8,6 +8,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- **LLM executive summary for reports (D1)** — `--narrate` now also
+  acts on report runs with an HTML `--output`: the labeled section
+  *Executive Summary (Entwurf)* appears directly below the
+  Management-Summary table (page-end fallback), plus a separate
+  `<output>.exec_summary.md` draft for human editing and the usual
+  operator evidence (`llm_audit.jsonl`, purpose `d1_exec_summary`).
+  The model only ever sees the deterministic summary contract —
+  pooled and per-unit metrics, source confidence and governance head
+  counts, structurally without any person/owner fields (enforced by
+  tests, like the D2 pipeline contract). New versioned exec-summary
+  prompt (de/en); numbers guard and Art. 50 labeling apply unchanged.
+  In the GUI the existing *AI narration (draft)* checkbox now also
+  covers *Generate report …* — if the AI fails, the report is written
+  without the draft (clean degradation, status message). PDF runs get
+  a hint instead of a draft.
 - **Per-ART generator profiles for the demo portfolio** — the demo
   scenario's six ARTs now accept the same knobs as single-ART
   generation: issue count, mean and std cycle time, completion/to-do

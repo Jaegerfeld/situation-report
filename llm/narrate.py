@@ -41,6 +41,7 @@ def narrate(
     config: dict[str, Any] | None = None,
     audit_path: Path | None = None,
     purpose: str = "d2_narration",
+    system_prompt: str | None = None,
 ) -> Narration:
     """
     Generate the narration draft for a deterministic briefing text.
@@ -52,6 +53,9 @@ def narrate(
         config:      Provider config overrides (model, base_url, ...).
         audit_path:  Operator-evidence JSONL (None = no audit record).
         purpose:     Audit purpose tag.
+        system_prompt: Versioned system prompt override (None = the D2
+                     narration prompt). Guards and audit apply regardless
+                     of the prompt — they are wired here, not per prompt.
 
     Returns:
         Narration with the mandatory AI banner.
@@ -71,7 +75,9 @@ def narrate(
 
     cfg = dict(config or {})
     cfg.setdefault("lang", lang)
-    result = provider.complete(narration_system_prompt(lang), source_text, cfg)
+    system = (system_prompt if system_prompt is not None
+              else narration_system_prompt(lang))
+    result = provider.complete(system, source_text, cfg)
 
     try:
         enforce_numbers(result.text, source_text)
