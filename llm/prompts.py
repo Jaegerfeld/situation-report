@@ -36,7 +36,9 @@ Zweifel: Zahl weglassen und qualitativ formulieren.
 in der Konferenz Aufmerksamkeit? Verschlechterungen zuerst.
 5. Sachlicher Management-Ton, keine Dramatisierung, keine Emojis.
 6. Der Text ist ein ENTWURF für menschliche Redaktion — schreibe nichts, \
-was eine Freigabe oder Prüfung behauptet."""
+was eine Freigabe oder Prüfung behauptet.
+7. Antworte auf DEUTSCH — auch wenn das Briefing englische Begriffe \
+oder Spaltennamen enthält."""
 
 _NARRATION_EN = """You draft a short situational narration for a \
 Value-Stream Conference based on a delta briefing.
@@ -50,7 +52,8 @@ in doubt, drop the number and phrase it qualitatively.
 4. Answer in 5 to 8 sentences: what changed, and what deserves attention \
 in the conference? Worsenings first.
 5. Sober management tone, no dramatisation, no emojis.
-6. The text is a DRAFT for human editing — claim no approval or review."""
+6. The text is a DRAFT for human editing — claim no approval or review.
+7. Answer in ENGLISH."""
 
 _NARRATION = {LANG_DE: _NARRATION_DE, LANG_EN: _NARRATION_EN}
 
@@ -71,7 +74,10 @@ sofern sie Aufmerksamkeit verdienen.
 5. Sachlicher Management-Ton, keine Dramatisierung, keine Emojis, kein \
 Framework-Jargon über die im Contract vorkommenden Begriffe hinaus.
 6. Der Text ist ein ENTWURF für menschliche Redaktion — schreibe nichts, \
-was eine Freigabe oder Prüfung behauptet."""
+was eine Freigabe oder Prüfung behauptet.
+7. Antworte auf DEUTSCH — der Contract ist englisch beschriftet, deine \
+Zusammenfassung ist es NICHT. Übersetze Spaltennamen sinngemäß \
+(median CT → Median-Cycle-Time)."""
 
 _EXEC_SUMMARY_EN = """You draft an executive summary for a solution/\
 portfolio situational report based on a metrics contract.
@@ -88,7 +94,8 @@ confidence (source quality), finally the governance head counts where \
 they deserve attention.
 5. Sober management tone, no dramatisation, no emojis, no framework \
 jargon beyond the terms present in the contract.
-6. The text is a DRAFT for human editing — claim no approval or review."""
+6. The text is a DRAFT for human editing — claim no approval or review.
+7. Answer in ENGLISH."""
 
 _EXEC_SUMMARY = {LANG_DE: _EXEC_SUMMARY_DE, LANG_EN: _EXEC_SUMMARY_EN}
 
@@ -124,7 +131,9 @@ mit seiner ID, darunter die Fragen als „- “-Liste; JEDE Listenzeile \
 endet mit einem Fragezeichen.
 5. Nenne Teams, ARTs und Solutions — niemals Personen.
 6. Die Fragen sind ein ENTWURF für menschliche Moderation — schreibe \
-nichts, was eine Freigabe oder Prüfung behauptet."""
+nichts, was eine Freigabe oder Prüfung behauptet.
+7. Formuliere die Fragen auf DEUTSCH — auch wenn das Log englische \
+Statuswerte enthält."""
 
 _RED_TEAM_EN = """You generate premortem and attack questions for the \
 decisions and assumptions of a solution/portfolio situational report \
@@ -145,7 +154,8 @@ ID, below it the questions as a "- " list; EVERY list line ends with a \
 question mark.
 5. Name teams, ARTs and solutions — never persons.
 6. The questions are a DRAFT for human moderation — claim no approval \
-or review."""
+or review.
+7. Phrase the questions in ENGLISH."""
 
 _RED_TEAM = {LANG_DE: _RED_TEAM_DE, LANG_EN: _RED_TEAM_EN}
 

@@ -5,6 +5,34 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [Unreleased]
+
+### Added
+- **Tutorial „KI-Funktionen in der Praxis" (D1 · D6 · D5)** — a
+  12-page walkthrough (`docs/Phase4_Tutorial_KI-Funktionen_DE.pdf`,
+  generator `docs/generate_phase4_tutorial.py`): build the demo
+  portfolio, understand the shared guards, then operate each of the
+  three Phase-4 features in the GUI and on the CLI. Every screenshot
+  comes from the running application and every model output from a real
+  local mistral-nemo run — including a genuine numbers-guard rejection
+  and its successful retry, shown in the audit table.
+- **Red-team questions and translations are now GUI actions too (D5/D6)**
+  — the AI row of Solutions & Portfolios gained *Red-Team-Fragen …*
+  (writes the premortem/attack question draft for the current config,
+  provider from the dropdown) and *Übersetzen …* (pick a text file, tick
+  the target languages, get one labeled `<file>.<lang>.md` per language).
+  Both run in a worker thread with a status line and degrade cleanly on
+  errors; all labels in five languages. Until now only D1 was reachable
+  from the GUI, D5/D6 were CLI-only.
+
+### Fixed
+- **Drafts came back in the wrong language** — the deterministic inputs
+  (delta briefing, summary contract, decision log) are labelled in
+  English, so a local model answered in English even with `--llm-lang
+  de`. Every prompt family (narration, executive summary, red team) now
+  pins its output language explicitly; verified against mistral-nemo on
+  the demo portfolio.
+
 ## [0.26.0] – 2026-09-04
 
 ### Fixed
