@@ -26,6 +26,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   from the GUI, D5/D6 were CLI-only.
 
 ### Fixed
+- **The executive summary never appeared for portfolios with whole-number
+  metrics** (field report 2026-09-04: five runs, five discarded drafts).
+  The numbers guard compared digit strings, so a contract saying
+  `median CT 39.0 d` and a draft saying "39 Tage" — the same number —
+  counted as an invention. Numbers are now canonicalised properly:
+  separators still drop out, but insignificant trailing decimal zeros do
+  too (`39.0` = `39`, `100.0` = `100`), while a final three-digit group
+  stays a thousands separator (`1.234` = `1234`). Genuine differences
+  still fail (`135` for `135.2`, `390` for `39.0`). Two follow-ups from
+  the same report: the GUI now appends the reason to the success message
+  instead of overwriting it (the report is written either way), and a
+  guard rejection is retried once automatically — both attempts stay
+  visible in the operator evidence.
 - **Drafts came back in the wrong language** — the deterministic inputs
   (delta briefing, summary contract, decision log) are labelled in
   English, so a local model answered in English even with `--llm-lang

@@ -160,3 +160,29 @@ class TestOutputLanguageIsPinned:
         from llm.prompts import TRANSLATION_LANGS, translation_system_prompt
         for code, name in TRANSLATION_LANGS.items():
             assert name in translation_system_prompt(code)
+
+
+class TestTrailingZeroDecimals:
+    """Feld-Bug 04.09.2026: Bei einem Portfolio mit glatten Kennzahlen
+    (median CT 39.0) verwarf der Wächter JEDEN Entwurf — das Modell
+    schrieb „39 Tage“, der Wächter verglich 390 gegen 39. Gleiche Zahl,
+    falscher Alarm."""
+
+    def test_whole_numbers_match_their_decimal_spelling(self) -> None:
+        source = "median CT 39.0 d, P85 77.0 d, target-CT share 100.0 %"
+        assert verify_numbers("Median 39 Tage, P85 77 Tage, 100 % im Ziel",
+                              source) == []
+        assert verify_numbers("Median 39,0 Tage", source) == []
+
+    def test_real_differences_still_fail(self) -> None:
+        source = "median CT 39.0 d, P95 135.2 d, items 660"
+        # Gerundet ist NICHT gleich — 135 statt 135.2 bleibt ein Verstoß.
+        assert verify_numbers("P95 bei 135 Tagen", source) == ["135"]
+        assert verify_numbers("Wir schafften 500 Items.", source) == ["500"]
+        # Und die Ziffernfolge allein genuegt nicht: 390 ist nicht 39.0.
+        assert verify_numbers("Es sind 390 Items.", source) == ["390"]
+
+    def test_thousands_separators_stay_intact(self) -> None:
+        assert extract_numbers("1.234 Items") == {"1234"}
+        assert extract_numbers("1.234,50 EUR") == {"12345"}
+        assert extract_numbers("12,00 %") == {"12"}

@@ -134,6 +134,7 @@ def attach_exec_summary(
     audit_path: Path | None = None,
     as_of: date | None = None,
     target_ct: int = 90,
+    attempts: int = 2,
     log: Callable[[str], None] = print,
 ) -> tuple[str, Any]:
     """
@@ -143,9 +144,17 @@ def attach_exec_summary(
     page with the labeled draft section plus the Narration (for the
     separate ``.exec_summary.md`` editing file).
 
+    A numbers-guard rejection is retried once by default: models are
+    sampled, so a single unlucky draft should not cost the whole
+    summary. Every attempt — including the rejected one — is written to
+    the operator evidence, so the retry stays visible.
+
     Raises:
-        RuntimeError / NumbersGuardError: from the guarded llm layer.
+        RuntimeError:      Provider failure.
+        NumbersGuardError: Every attempt invented numbers (the last
+                           error is raised).
     """
+    from llm.guard import NumbersGuardError
     from llm.narrate import narrate
     from llm.prompts import exec_summary_system_prompt
 
@@ -154,13 +163,22 @@ def attach_exec_summary(
     snap = build_snapshot(config, as_of=as_of, target_ct=target_ct,
                           log=lambda m: None)
     contract = summary_to_markdown(snap)
-    log(f"Executive summary draft via '{provider_id}' ...")
-    narration = narrate(
-        contract, provider_id=provider_id, lang=lang,
-        config={"model": llm_model} if llm_model else None,
-        audit_path=audit_path,
-        system_prompt=exec_summary_system_prompt(lang),
-        purpose="d1_exec_summary")
-    section = narration_html_section(
-        narration, title="Executive Summary (Entwurf)")
-    return insert_after_summary(html_doc, section), narration
+    for attempt in range(1, max(1, attempts) + 1):
+        log(f"Executive summary draft via '{provider_id}' "
+            f"(attempt {attempt}) ...")
+        try:
+            narration = narrate(
+                contract, provider_id=provider_id, lang=lang,
+                config={"model": llm_model} if llm_model else None,
+                audit_path=audit_path,
+                system_prompt=exec_summary_system_prompt(lang),
+                purpose="d1_exec_summary")
+        except NumbersGuardError:
+            if attempt >= max(1, attempts):
+                raise
+            log("  numbers guard rejected the draft — retrying once")
+            continue
+        section = narration_html_section(
+            narration, title="Executive Summary (Entwurf)")
+        return insert_after_summary(html_doc, section), narration
+    raise AssertionError("unreachable")  # pragma: no cover
