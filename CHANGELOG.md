@@ -22,6 +22,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   so the built-in narratives (Alpha-3 outlier, weak Beta-3) only
   change when you change them deliberately. Unknown ART names, fields,
   patterns and out-of-range strengths are rejected with clear errors.
+- **Demo-portfolio setup travels with the project template** — saving
+  a template from the test-data generator now also stores the demo
+  section's scale (s/m/l) and the ART-profile overrides in a
+  `scenario` block of the module section; loading a template restores
+  them (and pre-fills the *ART Profiles…* dialog accordingly). Older
+  templates without the block load with the defaults; an invalid block
+  is reported and leaves the current settings untouched instead of
+  half-applying. Other modules' template sections are preserved as
+  before.
 
 ## [0.25.0] – 2026-09-04
 

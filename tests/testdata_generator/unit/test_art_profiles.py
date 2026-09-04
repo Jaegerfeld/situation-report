@@ -126,3 +126,77 @@ class TestEndToEnd:
         delta = compute_delta(load_snapshot(paths["snapshot_prev"]),
                               load_snapshot(paths["snapshot_now"]))
         assert not delta.quiet and delta.completed_delta > 0
+
+
+class TestScenarioTemplateBlock:
+    """Demo-Portfolio-Parameter im Projekt-Template (Roberts Wunsch:
+    Belegung speichern wie bei den ART-Templates)."""
+
+    def test_roundtrip_through_a_real_template_file(self, tmp_path) -> None:
+        import project_template
+        from testdata_generator.gui import (
+            _SCENARIO_TEMPLATE_KEY,
+            _build_scenario_template,
+            _build_template_section,
+            _parse_scenario_template,
+        )
+        section = _build_template_section({"seed": "42"})
+        section[_SCENARIO_TEMPLATE_KEY] = _build_scenario_template(
+            "l", {"Alpha-1": {"mean_cycle_days": "30",
+                              "pattern": "cluster",
+                              "pattern_strength": "80"}})
+        target = tmp_path / "projekt_template.json"
+        project_template.save_template(
+            target, project_template.MODULE_TESTDATA_GENERATOR, section)
+        raw = project_template.get_section(
+            project_template.load_template(target),
+            project_template.MODULE_TESTDATA_GENERATOR)
+        scale, overrides = _parse_scenario_template(raw)
+        assert scale == "l"
+        assert overrides == {"Alpha-1": {"mean_cycle_days": "30",
+                                         "pattern": "cluster",
+                                         "pattern_strength": "80"}}
+        # Andere Modul-Sektionen bleiben beim Speichern erhalten
+        # (bestehende Garantie des Projekt-Templates).
+        project_template.save_template(
+            target, project_template.MODULE_BUILD_REPORTS, {"x": "1"})
+        raw2 = project_template.get_section(
+            project_template.load_template(target),
+            project_template.MODULE_TESTDATA_GENERATOR)
+        assert _parse_scenario_template(raw2)[0] == "l"
+
+    def test_old_template_without_block_yields_defaults(self) -> None:
+        from testdata_generator.gui import _parse_scenario_template
+        assert _parse_scenario_template({"seed": "42"}) == ("m", {})
+
+    def test_broken_block_raises_and_never_half_applies(self) -> None:
+        import pytest as _pytest
+
+        from testdata_generator.gui import _parse_scenario_template
+        with _pytest.raises(ValueError, match="Unknown scale"):
+            _parse_scenario_template({"scenario": {"scale": "xxl"}})
+        with _pytest.raises(ValueError, match="Unknown ART name"):
+            _parse_scenario_template({"scenario": {
+                "scale": "m", "art_profiles": {"Gamma-1": {}}}})
+        with _pytest.raises(ValueError, match="0–100"):
+            _parse_scenario_template({"scenario": {
+                "art_profiles": {"Alpha-1": {"pattern_strength": 999}}}})
+
+    def test_entries_from_overrides_layers_on_defaults(self) -> None:
+        from testdata_generator.gui import _entries_from_overrides
+        rows = _entries_from_overrides(
+            {"Alpha-3": {"mean_cycle_days": "90"}})
+        assert rows["Alpha-3"]["mean_cycle_days"] == "90"
+        assert rows["Alpha-3"]["issue_count"] == "120"  # Default bleibt
+        assert rows["Beta-1"]["mean_cycle_days"] == "14"
+
+    def test_loaded_overrides_reproduce_the_same_scenario(
+            self, tmp_path) -> None:
+        # Template-Werte (Roh-Strings) ergeben denselben Bau wie der Dialog.
+        from testdata_generator.scenario import _profiles, apply_art_overrides
+        overrides = {"Alpha-1": {"mean_cycle_days": "30",
+                                 "pattern_strength": "80"}}
+        merged = {p.name: p for _, p in
+                  apply_art_overrides(_profiles(), overrides)}
+        assert merged["Alpha-1"].mean_cycle_days == 30.0
+        assert merged["Alpha-1"].pattern_strength == 0.8

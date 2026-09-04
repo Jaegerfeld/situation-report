@@ -534,6 +534,9 @@ ONEPAGERS: dict[str, dict[str, dict]] = {
                 ("li", "Musterstärke nutzerseitig 0–100 wie überall; "
                        "unbekannte ARTs, Felder, Muster und Werte werden "
                        "mit klarer Meldung abgewiesen"),
+                ("li", "Belegung speicherbar: Skala + ART-Profile wandern "
+                       "mit ins Projekt-Template (Menü Templates) und "
+                       "werden beim Laden wiederhergestellt"),
                 ("h", "Leitplanken"),
                 ("p", "Seed-Reproduzierbarkeit bleibt: gleicher Seed plus "
                       "gleiche Profile ergeben identische Daten. Die "
@@ -583,6 +586,9 @@ ONEPAGERS: dict[str, dict[str, dict]] = {
                        "everywhere; unknown ARTs, fields, patterns and "
                        "out-of-range values are rejected with clear "
                        "errors"),
+                ("li", "Setup is storable: scale + ART profiles travel with "
+                       "the project template (Templates menu) and are "
+                       "restored on load"),
                 ("h", "Guardrails"),
                 ("p", "Seed reproducibility stays: same seed plus same "
                       "profiles yields identical data. Register scales "

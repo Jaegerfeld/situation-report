@@ -175,6 +175,8 @@ _T: dict[str, dict[str, str]] = {
         "btn_profiles_reset": "Zurücksetzen",
         "log_profiles_set":   "--- ART-Profile: {} Übersteuerung(en) aktiv ---",
         "log_profiles_error": "FEHLER ART-Profile: {}",
+        "log_tpl_scenario":   "--- Template: Demo-Portfolio-Parameter geladen (Skala {}, {} ART-Übersteuerungen) ---",
+        "log_tpl_scenario_error": "Hinweis: Szenario-Block des Templates ungültig, Einstellungen unverändert: {}",
         "btn_scenario_report": "Portfolio-Report öffnen",
         "dlg_scenario_dir":   "Zielordner für das Demo-Portfolio wählen",
         "log_scenario_started": "--- Demo-Portfolio wird erzeugt ---",
@@ -272,6 +274,8 @@ _T: dict[str, dict[str, str]] = {
         "btn_profiles_reset": "Reset",
         "log_profiles_set":   "--- ART profiles: {} override(s) active ---",
         "log_profiles_error": "ERROR ART profiles: {}",
+        "log_tpl_scenario":   "--- Template: demo portfolio parameters loaded (scale {}, {} ART overrides) ---",
+        "log_tpl_scenario_error": "Note: template scenario block invalid, settings unchanged: {}",
         "btn_scenario_report": "Open Portfolio Report",
         "dlg_scenario_dir":   "Select target folder for the demo portfolio",
         "log_scenario_started": "--- Generating demo portfolio ---",
@@ -468,6 +472,50 @@ def _build_delta_html_file(prev_path: Path, now_path: Path, log=print,
 def _build_template_section(values: dict[str, str]) -> dict:
     """Assemble the testdata_generator section for the shared project template."""
     return {key: str(values.get(key, "")) for key in _TEMPLATE_FIELDS}
+
+
+_SCENARIO_TEMPLATE_KEY = "scenario"
+
+
+def _build_scenario_template(scale: str,
+                             art_profiles: dict | None) -> dict:
+    """Scenario block of the template: scale + per-ART overrides (raw
+    values, exactly as the dialog/CLI accept them)."""
+    return {"scale": scale, "art_profiles": dict(art_profiles or {})}
+
+
+def _parse_scenario_template(section: dict) -> tuple[str, dict]:
+    """
+    Normalise and validate a template's scenario block.
+
+    Older templates without the block yield the defaults ("m", {}).
+    Invalid content raises ValueError — the caller logs it and keeps the
+    current scenario settings (a broken block must not half-apply).
+    """
+    block = section.get(_SCENARIO_TEMPLATE_KEY) or {}
+    if not isinstance(block, dict):
+        raise ValueError("'scenario' must be an object.")
+    scale = str(block.get("scale", "m")).strip().lower() or "m"
+    if scale not in ("s", "m", "l"):
+        raise ValueError(f"Unknown scale '{scale}' — expected s, m or l.")
+    overrides = block.get("art_profiles") or {}
+    if not isinstance(overrides, dict):
+        raise ValueError("'scenario.art_profiles' must be an object.")
+    if overrides:
+        from .scenario import _profiles, apply_art_overrides
+        apply_art_overrides(_profiles(), overrides)  # validates; raises
+    return scale, overrides
+
+
+def _entries_from_overrides(overrides: dict) -> dict[str, dict[str, str]]:
+    """Dialog display rows: defaults with the overrides layered on top."""
+    from .scenario import default_art_profile_rows
+    rows = default_art_profile_rows()
+    for name, fields in (overrides or {}).items():
+        for key, value in fields.items():
+            if name in rows and key in rows[name]:
+                rows[name][key] = str(value)
+    return rows
 
 
 def _parse_template_section(data: dict) -> dict:
@@ -882,6 +930,8 @@ class _App:
             section = _build_template_section(
                 {k: v.get() for k, v in self._template_vars().items()}
             )
+            section[_SCENARIO_TEMPLATE_KEY] = _build_scenario_template(
+                self._scale_var.get(), self._art_profiles)
             project_template.save_template(
                 Path(path),
                 project_template.MODULE_TESTDATA_GENERATOR,
@@ -902,11 +952,10 @@ class _App:
             return
         try:
             envelope = project_template.load_template(Path(path))
-            section = _parse_template_section(
-                project_template.get_section(
-                    envelope, project_template.MODULE_TESTDATA_GENERATOR
-                )
+            raw_section = project_template.get_section(
+                envelope, project_template.MODULE_TESTDATA_GENERATOR
             )
+            section = _parse_template_section(raw_section)
         except Exception as exc:
             self._log_msg(self._t("log_tpl_error").format(exc))
             return
@@ -914,6 +963,19 @@ class _App:
         for key, var in self._template_vars().items():
             var.set(section[key])
         self._on_pattern_change()
+
+        try:
+            scale, overrides = _parse_scenario_template(raw_section)
+        except ValueError as exc:
+            # Kaputter Block: aktuelle Szenario-Einstellungen behalten.
+            self._log_msg(self._t("log_tpl_scenario_error").format(exc))
+        else:
+            self._scale_var.set(scale)
+            self._art_profiles = overrides or None
+            self._art_profile_entries = (
+                _entries_from_overrides(overrides) if overrides else None)
+            self._log_msg(self._t("log_tpl_scenario").format(
+                scale, sum(len(v) for v in overrides.values())))
 
         if section["workflow"] and not Path(section["workflow"]).is_file():
             self._log_msg(self._t("log_tpl_missing").format(section["workflow"]))
