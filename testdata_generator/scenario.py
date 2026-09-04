@@ -3,7 +3,7 @@
 # Repository:     https://github.com/Jaegerfeld/situation-report
 # KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
 # Erstellt:       02.09.2026
-# Geändert:       02.09.2026
+# Geändert:       05.09.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
@@ -703,7 +703,9 @@ def _alpha_dependencies(
     Dependencies of Solution Alpha: the overdue blocked one lives here.
 
     In the prev story, AD-1 was still at risk — the escalation to blocked is
-    the status transition the Delta-Briefing demo shows.
+    the status transition the Delta-Briefing demo shows. AD-4 is the second
+    seam towards Solution Beta and carries the same idea for the
+    decision-point indicator: it was on track two weeks ago.
     """
     return DependencyRegister(dependencies=[
         # Die Geschichte: der Ausreißer Alpha-3 liefert nicht — blockiert
@@ -720,11 +722,26 @@ def _alpha_dependencies(
                    from_art="ART Alpha-2", to_art="Platform Services",
                    status=DEP_ON_TRACK, due=reference + timedelta(days=40),
                    notes="External integration point outside the solution."),
+        # Zweite Naht zwischen den Value Streams, Gegenrichtung zu BD-1:
+        # laengst ueberfaellig — der schwerste Posten des Wecker-Indikators.
+        Dependency("AD-4", "Customer master data feed for Beta reporting",
+                   from_art="ART Alpha-1", to_art="ART Beta-2",
+                   status=DEP_ON_TRACK if story == STORY_PREV else DEP_AT_RISK,
+                   due=reference - timedelta(days=35),
+                   notes="Cross-solution seam towards Solution Beta."),
     ])
 
 
-def _beta_dependencies(reference: date) -> DependencyRegister:
-    """Dependencies of Solution Beta: includes a cross-solution integration."""
+def _beta_dependencies(
+    reference: date, story: str = STORY_NOW
+) -> DependencyRegister:
+    """
+    Dependencies of Solution Beta: the seam towards Solution Alpha lives here.
+
+    Together with Alpha's AD-4 these make the decision point demonstrable: the
+    pressure between the two value streams rises visibly between the two
+    stands, while every single train looks unremarkable on its own.
+    """
     return DependencyRegister(dependencies=[
         # Cross-Solution-Integration: Beta braucht Alphas Order-Events —
         # sichtbar nur im Portfolio-Report.
@@ -735,6 +752,14 @@ def _beta_dependencies(reference: date) -> DependencyRegister:
         Dependency("BD-2", "Sync-service schema migration",
                    from_art="ART Beta-2", to_art="ART Beta-3",
                    status=DEP_DONE, due=reference - timedelta(days=30)),
+        # Die Naht eskaliert: vor zwei Wochen gefaehrdet, jetzt blockiert.
+        # Das Faelligkeitsdatum ist in beiden Staenden dasselbe (beide teilen
+        # das Referenzdatum) — es steigt allein das Statusgewicht.
+        Dependency("BD-3", "Shared identity claims for order events",
+                   from_art="ART Beta-3", to_art="ART Alpha-2",
+                   status=DEP_AT_RISK if story == STORY_PREV else DEP_BLOCKED,
+                   due=reference - timedelta(days=12),
+                   notes="Cross-solution integration with Solution Alpha."),
     ])
 
 
@@ -913,7 +938,7 @@ def build_portfolio_scenario(
             "risks": _beta_risks(reference, story),
             "nfr": _beta_nfr(reference),
             "capabilities": _beta_capabilities(reference),
-            "dependencies": _beta_dependencies(reference),
+            "dependencies": _beta_dependencies(reference, story),
             "decisions": _beta_decisions(reference),
             "slo": _beta_slo(reference),
             "dora": _beta_delivery(reference),

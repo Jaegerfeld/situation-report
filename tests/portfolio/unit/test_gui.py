@@ -3,7 +3,7 @@
 # Repository:     https://github.com/Jaegerfeld/situation-report
 # KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
 # Erstellt:       22.06.2026
-# Geändert:       04.09.2026
+# Geändert:       05.09.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
@@ -460,3 +460,31 @@ class TestArtDepthField:
         # Gepoolt gibt es keine ART-Metriken — auch nicht mit dem Haken.
         assert "process_flow" not in default_metrics_for_mode(
             MODE_POOLED, art_depth=True)
+
+
+class TestCrossVsThresholdField:
+    """Die Schwelle ist ein Formularfeld: getippter Text rein, geprüfte Zahl
+    raus — und alles Unbrauchbare bedeutet „noch nicht vereinbart“."""
+
+    def test_empty_means_not_agreed(self) -> None:
+        cfg = build_config_from_fields(
+            "P", "SAFe", "", "", [("ART A", "a.xlsx")], MODE_POOLED)
+        assert cfg.cross_vs_threshold is None
+
+    def test_number_survives_the_form_rebuild(self) -> None:
+        cfg = build_config_from_fields(
+            "P", "SAFe", "", "", [("ART A", "a.xlsx")], MODE_POOLED,
+            cross_vs_threshold="12")
+        assert cfg.cross_vs_threshold == 12
+
+    def test_nonsense_never_becomes_an_alarm(self) -> None:
+        for typed in ("abc", "0", "-4", "   "):
+            cfg = build_config_from_fields(
+                "P", "SAFe", "", "", [("ART A", "a.xlsx")], MODE_POOLED,
+                cross_vs_threshold=typed)
+            assert cfg.cross_vs_threshold is None, typed
+
+    def test_is_a_form_field_not_a_preserved_one(self) -> None:
+        from portfolio.gui import _PRESERVED_FIELDS
+
+        assert "cross_vs_threshold" not in _PRESERVED_FIELDS

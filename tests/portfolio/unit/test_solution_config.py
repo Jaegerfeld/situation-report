@@ -3,7 +3,7 @@
 # Repository:     https://github.com/Jaegerfeld/situation-report
 # KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
 # Erstellt:       22.06.2026
-# Geändert:       04.09.2026
+# Geändert:       05.09.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
@@ -310,3 +310,39 @@ class TestArtDepthSetting:
         bestehende Konfigurationen aendern sich durch das Feature nicht."""
         cfg = parse_solution_config(_valid_dict())
         assert "art_depth" not in to_dict(cfg)["report"]
+
+
+class TestCrossVsThresholdSetting:
+    """Die im Ritual vereinbarte Schwelle des Entscheidungspunkt-Weckers (P4)
+    muss den Weg Speichern → Laden unverändert überstehen — und ein
+    unbrauchbarer Wert darf NIE zu einem Alarm werden, den niemand vereinbart
+    hat."""
+
+    def test_defaults_to_not_agreed(self) -> None:
+        cfg = parse_solution_config(_valid_dict())
+        assert cfg.cross_vs_threshold is None
+
+    def test_parsed_and_serialised(self) -> None:
+        d = _valid_dict()
+        d["report"]["cross_vs_threshold"] = 12
+        cfg = parse_solution_config(d)
+        assert cfg.cross_vs_threshold == 12
+        assert to_dict(cfg)["report"]["cross_vs_threshold"] == 12
+        assert parse_solution_config(to_dict(cfg)) == cfg
+
+    def test_not_agreed_leaves_the_file_untouched(self) -> None:
+        cfg = parse_solution_config(_valid_dict())
+        assert "cross_vs_threshold" not in to_dict(cfg)["report"]
+
+    def test_unusable_values_mean_not_agreed(self) -> None:
+        """Lieber gar kein Alarm als ein erfundener."""
+        for bad in (0, -5, "viele", True, [], None):
+            d = _valid_dict()
+            d["report"]["cross_vs_threshold"] = bad
+            assert parse_solution_config(d).cross_vs_threshold is None, bad
+
+    def test_numeric_strings_are_accepted(self) -> None:
+        """Die GUI reicht den Eingabetext durch."""
+        d = _valid_dict()
+        d["report"]["cross_vs_threshold"] = "8"
+        assert parse_solution_config(d).cross_vs_threshold == 8

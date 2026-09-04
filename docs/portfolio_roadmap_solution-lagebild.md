@@ -160,9 +160,10 @@ Nicht nach „Feature-Wunschliste", sondern nach **Datenherkunft** (das BGS-Prin
 - **Was:** Q&A über Report-Daten (JSON/CSV) mit **Zitierpflicht**: jede Antwort referenziert den Datenpfad; „weiß ich nicht" ist zulässige Antwort. *Hygiene-Vorgabe (KI-Denkschrift v2.0, Prinzip 7):* konfigurierbar die **eigene Einschätzung des Fragenden vor der Antwort abfragen** und beide nebeneinanderstellen — Entscheidungshygiene nach Kahneman/Sibony/Sunstein („erst unabhängig urteilen, dann die KI fragen").
 - **Warum:** Muster M3 — Shared Consciousness verbreitern, ohne das Urteil zu ersetzen. **Voraussetzung:** Provenienz-Modell über Report-Artefakte. **Aufwand:** M–L.
 
-### D4 · Anomalie-Hinweise
+### D4 · Anomalie-Hinweise — **teilweise umgesetzt (05.09.2026): eine Instanz, nicht die Maschine**
 - **Was:** Statistische Auffälligkeits-Erkennung im deterministischen Kern (stdlib), KI liefert nur den Erklärtext mit Kontext.
 - **Warum:** Muster M4 (Entscheidungspunkt-Wecker), gegen Alarm-Müdigkeit: nur entscheidungsrelevante Schwellen (EVI). **Aufwand:** M.
+- **Ist-Stand:** Mit dem **Entscheidungspunkt-Wecker (P4, s. u.)** existiert die erste konkrete M4-Instanz — deterministisch gerechnet, mit im Ritual vereinbarter Schwelle. Die allgemeine Auffälligkeits-Erkennung über beliebige Kennzahlen und die KI-Erklärschicht bleiben **offen**; D4 gilt ausdrücklich NICHT als abgeschlossen.
 
 ### D5 · Red-Team-Assistent — **✅ (04.09.2026, Phase 4 — damit ist Phase 4 komplett: D1, D6, D5 auf dem llm-Framework)**
 - **Was:** Premortem-/Annahmen-Angriffs-Fragen aus Decision-/Assumption-Log generieren (Rohmaterial für menschlich moderierte Sessions).
@@ -186,6 +187,16 @@ Nicht nach „Feature-Wunschliste", sondern nach **Datenherkunft** (das BGS-Prin
 - **(b) Aggregat-Grenze im deterministischen Kern (Anhang III Nr. 4).** Kein D-Feature erhält Personendaten; Prinzip 6 („Teams, keine Personen") wird im Kern erzwungen, nicht in der KI-Schicht — so bleibt das Lagebild außerhalb des Hochrisiko-Bereichs (Leistung/Verhalten von Beschäftigten). Das gehört als Test in die Pipeline, nicht als Hinweis in die Doku.
 - **(c) Betreiber-Nachweis.** Modell, Version, Systemvorgaben und Datenklassifizierung je Deployment werden protokolliert (Grundlage für Kompetenz- und Transparenzpflicht, Art. 4/Art. 50); die Deployment-Entscheidung (on-prem / EU-Cloud / Zero-Retention) ist Teil der Konfiguration, nicht der Nutzerwahl.
 - **(d) Erst der Pilot D2** liefert die Erfahrung, wie viel Freigabe-Aufwand die Hinweise erzeugen — die Freigabe-Schwelle (Stichprobe vs. volle Prüfung) wird dort kalibriert (KI-Denkschrift C.5 „Verifizieren können").
+
+### P4 · Entscheidungspunkt-Wecker: Cross-VS-Abhängigkeitsdruck · ✅ umgesetzt (05.09.2026)
+*(Workshop Wolfsburg 08/2026, Priorität P4; erste konkrete Instanz von D4)*
+- **Was:** Ein Indikator auf den **Nähten zwischen den Value Streams** eines Portfolios: Summe über alle offenen Abhängigkeiten, deren Ziel zu einer anderen Member-Solution gehört, gewichtet mit Statusgewicht (blocked 3 / at_risk 2 / on_track 1) × Überfälligkeitsfaktor (pünktlich 1 / überfällig 2 / > 30 Tage 3). Erreicht der Wert die vereinbarte Schwelle, stellt der Report die Frage: „Value-Stream-Conference einberufen?“
+- **Warum:** Der Workshop-Beleg lautet „Trigger it when there are significant cross-value-stream dependencies; skip it when there aren't." — genau das war nicht messbar, also entschied der Kalender. Damit wird die Doktrin „do it when you need it" operationalisierbar.
+- **Wo:** `portfolio/decision_point.py` (stdlib-only, deterministisch), Report- und PDF-Block unter der Dependency-Heatmap, `report.cross_vs_threshold`, CLI `--cross-vs-threshold N`, GUI-Feld „VSC-Schwelle" (fünf Sprachen).
+- **Drei Entscheidungen gegen Alarm-Müdigkeit:** (1) nur portfolio-interne Nähte wecken — eine Lieferanten-Abhängigkeit ist realer Druck, aber keine Konferenz *dieser* Value Streams kann darüber entscheiden; sie wird gesondert ausgewiesen. (2) Ohne vereinbarte Schwelle kein Alarm; ein unbrauchbarer Eintrag gilt als „nicht vereinbart", nicht als Alarm. (3) Auch der unterschwellige Fall wird ausgesprochen — ein Indikator, der nur bei schlechten Werten erscheint, lehrt seine Leser, Abwesenheit als „nicht gerechnet" zu deuten (gleiche Regel wie das ausdrückliche „No changes" des Delta-Briefings).
+- **Bewusst nicht:** keine eigene Kritikalität und kein Erfassungsdatum im Register — der Status IST das gepflegte Kritikalitätsurteil, und Druck entsteht durch Überschreiten des vereinbarten Termins, nicht durch Alter an sich. Kein Block in der Konferenzmappe: die ist die Unterlage einer bereits einberufenen Konferenz. Kein LLM-Anteil (die Workshop-Analyse hält für P1–P6 ausdrücklich fest: „Nichts davon braucht LLM-Anteile — alles Kern").
+- **Demo:** Das Portfolio-Szenario erzeugt zwei Nähte (AD-4, BD-3) mit einem Druckverlauf **9 → 14** zwischen den beiden Delta-Ständen — jeder einzelne Train sieht unauffällig aus, die Naht überschreitet die Schwelle.
+- **Aufwand:** M (umgesetzt).
 
 ---
 

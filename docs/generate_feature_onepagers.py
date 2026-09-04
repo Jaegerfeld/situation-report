@@ -3,7 +3,7 @@
 # Repository:     https://github.com/Jaegerfeld/situation-report
 # KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
 # Erstellt:       03.09.2026
-# Geändert:       04.09.2026
+# Geändert:       05.09.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
@@ -1176,6 +1176,110 @@ ONEPAGERS: dict[str, dict[str, dict]] = {
                       "otherwise changing labels would create drift noise. "
                       "And ARTs times metrics multiplies the PDF page count, "
                       "which is why the depth is a deliberate choice."),
+            ],
+        },
+    },
+    "decision_point": {
+        "de": {
+            "title": "Entscheidungspunkt-Wecker",
+            "tagline": "P4 · Wann eine Value-Stream-Conference nötig ist — "
+                       "gemessen statt terminiert",
+            "sections": [
+                ("h", "Worum geht es?"),
+                ("p", "Im Workshop stand der Satz: „Trigger it when there are "
+                      "significant cross-value-stream dependencies; skip it "
+                      "when there aren’t.“ Genau das war bisher nicht "
+                      "messbar — also entschied der Kalender. Der "
+                      "Entscheidungspunkt misst den Druck auf den NÄHTEN "
+                      "zwischen den Value Streams eines Portfolios und stellt "
+                      "die Frage, wenn die vereinbarte Schwelle erreicht ist: "
+                      "„Value-Stream-Conference einberufen?“"),
+                ("h", "Wie gerechnet wird"),
+                ("p", "Über alle offenen Abhängigkeiten, deren Ziel zu einer "
+                      "ANDEREN Solution desselben Portfolios gehört: "
+                      "Statusgewicht (blocked 3, at_risk 2, on_track 1) mal "
+                      "Überfälligkeitsfaktor (pünktlich 1, überfällig 2, über "
+                      "30 Tage 3). Ganze Zahlen — ein Mensch kann den Wert "
+                      "nachrechnen. Welcher ART zu welcher Solution gehört, "
+                      "wird aus der Konfiguration abgeleitet, nicht im Register "
+                      "behauptet."),
+                ("h", "So benutzt du es"),
+                ("code", "python -m portfolio portfolio.json "
+                         "--cross-vs-threshold 10 --output report.html"),
+                ("p", "Oder per GUI: Feld „VSC-Schwelle“ neben der "
+                      "Modus-Auswahl; dauerhaft in der Konfiguration als "
+                      "report.cross_vs_threshold. Der Block steht im Report "
+                      "und im PDF unter der Dependency-Heatmap."),
+                ("h", "Drei Regeln halten den Wecker leise"),
+                ("li", "Extern weckt nicht: Eine Abhängigkeit zum Lieferanten "
+                       "ist realer Druck — aber keine Konferenz DIESER Value "
+                       "Streams kann darüber entscheiden. Wird gesondert "
+                       "ausgewiesen, zählt nicht mit"),
+                ("li", "Ohne vereinbarte Schwelle kein Alarm: Das Werkzeug "
+                       "erfindet keinen Wert; ein unbrauchbarer Eintrag gilt "
+                       "als „nicht vereinbart“, nicht als Alarm"),
+                ("li", "Unterschwellig wird ausgesprochen, nicht weggelassen — "
+                       "ein Indikator, der nur bei schlechten Werten "
+                       "erscheint, lehrt Abwesenheit als „nicht gerechnet“ zu "
+                       "lesen"),
+                ("h", "Leitplanken"),
+                ("p", "Die Schwelle gehört ins Ritual, nicht in einen "
+                      "Vorgabewert — das Werkzeug rechnet, der Stab "
+                      "entscheidet. Der Block erscheint bewusst NICHT in der "
+                      "Konferenzmappe: Die ist die Unterlage einer bereits "
+                      "einberufenen Konferenz. Und bei einer einzelnen Solution "
+                      "gibt es keine Naht zwischen Value Streams — dort sagt "
+                      "der Block das, statt eine beruhigende Null zu zeigen."),
+            ],
+        },
+        "en": {
+            "title": "Decision Point",
+            "tagline": "P4 · When a Value Stream Conference is needed — "
+                       "measured instead of scheduled",
+            "sections": [
+                ("h", "What is it?"),
+                ("p", "The workshop put it plainly: „Trigger it when there are "
+                      "significant cross-value-stream dependencies; skip it "
+                      "when there aren’t.“ That was exactly what could not be "
+                      "measured — so the calendar decided instead. The "
+                      "decision point measures the pressure on the SEAMS "
+                      "between a portfolio’s value streams and asks the "
+                      "question once the agreed threshold is reached: "
+                      "„Convene a Value Stream Conference?“"),
+                ("h", "How it is computed"),
+                ("p", "Over all open dependencies whose target belongs to "
+                      "ANOTHER solution of the same portfolio: status weight "
+                      "(blocked 3, at_risk 2, on_track 1) times overdue factor "
+                      "(on time 1, overdue 2, beyond 30 days 3). Whole numbers "
+                      "— a human can recompute the value by hand. Which ART "
+                      "belongs to which solution is derived from the "
+                      "configuration, never asserted in the register."),
+                ("h", "How to use it"),
+                ("code", "python -m portfolio portfolio.json "
+                         "--cross-vs-threshold 10 --output report.html"),
+                ("p", "Or in the GUI: the field „VSC threshold“ next to the "
+                      "mode selection; stored in the configuration as "
+                      "report.cross_vs_threshold. The block sits in the report "
+                      "and the PDF, below the dependency heatmap."),
+                ("h", "Three rules keep the alarm quiet"),
+                ("li", "External never wakes anyone: a vendor dependency is "
+                       "real pressure — but no conference of THESE value "
+                       "streams can decide about it. Reported separately, "
+                       "excluded from the indicator"),
+                ("li", "No agreed threshold, no alarm: the tool invents no "
+                       "value; an unusable entry counts as „not agreed“, not "
+                       "as an alarm"),
+                ("li", "Below threshold is stated out loud, not omitted — an "
+                       "indicator that appears only when things are bad "
+                       "teaches readers to read absence as „not computed“"),
+                ("h", "Guardrails"),
+                ("p", "The threshold belongs into the ritual, not into a "
+                      "default — the tool computes, the staff decides. The "
+                      "block deliberately does NOT appear in the conference "
+                      "pre-read: that is the material for a conference already "
+                      "convened. And a single solution has no seam between "
+                      "value streams — there the block says so instead of "
+                      "showing a reassuring zero."),
             ],
         },
     },
