@@ -3,7 +3,7 @@
 # Repository:     https://github.com/Jaegerfeld/situation-report
 # KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
 # Erstellt:       22.06.2026
-# Geändert:       04.09.2026
+# Geändert:       05.09.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
@@ -157,6 +157,9 @@ class SolutionConfig:
         from_date:  Optional solution-level report start date.
         to_date:    Optional solution-level report end date.
         modes:      Requested report modes ("pooled" / "comparison").
+        cross_vs_threshold: Agreed alarm threshold for the decision-point
+                    indicator (P4). None = report the pressure, never alarm —
+                    the threshold belongs into the ritual, not into a default.
         art_depth:  Evaluate down to the individual ARTs (drill-down). Off by
                     default: a portfolio then compares its member solutions,
                     on it compares their ARTs and the workflow-bound
@@ -191,6 +194,7 @@ class SolutionConfig:
     to_date: date | None = None
     modes: list[str] = field(default_factory=lambda: ["pooled"])
     art_depth: bool = False
+    cross_vs_threshold: int | None = None
     stage_map: StageMap | None = None
     risks: str = ""
     nfr: str = ""
@@ -257,6 +261,23 @@ def _parse_date(value: Any) -> date | None:
     if isinstance(value, date):
         return value
     return date.fromisoformat(str(value))
+
+
+def _parse_threshold(value: Any) -> int | None:
+    """
+    Read the agreed decision-point threshold; anything unusable means "none".
+
+    A threshold is a human agreement from the ritual — a broken or negative
+    entry must not silently become an alarm that nobody agreed to, so it is
+    treated as "not agreed yet" (the report says so out loud).
+    """
+    if value is None or isinstance(value, bool):
+        return None
+    try:
+        threshold = int(value)
+    except (TypeError, ValueError):
+        return None
+    return threshold if threshold > 0 else None
 
 
 def parse_solution_config(data: dict[str, Any]) -> SolutionConfig:
@@ -330,6 +351,7 @@ def parse_solution_config(data: dict[str, Any]) -> SolutionConfig:
         to_date=_parse_date(report.get("to_date")),
         modes=list(report.get("modes", ["pooled"])) or ["pooled"],
         art_depth=bool(report.get("art_depth", False)),
+        cross_vs_threshold=_parse_threshold(report.get("cross_vs_threshold")),
         stage_map=parse_stage_map(data.get("stage_map")),
         risks=str(data.get("risks", "")).strip(),
         nfr=str(data.get("nfr", "")).strip(),
@@ -389,6 +411,8 @@ def to_dict(config: SolutionConfig) -> dict[str, Any]:
                               "terminology": config.terminology}
     if config.art_depth:
         report["art_depth"] = True
+    if config.cross_vs_threshold is not None:
+        report["cross_vs_threshold"] = config.cross_vs_threshold
     if config.from_date is not None:
         report["from_date"] = config.from_date.isoformat()
     if config.to_date is not None:

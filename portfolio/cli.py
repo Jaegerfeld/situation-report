@@ -3,7 +3,7 @@
 # Repository:     https://github.com/Jaegerfeld/situation-report
 # KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
 # Erstellt:       22.06.2026
-# Geändert:       04.09.2026
+# Geändert:       05.09.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
@@ -18,6 +18,7 @@
 from __future__ import annotations
 
 import argparse
+import dataclasses
 import sys
 import webbrowser
 from collections.abc import Callable
@@ -45,6 +46,7 @@ def run_solution_report(
     open_browser: bool = False,
     log: Callable[[str], None] = print,
     art_depth: bool | None = None,
+    cross_vs_threshold: int | None = None,
 ) -> str:
     """
     Execute the solution-report pipeline: load config → aggregate → render.
@@ -64,6 +66,8 @@ def run_solution_report(
         log:          Progress callback.
         art_depth:    Drill down to the individual ARTs. None = take the
                       config's own report.art_depth setting.
+        cross_vs_threshold: Decision-point alarm threshold. None = take the
+                      config's own report.cross_vs_threshold.
 
     Returns:
         The combined HTML string (empty if HTML was not generated). PDF output,
@@ -76,6 +80,8 @@ def run_solution_report(
         terminology = config.terminology
     if art_depth is None:
         art_depth = config.art_depth
+    if cross_vs_threshold is not None:
+        config = dataclasses.replace(config, cross_vs_threshold=cross_vs_threshold)
     log(f"Solution '{config.name}' ({config.kind}, {config.framework}) "
         f"with {len(config.members)} member(s) — mode: {mode}"
         + (" — ART depth" if art_depth else ""))
@@ -270,6 +276,17 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--no-art-depth", action="store_false", dest="art_depth",
                         help="Force the ART drill-down off, even if the config "
                              "enables it.")
+    parser.add_argument("--cross-vs-threshold", type=int, default=None,
+                        dest="cross_vs_threshold", metavar="N",
+                        help="Alarm threshold of the decision-point indicator: "
+                             "pressure from open dependencies BETWEEN the "
+                             "portfolio's value streams (status weight x overdue "
+                             "factor). Reaching it asks whether to convene a "
+                             "Value Stream Conference. Overrides the config's "
+                             "report.cross_vs_threshold; without either the "
+                             "pressure is reported but never alarms — the "
+                             "threshold belongs into the ritual, not into a "
+                             "default.")
     parser.add_argument("--metrics", nargs="+", metavar="ID", default=None,
                         help="Metric IDs to compute. Default depends on --mode and "
                              "--art-depth (pooled adds Flow Distribution; comparison "
@@ -420,6 +437,7 @@ def main() -> None:
         pi_config=args.pi_config,
         open_browser=args.browser and not narrate_report,
         art_depth=args.art_depth,
+        cross_vs_threshold=args.cross_vs_threshold,
     )
     if not html and not args.pdf:
         print("ERROR: No report produced (no figures).", file=sys.stderr)

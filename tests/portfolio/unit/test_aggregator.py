@@ -3,7 +3,7 @@
 # Repository:     https://github.com/Jaegerfeld/situation-report
 # KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
 # Erstellt:       22.06.2026
-# Geändert:       04.09.2026
+# Geändert:       05.09.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
@@ -14,6 +14,7 @@
 
 from __future__ import annotations
 
+import dataclasses
 from datetime import date, datetime
 
 from build_reports.loader import CfdRecord, IssueRecord, ReportData
@@ -513,3 +514,40 @@ class TestArtDepthInReports:
         portfolio = _portfolio_setup(monkeypatch)
         html = aggregator.render_conference_html(portfolio, log=lambda *_: None)
         assert "ART Detail" not in html
+
+
+# ---------------------------------------------------------------------------
+# Entscheidungspunkt-Wecker (P4) im Report
+# ---------------------------------------------------------------------------
+
+class TestDecisionPointInReport:
+    def test_section_appears_in_the_report(self, monkeypatch) -> None:
+        portfolio = _portfolio_setup(monkeypatch)
+        html = aggregator.render_pooled_html(
+            portfolio, metrics=["flow_time"], log=lambda *_: None)
+        assert "Decision Point" in html
+
+    def test_section_stays_out_of_the_conference_pre_read(
+            self, monkeypatch) -> None:
+        """Die Mappe ist FÜR eine bereits einberufene Konferenz — ein
+        Weckruf „einberufen?“ gehört an die Stelle, an der man VORHER
+        hinschaut, nicht in die Unterlage der laufenden Sitzung."""
+        portfolio = _portfolio_setup(monkeypatch)
+        html = aggregator.render_conference_html(portfolio, log=lambda *_: None)
+        assert "Decision Point" not in html
+
+    def test_threshold_comes_from_the_config(self, monkeypatch) -> None:
+        portfolio = _portfolio_setup(monkeypatch)
+        pressure = aggregator._collect_dependency_pressure(
+            dataclasses.replace(portfolio, cross_vs_threshold=7),
+            log=lambda *_: None)
+        assert pressure.threshold == 7
+
+    def test_arts_are_grouped_by_their_owning_solution(self, monkeypatch) -> None:
+        """Der Wecker braucht die Zuordnung ART → Solution, um eine Naht
+        überhaupt zu erkennen."""
+        portfolio = _portfolio_setup(monkeypatch)
+        pressure = aggregator._collect_dependency_pressure(
+            portfolio, log=lambda *_: None)
+        # Zwei Member-Solutions => der Indikator ist anwendbar.
+        assert pressure.applicable is True

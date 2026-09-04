@@ -3,7 +3,7 @@
 # Repository:     https://github.com/Jaegerfeld/situation-report
 # KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
 # Erstellt:       02.09.2026
-# Geändert:       02.09.2026
+# Geändert:       05.09.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
@@ -274,10 +274,14 @@ class TestBuiltInStories:
         assert [(c.entry_id, c.fields["confidence"])
                 for c in delta.confidence_changes] \
             == [("ART Beta-3", ("medium", "low"))]
-        # ... AD-1 eskaliert at_risk → blocked, ...
+        # ... AD-1 eskaliert at_risk → blocked, und mit ihm die beiden Nähte
+        # zwischen den Value Streams (AD-4, BD-3) — genau der Druckanstieg,
+        # den der Entscheidungspunkt-Wecker (P4) meldet, ...
         deps = delta.governance["dependencies"]
-        assert [(c.entry_id, c.fields["status"]) for c in deps.changed] \
-            == [("AD-1", ("at_risk", "blocked"))]
+        assert sorted((c.entry_id, c.fields["status"]) for c in deps.changed) \
+            == [("AD-1", ("at_risk", "blocked")),
+                ("AD-4", ("on_track", "at_risk")),
+                ("BD-3", ("at_risk", "blocked"))]
         # ... Risiko BR-2 ist neu, ...
         added_risks = {e["id"] for e in delta.governance["risks"].added}
         assert "BR-2" in added_risks  # + Grundmengen-Zugaenge (prev-Drop)

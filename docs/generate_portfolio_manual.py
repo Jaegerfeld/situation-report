@@ -3,7 +3,7 @@
 # Repository:     https://github.com/Jaegerfeld/situation-report
 # KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
 # Erstellt:       22.06.2026
-# Geändert:       04.09.2026
+# Geändert:       05.09.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
@@ -522,6 +522,43 @@ def content_de(st: dict) -> list:
            "Optimierung.", st),
         _SP(6),
 
+        _H2("5.10a  Entscheidungspunkt-Wecker (Cross-VS-Druck)", st),
+        _P("Direkt unter der Heatmap steht der <b>Entscheidungspunkt</b>: ein "
+           "Maß dafür, wie stark die Nähte ZWISCHEN den Value Streams des "
+           "Portfolios unter Druck stehen. Er beantwortet die Frage, die im "
+           "Ritual sonst der Kalender beantwortet — <i>müssen wir eine "
+           "Value-Stream-Conference einberufen?</i>", st),
+        _P("<b>Gerechnet</b> wird über alle offenen Abhängigkeiten, deren Ziel "
+           "zu einer <i>anderen</i> Solution desselben Portfolios gehört: "
+           "Statusgewicht (blocked 3, at_risk 2, on_track 1) × "
+           "Überfälligkeitsfaktor (pünktlich 1, überfällig 2, mehr als 30 Tage "
+           "überfällig 3). Ganze Zahlen, damit ein Mensch den Wert nachrechnen "
+           "kann. Die Zuordnung ART → Solution wird aus der Konfiguration "
+           "abgeleitet, nicht im Register behauptet.", st),
+        _P("<b>Die Schwelle vereinbart der Stab</b>, nicht das Werkzeug: Feld "
+           "<font name='Courier'>report.cross_vs_threshold</font>, GUI-Feld "
+           "„VSC-Schwelle“ oder <font name='Courier'>--cross-vs-threshold N"
+           "</font>. Ohne vereinbarte Schwelle wird der Druck ausgewiesen, aber "
+           "nie Alarm geschlagen — und ein unbrauchbarer Eintrag (0, negativ, "
+           "Text) gilt als „nicht vereinbart“ statt als Alarm, den niemand "
+           "beschlossen hat.", st),
+        _P("<b>Drei Regeln halten den Wecker leise.</b> Erstens wecken nur "
+           "portfolio-interne Nähte: Eine Abhängigkeit zu einem Lieferanten "
+           "oder Fremdsystem ist realer Druck, aber keine Konferenz <i>dieser</i> "
+           "Value Streams kann darüber entscheiden — sie wird gesondert "
+           "ausgewiesen und zählt nicht mit. Zweitens erfindet das Werkzeug "
+           "keine Schwelle. Drittens wird auch der unterschwellige Fall "
+           "ausgesprochen („unter der Schwelle“) statt weggelassen: Ein "
+           "Indikator, der nur bei schlechten Werten erscheint, lehrt seine "
+           "Leser, Abwesenheit als „nicht gerechnet“ zu lesen.", st),
+        _P("Der Block erscheint im Report und im PDF, <b>nicht</b> in der "
+           "Konferenzmappe: Die Mappe ist die Unterlage einer bereits "
+           "einberufenen Konferenz — ein Weckruf gehört an die Stelle, an der "
+           "man vorher hinschaut. Bei einer einzelnen Solution gibt es keine "
+           "Naht zwischen Value Streams; dort sagt der Block das ausdrücklich, "
+           "statt eine beruhigende Null zu zeigen.", st),
+        _SP(6),
+
         _H2("5.11  Decision-/Assumption-Log (optional)", st),
         _P("Verweist die Solution-Konfiguration über das Feld <font name='Courier'>"
            "decisions</font> auf ein Entscheidungs-Log (JSON mit id, kind "
@@ -676,6 +713,7 @@ def content_de(st: dict) -> list:
             ["--pdf FILE", "Mehrseitigen PDF-Report schreiben."],
             ["--mode pooled|comparison", "Aggregationsmodus (Standard: pooled)."],
             ["--art-depth", "Bis auf ART-Ebene auswerten (Standard: aus)."],
+            ["--cross-vs-threshold N", "Alarmschwelle des Entscheidungspunkt-Weckers."],
             ["--metrics ID ...", "Bestimmte Metriken (Standard hängt vom Modus ab)."],
             ["--terminology SAFe|Global", "Beschriftungs-Modus (Standard: SAFe)."],
             ["--target-ct DAYS", "Zielwert der Cycle Time in Tagen (Standard: 90)."],
@@ -948,6 +986,40 @@ def content_en(st: dict) -> list:
            "making them visible protects against local optimisation.", st),
         _SP(6),
 
+        _H2("5.10a  Decision point (cross-value-stream pressure)", st),
+        _P("Right below the heatmap sits the <b>decision point</b>: a measure "
+           "of how much the seams BETWEEN the portfolio's value streams are "
+           "under pressure. It answers the question the calendar usually "
+           "answers in the ritual — <i>do we need to convene a Value Stream "
+           "Conference?</i>", st),
+        _P("It is <b>computed</b> over all open dependencies whose target "
+           "belongs to <i>another</i> solution of the same portfolio: status "
+           "weight (blocked 3, at_risk 2, on_track 1) × overdue factor (on "
+           "time 1, overdue 2, more than 30 days overdue 3). Whole numbers, so "
+           "a human can recompute the value by hand. Which ART belongs to which "
+           "solution is derived from the configuration, never asserted in the "
+           "register.", st),
+        _P("<b>The threshold is agreed by the staff</b>, not by the tool: field "
+           "<font name='Courier'>report.cross_vs_threshold</font>, the GUI field "
+           "“VSC threshold”, or <font name='Courier'>--cross-vs-threshold N"
+           "</font>. Without an agreed threshold the pressure is reported but "
+           "never alarms — and an unusable entry (0, negative, text) counts as "
+           "“not agreed” rather than as an alarm nobody decided on.", st),
+        _P("<b>Three rules keep the alarm quiet.</b> First, only "
+           "portfolio-internal seams wake anyone: a dependency on a vendor or "
+           "external system is real pressure, but no conference of <i>these</i> "
+           "value streams can decide about it — it is reported separately and "
+           "excluded from the indicator. Second, the tool invents no threshold. "
+           "Third, the below-threshold case is stated out loud rather than "
+           "omitted: an indicator that appears only when things are bad teaches "
+           "its readers to read absence as “not computed”.", st),
+        _P("The block appears in the report and the PDF, <b>not</b> in the "
+           "conference pre-read: the pre-read is the material for a conference "
+           "already convened — a wake-up call belongs where you look before "
+           "that. A single solution has no seam between value streams; there "
+           "the block says so explicitly instead of showing a reassuring zero.", st),
+        _SP(6),
+
         _H2("5.11  Decision / assumption log (optional)", st),
         _P("When the solution configuration references a decision log via the "
            "<font name='Courier'>decisions</font> field (JSON with id, kind "
@@ -1097,6 +1169,7 @@ def content_en(st: dict) -> list:
             ["--pdf FILE", "Write a multi-page PDF report."],
             ["--mode pooled|comparison", "Aggregation mode (default: pooled)."],
             ["--art-depth", "Evaluate down to ART level (default: off)."],
+            ["--cross-vs-threshold N", "Alarm threshold of the decision point."],
             ["--metrics ID ...", "Specific metrics (default depends on the mode)."],
             ["--terminology SAFe|Global", "Labelling mode (default: SAFe)."],
             ["--target-ct DAYS", "Target cycle time in days (default: 90)."],
@@ -1370,6 +1443,36 @@ def content_ro(st: dict) -> list:
            "le face vizibile protejeaza de optimizarea locala.", st),
         _SP(6),
 
+        _H2("5.10a  Punct de decizie (presiune intre value streams)", st),
+        _P("Sub harta apare <b>punctul de decizie</b>: o masura a presiunii pe "
+           "cusaturile DINTRE value streams-urile portofoliului. Raspunde la "
+           "intrebarea la care altfel raspunde calendarul — <i>trebuie sa "
+           "convocam o Value Stream Conference?</i>", st),
+        _P("Se <b>calculeaza</b> peste toate dependentele deschise al caror "
+           "obiectiv apartine <i>altei</i> solutii din acelasi portofoliu: "
+           "greutatea statusului (blocked 3, at_risk 2, on_track 1) × factorul "
+           "de intarziere (la timp 1, intarziat 2, peste 30 de zile 3). Numere "
+           "intregi, ca un om sa poata reface calculul. Apartenenta ART → "
+           "solutie este dedusa din configuratie, nu afirmata in registru.", st),
+        _P("<b>Pragul il stabileste statul major</b>, nu unealta: campul "
+           "<font name='Courier'>report.cross_vs_threshold</font>, campul GUI "
+           "„Prag VSC“ sau <font name='Courier'>--cross-vs-threshold N</font>. "
+           "Fara prag convenit presiunea este raportata, dar nu se declanseaza "
+           "nicio alarma — iar o valoare inutilizabila (0, negativa, text) "
+           "inseamna „neconvenit“, nu o alarma pe care nimeni nu a decis-o.", st),
+        _P("<b>Trei reguli tin alarma tacuta.</b> Intai, trezesc doar "
+           "cusaturile interne portofoliului: o dependenta de un furnizor este "
+           "presiune reala, dar nicio conferinta a <i>acestor</i> value streams "
+           "nu poate decide asupra ei — este raportata separat si exclusa. "
+           "Apoi, unealta nu inventeaza niciun prag. In fine, si cazul sub prag "
+           "este spus explicit in loc sa fie omis: un indicator care apare doar "
+           "cand e rau isi invata cititorii sa citeasca absenta ca „necalculat“.", st),
+        _P("Blocul apare in raport si in PDF, <b>nu</b> in mapa de conferinta: "
+           "mapa este materialul unei conferinte deja convocate. La o singura "
+           "solutie nu exista cusatura intre value streams; acolo blocul o spune "
+           "explicit in loc sa arate un zero linistitor.", st),
+        _SP(6),
+
         _H2("5.11  Log de decizii si presupuneri (optional)", st),
         _P("Daca configuratia solutiei face referire la un log de decizii prin "
            "campul <font name='Courier'>decisions</font> (JSON cu id, kind "
@@ -1512,6 +1615,7 @@ def content_ro(st: dict) -> list:
             ["--pdf FILE", "Scrie un raport PDF cu mai multe pagini."],
             ["--mode pooled|comparison", "Mod de agregare (implicit: pooled)."],
             ["--art-depth", "Evaluare pana la nivel de ART (implicit: oprit)."],
+            ["--cross-vs-threshold N", "Pragul de alarma al punctului de decizie."],
             ["--metrics ID ...", "Metrici specifice (implicit depinde de mod)."],
             ["--terminology SAFe|Global", "Mod de etichetare (implicit: SAFe)."],
             ["--target-ct DAYS", "Tinta cycle time in zile (implicit: 90)."],
@@ -1787,6 +1891,37 @@ def content_pt(st: dict) -> list:
            "sistema — torna-las visiveis protege da otimizacao local.", st),
         _SP(6),
 
+        _H2("5.10a  Ponto de decisao (pressao entre value streams)", st),
+        _P("Logo abaixo do mapa surge o <b>ponto de decisao</b>: uma medida da "
+           "pressao sobre as costuras ENTRE os value streams do portefolio. "
+           "Responde a pergunta que normalmente o calendario responde no ritual "
+           "— <i>precisamos de convocar uma Value Stream Conference?</i>", st),
+        _P("E <b>calculado</b> sobre todas as dependencias abertas cujo destino "
+           "pertence a <i>outra</i> solucao do mesmo portefolio: peso do estado "
+           "(blocked 3, at_risk 2, on_track 1) × fator de atraso (a horas 1, "
+           "atrasado 2, mais de 30 dias 3). Numeros inteiros, para que uma "
+           "pessoa possa refazer a conta. A pertenca ART → solucao e deduzida "
+           "da configuracao, nunca afirmada no registo.", st),
+        _P("<b>O limiar e acordado pela equipa</b>, nao pela ferramenta: campo "
+           "<font name='Courier'>report.cross_vs_threshold</font>, campo GUI "
+           "„Limiar VSC“ ou <font name='Courier'>--cross-vs-threshold N</font>. "
+           "Sem limiar acordado a pressao e reportada mas nunca alarma — e um "
+           "valor inutilizavel (0, negativo, texto) conta como „nao acordado“, "
+           "nao como um alarme que ninguem decidiu.", st),
+        _P("<b>Tres regras mantem o alarme silencioso.</b> Primeiro, so as "
+           "costuras internas ao portefolio acordam alguem: uma dependencia de "
+           "um fornecedor e pressao real, mas nenhuma conferencia <i>destes</i> "
+           "value streams pode decidir sobre ela — e reportada a parte e "
+           "excluida. Segundo, a ferramenta nao inventa limiares. Terceiro, o "
+           "caso abaixo do limiar e dito em voz alta em vez de omitido: um "
+           "indicador que so aparece quando esta mau ensina os leitores a ler "
+           "a ausencia como „nao calculado“.", st),
+        _P("O bloco aparece no relatorio e no PDF, <b>nao</b> na pasta da "
+           "conferencia: a pasta e o material de uma conferencia ja convocada. "
+           "Numa solucao unica nao ha costura entre value streams; ai o bloco "
+           "di-lo explicitamente em vez de mostrar um zero tranquilizador.", st),
+        _SP(6),
+
         _H2("5.11  Log de decisoes e suposicoes (opcional)", st),
         _P("Se a configuracao da solution referenciar um log de decisoes "
            "atraves do campo <font name='Courier'>decisions</font> (JSON com "
@@ -1930,6 +2065,7 @@ def content_pt(st: dict) -> list:
             ["--pdf FILE", "Escrever um relatorio PDF com varias paginas."],
             ["--mode pooled|comparison", "Modo de agregacao (predefinicao: pooled)."],
             ["--art-depth", "Avaliar ate ao nivel de ART (predefinicao: off)."],
+            ["--cross-vs-threshold N", "Limiar de alarme do ponto de decisao."],
             ["--metrics ID ...", "Metricas especificas (predefinicao depende do modo)."],
             ["--terminology SAFe|Global", "Modo de rotulagem (predefinicao: SAFe)."],
             ["--target-ct DAYS", "Alvo do cycle time em dias (predefinicao: 90)."],
@@ -2211,6 +2347,40 @@ def content_fr(st: dict) -> list:
            "visibles protege de l'optimisation locale.", st),
         _SP(6),
 
+        _H2("5.10a  Point de decision (pression entre value streams)", st),
+        _P("Juste sous la carte figure le <b>point de decision</b> : une mesure "
+           "de la pression sur les coutures ENTRE les value streams du "
+           "portefeuille. Il repond a la question a laquelle le calendrier "
+           "repond d'ordinaire dans le rituel — <i>faut-il convoquer une Value "
+           "Stream Conference ?</i>", st),
+        _P("Il est <b>calcule</b> sur toutes les dependances ouvertes dont la "
+           "cible appartient a une <i>autre</i> solution du meme portefeuille : "
+           "poids du statut (blocked 3, at_risk 2, on_track 1) × facteur de "
+           "retard (a l'heure 1, en retard 2, plus de 30 jours 3). Des entiers, "
+           "pour qu'un humain puisse refaire le calcul. L'appartenance ART → "
+           "solution est deduite de la configuration, jamais affirmee dans le "
+           "registre.", st),
+        _P("<b>Le seuil est convenu par l'etat-major</b>, pas par l'outil : "
+           "champ <font name='Courier'>report.cross_vs_threshold</font>, champ "
+           "GUI « Seuil VSC » ou <font name='Courier'>--cross-vs-threshold N"
+           "</font>. Sans seuil convenu la pression est rapportee mais n'alerte "
+           "jamais — et une valeur inutilisable (0, negative, texte) vaut "
+           "« non convenu », pas une alerte que personne n'a decidee.", st),
+        _P("<b>Trois regles gardent l'alerte silencieuse.</b> D'abord, seules "
+           "les coutures internes au portefeuille reveillent : une dependance "
+           "envers un fournisseur est une pression reelle, mais aucune "
+           "conference de <i>ces</i> value streams ne peut en decider — elle "
+           "est signalee a part et exclue. Ensuite, l'outil n'invente aucun "
+           "seuil. Enfin, le cas sous le seuil est dit a voix haute plutot "
+           "qu'omis : un indicateur qui n'apparait que lorsque tout va mal "
+           "apprend a ses lecteurs a lire l'absence comme « non calcule ».", st),
+        _P("Le bloc figure dans le rapport et le PDF, <b>pas</b> dans le "
+           "dossier de conference : ce dossier est le materiel d'une conference "
+           "deja convoquee. Une solution seule n'a pas de couture entre value "
+           "streams ; le bloc le dit alors explicitement au lieu d'afficher un "
+           "zero rassurant.", st),
+        _SP(6),
+
         _H2("5.11  Log des decisions et hypotheses (optionnel)", st),
         _P("Si la configuration de la solution reference un log de decisions "
            "via le champ <font name='Courier'>decisions</font> (JSON avec id, "
@@ -2361,6 +2531,7 @@ def content_fr(st: dict) -> list:
             ["--pdf FILE", "Ecrire un rapport PDF multi-pages."],
             ["--mode pooled|comparison", "Mode d'agregation (defaut : pooled)."],
             ["--art-depth", "Analyser jusqu'au niveau ART (defaut : off)."],
+            ["--cross-vs-threshold N", "Seuil d'alerte du point de decision."],
             ["--metrics ID ...", "Metriques specifiques (defaut selon le mode)."],
             ["--terminology SAFe|Global", "Mode d'etiquetage (defaut : SAFe)."],
             ["--target-ct DAYS", "Cible du cycle time en jours (defaut : 90)."],

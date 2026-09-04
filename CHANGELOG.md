@@ -7,6 +7,40 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+- **Entscheidungspunkt-Wecker (P4)** — im Wolfsburg-Workshop stand der Satz
+  „Trigger it when there are significant cross-value-stream dependencies;
+  skip it when there aren't.“ Genau das war nicht messbar, also entschied der
+  Kalender. Der neue Block misst den Druck auf den **Nähten zwischen den
+  Value Streams** eines Portfolios: Summe über alle offenen Abhängigkeiten,
+  deren Ziel zu einer anderen Member-Solution gehört, gewichtet mit
+  Statusgewicht (blocked 3 / at_risk 2 / on_track 1) × Überfälligkeitsfaktor
+  (pünktlich 1 / überfällig 2 / über 30 Tage 3) — ganze Zahlen, damit ein
+  Mensch den Wert nachrechnen kann. Erreicht er die vereinbarte Schwelle,
+  stellt der Report die Frage: „Value-Stream-Conference einberufen?“
+  Bedienung: `report.cross_vs_threshold`, CLI `--cross-vs-threshold N`,
+  GUI-Feld „VSC-Schwelle“ (fünf Sprachen); der Block steht im Report und im
+  PDF unter der Dependency-Heatmap.
+
+  Drei Regeln halten den Wecker leise: **extern weckt nicht** (eine
+  Lieferanten-Abhängigkeit ist realer Druck, aber keine Konferenz *dieser*
+  Value Streams kann darüber entscheiden — sie wird gesondert ausgewiesen),
+  **ohne vereinbarte Schwelle kein Alarm** (ein unbrauchbarer Eintrag gilt
+  als „nicht vereinbart“, nicht als Alarm, den niemand beschlossen hat), und
+  **Unterschwelligkeit wird ausgesprochen** statt weggelassen. Bei einer
+  einzelnen Solution gibt es keine Naht zwischen Value Streams — dort sagt
+  der Block das ausdrücklich, statt eine beruhigende Null zu zeigen; und in
+  der Konferenzmappe erscheint er bewusst nicht, denn die ist die Unterlage
+  einer bereits einberufenen Konferenz.
+
+### Changed
+- **Demo-Portfolio zeigt den Entscheidungspunkt** — das Szenario erzeugt zwei
+  Nähte zwischen den Solutions (AD-4, BD-3) mit einem Druckverlauf **9 → 14**
+  zwischen den beiden Delta-Ständen: jeder einzelne Train sieht unauffällig
+  aus, die Naht überschreitet die Schwelle.
+
+---
+
 ### Changed
 - **Selbstbeschreibung auf den heutigen Umfang gebracht** — Projekt, Doku-Site,
   Paket-Metadaten und Architekturbild sprachen noch vom „Jira issue data

@@ -3,7 +3,7 @@
 # Repository:     https://github.com/Jaegerfeld/situation-report
 # KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
 # Erstellt:       22.06.2026
-# Geändert:       04.09.2026
+# Geändert:       05.09.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
@@ -182,6 +182,7 @@ _T: dict[str, dict[str, str]] = {
         "msg_delta_error": "Delta-Briefing fehlgeschlagen: {error}",
         "chk_narrate": "KI-Narration (Entwurf)",
         "chk_art_depth": "Bis auf ART-Ebene auswerten",
+        "lbl_vsc_threshold": "VSC-Schwelle",
         "btn_red_team": "Red-Team-Fragen …",
         "btn_translate": "Übersetzen …",
         "dlg_save_red_team": "Red-Team-Fragen speichern",
@@ -277,6 +278,7 @@ _T: dict[str, dict[str, str]] = {
         "msg_delta_error": "Delta briefing failed: {error}",
         "chk_narrate": "AI narration (draft)",
         "chk_art_depth": "Evaluate down to ART level",
+        "lbl_vsc_threshold": "VSC threshold",
         "btn_red_team": "Red-team questions …",
         "btn_translate": "Translate …",
         "dlg_save_red_team": "Save red-team questions",
@@ -372,6 +374,7 @@ _T: dict[str, dict[str, str]] = {
         "msg_delta_error": "Delta briefing eșuat: {error}",
         "chk_narrate": "Narațiune AI (schiță)",
         "chk_art_depth": "Evaluare până la nivel de ART",
+        "lbl_vsc_threshold": "Prag VSC",
         "btn_red_team": "Întrebări red-team …",
         "btn_translate": "Traduce …",
         "dlg_save_red_team": "Salvează întrebările red-team",
@@ -467,6 +470,7 @@ _T: dict[str, dict[str, str]] = {
         "msg_delta_error": "Delta briefing falhou: {error}",
         "chk_narrate": "Narração por IA (rascunho)",
         "chk_art_depth": "Avaliar até ao nível de ART",
+        "lbl_vsc_threshold": "Limiar VSC",
         "btn_red_team": "Perguntas red-team …",
         "btn_translate": "Traduzir …",
         "dlg_save_red_team": "Guardar as perguntas red-team",
@@ -562,6 +566,7 @@ _T: dict[str, dict[str, str]] = {
         "msg_delta_error": "Échec du delta briefing : {error}",
         "chk_narrate": "Narration IA (brouillon)",
         "chk_art_depth": "Analyser jusqu'au niveau ART",
+        "lbl_vsc_threshold": "Seuil VSC",
         "btn_red_team": "Questions red-team …",
         "btn_translate": "Traduire …",
         "dlg_save_red_team": "Enregistrer les questions red-team",
@@ -685,6 +690,7 @@ def build_config_from_fields(
     kind: str = KIND_SOLUTION,
     terminology: str = TERMINOLOGY_SAFE,
     art_depth: bool = False,
+    cross_vs_threshold: str = "",
 ) -> SolutionConfig:
     """
     Build (and validate) a SolutionConfig from raw form field values.
@@ -702,6 +708,8 @@ def build_config_from_fields(
         kind:      KIND_SOLUTION (members are ARTs) or KIND_PORTFOLIO (members
                    are solution templates).
         art_depth: Evaluate down to the individual ARTs (drill-down).
+        cross_vs_threshold: Agreed decision-point threshold as typed; empty or
+                   unreadable means "not agreed yet" (report only, no alarm).
 
     Returns:
         Validated SolutionConfig.
@@ -713,6 +721,8 @@ def build_config_from_fields(
     report: dict[str, Any] = {"modes": [mode], "terminology": terminology}
     if art_depth:
         report["art_depth"] = True
+    if cross_vs_threshold.strip():
+        report["cross_vs_threshold"] = cross_vs_threshold.strip()
     if from_str.strip():
         report["from_date"] = from_str.strip()
     if to_str.strip():
@@ -862,6 +872,7 @@ class SolutionManagerApp(tk.Tk):
         self._to = tk.StringVar()
         self._mode = tk.StringVar(value=MODE_POOLED)
         self._art_depth = tk.BooleanVar(value=False)
+        self._cross_vs_threshold = tk.StringVar(value="")
         self._narrate = tk.BooleanVar(value=False)
         self._llm_provider = tk.StringVar(value="ollama")
         self._member_rows: list[dict] = []
@@ -1019,6 +1030,10 @@ class SolutionManagerApp(tk.Tk):
                         variable=self._mode, value=MODE_COMPARISON).pack(side="left", padx=(8, 0))
         ttk.Checkbutton(mode_frame, text=self._tr("chk_art_depth"),
                         variable=self._art_depth).pack(side="left", padx=(16, 0))
+        tk.Label(mode_frame, text=self._tr("lbl_vsc_threshold")).pack(
+            side="left", padx=(16, 0))
+        ttk.Entry(mode_frame, textvariable=self._cross_vs_threshold,
+                  width=5).pack(side="left", padx=(4, 0))
 
         ki_frame = tk.Frame(self)
         ki_frame.pack(fill="x", pady=(6, 0))
@@ -1115,6 +1130,7 @@ class SolutionManagerApp(tk.Tk):
         self._to.set("")
         self._mode.set(MODE_POOLED)
         self._art_depth.set(False)
+        self._cross_vs_threshold.set("")
         self._terminology.set(TERMINOLOGY_SAFE)
         self._kind.set(KIND_SOLUTION)
         self._on_kind_change()
@@ -1145,6 +1161,8 @@ class SolutionManagerApp(tk.Tk):
         self._to.set(cfg.to_date.isoformat() if cfg.to_date else "")
         self._mode.set(cfg.modes[0] if cfg.modes else MODE_POOLED)
         self._art_depth.set(cfg.art_depth)
+        self._cross_vs_threshold.set(
+            "" if cfg.cross_vs_threshold is None else str(cfg.cross_vs_threshold))
         for entry in list(self._member_rows[1:]):
             self._remove_member_row(entry)
         self._member_rows[0]["name"].set("")
@@ -1166,7 +1184,8 @@ class SolutionManagerApp(tk.Tk):
                 self._from.get(), self._to.get(),
                 self._collect_members(), self._mode.get(),
                 kind=self._kind.get(), terminology=self._terminology.get(),
-                art_depth=self._art_depth.get()),
+                art_depth=self._art_depth.get(),
+                cross_vs_threshold=self._cross_vs_threshold.get()),
                 self._loaded_cfg)
             if self._register_values is not None:
                 cfg = dataclasses.replace(cfg, **self._register_values)

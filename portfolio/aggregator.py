@@ -3,7 +3,7 @@
 # Repository:     https://github.com/Jaegerfeld/situation-report
 # KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
 # Erstellt:       22.06.2026
-# Geändert:       04.09.2026
+# Geändert:       05.09.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
@@ -66,6 +66,12 @@ from sources.base import DoraRecord, QualityRecord, SloRecord
 
 from .capability_config import Capability, load_capabilities
 from .decision_config import LogEntry, load_decisions
+from .decision_point import (
+    DependencyPressure,
+    compute_pressure,
+    decision_point_figure,
+    render_decision_point_html,
+)
 from .dependency_config import Dependency, load_dependencies
 from .dora_config import load_delivery
 from .flow_problems_config import FlowProblem, load_flow_problems
@@ -911,6 +917,36 @@ def _collect_dependencies(
     return entries
 
 
+def _collect_dependency_pressure(
+    config: SolutionConfig,
+    log: Callable[[str], None] = print,
+) -> DependencyPressure:
+    """
+    Compute the decision-point indicator (P4): pressure between value streams.
+
+    Reuses the dependencies already collected for the heatmap and adds the one
+    thing the register does not state — which side of a value-stream seam a
+    dependency crosses. That is derived from the configuration (which ART
+    belongs to which solution), never asserted in the register.
+
+    Args:
+        config: The solution or portfolio configuration.
+        log:    Progress/warning callback.
+
+    Returns:
+        The indicator; not applicable when the config knows a single solution.
+    """
+    arts_by_solution = {
+        label: {member.name for member in sub.members}
+        for label, sub in _governance_sources(config, log)
+    }
+    return compute_pressure(
+        _collect_dependencies(config, log=log),
+        arts_by_solution,
+        threshold=config.cross_vs_threshold,
+    )
+
+
 def _collect_risks(
     config: SolutionConfig,
     log: Callable[[str], None] = print,
@@ -1020,6 +1056,8 @@ def render_html(
     roam = render_roam_html(_collect_risks(config, log=log))
     nfr = render_nfr_html(*_collect_nfr(config, log=log))
     deps = render_dependencies_html(_collect_dependencies(config, log=log))
+    pressure = _collect_dependency_pressure(config, log=log)
+    decision_point = render_decision_point_html(pressure)
     decisions = render_decisions_html(_collect_decisions(config, log=log))
     flow = render_flow_problems_html(_collect_flow_problems(config, log=log))
     theme_entries, epic_entries = _collect_themes(config, log=log)
@@ -1029,8 +1067,8 @@ def render_html(
     dora = render_dora_html(dora_entries, quality_entries)
     return html.replace(
         "<body>",
-        "<body>" + summary + quality + caps + roam + nfr + deps + decisions
-        + flow + themes + slo + dora, 1)
+        "<body>" + summary + quality + caps + roam + nfr + deps
+        + decision_point + decisions + flow + themes + slo + dora, 1)
 
 
 def render_pdf(
@@ -1088,6 +1126,9 @@ def render_pdf(
     dep_entries = _collect_dependencies(config, log=log)
     if dep_entries:
         extra.append(dependency_figure(dep_entries))
+    pressure = _collect_dependency_pressure(config, log=log)
+    if pressure.applicable:
+        extra.append(decision_point_figure(pressure))
     log_entries = _collect_decisions(config, log=log)
     if log_entries:
         extra.append(decisions_figure(log_entries))
