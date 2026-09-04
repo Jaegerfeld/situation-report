@@ -3,7 +3,7 @@
 # Repository:     https://github.com/Jaegerfeld/situation-report
 # KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
 # Erstellt:       22.06.2026
-# Geändert:       22.06.2026
+# Geändert:       04.09.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
@@ -428,3 +428,35 @@ class TestKiButtonsAreWiredInAllLanguages:
         from portfolio.gui import SolutionManagerApp
         for name in ("_red_team", "_translate", "_ask_target_languages"):
             assert callable(getattr(SolutionManagerApp, name)), name
+
+
+class TestArtDepthField:
+    """Die ART-Tiefe ist ein Formularfeld: sie wird aus der Maske gebaut und
+    beim Laden wieder gesetzt. Genau darum gehoert sie NICHT zu den
+    _PRESERVED_FIELDS — die haelt das Formular ja gerade nicht."""
+
+    def test_off_by_default(self) -> None:
+        cfg = build_config_from_fields(
+            "Payments", "SAFe", "", "", [("ART A", "a.xlsx")], MODE_POOLED)
+        assert cfg.art_depth is False
+
+    def test_survives_the_form_rebuild(self) -> None:
+        cfg = build_config_from_fields(
+            "Payments", "SAFe", "", "", [("ART A", "a.xlsx")], MODE_COMPARISON,
+            art_depth=True)
+        assert cfg.art_depth is True
+
+    def test_is_a_form_field_not_a_preserved_one(self) -> None:
+        from portfolio.gui import _PRESERVED_FIELDS
+
+        assert "art_depth" not in _PRESERVED_FIELDS
+
+    def test_art_depth_offers_the_process_flow_analyses(self) -> None:
+        with_depth = default_metrics_for_mode(MODE_COMPARISON, art_depth=True)
+        assert "process_flow" in with_depth
+        assert "process_flow_time" in with_depth
+        # Ohne ART-Tiefe bleibt die Auswahl unveraendert.
+        assert "process_flow" not in default_metrics_for_mode(MODE_COMPARISON)
+        # Gepoolt gibt es keine ART-Metriken — auch nicht mit dem Haken.
+        assert "process_flow" not in default_metrics_for_mode(
+            MODE_POOLED, art_depth=True)

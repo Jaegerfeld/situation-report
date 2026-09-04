@@ -3,7 +3,7 @@
 # Repository:     https://github.com/Jaegerfeld/situation-report
 # KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
 # Erstellt:       22.06.2026
-# Geändert:       22.06.2026
+# Geändert:       04.09.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
@@ -356,3 +356,160 @@ class TestPoolCfdWithStageMap:
         cfg = SolutionConfig(name="Sol", members=[Member("A", issue_times="A.xlsx")])
         pooled = aggregator.build_pooled_report_data(cfg, log=lambda m: None)
         assert len(pooled.stages) == 3
+
+
+# ---------------------------------------------------------------------------
+# ART-Tiefe (Drill-down): optionale Auswertung bis auf ART-Ebene
+# ---------------------------------------------------------------------------
+
+def _raise_if_called(*_args, **_kwargs):
+    raise AssertionError("ARTs wurden unnoetig nachgeladen")
+
+
+def _colliding_portfolio(monkeypatch) -> SolutionConfig:
+    """Two solutions whose ARTs carry the SAME name — the collision case."""
+    sol_a = SolutionConfig(name="Solution A",
+                           members=[Member(name="ART Team A", issue_times="A1.xlsx")])
+    sol_b = SolutionConfig(name="Solution B",
+                           members=[Member(name="ART Team A", issue_times="B1.xlsx")])
+    portfolio = SolutionConfig(name="Group", kind=KIND_PORTFOLIO, members=[
+        Member(name="Solution A", template="solA.json"),
+        Member(name="Solution B", template="solB.json")])
+    rd = {p: ReportData(issues=[_issue(p, f"{p}-{n}", 1, 5 + n) for n in range(1, 4)],
+                        stages=["Analysis", "Dev", "Done"], source_prefix=p)
+          for p in ("A1.xlsx", "B1.xlsx")}
+    monkeypatch.setattr(aggregator, "load_report_data", _fake_loader(rd))
+    monkeypatch.setattr(aggregator, "load_solution_config",
+                        _fake_solution_loader({"solA.json": sol_a, "solB.json": sol_b}))
+    return portfolio
+
+
+class TestArtUnits:
+    """The drill-down granularity: one unit per ART, also for a portfolio."""
+
+    def test_portfolio_units_are_arts_not_solutions(self, monkeypatch) -> None:
+        portfolio = _portfolio_setup(monkeypatch)
+        units = aggregator.load_art_units(portfolio, log=lambda *_: None)
+        assert [u.source_prefix for u in units] == [
+            "Solution A · ART A1", "Solution A · ART A2",
+            "Solution B · ART B1"]
+        # Nichts ist mehr gepoolt: jeder ART bringt seine eigenen 3 Issues mit.
+        assert [len(u.issues) for u in units] == [3, 3, 3]
+
+    def test_solution_units_keep_the_plain_art_name(self, monkeypatch) -> None:
+        cfg = _two_art_config()
+        rd = {p: ReportData(issues=[_issue(p, f"{p}-1", 1, 6)], stages=["Done"],
+                            source_prefix=p) for p in ("A.xlsx", "B.xlsx")}
+        monkeypatch.setattr(aggregator, "load_report_data", _fake_loader(rd))
+        units = aggregator.load_art_units(cfg, log=lambda *_: None)
+        # Ohne Portfolio darueber gibt es nichts zu unterscheiden.
+        assert [u.source_prefix for u in units] == ["ART Alpha", "ART Beta"]
+
+    def test_same_art_name_in_two_solutions_stays_distinguishable(
+            self, monkeypatch) -> None:
+        """Ohne den Solution-Praefix wuerden beide Zeilen stillschweigend
+        verschmelzen — gleiche Beschriftung, kollidierende Figurenlabels."""
+        portfolio = _colliding_portfolio(monkeypatch)
+        labels = [u.source_prefix
+                  for u in aggregator.load_art_units(portfolio, log=lambda *_: None)]
+        assert labels == ["Solution A · ART Team A",
+                          "Solution B · ART Team A"]
+        assert len(set(labels)) == 2
+
+    def test_missing_transitions_are_named_not_swallowed(self, monkeypatch) -> None:
+        """Process Flow braucht Uebergaenge; fehlen sie, muss das Protokoll
+        sagen WELCHER ART betroffen ist."""
+        portfolio = _portfolio_setup(monkeypatch)
+        lines: list[str] = []
+        aggregator.load_art_units(portfolio, log=lines.append)
+        notes = [ln for ln in lines if "no transition data" in ln]
+        assert len(notes) == 3
+        assert "Solution A · ART A1" in notes[0]
+
+
+class TestArtDepthMetricDefaults:
+    """Die beiden workflow-gebundenen Analysen sind nur auf ART-Ebene ehrlich."""
+
+    def test_art_depth_adds_the_process_flow_analyses(self) -> None:
+        portfolio = SolutionConfig(name="P", kind=KIND_PORTFOLIO,
+                                   members=[Member("S", template="s.json")])
+        with_depth = aggregator._default_metrics(
+            portfolio, aggregator.MODE_COMPARISON, art_depth=True)
+        assert with_depth == aggregator.DEFAULT_ART_METRICS
+        assert "process_flow" in with_depth and "process_flow_time" in with_depth
+
+    def test_without_art_depth_the_defaults_are_untouched(self) -> None:
+        portfolio = SolutionConfig(name="P", kind=KIND_PORTFOLIO,
+                                   members=[Member("S", template="s.json")])
+        solution = _two_art_config()
+        assert aggregator._default_metrics(
+            portfolio,
+            aggregator.MODE_COMPARISON) == aggregator.DEFAULT_POOLED_METRICS
+        assert aggregator._default_metrics(
+            solution,
+            aggregator.MODE_COMPARISON) == aggregator.DEFAULT_COMPARISON_METRICS
+        # Gepoolt bleibt gepoolt — auch mit ART-Tiefe.
+        assert aggregator._default_metrics(
+            portfolio, aggregator.MODE_POOLED,
+            art_depth=True) == aggregator.DEFAULT_POOLED_METRICS
+
+
+class TestArtDepthInReports:
+    """Eine Regel, zwei Reichweiten: die Tabellen zaehlen immer ARTs auf,
+    die Figuren nur im Vergleichsmodus."""
+
+    def test_comparison_figures_are_per_art(self, monkeypatch) -> None:
+        portfolio = _portfolio_setup(monkeypatch)
+        html = aggregator.render_comparison_html(
+            portfolio, metrics=["flow_time"], log=lambda *_: None, art_depth=True)
+        assert "Solution A · ART A1" in html
+        assert "Solution B · ART B1" in html
+
+    def test_comparison_without_depth_still_compares_solutions(
+            self, monkeypatch) -> None:
+        portfolio = _portfolio_setup(monkeypatch)
+        html = aggregator.render_comparison_html(
+            portfolio, metrics=["flow_time"], log=lambda *_: None)
+        assert "ART A1" not in html
+        assert "ART Detail" not in html
+
+    def test_pooled_keeps_pooled_figures_and_adds_the_art_tables(
+            self, monkeypatch) -> None:
+        portfolio = _portfolio_setup(monkeypatch)
+        html = aggregator.render_pooled_html(
+            portfolio, metrics=["flow_time"], log=lambda *_: None, art_depth=True)
+        assert "ART Detail — Management Summary per ART" in html
+        assert "ART Detail — Data Quality per ART" in html
+        assert "Solution A · ART A1" in html
+
+    def test_solution_comparison_does_not_repeat_itself(self, monkeypatch) -> None:
+        """Eine Solution vergleicht ohnehin ihre ARTs — der Zusatzblock waere
+        eine wortgleiche Wiederholung und bleibt darum aus."""
+        cfg = _two_art_config()
+        rd = {p: ReportData(issues=[_issue(p, f"{p}-1", 1, 6)], stages=["Done"],
+                            source_prefix=p) for p in ("A.xlsx", "B.xlsx")}
+        monkeypatch.setattr(aggregator, "load_report_data", _fake_loader(rd))
+        html = aggregator.render_comparison_html(
+            cfg, metrics=["flow_time"], log=lambda *_: None, art_depth=True)
+        assert "ART Detail" not in html
+
+    def test_redundant_drill_down_costs_no_file_access(self, monkeypatch) -> None:
+        """Der Verzicht wird aus der Konfiguration entschieden — ohne die
+        ARTs vorher ein zweites Mal von der Platte zu lesen."""
+        cfg = _two_art_config()
+        monkeypatch.setattr(aggregator, "load_art_units", _raise_if_called)
+        assert aggregator._art_detail_units(
+            cfg, ["ART Alpha", "ART Beta"], log=lambda *_: None) == []
+
+    def test_conference_pre_read_carries_the_art_detail(self, monkeypatch) -> None:
+        portfolio = _portfolio_setup(monkeypatch)
+        html = aggregator.render_conference_html(
+            portfolio, log=lambda *_: None, art_depth=True)
+        assert "Input 1 · Aktuelle Daten" in html
+        assert "ART Detail — Management Summary per ART" in html
+        assert "Solution B · ART B1" in html
+
+    def test_conference_pre_read_unchanged_when_off(self, monkeypatch) -> None:
+        portfolio = _portfolio_setup(monkeypatch)
+        html = aggregator.render_conference_html(portfolio, log=lambda *_: None)
+        assert "ART Detail" not in html

@@ -43,7 +43,7 @@ C4Container
         Container(helper, "helper", "Python · tkinter", "Merges multiple paginated Jira JSON files into one")
         Container(transform_data, "transform_data", "Python · tkinter", "Reads JSON export + workflow definition, computes stage times, writes XLSX files")
         Container(build_reports, "build_reports", "Python · tkinter · Plotly", "Reads XLSX, filters issues, computes flow metrics, exports HTML/PDF")
-        Container(portfolio, "portfolio", "Python · tkinter · Plotly", "Aggregates several ARTs into pooled/comparison Large-Solution & Portfolio reports (HTML/PDF)")
+        Container(portfolio, "portfolio", "Python · tkinter · Plotly", "Aggregates several ARTs into pooled/comparison Large-Solution & Portfolio reports (HTML/PDF); optionally resolved down to ART level (ART depth)")
         Container(testdata_generator, "testdata_generator", "Python · tkinter", "Generates synthetic Jira JSON exports for testing and demos")
         Container(simulate, "simulate", "Python · tkinter · Plotly", "Throughput-based Monte-Carlo forecast: how many / when done (with scope growth) + scope confidence; HTML report")
     }

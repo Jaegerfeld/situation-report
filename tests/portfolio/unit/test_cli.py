@@ -3,7 +3,7 @@
 # Repository:     https://github.com/Jaegerfeld/situation-report
 # KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
 # Erstellt:       02.09.2026
-# Geändert:       02.09.2026
+# Geändert:       04.09.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
@@ -35,6 +35,7 @@ class _FakeConfig:
     kind: str = "solution"
     framework: str = "SAFe"
     terminology: str = SAFE
+    art_depth: bool = False
     members: list = field(default_factory=lambda: [object(), object()])
 
 

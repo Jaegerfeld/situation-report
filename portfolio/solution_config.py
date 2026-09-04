@@ -3,7 +3,7 @@
 # Repository:     https://github.com/Jaegerfeld/situation-report
 # KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
 # Erstellt:       22.06.2026
-# Geändert:       22.06.2026
+# Geändert:       04.09.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
@@ -157,6 +157,10 @@ class SolutionConfig:
         from_date:  Optional solution-level report start date.
         to_date:    Optional solution-level report end date.
         modes:      Requested report modes ("pooled" / "comparison").
+        art_depth:  Evaluate down to the individual ARTs (drill-down). Off by
+                    default: a portfolio then compares its member solutions,
+                    on it compares their ARTs and the workflow-bound
+                    „ART & Teams" analyses become available.
         stage_map:  Optional custom canonical stage mapping (A4); None keeps
                     the fixed three-group pooling.
         risks:      Optional path to a ROAM risks JSON (B3); "" means no
@@ -186,6 +190,7 @@ class SolutionConfig:
     from_date: date | None = None
     to_date: date | None = None
     modes: list[str] = field(default_factory=lambda: ["pooled"])
+    art_depth: bool = False
     stage_map: StageMap | None = None
     risks: str = ""
     nfr: str = ""
@@ -324,6 +329,7 @@ def parse_solution_config(data: dict[str, Any]) -> SolutionConfig:
         from_date=_parse_date(report.get("from_date")),
         to_date=_parse_date(report.get("to_date")),
         modes=list(report.get("modes", ["pooled"])) or ["pooled"],
+        art_depth=bool(report.get("art_depth", False)),
         stage_map=parse_stage_map(data.get("stage_map")),
         risks=str(data.get("risks", "")).strip(),
         nfr=str(data.get("nfr", "")).strip(),
@@ -379,7 +385,10 @@ def to_dict(config: SolutionConfig) -> dict[str, Any]:
                 entry[key] = value
         members.append(entry)
 
-    report: dict[str, Any] = {"modes": list(config.modes), "terminology": config.terminology}
+    report: dict[str, Any] = {"modes": list(config.modes),
+                              "terminology": config.terminology}
+    if config.art_depth:
+        report["art_depth"] = True
     if config.from_date is not None:
         report["from_date"] = config.from_date.isoformat()
     if config.to_date is not None:
