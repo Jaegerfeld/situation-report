@@ -204,6 +204,20 @@ def main() -> None:
                              "(default), l = stress test (dense heatmap, "
                              "full roadmap matrix). Story anchors are "
                              "identical at every scale.")
+    parser.add_argument("--art-profiles", type=Path, default=None,
+                        dest="art_profiles", metavar="FILE.json",
+                        help="With --scenario: per-ART generator overrides "
+                             "as JSON, e.g. {\"Alpha-1\": "
+                             "{\"mean_cycle_days\": 30, \"std_cycle_days\": "
+                             "12, \"pattern\": \"cluster\", "
+                             "\"pattern_strength\": 80}}. Fields: "
+                             "issue_count, mean_cycle_days, std_cycle_days, "
+                             "completion_rate, todo_rate, backflow_prob, "
+                             "pattern (none|triangle|flat_triangle|cluster|"
+                             "batch), pattern_strength (0-100), "
+                             "pi_duration_weeks. Overrides win in both "
+                             "delta stands; everything else keeps its "
+                             "story value.")
     parser.add_argument("--output", type=Path, default=None,
                         help="Output JSON file path (default: <project>_generated.json).")
     parser.add_argument("--project", default="TEST", dest="project_key",
@@ -243,11 +257,17 @@ def main() -> None:
     args = parser.parse_args()
 
     if args.scenario == "portfolio":
+        import json as _json
+
         from .scenario import build_portfolio_scenario
         out_dir = args.output if args.output else Path("demo_portfolio")
+        art_profiles = None
+        if args.art_profiles is not None:
+            art_profiles = _json.loads(
+                args.art_profiles.read_text(encoding="utf-8"))
         build_portfolio_scenario(
             Path(out_dir), seed=args.seed if args.seed is not None else 42,
-            scale=args.scale)
+            scale=args.scale, art_profiles=art_profiles)
         return
 
     if args.workflow is None:

@@ -560,6 +560,16 @@ def content_de(st: dict) -> list:
                 "die sie einzigartig lassen (kein zweites verletztes NFR, "
                 "kein weiteres überfälliges Blocked, kein zweites gerissenes "
                 "SLO usw.).", st),
+              P("<b>ART-Profile (Knopf „ART-Profile…“ neben der Skala, CLI "
+                "--art-profiles DATEI.json):</b> Je ART lassen sich dieselben "
+                "Regler übersteuern wie bei der Einzel-ART-Erzeugung — Issues, "
+                "Ø- und σ-Cycle-Time, Fertig-/To-Do-Quote, Backflow, Muster "
+                "(none/triangle/flat_triangle/cluster/batch) samt Stärke "
+                "(0–100) und PI-Wochen. Leere Felder = Standard. Übersteuerte "
+                "Werte gelten in BEIDEN Delta-Ständen (prev = 88 % der "
+                "Issues); alles andere behält seinen Story-Wert — wer die "
+                "Vorgaben von Alpha-3 (Ausreißer) oder Beta-3 (schwache "
+                "Quelle) ändert, verändert bewusst diese Geschichten.", st),
               P("Der Zielordner enthält danach:", st),
               tbl(["Artefakt", "Inhalt"],
                   [["workflows/", "zwei Workflow-Dateien (Alpha- und Beta-Stages)"],
@@ -899,6 +909,16 @@ def content_en(st: dict) -> list:
                 "at every scale; the base keeps invariants that leave them "
                 "unique (no second violated NFR, no further overdue blocked "
                 "item, no second breached SLO, and so on).", st),
+              P("<b>ART profiles (button 'ART Profiles…' next to the scale, "
+                "CLI --art-profiles FILE.json):</b> per ART the same knobs as "
+                "in single-ART generation can be overridden — issues, mean and "
+                "std cycle time, completion/to-do rate, backflow, pattern "
+                "(none/triangle/flat_triangle/cluster/batch) with strength "
+                "(0–100) and PI weeks. Empty fields = default. Overridden "
+                "values apply in BOTH delta stands (prev = 88 % of the "
+                "issues); everything else keeps its story value — changing "
+                "the defaults of Alpha-3 (outlier) or Beta-3 (weak source) "
+                "deliberately changes those stories.", st),
               P("The target folder then contains:", st),
               tbl(["Artifact", "Content"],
                   [["workflows/", "two workflow files (Alpha and Beta stages)"],
@@ -1182,6 +1202,15 @@ def content_ro(st: dict) -> list:
                 "respecta invariante care le lasa unice (fara al doilea NFR "
                 "incalcat, fara alt blocked intarziat, fara al doilea SLO "
                 "depasit etc.).", st),
+              P("<b>Profiluri ART (buton 'ART Profiles…' langa scara, CLI "
+                "--art-profiles FISIER.json):</b> per ART se pot suprascrie "
+                "aceleasi reglaje ca la generarea unui singur ART — issues, "
+                "cycle time mediu si sigma, rate de finalizare/to-do, "
+                "backflow, tipar (none/triangle/flat_triangle/cluster/batch) "
+                "cu intensitate (0–100) si saptamani PI. Campuri goale = "
+                "implicit. Valorile suprascrise se aplica in AMBELE stari "
+                "delta (prev = 88 % din issues); restul isi pastreaza "
+                "valoarea de poveste.", st),
               P("Directorul țintă conține apoi:", st),
               tbl(["Artefact", "Conținut"],
                   [["workflows/", "două fișiere de flux de lucru (etape Alpha și Beta)"],
@@ -1472,6 +1501,15 @@ def content_pt(st: dict) -> list:
                 "identicas em todas as escalas; a base respeita invariantes "
                 "que as deixam unicas (sem segundo NFR violado, sem outro "
                 "blocked atrasado, sem segundo SLO estourado, etc.).", st),
+              P("<b>Perfis de ART (botao 'ART Profiles…' junto a escala, CLI "
+                "--art-profiles FICHEIRO.json):</b> por ART podem "
+                "sobrepor-se os mesmos controlos da geracao de um unico ART "
+                "— issues, cycle time medio e sigma, taxas de "
+                "conclusao/to-do, backflow, padrao (none/triangle/"
+                "flat_triangle/cluster/batch) com intensidade (0–100) e "
+                "semanas de PI. Campos vazios = padrao. Valores sobrepostos "
+                "aplicam-se em AMBOS os estados delta (prev = 88 % dos "
+                "issues); o resto mantem o seu valor de historia.", st),
               P("A pasta de destino contém depois:", st),
               tbl(["Artefacto", "Conteúdo"],
                   [["workflows/", "dois ficheiros de fluxo de trabalho (etapas Alpha e Beta)"],
@@ -1766,6 +1804,15 @@ def content_fr(st: dict) -> list:
                 "invariants qui les laissent uniques (pas de second NFR "
                 "viole, pas d'autre blocked en retard, pas de second SLO "
                 "creve, etc.).", st),
+              P("<b>Profils d'ART (bouton 'ART Profiles…' pres de l'echelle, "
+                "CLI --art-profiles FICHIER.json) :</b> par ART, les memes "
+                "reglages que pour la generation d'un ART seul peuvent etre "
+                "surcharges — issues, cycle time moyen et sigma, taux de "
+                "completion/to-do, backflow, motif (none/triangle/"
+                "flat_triangle/cluster/batch) avec intensite (0–100) et "
+                "semaines de PI. Champs vides = defaut. Les valeurs "
+                "surchargees s'appliquent aux DEUX etats du delta (prev = "
+                "88 % des issues) ; le reste garde sa valeur d'histoire.", st),
               P("Le dossier cible contient ensuite :", st),
               tbl(["Artefact", "Contenu"],
                   [["workflows/", "deux fichiers de flux de travail (étapes Alpha et Beta)"],

@@ -159,6 +159,22 @@ _T: dict[str, dict[str, str]] = {
         "btn_scenario":       "Demo-Portfolio erzeugen…",
         "lbl_scale":          "Umfang:",
         "tip_scale":          "s = nur Story-Anker, m = realistische Demo, l = Stresstest",
+        "btn_art_profiles":   "ART-Profile…",
+        "dlg_art_profiles":   "ART-Profile des Demo-Portfolios",
+        "hint_art_profiles":  "Leere Felder = Standard. Achtung: Überschriebene Werte gelten in beiden Delta-Ständen; die eingebauten Geschichten (Alpha-3-Ausreißer, Beta-3 schwach) hängen an den Vorgaben.",
+        "col_art":            "ART",
+        "col_issues":         "Issues",
+        "col_mean_ct":        "Ø-CT (Tage)",
+        "col_std_ct":         "σ-CT (Tage)",
+        "col_pattern":        "Muster",
+        "col_strength":       "Stärke (0–100)",
+        "col_completion":     "Fertig-Quote",
+        "col_todo":           "To-Do-Quote",
+        "col_backflow":       "Backflow",
+        "col_pi_weeks":       "PI-Wochen",
+        "btn_profiles_reset": "Zurücksetzen",
+        "log_profiles_set":   "--- ART-Profile: {} Übersteuerung(en) aktiv ---",
+        "log_profiles_error": "FEHLER ART-Profile: {}",
         "btn_scenario_report": "Portfolio-Report öffnen",
         "dlg_scenario_dir":   "Zielordner für das Demo-Portfolio wählen",
         "log_scenario_started": "--- Demo-Portfolio wird erzeugt ---",
@@ -240,6 +256,22 @@ _T: dict[str, dict[str, str]] = {
         "btn_scenario":       "Generate Demo Portfolio…",
         "lbl_scale":          "Scale:",
         "tip_scale":          "s = story anchors only, m = realistic demo, l = stress test",
+        "btn_art_profiles":   "ART Profiles…",
+        "dlg_art_profiles":   "ART profiles of the demo portfolio",
+        "hint_art_profiles":  "Empty fields = default. Note: overridden values apply in both delta stands; the built-in stories (Alpha-3 outlier, weak Beta-3) depend on the defaults.",
+        "col_art":            "ART",
+        "col_issues":         "Issues",
+        "col_mean_ct":        "Mean CT (days)",
+        "col_std_ct":         "Std CT (days)",
+        "col_pattern":        "Pattern",
+        "col_strength":       "Strength (0–100)",
+        "col_completion":     "Completion",
+        "col_todo":           "To-do rate",
+        "col_backflow":       "Backflow",
+        "col_pi_weeks":       "PI weeks",
+        "btn_profiles_reset": "Reset",
+        "log_profiles_set":   "--- ART profiles: {} override(s) active ---",
+        "log_profiles_error": "ERROR ART profiles: {}",
         "btn_scenario_report": "Open Portfolio Report",
         "dlg_scenario_dir":   "Select target folder for the demo portfolio",
         "log_scenario_started": "--- Generating demo portfolio ---",
@@ -603,9 +635,16 @@ class _App:
         self._lbl_scale.pack(side="left", padx=(0, 4))
         # Register-Umfang je Solution: s = nur Anker, m = Demo, l = Stress.
         self._scale_var = tk.StringVar(value="m")
+        self._art_profiles: dict | None = None
+        self._art_profile_entries: dict[str, dict[str, str]] | None = None
         ttk.Combobox(scen_frame, textvariable=self._scale_var,
                      values=["s", "m", "l"], width=3,
                      state="readonly").pack(side="left", padx=(0, 8))
+        self._btn_art_profiles = ttk.Button(
+            scen_frame, text="ART Profiles…",
+            command=self._open_art_profiles,
+        )
+        self._btn_art_profiles.pack(side="left", padx=(0, 6))
         self._btn_scenario = ttk.Button(
             scen_frame, text="Generate Demo Portfolio…",
             command=self._make_scenario,
@@ -722,6 +761,7 @@ class _App:
         self._btn_scenario_narrate.configure(
             text=self._t("btn_scenario_narrate"))
         self._lbl_scale.configure(text=self._t("lbl_scale"))
+        self._btn_art_profiles.configure(text=self._t("btn_art_profiles"))
         self._log_frame.configure(text=self._t("lbl_log"))
         lang = self._lang_var.get()
         for rb, (_val, lbl_de, lbl_en) in zip(self._pattern_rbs, _PATTERN_LABELS):
@@ -1081,6 +1121,81 @@ class _App:
         self._progress.stop()
         self._progress.grid_remove()
 
+    def _open_art_profiles(self) -> None:
+        """Dialog: per-ART generator knobs for the demo portfolio (same
+        fields as the single-ART generation; empty = default)."""
+        from .scenario import (
+            default_art_profile_rows,
+            parse_art_profile_entries,
+        )
+
+        dlg = tk.Toplevel(self._root)
+        dlg.title(self._t("dlg_art_profiles"))
+        dlg.configure(padx=12, pady=10)
+        dlg.transient(self._root)
+        dlg.grab_set()
+
+        ttk.Label(dlg, text=self._t("hint_art_profiles"),
+                  wraplength=640).grid(row=0, column=0, columnspan=10,
+                                       sticky="w", pady=(0, 8))
+        columns = ("issue_count", "mean_cycle_days", "std_cycle_days",
+                   "pattern", "pattern_strength", "completion_rate",
+                   "todo_rate", "backflow_prob", "pi_duration_weeks")
+        headers = ("col_issues", "col_mean_ct", "col_std_ct", "col_pattern",
+                   "col_strength", "col_completion", "col_todo",
+                   "col_backflow", "col_pi_weeks")
+        ttk.Label(dlg, text=self._t("col_art")).grid(row=1, column=0,
+                                                     sticky="w")
+        for c, key in enumerate(headers):
+            ttk.Label(dlg, text=self._t(key)).grid(row=1, column=c + 1,
+                                                   padx=2)
+        defaults = default_art_profile_rows()
+        start = self._art_profile_entries or defaults
+        variables: dict[str, dict[str, tk.StringVar]] = {}
+        for r, (name, fields) in enumerate(defaults.items()):
+            ttk.Label(dlg, text=name).grid(row=r + 2, column=0, sticky="w")
+            variables[name] = {}
+            for c, field in enumerate(columns):
+                var = tk.StringVar(value=start.get(name, fields).get(
+                    field, fields[field]))
+                variables[name][field] = var
+                if field == "pattern":
+                    ttk.Combobox(dlg, textvariable=var, width=11,
+                                 state="readonly",
+                                 values=["none", "triangle",
+                                         "flat_triangle", "cluster",
+                                         "batch"]).grid(row=r + 2,
+                                                        column=c + 1, padx=2)
+                else:
+                    ttk.Entry(dlg, textvariable=var, width=8).grid(
+                        row=r + 2, column=c + 1, padx=2)
+
+        def reset() -> None:
+            for name, fields in defaults.items():
+                for field, value in fields.items():
+                    variables[name][field].set(value)
+
+        def confirm() -> None:
+            entries = {name: {f: v.get() for f, v in fields.items()}
+                       for name, fields in variables.items()}
+            try:
+                overrides = parse_art_profile_entries(entries)
+            except ValueError as exc:
+                self._log_msg(self._t("log_profiles_error").format(exc))
+                return
+            self._art_profiles = overrides or None
+            self._art_profile_entries = entries if overrides else None
+            self._log_msg(self._t("log_profiles_set").format(
+                sum(len(v) for v in overrides.values())))
+            dlg.destroy()
+
+        buttons = ttk.Frame(dlg)
+        buttons.grid(row=9, column=0, columnspan=10, sticky="e",
+                     pady=(10, 0))
+        ttk.Button(buttons, text=self._t("btn_profiles_reset"),
+                   command=reset).pack(side="left", padx=(0, 6))
+        ttk.Button(buttons, text="OK", command=confirm).pack(side="left")
+
     def _make_scenario(self) -> None:
         """Generate the complete demo portfolio (2 solutions x 3 ARTs) into a
         user-chosen folder; the seed field is honoured (default 42 so the
@@ -1125,6 +1240,7 @@ class _App:
                 paths = build_portfolio_scenario(
                     Path(target), seed=seed, log=self._log_msg,
                     scale=self._scale_var.get(),
+                    art_profiles=self._art_profiles,
                 )
                 self._last_scenario = paths["portfolio"]
                 self._last_snapshots = (paths["snapshot_prev"],

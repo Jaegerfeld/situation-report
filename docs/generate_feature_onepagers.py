@@ -492,6 +492,105 @@ ONEPAGERS: dict[str, dict[str, dict]] = {
             ],
         },
     },
+    "art_profiles": {
+        "de": {
+            "title": "ART-Profile im Demo-Portfolio",
+            "tagline": "Jeder Demo-ART bekommt die Regler der "
+                       "Einzel-ART-Erzeugung — Ø-CT, Streuung, Fehler-Muster",
+            "sections": [
+                ("h", "Worum geht es?"),
+                ("p", "Das Demo-Portfolio erzeugte seine sechs ARTs bisher "
+                      "mit festen Profilen. Jetzt lässt sich je ART alles "
+                      "übersteuern, was auch die Einzel-ART-Erzeugung kann: "
+                      "Anzahl Issues, durchschnittliche Cycle Time und ihre "
+                      "Standardabweichung, Fertig- und To-Do-Quote, "
+                      "Backflow-Wahrscheinlichkeit, die Fluss-/Fehler-Muster "
+                      "(triangle, flat_triangle, cluster, batch) samt Stärke "
+                      "(0–100) und die PI-Dauer. So entsteht z. B. ein "
+                      "Portfolio, in dem ein ART im PI-Endspurt-Muster "
+                      "liefert und ein anderer mit hoher Streuung kämpft."),
+                ("h", "So benutzt du es"),
+                ("code", "python -m testdata_generator --scenario portfolio "
+                         "--output demo/ \\\n"
+                         "    --scale m --art-profiles profile.json\n\n"
+                         '# profile.json:\n'
+                         '{"Alpha-1": {"mean_cycle_days": 30, '
+                         '"std_cycle_days": 12,\n'
+                         '             "pattern": "cluster", '
+                         '"pattern_strength": 80}}'),
+                ("p", "Oder per GUI: Im Demo-Bereich öffnet "
+                      "„ART-Profile…“ die Tabelle aller sechs ARTs, "
+                      "vorbefüllt mit den Standardwerten — leere Felder "
+                      "bleiben Standard, Prüfung beim OK, „Zurücksetzen“ "
+                      "stellt die Vorgaben wieder her."),
+                ("h", "Die Regeln"),
+                ("li", "Overrides gelten in BEIDEN Delta-Ständen; der "
+                       "Durchsatz-Story zuliebe bekommt prev 88 % der "
+                       "(übersteuerten) Issue-Zahl"),
+                ("li", "Nicht Übersteuertes behält seinen Story-Wert — die "
+                       "eingebauten Geschichten (Alpha-3-Ausreißer, "
+                       "Beta-3 schwach) ändern sich nur, wenn du ihre "
+                       "Vorgaben änderst"),
+                ("li", "Musterstärke nutzerseitig 0–100 wie überall; "
+                       "unbekannte ARTs, Felder, Muster und Werte werden "
+                       "mit klarer Meldung abgewiesen"),
+                ("h", "Leitplanken"),
+                ("p", "Seed-Reproduzierbarkeit bleibt: gleicher Seed plus "
+                      "gleiche Profile ergeben identische Daten. Die "
+                      "Register-Skalen (s/m/l) und die ART-Profile sind "
+                      "unabhängige Regler desselben Szenarios."),
+            ],
+        },
+        "en": {
+            "title": "ART Profiles in the Demo Portfolio",
+            "tagline": "Every demo ART gets the single-ART knobs — mean CT, "
+                       "spread, flow/failure patterns",
+            "sections": [
+                ("h", "What is it?"),
+                ("p", "The demo portfolio used to generate its six ARTs "
+                      "from fixed profiles. Now everything the single-ART "
+                      "generation offers can be overridden per ART: issue "
+                      "count, mean cycle time and its standard deviation, "
+                      "completion and to-do rate, backflow probability, the "
+                      "flow/failure patterns (triangle, flat_triangle, "
+                      "cluster, batch) with strength (0–100) and the PI "
+                      "duration. That yields, say, a portfolio where one "
+                      "ART delivers in an end-of-PI batch pattern while "
+                      "another struggles with high variance."),
+                ("h", "How to use it"),
+                ("code", "python -m testdata_generator --scenario portfolio "
+                         "--output demo/ \\\n"
+                         "    --scale m --art-profiles profile.json\n\n"
+                         '# profile.json:\n'
+                         '{"Alpha-1": {"mean_cycle_days": 30, '
+                         '"std_cycle_days": 12,\n'
+                         '             "pattern": "cluster", '
+                         '"pattern_strength": 80}}'),
+                ("p", "Or via the GUI: in the demo section, 'ART "
+                      "Profiles…' opens the table of all six ARTs, "
+                      "prefilled with the defaults — empty fields stay "
+                      "default, validation happens at OK, 'Reset' restores "
+                      "the defaults."),
+                ("h", "The rules"),
+                ("li", "Overrides apply in BOTH delta stands; for the "
+                       "throughput story, prev gets 88 % of the "
+                       "(overridden) issue count"),
+                ("li", "Everything not overridden keeps its story value — "
+                       "the built-in narratives (Alpha-3 outlier, weak "
+                       "Beta-3) only change when you change their "
+                       "defaults"),
+                ("li", "Pattern strength is user-facing 0–100 as "
+                       "everywhere; unknown ARTs, fields, patterns and "
+                       "out-of-range values are rejected with clear "
+                       "errors"),
+                ("h", "Guardrails"),
+                ("p", "Seed reproducibility stays: same seed plus same "
+                      "profiles yields identical data. Register scales "
+                      "(s/m/l) and ART profiles are independent knobs of "
+                      "the same scenario."),
+            ],
+        },
+    },
     "portfolio_datenraum": {
         "de": {
             "title": "Portfolio-Datenraum",
