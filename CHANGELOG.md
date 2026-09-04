@@ -5,6 +5,24 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [Unreleased]
+
+### Added
+- **Per-ART generator profiles for the demo portfolio** — the demo
+  scenario's six ARTs now accept the same knobs as single-ART
+  generation: issue count, mean and std cycle time, completion/to-do
+  rate, backflow probability, flow pattern (none/triangle/
+  flat_triangle/cluster/batch) with strength (0–100, matching the
+  single-ART convention) and PI weeks. Configure them via the new
+  *ART Profiles…* dialog in the demo section (prefilled with the
+  defaults; empty = default; validation at OK time) or via
+  `--art-profiles file.json` on the CLI. Overridden values apply in
+  BOTH delta stands (prev keeps the 88 % throughput rule on the
+  overridden count); everything not overridden keeps its story value,
+  so the built-in narratives (Alpha-3 outlier, weak Beta-3) only
+  change when you change them deliberately. Unknown ART names, fields,
+  patterns and out-of-range strengths are rejected with clear errors.
+
 ## [0.25.0] – 2026-09-04
 
 ### Added

@@ -38,6 +38,7 @@
 
 from __future__ import annotations
 
+import dataclasses
 import json
 from collections.abc import Callable
 from dataclasses import dataclass
@@ -130,7 +131,15 @@ from transform_data.processor import process_issues
 from transform_data.workflow import parse_workflow
 from transform_data.writers import write_cfd, write_issue_times, write_transitions
 
-from .generator import GeneratorConfig, generate
+from .generator import (
+    PATTERN_BATCH,
+    PATTERN_CLUSTER,
+    PATTERN_FLAT_TRIANGLE,
+    PATTERN_NONE,
+    PATTERN_TRIANGLE,
+    GeneratorConfig,
+    generate,
+)
 
 #: Workflow der Alpha-ARTs (klassische Namen; Solution Alpha nutzt den
 #: Default-Pooling-Pfad über classify_stages).
@@ -170,7 +179,12 @@ _BETA_STAGE_MAP = StageMap(
 
 @dataclass
 class _ArtProfile:
-    """Generator profile for one demo ART (the built-in story per source)."""
+    """Generator profile for one demo ART (the built-in story per source).
+
+    Trägt seit dem ART-Profile-Feature dieselben Regler wie die
+    Einzel-ART-Erzeugung; per ``art_profiles`` in
+    build_portfolio_scenario() sind sie je ART übersteuerbar.
+    """
     name: str
     workflow_text: str
     mean_cycle_days: float
@@ -179,47 +193,206 @@ class _ArtProfile:
     stale_days: int = 0      # shift the data window back → old data_as_of
     write_cfd: bool = True   # False = source without CFD data
     issue_count: int = 120
+    std_cycle_days: float | None = None   # None = 30 % vom Mittel
+    backflow_prob: float = 0.1
+    pattern: str = PATTERN_NONE
+    pattern_strength: float = 0.5
+    pi_duration_weeks: int = 12
+
+
+#: Je ART übersteuerbare Profil-Felder (GUI-Dialog, CLI --art-profiles).
+ART_PROFILE_FIELDS = ("issue_count", "mean_cycle_days", "std_cycle_days",
+                      "completion_rate", "todo_rate", "backflow_prob",
+                      "pattern", "pattern_strength", "pi_duration_weeks")
+
+_PATTERNS = (PATTERN_NONE, PATTERN_TRIANGLE, PATTERN_FLAT_TRIANGLE,
+             PATTERN_CLUSTER, PATTERN_BATCH)
+
+_INT_FIELDS = {"issue_count", "pi_duration_weeks"}
+
+
+def _coerce_profile_value(key: str, value):
+    """Coerce a GUI/JSON value to the profile field's type (validated).
+
+    pattern_strength follows the user-facing 0–100 convention of the
+    single-ART CLI/GUI and is stored as 0–1 internally.
+    """
+    if key == "pattern":
+        value = str(value).strip().lower()
+        if value not in _PATTERNS:
+            raise ValueError(
+                f"Unknown pattern '{value}' — expected one of "
+                f"{', '.join(_PATTERNS)}.")
+        return value
+    try:
+        number = int(value) if key in _INT_FIELDS else float(value)
+    except (TypeError, ValueError) as exc:
+        raise ValueError(
+            f"Invalid value for '{key}': {value!r} (number expected).") from exc
+    if key == "pattern_strength":
+        if not 0 <= number <= 100:
+            raise ValueError(
+                f"pattern_strength must be 0–100, got {value!r}.")
+        return number / 100.0
+    return number
+
+
+def apply_art_overrides(
+    profiles: list[tuple[str, _ArtProfile]],
+    art_profiles: dict[str, dict] | None,
+) -> list[tuple[str, _ArtProfile]]:
+    """
+    Merge per-ART overrides onto the default demo profiles.
+
+    Keys are the ART short names ("Alpha-1" … "Beta-3"); values map
+    ART_PROFILE_FIELDS to new values (numbers may arrive as strings —
+    GUI fields and JSON files). Explicit overrides win in BOTH stands
+    (now and prev); everything not overridden keeps its story value.
+
+    Raises:
+        ValueError: Unknown ART name, unknown field, or invalid value.
+    """
+    if not art_profiles:
+        return profiles
+    known = {profile.name for _, profile in profiles}
+    unknown = set(art_profiles) - known
+    if unknown:
+        raise ValueError(
+            f"Unknown ART name(s) {', '.join(sorted(unknown))} — known: "
+            f"{', '.join(sorted(known))}.")
+    out: list[tuple[str, _ArtProfile]] = []
+    for solution_key, profile in profiles:
+        overrides = art_profiles.get(profile.name) or {}
+        bad = set(overrides) - set(ART_PROFILE_FIELDS)
+        if bad:
+            raise ValueError(
+                f"Unknown profile field(s) {', '.join(sorted(bad))} for "
+                f"'{profile.name}' — allowed: "
+                f"{', '.join(ART_PROFILE_FIELDS)}.")
+        coerced = {k: _coerce_profile_value(k, v)
+                   for k, v in overrides.items()}
+        out.append((solution_key,
+                    dataclasses.replace(profile, **coerced)
+                    if coerced else profile))
+    return out
+
+
+def _fmt_num(value: float) -> str:
+    """Compact display of a profile number (12.0 -> "12")."""
+    return f"{value:g}"
+
+
+def default_art_profile_rows() -> dict[str, dict[str, str]]:
+    """
+    Display strings of the default demo profiles, per ART — the
+    prefill of the GUI dialog "ART-Profile …". pattern_strength is
+    shown on the user-facing 0–100 scale; an empty std_cycle_days
+    means "30 % of the mean" (the generator default).
+    """
+    rows: dict[str, dict[str, str]] = {}
+    for _solution_key, profile in _profiles():
+        rows[profile.name] = {
+            "issue_count": str(profile.issue_count),
+            "mean_cycle_days": _fmt_num(profile.mean_cycle_days),
+            "std_cycle_days": ("" if profile.std_cycle_days is None
+                               else _fmt_num(profile.std_cycle_days)),
+            "completion_rate": _fmt_num(profile.completion_rate),
+            "todo_rate": _fmt_num(profile.todo_rate),
+            "backflow_prob": _fmt_num(profile.backflow_prob),
+            "pattern": profile.pattern,
+            "pattern_strength": str(int(round(
+                profile.pattern_strength * 100))),
+            "pi_duration_weeks": str(profile.pi_duration_weeks),
+        }
+    return rows
+
+
+def parse_art_profile_entries(
+    entries: dict[str, dict[str, str]],
+) -> dict[str, dict]:
+    """
+    Diff dialog entries against the defaults and validate the result.
+
+    Only fields whose display string differs from the default become
+    overrides — an unchanged dialog yields {} and every story tweak
+    (incl. Beta-3's prev variant) stays untouched. Values are validated
+    via apply_art_overrides, so errors surface at OK time.
+
+    Returns:
+        {art_name: {field: raw value}} — ready for
+        build_portfolio_scenario(art_profiles=...).
+
+    Raises:
+        ValueError: Unknown ART/field or invalid value.
+    """
+    defaults = default_art_profile_rows()
+    overrides: dict[str, dict] = {}
+    for name, fields in entries.items():
+        if name not in defaults:
+            raise ValueError(
+                f"Unknown ART name(s) {name} — known: "
+                f"{', '.join(sorted(defaults))}.")
+        changed = {
+            key: value.strip()
+            for key, value in fields.items()
+            if value.strip() != defaults[name].get(key, "")
+            and value.strip() != ""
+        }
+        if changed:
+            overrides[name] = changed
+    apply_art_overrides(_profiles(), overrides)  # validate; raises ValueError
+    return overrides
 
 
 STORY_NOW = "now"
 STORY_PREV = "prev"
 
 
-def _profiles(story: str = STORY_NOW) -> list[tuple[str, _ArtProfile]]:
+def _profiles(
+    story: str = STORY_NOW,
+    art_profiles: dict[str, dict] | None = None,
+) -> list[tuple[str, _ArtProfile]]:
     """
     (solution key, profile) pairs for the six demo ARTs.
 
+    ``art_profiles`` overrides individual fields per ART (see
+    apply_art_overrides) — explicit overrides win in both stands.
     ``story=STORY_PREV`` yields the same world two weeks earlier for the
-    Delta-Briefing demo (D2): fewer issues per ART (the throughput since),
-    and Beta-3's data gaps were smaller back then (confidence medium — the
-    decay to low is part of the story).
+    Delta-Briefing demo (D2): fewer issues per ART (the throughput
+    since; 88 % of the possibly overridden count), and Beta-3's data
+    gaps were smaller back then (confidence medium — the decay to low is
+    part of the story; skipped when todo_rate is overridden).
     """
-    prev = story == STORY_PREV
-    scale = 0.88 if prev else 1.0
-
-    def n(count: int) -> int:
-        return int(count * scale)
-
-    return [
-        ("alpha", _ArtProfile("Alpha-1", _WORKFLOW_ALPHA, mean_cycle_days=12,
-                              issue_count=n(120))),
-        ("alpha", _ArtProfile("Alpha-2", _WORKFLOW_ALPHA, mean_cycle_days=16,
-                              issue_count=n(120))),
+    base = [
+        ("alpha", _ArtProfile("Alpha-1", _WORKFLOW_ALPHA,
+                              mean_cycle_days=12)),
+        ("alpha", _ArtProfile("Alpha-2", _WORKFLOW_ALPHA,
+                              mean_cycle_days=16)),
         # Der Ausreißer: Cycle Time ~3x der Schwester-ARTs (A3-Hervorhebung).
-        ("alpha", _ArtProfile("Alpha-3", _WORKFLOW_ALPHA, mean_cycle_days=45,
-                              issue_count=n(120))),
-        ("beta", _ArtProfile("Beta-1", _WORKFLOW_BETA, mean_cycle_days=14,
-                             issue_count=n(120))),
-        ("beta", _ArtProfile("Beta-2", _WORKFLOW_BETA, mean_cycle_days=18,
-                             issue_count=n(120))),
+        ("alpha", _ArtProfile("Alpha-3", _WORKFLOW_ALPHA,
+                              mean_cycle_days=45)),
+        ("beta", _ArtProfile("Beta-1", _WORKFLOW_BETA, mean_cycle_days=14)),
+        ("beta", _ArtProfile("Beta-2", _WORKFLOW_BETA, mean_cycle_days=18)),
         # Die schwache Quelle: kaum begonnene Issues (kein First Date), kein
         # CFD, Datenstand 60 Tage alt (A1-Ampel low, Abdeckung < 100 %).
         ("beta", _ArtProfile("Beta-3", _WORKFLOW_BETA, mean_cycle_days=15,
-                             completion_rate=0.15,
-                             todo_rate=0.45 if prev else 0.8,
+                             completion_rate=0.15, todo_rate=0.8,
                              stale_days=60, write_cfd=False,
-                             issue_count=n(60))),
+                             issue_count=60)),
     ]
+    merged = apply_art_overrides(base, art_profiles)
+    if story != STORY_PREV:
+        return merged
+    result: list[tuple[str, _ArtProfile]] = []
+    for solution_key, profile in merged:
+        updates: dict = {"issue_count": int(profile.issue_count * 0.88)}
+        if (profile.name == "Beta-3"
+                and "todo_rate" not in (art_profiles or {}).get(
+                    "Beta-3", {})):
+            updates["todo_rate"] = 0.45
+        result.append((solution_key,
+                       dataclasses.replace(profile, **updates)))
+    return result
 
 
 def _alpha_risks(reference: date) -> RiskRegister:
@@ -626,6 +799,7 @@ def build_portfolio_scenario(
     log: Callable[[str], None] = print,
     story: str = STORY_NOW,
     scale: str = DEFAULT_SCALE,
+    art_profiles: dict[str, dict] | None = None,
 ) -> dict[str, Path]:
     """
     Generate the complete demo portfolio into ``output_dir``.
@@ -666,7 +840,8 @@ def build_portfolio_scenario(
     workflow_files["beta"].write_text(_WORKFLOW_BETA, encoding="utf-8")
 
     members: dict[str, list[Member]] = {"alpha": [], "beta": []}
-    for i, (solution_key, profile) in enumerate(_profiles(story)):
+    for i, (solution_key, profile) in enumerate(
+            _profiles(story, art_profiles)):
         wf_file = workflow_files[solution_key]
         workflow = parse_workflow(wf_file)
 
@@ -679,8 +854,13 @@ def build_portfolio_scenario(
             to_date=to_date,
             completion_rate=profile.completion_rate,
             todo_rate=profile.todo_rate,
+            backflow_prob=profile.backflow_prob,
             seed=seed + i,
             mean_cycle_days=profile.mean_cycle_days,
+            std_cycle_days=profile.std_cycle_days,
+            pattern=profile.pattern,
+            pattern_strength=profile.pattern_strength,
+            pi_duration_weeks=profile.pi_duration_weeks,
         )
         raw = out / "raw" / f"{profile.name}_jira.json"
         raw.write_text(json.dumps(generate(workflow, config), indent=2),
@@ -845,6 +1025,10 @@ def build_portfolio_scenario(
         "einer seed-generierten Grundmenge; `--scale s|m|l` steuert deren",
         "Umfang je Solution (s = nur Anker, m = Standard, l = Stresstest).",
         "Die Anker und ihre Geschichten sind auf jeder Skala identisch.",
+        "Je ART lassen sich die Generator-Regler übersteuern (GUI-Dialog",
+        "„ART-Profile…“ bzw. `--art-profiles datei.json`): Issues, Ø-/σ-CT,",
+        "Quoten, Backflow, Muster + Stärke, PI-Wochen — Overrides gelten",
+        "in beiden Delta-Ständen, alles andere behält seinen Story-Wert.",
         "",
         "Eingebaute Geschichten:",
         "",
@@ -933,7 +1117,8 @@ def build_portfolio_scenario(
             prev_paths = build_portfolio_scenario(
                 Path(tmp), seed=seed, reference=reference,
                 window_days=window_days, log=lambda m: None,
-                story=STORY_PREV, scale=scale)
+                story=STORY_PREV, scale=scale,
+                art_profiles=art_profiles)
             save_snapshot(snapshot_prev, build_snapshot(
                 load_solution_config(prev_paths["portfolio"]),
                 as_of=reference - timedelta(days=14), log=lambda m: None))
