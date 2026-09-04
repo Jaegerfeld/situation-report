@@ -408,3 +408,23 @@ class TestDatenraumBaseDirSurvivesRebuild:
         monkeypatch.chdir(tmp_path.parent)  # fremdes Arbeitsverzeichnis
         sources = _governance_sources(rebuilt, log=lambda m: None)
         assert [name for name, _ in sources] == ["Solution Alpha"]
+
+
+class TestKiButtonsAreWiredInAllLanguages:
+    """D5/D6 in der GUI (04.09.2026): die KI-Zeile traegt jetzt neben
+    Checkbox und Provider-Auswahl auch Red-Team- und Uebersetzen-Knopf."""
+
+    def test_all_new_keys_exist_in_every_language(self) -> None:
+        for key in ("btn_red_team", "btn_translate", "dlg_save_red_team",
+                    "dlg_pick_translate", "dlg_translate_title",
+                    "msg_red_team_running", "msg_red_team_done",
+                    "msg_red_team_error", "msg_translate_running",
+                    "msg_translate_done", "msg_translate_error",
+                    "msg_translate_none"):
+            for lang in _ALL_LANGS:
+                assert key in _T[lang], (lang, key)
+
+    def test_handlers_exist(self) -> None:
+        from portfolio.gui import SolutionManagerApp
+        for name in ("_red_team", "_translate", "_ask_target_languages"):
+            assert callable(getattr(SolutionManagerApp, name)), name

@@ -137,3 +137,26 @@ class TestAudit:
         lines = path.read_text(encoding="utf-8").splitlines()
         assert len(lines) == 2
         assert json.loads(lines[1])["guard_passed"] is False
+
+
+class TestOutputLanguageIsPinned:
+    """Praxisbefund 04.09.2026 (mistral-nemo am Demo-Portfolio): der
+    Contract/das Briefing ist englisch beschriftet — ohne explizite
+    Regel antwortete das Modell trotz --llm-lang de auf Englisch.
+    Jeder Prompt fixiert die Ausgabesprache jetzt selbst."""
+
+    def test_every_prompt_family_pins_its_language(self) -> None:
+        from llm.prompts import (
+            exec_summary_system_prompt,
+            narration_system_prompt,
+            red_team_system_prompt,
+        )
+        for prompt in (narration_system_prompt, exec_summary_system_prompt,
+                       red_team_system_prompt):
+            assert "DEUTSCH" in prompt("de"), prompt.__name__
+            assert "ENGLISH" in prompt("en"), prompt.__name__
+
+    def test_translation_prompt_names_the_target_language(self) -> None:
+        from llm.prompts import TRANSLATION_LANGS, translation_system_prompt
+        for code, name in TRANSLATION_LANGS.items():
+            assert name in translation_system_prompt(code)

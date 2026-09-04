@@ -180,6 +180,18 @@ _T: dict[str, dict[str, str]] = {
         "msg_delta_done": "Delta-Briefing im Browser geöffnet",
         "msg_delta_error": "Delta-Briefing fehlgeschlagen: {error}",
         "chk_narrate": "KI-Narration (Entwurf)",
+        "btn_red_team": "Red-Team-Fragen …",
+        "btn_translate": "Übersetzen …",
+        "dlg_save_red_team": "Red-Team-Fragen speichern",
+        "dlg_pick_translate": "Zu übersetzende Textdatei wählen",
+        "dlg_translate_title": "Übersetzen — Zielsprachen wählen",
+        "msg_red_team_running": "Red-Team-Fragen werden erzeugt — lokale Modelle brauchen bis zu einer Minute …",
+        "msg_red_team_done": "Red-Team-Fragen erzeugt: {path}",
+        "msg_red_team_error": "Red-Team-Fragen fehlgeschlagen: {error}",
+        "msg_translate_running": "Übersetzung wird erzeugt ({n} Sprache[n]) …",
+        "msg_translate_done": "Übersetzt: {langs}",
+        "msg_translate_error": "Übersetzung fehlgeschlagen: {error}",
+        "msg_translate_none": "Keine Zielsprache gewählt.",
         "msg_narrate_running": "KI-Narration wird erzeugt — lokale Modelle "
                                "brauchen bis zu einer Minute …",
         "msg_exec_error": "KI-Zusammenfassung fehlgeschlagen (Report ohne "
@@ -262,6 +274,18 @@ _T: dict[str, dict[str, str]] = {
         "msg_delta_done": "Delta briefing opened in the browser",
         "msg_delta_error": "Delta briefing failed: {error}",
         "chk_narrate": "AI narration (draft)",
+        "btn_red_team": "Red-team questions …",
+        "btn_translate": "Translate …",
+        "dlg_save_red_team": "Save red-team questions",
+        "dlg_pick_translate": "Select the text file to translate",
+        "dlg_translate_title": "Translate — pick target languages",
+        "msg_red_team_running": "Drafting red-team questions — local models can take up to a minute …",
+        "msg_red_team_done": "Red-team questions written: {path}",
+        "msg_red_team_error": "Red-team questions failed: {error}",
+        "msg_translate_running": "Translating ({n} language[s]) …",
+        "msg_translate_done": "Translated: {langs}",
+        "msg_translate_error": "Translation failed: {error}",
+        "msg_translate_none": "No target language selected.",
         "msg_narrate_running": "Drafting AI narration — local models can "
                                "take up to a minute …",
         "msg_exec_error": "AI summary failed (report written without the "
@@ -344,6 +368,18 @@ _T: dict[str, dict[str, str]] = {
         "msg_delta_done": "Delta briefing deschis în browser",
         "msg_delta_error": "Delta briefing eșuat: {error}",
         "chk_narrate": "Narațiune AI (schiță)",
+        "btn_red_team": "Întrebări red-team …",
+        "btn_translate": "Traduce …",
+        "dlg_save_red_team": "Salvează întrebările red-team",
+        "dlg_pick_translate": "Alege fișierul text de tradus",
+        "dlg_translate_title": "Traducere — alege limbile țintă",
+        "msg_red_team_running": "Se generează întrebările red-team — modelele locale pot dura până la un minut …",
+        "msg_red_team_done": "Întrebări red-team scrise: {path}",
+        "msg_red_team_error": "Întrebările red-team au eșuat: {error}",
+        "msg_translate_running": "Se traduce ({n} limbă/limbi) …",
+        "msg_translate_done": "Tradus: {langs}",
+        "msg_translate_error": "Traducerea a eșuat: {error}",
+        "msg_translate_none": "Nicio limbă țintă selectată.",
         "msg_narrate_running": "Se generează narațiunea AI — modelele "
                                "locale pot dura până la un minut …",
         "msg_exec_error": "Rezumatul AI a eșuat (raport scris fără "
@@ -426,6 +462,18 @@ _T: dict[str, dict[str, str]] = {
         "msg_delta_done": "Delta briefing aberto no browser",
         "msg_delta_error": "Delta briefing falhou: {error}",
         "chk_narrate": "Narração por IA (rascunho)",
+        "btn_red_team": "Perguntas red-team …",
+        "btn_translate": "Traduzir …",
+        "dlg_save_red_team": "Guardar as perguntas red-team",
+        "dlg_pick_translate": "Escolher o ficheiro de texto a traduzir",
+        "dlg_translate_title": "Traduzir — escolher as línguas alvo",
+        "msg_red_team_running": "A gerar perguntas red-team — modelos locais podem demorar até um minuto …",
+        "msg_red_team_done": "Perguntas red-team escritas: {path}",
+        "msg_red_team_error": "Perguntas red-team falharam: {error}",
+        "msg_translate_running": "A traduzir ({n} língua[s]) …",
+        "msg_translate_done": "Traduzido: {langs}",
+        "msg_translate_error": "Tradução falhou: {error}",
+        "msg_translate_none": "Nenhuma língua alvo selecionada.",
         "msg_narrate_running": "A gerar a narração por IA — modelos locais "
                                "podem demorar até um minuto …",
         "msg_exec_error": "Resumo por IA falhou (relatório escrito sem o "
@@ -508,6 +556,18 @@ _T: dict[str, dict[str, str]] = {
         "msg_delta_done": "Delta briefing ouvert dans le navigateur",
         "msg_delta_error": "Échec du delta briefing : {error}",
         "chk_narrate": "Narration IA (brouillon)",
+        "btn_red_team": "Questions red-team …",
+        "btn_translate": "Traduire …",
+        "dlg_save_red_team": "Enregistrer les questions red-team",
+        "dlg_pick_translate": "Choisir le fichier texte à traduire",
+        "dlg_translate_title": "Traduire — choisir les langues cibles",
+        "msg_red_team_running": "Génération des questions red-team — les modèles locaux peuvent prendre jusqu'à une minute …",
+        "msg_red_team_done": "Questions red-team écrites : {path}",
+        "msg_red_team_error": "Échec des questions red-team : {error}",
+        "msg_translate_running": "Traduction en cours ({n} langue[s]) …",
+        "msg_translate_done": "Traduit : {langs}",
+        "msg_translate_error": "Échec de la traduction : {error}",
+        "msg_translate_none": "Aucune langue cible sélectionnée.",
         "msg_narrate_running": "Narration IA en cours — les modèles locaux "
                                "peuvent prendre jusqu'à une minute …",
         "msg_exec_error": "Échec du résumé IA (rapport écrit sans le "
@@ -953,6 +1013,10 @@ class SolutionManagerApp(tk.Tk):
         ttk.Combobox(ki_frame, textvariable=self._llm_provider,
                      values=_llm_provider_ids(), width=10,
                      state="readonly").pack(side="left", padx=(8, 0))
+        ttk.Button(ki_frame, text=self._tr("btn_red_team"),
+                   command=self._red_team).pack(side="left", padx=(12, 0))
+        ttk.Button(ki_frame, text=self._tr("btn_translate"),
+                   command=self._translate).pack(side="left", padx=(6, 0))
 
         btns = tk.Frame(self)
         btns.pack(fill="x", pady=(12, 0))
@@ -1336,6 +1400,104 @@ class SolutionManagerApp(tk.Tk):
             tk.Label(dlg, text="•  " + line, anchor="w").pack(fill="x")
         ttk.Button(dlg, text=self._tr("btn_ok"),
                    command=dlg.destroy).pack(pady=(12, 0))
+
+    def _red_team(self) -> None:
+        """D5: write premortem/attack questions for the current config."""
+        cfg = self._build_config()
+        if cfg is None:
+            return
+        path = filedialog.asksaveasfilename(
+            title=self._tr("dlg_save_red_team"), defaultextension=".md",
+            initialfile=f"{cfg.name}_RedTeam_{date.today().isoformat()}.md",
+            filetypes=[("Markdown", "*.md")])
+        if not path:
+            return
+        provider = self._llm_provider.get() or "ollama"
+        self._status.set(self._tr("msg_red_team_running"))
+        self.update_idletasks()
+
+        def worker() -> None:
+            try:
+                from .red_team import run_red_team
+                run_red_team(cfg, Path(path), provider_id=provider,
+                             lang=self._lang if self._lang in ("de", "en")
+                             else "en", log=lambda *_: None)
+                msg = self._tr("msg_red_team_done").format(path=path)
+            except Exception as exc:
+                msg = self._tr("msg_red_team_error").format(error=exc)
+            self.after(0, lambda: self._status.set(msg))
+
+        threading.Thread(target=worker, daemon=True).start()
+
+    def _translate(self) -> None:
+        """D6: deliver an (edited, approved) text file in house languages."""
+        source = filedialog.askopenfilename(
+            title=self._tr("dlg_pick_translate"),
+            filetypes=[("Markdown/Text", "*.md *.txt"), ("All files", "*.*")])
+        if not source:
+            return
+        langs = self._ask_target_languages()
+        if langs is None:
+            return
+        if not langs:
+            self._status.set(self._tr("msg_translate_none"))
+            return
+        provider = self._llm_provider.get() or "ollama"
+        self._status.set(self._tr("msg_translate_running").format(
+            n=len(langs)))
+        self.update_idletasks()
+
+        def worker() -> None:
+            try:
+                from llm.audit import AUDIT_FILENAME
+                from llm.translate import translate_text
+                src_path = Path(source)
+                text = src_path.read_text(encoding="utf-8")
+                for lang in langs:
+                    narration = translate_text(
+                        text, lang, provider_id=provider,
+                        audit_path=src_path.parent / AUDIT_FILENAME)
+                    src_path.with_suffix(
+                        src_path.suffix + f".{lang}.md").write_text(
+                        f"> {narration.banner}\n\n{narration.text}\n",
+                        encoding="utf-8")
+                msg = self._tr("msg_translate_done").format(
+                    langs=", ".join(langs))
+            except Exception as exc:
+                msg = self._tr("msg_translate_error").format(error=exc)
+            self.after(0, lambda: self._status.set(msg))
+
+        threading.Thread(target=worker, daemon=True).start()
+
+    def _ask_target_languages(self) -> list[str] | None:
+        """Small modal: pick target languages. None = cancelled."""
+        from llm.prompts import TRANSLATION_LANGS
+
+        dlg = tk.Toplevel(self)
+        dlg.title(self._tr("dlg_translate_title"))
+        dlg.configure(padx=14, pady=12)
+        dlg.transient(self)
+        dlg.grab_set()
+        chosen: dict[str, tk.BooleanVar] = {}
+        for code, name in TRANSLATION_LANGS.items():
+            var = tk.BooleanVar(value=False)
+            chosen[code] = var
+            ttk.Checkbutton(dlg, text=f"{name} ({code})",
+                            variable=var).pack(anchor="w")
+        result: dict[str, list[str] | None] = {"value": None}
+
+        def confirm() -> None:
+            result["value"] = [c for c, v in chosen.items() if v.get()]
+            dlg.destroy()
+
+        buttons = tk.Frame(dlg)
+        buttons.pack(fill="x", pady=(10, 0))
+        ttk.Button(buttons, text=self._tr("btn_ok"),
+                   command=confirm).pack(side="right")
+        ttk.Button(buttons, text=self._tr("btn_cancel"),
+                   command=dlg.destroy).pack(side="right", padx=(0, 6))
+        self.wait_window(dlg)
+        return result["value"]
 
     def _delta(self) -> None:
         """Pick two snapshot files and open their delta briefing (D2)."""
