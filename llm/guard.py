@@ -30,20 +30,43 @@ from .prompts import PROMPT_VERSION
 _NUMBER_RE = re.compile(r"\d+(?:[.,]\d+)*")
 
 
+def _canonical(number: str) -> str:
+    """
+    Canonical form of one number token for comparison.
+
+    Separators vary between the deterministic input and free-form prose
+    (99,5 vs 99.5 vs 99 %), so they are dropped. Insignificant trailing
+    zeros of a decimal fraction are dropped too: a contract saying
+    "median CT 39.0 d" and a draft saying "39 Tage" state the SAME
+    number, and flagging that as invented was a false alarm (field
+    report 04.09.2026 — five rejected drafts in a row on a portfolio
+    whose metrics happened to be whole numbers).
+
+    A last group of exactly three digits is read as a thousands
+    separator (1.234 → 1234), anything else as a decimal fraction
+    (39.0 → 39, 103.5 → 1035).
+    """
+    groups = re.split(r"[.,]", number)
+    if len(groups) == 1:
+        return groups[0]
+    if len(groups[-1]) == 3:  # Tausendertrenner
+        return "".join(groups)
+    integer, fraction = "".join(groups[:-1]), groups[-1].rstrip("0")
+    return integer + fraction
+
+
 def extract_numbers(text: str) -> set[str]:
     """
-    All numbers of a text, normalised for comparison.
+    All numbers of a text, normalised for comparison (see _canonical).
 
-    Normalisation keeps only the digits (separators vary between the
-    deterministic briefing and free-form prose: 99,5 vs 99.5 vs 99 %).
     Single digits are ignored — enumerations ("1.", "2 Sätze") are prose,
     not metrics, and would cause false alarms.
     """
     numbers = set()
     for match in _NUMBER_RE.findall(text):
-        digits = re.sub(r"\D", "", match)
-        if len(digits) >= 2:
-            numbers.add(digits)
+        canonical = _canonical(match)
+        if len(canonical) >= 2:
+            numbers.add(canonical)
     return numbers
 
 

@@ -1198,6 +1198,7 @@ class SolutionManagerApp(tk.Tk):
             self.update_idletasks()
 
         def worker() -> None:
+            warning = ""
             if is_pdf:
                 ok = render_pdf(cfg, out_path, mode=mode, terminology=terminology,
                                 log=lambda *_: None)
@@ -1221,21 +1222,29 @@ class SolutionManagerApp(tk.Tk):
                             f"> {narration.banner}\n\n{narration.text}\n",
                             encoding="utf-8")
                     except Exception as exc:
-                        # Saubere Degradation: Report ohne Entwurf schreiben.
-                        msg = self._tr("msg_exec_error").format(error=exc)
-                        self.after(0, lambda m=msg: self._status.set(m))
+                        # Saubere Degradation: Report ohne Entwurf schreiben —
+                        # der Grund wird an die Erfolgsmeldung angehaengt.
+                        warning = self._tr("msg_exec_error").format(error=exc)
                 if html:
                     out_path.write_text(html, encoding="utf-8")
-            self.after(0, lambda: self._done(out, ok))
+            self.after(0, lambda: self._done(out, ok, warning))
 
         threading.Thread(target=worker, daemon=True).start()
 
-    def _done(self, out: str, ok: bool) -> None:
+    def _done(self, out: str, ok: bool, warning: str = "") -> None:
+        """
+        Report finished. ``warning`` carries a non-fatal problem (e.g. the
+        AI draft was discarded) — the report exists, so the success
+        message stays, but the reason is appended instead of being
+        overwritten (field report 04.09.2026: five discarded drafts, and
+        the GUI only ever said "Report erzeugt").
+        """
         if ok:
-            self._status.set(self._tr("msg_report_done").format(path=out))
+            msg = self._tr("msg_report_done").format(path=out)
+            self._status.set(f"{msg} — {warning}" if warning else msg)
             webbrowser.open(Path(out).resolve().as_uri())
         else:
-            self._status.set(self._tr("msg_no_figures"))
+            self._status.set(warning or self._tr("msg_no_figures"))
 
     def _snapshot(self) -> None:
         """Freeze the current configuration's report state to a JSON file (D2)."""
