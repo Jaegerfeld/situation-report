@@ -14,9 +14,15 @@ simplified or omitted.
 
 ## What is SituationReport?
 
-SituationReport is a toolsuite that analyses data from the project management
-tool **Jira** and turns it into clear reports and charts. The software runs
-locally on your own computer — no data is uploaded to any cloud.
+SituationReport is a toolsuite that draws a **situational picture** of large
+solutions and portfolios: how work actually flows, where it stalls, what is at
+risk — and what changed since the last look. The flow metrics come from the
+project management tool **Jira**; alongside them the suite keeps governance
+registers (capabilities, risks, NFRs, dependencies, decisions, service levels
+and delivery performance), prepares the Value Stream Conference, forecasts
+delivery dates, and can have a language model draft the accompanying narrative.
+The software runs locally on your own computer — no data is uploaded to any
+cloud, and the language model is local by default too.
 
 > **📖 Explanation:**
 > Jira is a widely used tool in which teams manage their tasks (called

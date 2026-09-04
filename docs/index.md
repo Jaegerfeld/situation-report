@@ -1,6 +1,6 @@
 # SituationReport
 
-Toolsuite for retrieving Jira issue data and preparing it for metrics and reports.
+Toolsuite for the situational picture at portfolio and solution level: flow metrics from Jira, governance registers, Value-Stream-Conference preparation, forecasts and AI-drafted narration — running locally on your own machine.
 
 !!! tip "📚 The Memoranda Series — the thinking behind the tool"
     The software is the tool; the **memoranda (Denkschriften)** are its conceptual foundation: how large IT portfolios are led — with an honest **situational picture**, trained **staffs**, and **AI as a staff member**. Six memoranda for decision-makers, freely available in English and German, each with its single most important sentence up front.

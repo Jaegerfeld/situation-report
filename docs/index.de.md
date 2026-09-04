@@ -1,6 +1,6 @@
 # SituationReport
 
-Toolsuite zur Abfrage von Jira-Issuedaten sowie zur Aufbereitung für Metriken und Reports.
+Toolsuite für das Lagebild auf Portfolio- und Solution-Ebene: Flow-Metriken aus Jira, Governance-Register, Vorbereitung der Value-Stream-Conference, Prognosen und KI-Entwürfe — lokal auf dem eigenen Rechner.
 
 !!! tip "📚 Die Denkschriften-Reihe – das Denken hinter dem Werkzeug"
     Die Software ist das Werkzeug; die **Denkschriften** sind ihr fachliches Fundament: wie große IT-Portfolios geführt werden – mit ehrlichem **Lagebild**, ausgebildeten **Stäben** und **KI als Stabsmitglied**. Sechs Schriften für Entscheider, frei verfügbar auf Deutsch und Englisch, jede mit ihrem wichtigsten Satz vorneweg.

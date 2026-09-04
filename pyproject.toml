@@ -1,7 +1,7 @@
 [project]
 name = "situation-report"
 version = "0.1.0"
-description = "Jira issue data toolsuite for metrics and reports"
+description = "Toolsuite for the situational picture at portfolio and solution level"
 license = { text = "BSD-3-Clause" }
 requires-python = ">=3.11"
 dependencies = ["openpyxl>=3.1", "plotly>=5.20", "kaleido>=0.2", "pypdf>=6.16.1", "tkcalendar>=1.6"]

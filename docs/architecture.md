@@ -15,7 +15,7 @@ C4Context
 
     Person(user, "Agile Coach / PI Manager", "Analyses Jira data and generates flow metrics")
 
-    System(sr, "SituationReport", "Toolsuite for transforming Jira raw data into flow metrics and reports")
+    System(sr, "SituationReport", "Toolsuite for the situational picture at portfolio and solution level: flow metrics, governance registers, forecasts and AI-drafted narration")
 
     System_Ext(jira, "Jira", "Issue tracking system (Atlassian)")
 
@@ -39,13 +39,15 @@ C4Container
     System_Ext(jira, "Jira", "Issue tracking system")
 
     System_Boundary(sr, "SituationReport") {
-        Container(get_data, "get_data", "Python", "Fetches Jira issues via REST API (planned)")
+        Container(get_data, "get_data", "Python", "Fetches Jira issues via REST API, or validates a manual export")
         Container(helper, "helper", "Python · tkinter", "Merges multiple paginated Jira JSON files into one")
         Container(transform_data, "transform_data", "Python · tkinter", "Reads JSON export + workflow definition, computes stage times, writes XLSX files")
         Container(build_reports, "build_reports", "Python · tkinter · Plotly", "Reads XLSX, filters issues, computes flow metrics, exports HTML/PDF")
         Container(portfolio, "portfolio", "Python · tkinter · Plotly", "Aggregates several ARTs into pooled/comparison Large-Solution & Portfolio reports (HTML/PDF); optionally resolved down to ART level (ART depth)")
         Container(testdata_generator, "testdata_generator", "Python · tkinter", "Generates synthetic Jira JSON exports for testing and demos")
         Container(simulate, "simulate", "Python · tkinter · Plotly", "Throughput-based Monte-Carlo forecast: how many / when done (with scope growth) + scope confidence; HTML report")
+        Container(sources, "sources", "Python", "Pluggable external metric sources (Prometheus, GitHub, GitLab, SonarQube, CSV) for SLO, DORA and quality values")
+        Container(llm, "llm", "Python", "Pluggable language models (local Ollama, Claude API, mock) behind the numbers guard, AI labelling and audit trail")
     }
 
     Rel(user, get_data, "starts", "CLI")
@@ -64,6 +66,8 @@ C4Container
     Rel(testdata_generator, transform_data, "delivers", "JSON (.json)")
     Rel(transform_data, build_reports, "delivers", "IssueTimes.xlsx · CFD.xlsx")
     Rel(transform_data, simulate, "delivers", "IssueTimes.xlsx")
+    Rel(portfolio, sources, "reads", "SLO · DORA · quality registers")
+    Rel(portfolio, llm, "drafts via", "narration · summary · red-team questions")
 ```
 
 ### Data flow
@@ -72,7 +76,7 @@ C4Container
 flowchart LR
     jira(["☁️ Jira"])
     tdg["testdata_generator"]
-    gd["get_data\n(planned)"]
+    gd["get_data\nREST or export check"]
     hlp["helper\nJSON Merger"]
     td["transform_data"]
     br["build_reports"]
@@ -80,7 +84,7 @@ flowchart LR
     out(["📄 HTML / PDF\n📊 Excel"])
 
     jira -- "JSON\nmultiple pages" --> hlp
-    gd -. "JSON" .-> td
+    gd -- "JSON" --> td
     gd -- REST --> jira
     hlp -- "merged.json" --> td
     tdg -- "JSON" --> td

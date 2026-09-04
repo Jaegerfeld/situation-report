@@ -15,7 +15,7 @@ C4Context
 
     Person(user, "Agile Coach / PI Manager", "Analysiert Jira-Daten und erzeugt Flow-Metriken")
 
-    System(sr, "SituationReport", "Toolsuite zur Transformation von Jira-Rohdaten in Flow-Metriken und Reports")
+    System(sr, "SituationReport", "Toolsuite für das Lagebild auf Portfolio- und Solution-Ebene: Flow-Metriken, Governance-Register, Prognosen und KI-Entwürfe")
 
     System_Ext(jira, "Jira", "Issue-Tracking-System (Atlassian)")
 
@@ -39,13 +39,15 @@ C4Container
     System_Ext(jira, "Jira", "Issue-Tracking-System")
 
     System_Boundary(sr, "SituationReport") {
-        Container(get_data, "get_data", "Python", "Ruft Jira-Issues via REST API ab (geplant)")
+        Container(get_data, "get_data", "Python", "Ruft Jira-Issues via REST API ab oder prüft einen manuellen Export")
         Container(helper, "helper", "Python · tkinter", "Führt mehrere paginierte Jira-JSON-Dateien zu einer zusammen")
         Container(transform_data, "transform_data", "Python · tkinter", "Liest JSON-Export + Workflow-Definition, berechnet Stage-Zeiten, schreibt XLSX-Dateien")
         Container(build_reports, "build_reports", "Python · tkinter · Plotly", "Liest XLSX, filtert Issues, berechnet Flow-Metriken, exportiert HTML/PDF")
         Container(portfolio, "portfolio", "Python · tkinter · Plotly", "Aggregiert mehrere ARTs zu Pooled-/Comparison-Reports auf Large-Solution- & Portfolio-Ebene (HTML/PDF); optional bis auf ART-Ebene aufgelöst (ART-Tiefe)")
         Container(testdata_generator, "testdata_generator", "Python · tkinter", "Erzeugt synthetische Jira-JSON-Exporte für Tests und Demos")
         Container(simulate, "simulate", "Python · tkinter · Plotly", "Throughput-basierter Monte-Carlo-Forecast: wie viele / wann fertig (mit Scope-Wachstum) + Scope-Konfidenz; HTML-Report")
+        Container(sources, "sources", "Python", "Steckbare externe Metrik-Quellen (Prometheus, GitHub, GitLab, SonarQube, CSV) für SLO-, DORA- und Qualitätswerte")
+        Container(llm, "llm", "Python", "Steckbare Sprachmodelle (lokal Ollama, Claude-API, mock) hinter Zahlen-Wächter, KI-Kennzeichnung und Betreiber-Nachweis")
     }
 
     Rel(user, get_data, "startet", "CLI")
@@ -64,6 +66,8 @@ C4Container
     Rel(testdata_generator, transform_data, "liefert", "JSON (.json)")
     Rel(transform_data, build_reports, "liefert", "IssueTimes.xlsx · CFD.xlsx")
     Rel(transform_data, simulate, "liefert", "IssueTimes.xlsx")
+    Rel(portfolio, sources, "liest", "SLO- · DORA- · Qualitäts-Register")
+    Rel(portfolio, llm, "entwirft über", "Narration · Summary · Red-Team-Fragen")
 ```
 
 ### Datenfluss
@@ -72,7 +76,7 @@ C4Container
 flowchart LR
     jira(["☁️ Jira"])
     tdg["testdata_generator"]
-    gd["get_data\n(geplant)"]
+    gd["get_data\nREST oder Export-Prüfung"]
     hlp["helper\nJSON Merger"]
     td["transform_data"]
     br["build_reports"]
@@ -80,7 +84,7 @@ flowchart LR
     out(["📄 HTML / PDF\n📊 Excel"])
 
     jira -- "JSON\nmehrere Seiten" --> hlp
-    gd -. "JSON" .-> td
+    gd -- "JSON" --> td
     gd -- REST --> jira
     hlp -- "merged.json" --> td
     tdg -- "JSON" --> td

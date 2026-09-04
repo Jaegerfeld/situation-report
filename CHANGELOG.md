@@ -5,6 +5,31 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [Unreleased]
+
+### Changed
+- **Selbstbeschreibung auf den heutigen Umfang gebracht** — Projekt, Doku-Site,
+  Paket-Metadaten und Architekturbild sprachen noch vom „Jira issue data
+  toolsuite for metrics and reports“ aus der Anfangszeit. Beschrieben wird jetzt,
+  was die Suite tatsächlich tut: das **Lagebild auf Portfolio- und
+  Solution-Ebene** — Flow-Metriken aus Jira, Governance-Register, Vorbereitung
+  der Value-Stream-Conference, Prognosen und KI-Entwürfe, lokal auf dem eigenen
+  Rechner. Betroffen: README, Startseiten (EN/DE), `pyproject.toml`,
+  `mkdocs.yml`, C4-Systembeschreibung (EN/DE), `SituationReport.md` und die
+  Einleitung von `SituationReport_Overview.md`.
+- **Architekturbild vervollständigt** — die Container `sources` (steckbare
+  externe Metrik-Quellen) und `llm` (steckbare Sprachmodelle hinter
+  Zahlen-Wächter, Kennzeichnung und Nachweis) fehlten im Level-2-Diagramm
+  ganz; `get_data` war dort — wie zuvor im README — noch als „geplant“
+  geführt, obwohl das Modul ausgeliefert ist.
+- **`SituationReport.md`** ist jetzt ein schlanker deutscher Wegweiser statt
+  einer veralteten Zweitfassung des READMEs (sie führte fünf Module und eine
+  Verzeichnisstruktur aus leeren `__init__.py`-Dateien). Die Modulübersicht
+  steht dort bewusst nur noch als Verweis — eine vierte handgepflegte Tabelle
+  wäre die nächste Drift-Quelle.
+
+---
+
 ## [0.28.0] – 2026-09-04
 
 ### Added
