@@ -161,9 +161,10 @@ Nicht nach „Feature-Wunschliste", sondern nach **Datenherkunft** (das BGS-Prin
 - **Was:** Premortem-/Annahmen-Angriffs-Fragen aus Decision-/Assumption-Log generieren (Rohmaterial für menschlich moderierte Sessions).
 - **Warum:** Red-Team-Kapazität für jeden Stab (Rolle 3 der KI-Denkschrift). **Voraussetzung:** B4. **Aufwand:** S–M.
 
-### D6 · Mehrsprachige Report-Ausleitung
+### D6 · Mehrsprachige Report-Ausleitung — **✅ (04.09.2026, Phase 4)**
 - **Was:** Report-Texte in weitere Sprachen ausleiten (Muster M5; gelebte Praxis der Manuals).
 - **Warum:** adressatengerechte Zustellung in internationalen Solutions. **Aufwand:** S–M.
+- **Ist-Stand:** `llm/translate.py` über den Wächter-Pfad (`llm.narrate`) — die Zahlen-Invariante ist für Übersetzungen die perfekte Wache (jede Zahl der Übersetzung muss wörtlich in der Vorlage stehen); versionierter Übersetzungs-Prompt je Haussprache (`translation_system_prompt`, Regeln: vollständig, Zahlen/IDs wörtlich, Eigennamen unübersetzt, Entwurf), **Art.-50-Banner jetzt in allen fünf Haussprachen** (`ai_banner_text` de/en/ro/pt/fr), Audit-Zweck `d6_translation`. Zwei Wege: `python -m llm translate DATEI --to LANG …` (der Redaktions-Workflow: der Mensch gibt den redigierten Text frei und leitet DANN aus — je Zielsprache `<datei>.<lang>.md`) und `--translate LANG …` an der portfolio-CLI (Delta: Entwurf → `.narration.<lang>.md`, ohne Narration das deterministische Briefing → `.<lang>.md`; Report: `.exec_summary.<lang>.md`). Provider wie überall (ollama lokal Default, claude, mock).
 
 ### D7 · Noise-Audit-Unterstützung *(neu, KI-Denkschrift v2.0)*
 - **Was:** Dieselbe Frage n-fach in variierter Formulierung an die KI-Schicht stellen, Antworten protokollieren und die **Streuung ausweisen** (Konsistenz-Score, abweichende Aussagen markiert) — die KI misst ihre eigene Lautstärke. Optional Gegenüberstellung mit den unabhängigen Einschätzungen mehrerer Nutzer (Noise-Audit des Stabs, KI-Denkschrift D.3).

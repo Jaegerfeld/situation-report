@@ -75,16 +75,27 @@ def enforce_numbers(generated: str, source: str) -> None:
         raise NumbersGuardError(violations)
 
 
+#: Banner texts per house language ({meta} = model @ deployment, prompt).
+_BANNERS = {
+    "de": ("KI-formulierter Entwurf ({meta}) — ungeprüft; vor Verwendung "
+           "durch einen Menschen redigieren und freigeben."),
+    "en": ("AI-drafted ({meta}) — unreviewed draft; a human must edit "
+           "and approve before use."),
+    "ro": ("Schiță formulată de AI ({meta}) — neverificată; un om trebuie "
+           "să o redacteze și să o aprobe înainte de utilizare."),
+    "pt": ("Rascunho formulado por IA ({meta}) — não revisto; uma pessoa "
+           "tem de o redigir e aprovar antes da utilização."),
+    "fr": ("Brouillon formulé par IA ({meta}) — non relu ; une personne "
+           "doit le réviser et l'approuver avant utilisation."),
+}
+
+
 def ai_banner_text(result: LlmResult, lang: str = "de") -> str:
     """
-    The mandatory AI label for a narration (Art. 50 — always shown until
-    a human edits and adopts the draft; the tool never claims approval).
+    The mandatory AI label for a draft (Art. 50 — always shown until a
+    human edits and adopts it; the tool never claims approval). Covers
+    the five house languages; unknown codes fall back to German.
     """
-    if lang == "en":
-        return (f"AI-drafted ({result.model} @ {result.deployment_class}, "
-                f"prompt {PROMPT_VERSION}) — unreviewed draft; a human "
-                f"must edit and approve before use.")
-    return (f"KI-formulierter Entwurf ({result.model} @ "
-            f"{result.deployment_class}, Prompt {PROMPT_VERSION}) — "
-            f"ungeprüft; vor Verwendung durch einen Menschen redigieren "
-            f"und freigeben.")
+    meta = (f"{result.model} @ {result.deployment_class}, "
+            f"Prompt {PROMPT_VERSION}")
+    return _BANNERS.get(lang, _BANNERS["de"]).format(meta=meta)

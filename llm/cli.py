@@ -17,9 +17,13 @@ from __future__ import annotations
 
 import argparse
 import sys
+from pathlib import Path
 
+from .audit import AUDIT_FILENAME
 from .base import discover_providers
 from .narrate import narrate
+from .prompts import TRANSLATION_LANGS
+from .translate import translate_text
 
 
 def run_providers(_args: argparse.Namespace) -> int:
@@ -49,6 +53,46 @@ def run_test(args: argparse.Namespace) -> int:
     return 0
 
 
+def _print_utf8(text: str) -> None:
+    try:
+        print(text)
+    except UnicodeEncodeError:
+        sys.stdout.buffer.write(text.encode("utf-8") + b"\n")
+
+
+def run_translate(args: argparse.Namespace) -> int:
+    """
+    Translate a briefing/draft file into house languages (D6).
+
+    The typical workflow: a human edits and approves the German draft,
+    then hands the FINAL wording to this command for delivery in the
+    other languages — each output carries the target-language AI banner
+    and its own audit record (purpose d6_translation).
+    """
+    source = Path(args.file)
+    try:
+        text = source.read_text(encoding="utf-8")
+    except OSError as exc:
+        print(f"ERROR: {exc}", file=sys.stderr)
+        return 1
+    audit = source.parent / AUDIT_FILENAME
+    for lang in args.to:
+        try:
+            narration = translate_text(
+                text, lang, provider_id=args.llm,
+                config={"model": args.model} if args.model else None,
+                audit_path=audit)
+        except (ValueError, RuntimeError) as exc:
+            print(f"ERROR [{lang}]: {exc}", file=sys.stderr)
+            return 1
+        target = source.with_suffix(source.suffix + f".{lang}.md")
+        target.write_text(f"> {narration.banner}\n\n{narration.text}\n",
+                          encoding="utf-8")
+        _print_utf8(f"{lang}: {target}")
+    _print_utf8(f"audit: {audit}")
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     """Entry point for the llm CLI."""
     parser = argparse.ArgumentParser(
@@ -69,6 +113,23 @@ def main(argv: list[str] | None = None) -> int:
     test.add_argument("--lang", default="de", choices=["de", "en"],
                       help="Narration language (default: de).")
     test.set_defaults(func=run_test)
+
+    translate = sub.add_parser(
+        "translate",
+        help="Translate a briefing/draft file into house languages "
+             "(writes <file>.<lang>.md with the target-language AI "
+             "banner; audit purpose d6_translation).")
+    translate.add_argument("file", help="Text file to translate "
+                                        "(e.g. an edited draft .md).")
+    translate.add_argument("--to", nargs="+", required=True,
+                           choices=sorted(TRANSLATION_LANGS),
+                           help="Target language(s).")
+    translate.add_argument("--llm", default="ollama",
+                           help="Provider id (default: ollama).")
+    translate.add_argument("--model", default=None,
+                           help="Model override (default: provider "
+                                "default).")
+    translate.set_defaults(func=run_translate)
 
     args = parser.parse_args(argv)
     return int(args.func(args))

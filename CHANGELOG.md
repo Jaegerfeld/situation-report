@@ -8,6 +8,22 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- **Multilingual delivery of report texts (D6)** — situational texts
+  can now be delivered in all five house languages (de/en/ro/pt/fr) on
+  the same guarded llm path: the numbers invariant is the perfect
+  translation guard (every number in the translation must occur
+  verbatim in the source), the Art. 50 banner now exists in all five
+  languages and is written in the TARGET language, and every request is
+  audited (purpose `d6_translation`). Two routes: `python -m llm
+  translate FILE --to LANG …` translates an (edited, approved) text
+  file into `<file>.<lang>.md` per language — the editorial workflow:
+  approve first, then fan out; and `--translate LANG …` on the
+  portfolio CLI delivers the run's primary text alongside the original
+  (delta: the draft as `.narration.<lang>.md`, or the deterministic
+  briefing itself as `.<lang>.md` when not narrating; report runs: the
+  executive summary as `.exec_summary.<lang>.md`). New versioned
+  translation prompt (full text, numbers/IDs verbatim, proper names
+  untranslated, draft semantics).
 - **LLM executive summary for reports (D1)** — `--narrate` now also
   acts on report runs with an HTML `--output`: the labeled section
   *Executive Summary (Entwurf)* appears directly below the

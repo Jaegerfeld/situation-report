@@ -122,6 +122,7 @@ def run_delta_briefing(
     narrate_with: str | None = None,
     llm_model: str | None = None,
     llm_lang: str = "de",
+    translate_langs: list[str] | None = None,
     log: Callable[[str], None] = print,
 ) -> None:
     """
@@ -143,6 +144,11 @@ def run_delta_briefing(
         narrate_with: LLM provider id ("ollama", "claude", "mock") or None.
         llm_model:    Model override (None = provider default).
         llm_lang:     Narration language (default: de).
+        translate_langs: D6 — additionally deliver the primary text in
+                      these house languages: with a narration the DRAFT
+                      is translated (``<output>.narration.<lang>.md``),
+                      without one the deterministic briefing itself
+                      (``<output>.<lang>.md``). Needs ``output``.
         log:          Progress callback.
     """
     from .delta import compute_delta, delta_to_markdown, render_delta_html
@@ -196,6 +202,26 @@ def run_delta_briefing(
         draft.write_text(
             f"> {narration.banner}\n\n{narration.text}\n", encoding="utf-8")
         log(f"Narration draft (for human editing): {draft}")
+    if translate_langs and output is not None:
+        from llm.audit import AUDIT_FILENAME
+        from llm.translate import translate_text
+
+        source_text = narration.text if narration is not None else delta_md
+        infix = ".narration" if narration is not None else ""
+        audit_path = output.parent / AUDIT_FILENAME
+        for lang in translate_langs:
+            translated = translate_text(
+                source_text, lang, provider_id=narrate_with or "ollama",
+                config={"model": llm_model} if llm_model else None,
+                audit_path=audit_path)
+            target = output.with_suffix(
+                output.suffix + f"{infix}.{lang}.md")
+            target.write_text(
+                f"> {translated.banner}\n\n{translated.text}\n",
+                encoding="utf-8")
+            log(f"Translation ({lang}): {target}")
+    elif translate_langs:
+        log("Hint: --translate needs --output; nothing was translated.")
     log(f"Delta briefing written: {output}")
 
 
@@ -276,6 +302,22 @@ def main() -> None:
     parser.add_argument("--llm-lang", default="de", dest="llm_lang",
                         choices=["de", "en"],
                         help="Narration language (default: de).")
+    parser.add_argument("--translate", nargs="+", default=None,
+                        dest="translate_langs",
+                        choices=["de", "en", "ro", "pt", "fr"],
+                        metavar="LANG",
+                        help="D6: additionally deliver the primary text "
+                             "in these house languages (de/en/ro/pt/fr). "
+                             "With --narrate the DRAFT is translated "
+                             "(<output>.narration.<lang>.md, or "
+                             ".exec_summary.<lang>.md on report runs); "
+                             "on --delta without --narrate the "
+                             "deterministic briefing itself "
+                             "(<output>.<lang>.md). Every translation is "
+                             "guarded, labeled in the target language "
+                             "and audited (d6_translation). Tip: to "
+                             "translate an EDITED draft, use "
+                             "'python -m llm translate FILE --to ...'.")
 
     args = parser.parse_args()
 
@@ -283,7 +325,8 @@ def main() -> None:
         run_delta_briefing(args.delta[0], args.delta[1],
                            output=args.output, open_browser=args.browser,
                            narrate_with=args.narrate,
-                           llm_model=args.llm_model, llm_lang=args.llm_lang)
+                           llm_model=args.llm_model, llm_lang=args.llm_lang,
+                           translate_langs=args.translate_langs)
         return
     if args.config is None:
         parser.error("config is required (except with --delta).")
@@ -346,6 +389,20 @@ def main() -> None:
         draft.write_text(f"> {narration.banner}\n\n{narration.text}\n",
                          encoding="utf-8")
         print(f"Executive-summary draft (for human editing): {draft}")
+        if args.translate_langs:
+            from llm.translate import translate_text
+            for lang in args.translate_langs:
+                translated = translate_text(
+                    narration.text, lang, provider_id=args.narrate,
+                    config=({"model": args.llm_model}
+                            if args.llm_model else None),
+                    audit_path=audit_path)
+                target = args.output.with_suffix(
+                    args.output.suffix + f".exec_summary.{lang}.md")
+                target.write_text(
+                    f"> {translated.banner}\n\n{translated.text}\n",
+                    encoding="utf-8")
+                print(f"Translation ({lang}): {target}")
         print(f"  audit: {audit_path}")
         if args.browser:
             webbrowser.open(args.output.resolve().as_uri())
