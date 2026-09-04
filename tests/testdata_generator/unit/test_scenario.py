@@ -143,7 +143,7 @@ class TestBuiltInStories:
         cfg = load_solution_config(paths["portfolio"])
         entries = _collect_risks(cfg, log=lambda m: None)
         assert {source for source, _ in entries} == {"Solution Alpha", "Solution Beta"}
-        assert len(entries) == 9
+        assert len(entries) >= 9  # 9 Anker + skalierte Grundmenge
 
     def test_nfr_registers_load_and_tell_their_story(self, scenario) -> None:
         from portfolio.nfr_config import (
@@ -170,8 +170,8 @@ class TestBuiltInStories:
         cfg = load_solution_config(paths["portfolio"])
         nfrs, runway = _collect_nfr(cfg, log=lambda m: None)
         assert {source for source, _ in nfrs} == {"Solution Alpha", "Solution Beta"}
-        assert len(nfrs) == 6
-        assert len(runway) == 4
+        assert len(nfrs) >= 6  # 6 Anker + skalierte Grundmenge
+        assert len(runway) >= 4  # 4 Anker + skalierte Grundmenge
 
     def test_capability_maps_load_and_tell_their_story(self, scenario) -> None:
         from portfolio.capability_config import HEALTH_CRITICAL, load_capabilities
@@ -196,7 +196,7 @@ class TestBuiltInStories:
         warnings: list[str] = []
         entries = _collect_capabilities(cfg, log=warnings.append)
         assert {source for source, _ in entries} == {"Solution Alpha", "Solution Beta"}
-        assert len(entries) == 6
+        assert len(entries) >= 6  # 6 Anker + skalierte Grundmenge
         # Alle gemappten ART-Namen existieren als Member — keine Drift-Warnung.
         assert warnings == []
 
@@ -225,7 +225,7 @@ class TestBuiltInStories:
         cfg = load_solution_config(paths["portfolio"])
         entries = _collect_dependencies(cfg, log=lambda m: None)
         assert {source for source, _ in entries} == {"Solution Alpha", "Solution Beta"}
-        assert len(entries) == 5
+        assert len(entries) >= 5  # 5 Anker + skalierte Grundmenge
 
     def test_decision_logs_load_and_tell_their_story(self, scenario) -> None:
         from portfolio.decision_config import (
@@ -254,7 +254,7 @@ class TestBuiltInStories:
         cfg = load_solution_config(paths["portfolio"])
         entries = _collect_decisions(cfg, log=lambda m: None)
         assert {source for source, _ in entries} == {"Solution Alpha", "Solution Beta"}
-        assert len(entries) == 5
+        assert len(entries) >= 5  # 5 Anker + skalierte Grundmenge
 
     def test_delta_briefing_snapshots_tell_their_story(self, scenario) -> None:
         from portfolio.delta import compute_delta
@@ -279,7 +279,8 @@ class TestBuiltInStories:
         assert [(c.entry_id, c.fields["status"]) for c in deps.changed] \
             == [("AD-1", ("at_risk", "blocked"))]
         # ... Risiko BR-2 ist neu, ...
-        assert [e["id"] for e in delta.governance["risks"].added] == ["BR-2"]
+        added_risks = {e["id"] for e in delta.governance["risks"].added}
+        assert "BR-2" in added_risks  # + Grundmengen-Zugaenge (prev-Drop)
         # ... und Runway-Lücke + offene Annahme sind frisch überfällig.
         assert [e["id"] for e in delta.governance["runway"].newly_overdue] \
             == ["BRW-1"]
@@ -293,7 +294,7 @@ class TestBuiltInStories:
         _, paths = scenario
         cfg = load_solution_config(paths["portfolio"])
         slo_entries = _collect_slo(cfg, log=lambda m: None)
-        assert len(slo_entries) == 5
+        assert len(slo_entries) >= 5  # 5 Anker + skalierte Grundmenge
         # Die Geschichte: Betas Sync-API reisst ihr SLO, Alphas Checkout
         # hat kaum noch Budget.
         by_status = {r.service: slo_status(r) for _, r in slo_entries}
@@ -314,7 +315,7 @@ class TestBuiltInStories:
         _, paths = scenario
         cfg = load_solution_config(paths["portfolio"])
         entries = _collect_flow_problems(cfg, log=lambda m: None)
-        assert len(entries) == 4
+        assert len(entries) >= 4  # 4 Anker + skalierte Grundmenge
         # Das Workshop-Muster: FP-A1 und FP-B1 überleben Konferenzen.
         survivors = {p.problem_id for _, p in entries if p.survived}
         assert survivors == {"FP-A1", "FP-B1"}
@@ -339,7 +340,7 @@ class TestBuiltInStories:
         _, paths = scenario
         cfg = load_solution_config(paths["portfolio"])
         theme_entries, epic_entries = _collect_themes(cfg, log=lambda m: None)
-        assert len(theme_entries) == 3 and len(epic_entries) == 7
+        assert len(theme_entries) >= 3 and len(epic_entries) >= 7
         merged = ThemesRegister(
             themes=[t for _, t in theme_entries],
             epics=[e for _, e in epic_entries])

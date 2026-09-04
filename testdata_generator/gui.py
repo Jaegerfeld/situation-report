@@ -157,6 +157,8 @@ _T: dict[str, dict[str, str]] = {
         "tip_seed":           "Gleicher Seed → identische Ausgabe (reproduzierbar)",
         "lbl_scenario":       "Demo-Portfolio (2 Solutions × 3 ARTs, alle Artefakte)",
         "btn_scenario":       "Demo-Portfolio erzeugen…",
+        "lbl_scale":          "Umfang:",
+        "tip_scale":          "s = nur Story-Anker, m = realistische Demo, l = Stresstest",
         "btn_scenario_report": "Portfolio-Report öffnen",
         "dlg_scenario_dir":   "Zielordner für das Demo-Portfolio wählen",
         "log_scenario_started": "--- Demo-Portfolio wird erzeugt ---",
@@ -236,6 +238,8 @@ _T: dict[str, dict[str, str]] = {
         "tip_seed":           "Same seed → identical output (reproducible)",
         "lbl_scenario":       "Demo portfolio (2 solutions × 3 ARTs, all artifacts)",
         "btn_scenario":       "Generate Demo Portfolio…",
+        "lbl_scale":          "Scale:",
+        "tip_scale":          "s = story anchors only, m = realistic demo, l = stress test",
         "btn_scenario_report": "Open Portfolio Report",
         "dlg_scenario_dir":   "Select target folder for the demo portfolio",
         "log_scenario_started": "--- Generating demo portfolio ---",
@@ -595,6 +599,13 @@ class _App:
 
         scen_frame = ttk.Frame(frame)
         scen_frame.grid(row=20, column=0, columnspan=3, pady=(4, 4))
+        self._lbl_scale = ttk.Label(scen_frame, text="Scale:")
+        self._lbl_scale.pack(side="left", padx=(0, 4))
+        # Register-Umfang je Solution: s = nur Anker, m = Demo, l = Stress.
+        self._scale_var = tk.StringVar(value="m")
+        ttk.Combobox(scen_frame, textvariable=self._scale_var,
+                     values=["s", "m", "l"], width=3,
+                     state="readonly").pack(side="left", padx=(0, 8))
         self._btn_scenario = ttk.Button(
             scen_frame, text="Generate Demo Portfolio…",
             command=self._make_scenario,
@@ -710,6 +721,7 @@ class _App:
             text=self._t("btn_scenario_conference"))
         self._btn_scenario_narrate.configure(
             text=self._t("btn_scenario_narrate"))
+        self._lbl_scale.configure(text=self._t("lbl_scale"))
         self._log_frame.configure(text=self._t("lbl_log"))
         lang = self._lang_var.get()
         for rb, (_val, lbl_de, lbl_en) in zip(self._pattern_rbs, _PATTERN_LABELS):
@@ -1111,7 +1123,8 @@ class _App:
                 from .scenario import build_portfolio_scenario
 
                 paths = build_portfolio_scenario(
-                    Path(target), seed=seed, log=self._log_msg
+                    Path(target), seed=seed, log=self._log_msg,
+                    scale=self._scale_var.get(),
                 )
                 self._last_scenario = paths["portfolio"]
                 self._last_snapshots = (paths["snapshot_prev"],

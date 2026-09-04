@@ -122,6 +122,10 @@ from portfolio.themes_config import (
     save_themes,
 )
 from sources.base import DoraRecord, QualityRecord, SloRecord
+from testdata_generator.register_gen import (
+    DEFAULT_SCALE,
+    populate_registers,
+)
 from transform_data.processor import process_issues
 from transform_data.workflow import parse_workflow
 from transform_data.writers import write_cfd, write_issue_times, write_transitions
@@ -621,6 +625,7 @@ def build_portfolio_scenario(
     window_days: int = 365,
     log: Callable[[str], None] = print,
     story: str = STORY_NOW,
+    scale: str = DEFAULT_SCALE,
 ) -> dict[str, Path]:
     """
     Generate the complete demo portfolio into ``output_dir``.
@@ -710,42 +715,69 @@ def build_portfolio_scenario(
         log(f"  {profile.name}: {len(records)} issues"
             f"{' (kein CFD, Datenstand -' + str(profile.stale_days) + 'd)' if profile.stale_days else ''}")
 
-    risks_alpha = out / "solutions" / "alpha" / "registers" / "risks.json"
-    save_risks(risks_alpha, _alpha_risks(reference))
-    risks_beta = out / "solutions" / "beta" / "registers" / "risks.json"
-    save_risks(risks_beta, _beta_risks(reference, story))
-    nfr_alpha = out / "solutions" / "alpha" / "registers" / "nfr.json"
-    save_nfr(nfr_alpha, _alpha_nfr(reference))
-    nfr_beta = out / "solutions" / "beta" / "registers" / "nfr.json"
-    save_nfr(nfr_beta, _beta_nfr(reference))
-    caps_alpha = out / "solutions" / "alpha" / "registers" / "capabilities.json"
-    save_capabilities(caps_alpha, _alpha_capabilities(reference))
-    caps_beta = out / "solutions" / "beta" / "registers" / "capabilities.json"
-    save_capabilities(caps_beta, _beta_capabilities(reference))
-    deps_alpha = out / "solutions" / "alpha" / "registers" / "dependencies.json"
-    save_dependencies(deps_alpha, _alpha_dependencies(reference, story))
-    deps_beta = out / "solutions" / "beta" / "registers" / "dependencies.json"
-    save_dependencies(deps_beta, _beta_dependencies(reference))
-    decisions_alpha = out / "solutions" / "alpha" / "registers" / "decisions.json"
-    save_decisions(decisions_alpha, _alpha_decisions(reference))
-    decisions_beta = out / "solutions" / "beta" / "registers" / "decisions.json"
-    save_decisions(decisions_beta, _beta_decisions(reference))
-    slo_alpha = out / "solutions" / "alpha" / "registers" / "slo.json"
-    save_slo(slo_alpha, _alpha_slo(reference))
-    slo_beta = out / "solutions" / "beta" / "registers" / "slo.json"
-    save_slo(slo_beta, _beta_slo(reference))
-    dora_alpha = out / "solutions" / "alpha" / "registers" / "dora.json"
-    save_delivery(dora_alpha, _alpha_delivery(reference))
-    dora_beta = out / "solutions" / "beta" / "registers" / "dora.json"
-    save_delivery(dora_beta, _beta_delivery(reference))
-    flow_alpha = out / "solutions" / "alpha" / "registers" / "flow_problems.json"
-    save_flow_problems(flow_alpha, _alpha_flow_problems(reference))
-    flow_beta = out / "solutions" / "beta" / "registers" / "flow_problems.json"
-    save_flow_problems(flow_beta, _beta_flow_problems(reference))
-    themes_alpha = out / "solutions" / "alpha" / "registers" / "themes.json"
-    save_themes(themes_alpha, _alpha_themes(story))
-    themes_beta = out / "solutions" / "beta" / "registers" / "themes.json"
-    save_themes(themes_beta, _beta_themes(story))
+    # Story-Anker (handgeschriebene Fixtures) + seed-generierte
+    # Grundmenge (register_gen, Skala S/M/L) je Solution.
+    anchor_registers = {
+        "alpha": {
+            "risks": _alpha_risks(reference),
+            "nfr": _alpha_nfr(reference),
+            "capabilities": _alpha_capabilities(reference),
+            "dependencies": _alpha_dependencies(reference, story),
+            "decisions": _alpha_decisions(reference),
+            "slo": _alpha_slo(reference),
+            "dora": _alpha_delivery(reference),
+            "flow_problems": _alpha_flow_problems(reference),
+            "themes": _alpha_themes(story),
+        },
+        "beta": {
+            "risks": _beta_risks(reference, story),
+            "nfr": _beta_nfr(reference),
+            "capabilities": _beta_capabilities(reference),
+            "dependencies": _beta_dependencies(reference),
+            "decisions": _beta_decisions(reference),
+            "slo": _beta_slo(reference),
+            "dora": _beta_delivery(reference),
+            "flow_problems": _beta_flow_problems(reference),
+            "themes": _beta_themes(story),
+        },
+    }
+    savers = {"risks": save_risks, "nfr": save_nfr,
+              "capabilities": save_capabilities,
+              "dependencies": save_dependencies,
+              "decisions": save_decisions, "slo": save_slo,
+              "dora": save_delivery, "flow_problems": save_flow_problems,
+              "themes": save_themes}
+    register_paths: dict[str, Path] = {}
+    for solution_key, regs in anchor_registers.items():
+        populate_registers(
+            regs, solution_key,
+            art_names=[m.name for m in members[solution_key]],
+            reference=reference, seed=seed, scale=scale,
+            prev=(story == STORY_PREV))
+        for name, register in regs.items():
+            target = (out / "solutions" / solution_key / "registers"
+                      / f"{name}.json")
+            savers[name](target, register)
+            register_paths[f"{name}_{solution_key}"] = target
+
+    risks_alpha = register_paths["risks_alpha"]
+    risks_beta = register_paths["risks_beta"]
+    nfr_alpha = register_paths["nfr_alpha"]
+    nfr_beta = register_paths["nfr_beta"]
+    caps_alpha = register_paths["capabilities_alpha"]
+    caps_beta = register_paths["capabilities_beta"]
+    deps_alpha = register_paths["dependencies_alpha"]
+    deps_beta = register_paths["dependencies_beta"]
+    decisions_alpha = register_paths["decisions_alpha"]
+    decisions_beta = register_paths["decisions_beta"]
+    slo_alpha = register_paths["slo_alpha"]
+    slo_beta = register_paths["slo_beta"]
+    dora_alpha = register_paths["dora_alpha"]
+    dora_beta = register_paths["dora_beta"]
+    flow_alpha = register_paths["flow_problems_alpha"]
+    flow_beta = register_paths["flow_problems_beta"]
+    themes_alpha = register_paths["themes_alpha"]
+    themes_beta = register_paths["themes_beta"]
 
     _registers = {r: f"registers/{r}.json"
                   for r in ("risks", "nfr", "capabilities", "dependencies",
@@ -808,6 +840,11 @@ def build_portfolio_scenario(
         "                              themes.json)",
         "    workflows/  raw/  pi_config.json",
         "    snapshots/                snapshot_prev.json, snapshot_now.json",
+        "",
+        "Die Register bestehen aus festen **Story-Ankern** (unten) plus",
+        "einer seed-generierten Grundmenge; `--scale s|m|l` steuert deren",
+        "Umfang je Solution (s = nur Anker, m = Standard, l = Stresstest).",
+        "Die Anker und ihre Geschichten sind auf jeder Skala identisch.",
         "",
         "Eingebaute Geschichten:",
         "",
@@ -896,7 +933,7 @@ def build_portfolio_scenario(
             prev_paths = build_portfolio_scenario(
                 Path(tmp), seed=seed, reference=reference,
                 window_days=window_days, log=lambda m: None,
-                story=STORY_PREV)
+                story=STORY_PREV, scale=scale)
             save_snapshot(snapshot_prev, build_snapshot(
                 load_solution_config(prev_paths["portfolio"]),
                 as_of=reference - timedelta(days=14), log=lambda m: None))

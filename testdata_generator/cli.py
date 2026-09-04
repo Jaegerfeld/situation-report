@@ -198,6 +198,12 @@ def main() -> None:
                              "project: 'portfolio' builds 2 solutions x 3 ARTs with "
                              "IssueTimes/CFD/Transitions, solution/portfolio configs "
                              "(one with a stage_map), and a PI config into --output.")
+    parser.add_argument("--scale", choices=["s", "m", "l"], default="m",
+                        help="With --scenario: register volume per solution. "
+                             "s = story anchors only, m = realistic demo "
+                             "(default), l = stress test (dense heatmap, "
+                             "full roadmap matrix). Story anchors are "
+                             "identical at every scale.")
     parser.add_argument("--output", type=Path, default=None,
                         help="Output JSON file path (default: <project>_generated.json).")
     parser.add_argument("--project", default="TEST", dest="project_key",
@@ -239,7 +245,9 @@ def main() -> None:
     if args.scenario == "portfolio":
         from .scenario import build_portfolio_scenario
         out_dir = args.output if args.output else Path("demo_portfolio")
-        build_portfolio_scenario(Path(out_dir), seed=args.seed if args.seed is not None else 42)
+        build_portfolio_scenario(
+            Path(out_dir), seed=args.seed if args.seed is not None else 42,
+            scale=args.scale)
         return
 
     if args.workflow is None:
