@@ -5,7 +5,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
-## [Unreleased]
+## [0.26.0] – 2026-09-04
 
 ### Fixed
 - **GUI actions on a loaded data-folder portfolio failed with "No such
