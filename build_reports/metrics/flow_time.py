@@ -51,34 +51,99 @@ class _FlowTimePoint:
 # Pure helper functions (testable without a running display)
 # ---------------------------------------------------------------------------
 
-def count_derived_starts(data: ReportData, keys: list[str]) -> int | None:
+def count_missed_boundary(
+    data: ReportData, keys: list[str], stage: str | None
+) -> int | None:
     """
-    Count how many of the given issues never entered the declared start stage.
+    Count how many of the given issues never entered the named boundary stage.
 
-    transform_data sets First Date when an issue transitions into <First>. If
-    that stage was skipped, a fallback rule derives the start from a later
-    stage instead — silently. Those issues carry a First Date that does not
-    mark the moment they entered the system, so their cycle time is measured
-    from a different point than the header declares. AA1 asks for that to be
-    stated rather than hidden.
+    Statuses can be skipped in both directions, and the <Closed> stage is not
+    necessarily the last one — a workflow may carry further stages behind it
+    (Done, Monitoring). So an item can jump past <First> on the way in and past
+    <Closed> on the way out. transform_data covers both cases with a fallback
+    rule that derives the missing date from a neighbouring stage, silently:
+    <First> from the earliest stage after it, <Closed> from the first stage
+    behind it. Either way the clock runs between different points than the
+    header declares, and AA1 asks for that to be stated rather than hidden.
 
     The check reads the Transitions data: an issue whose transition list never
-    names the start stage did not enter it. This also catches a mismatched
+    names the boundary stage did not enter it. This also catches a mismatched
     workflow file (build_reports was given a different one than transform_data
     used) — the count is an observation, not an attribution of cause.
 
     Args:
-        data: ReportData carrying transitions and the first_stage marker.
-        keys: Issue keys that take part in the cycle time computation.
+        data:  ReportData carrying the transition entries.
+        keys:  Issue keys that take part in the cycle time computation.
+        stage: The boundary stage to check for, or None when undeclared.
 
     Returns:
-        Number of issues with a derived start, or None when the check cannot
-        run — no Transitions file loaded, or no start boundary declared.
+        Number of issues that never entered the stage, or None when the check
+        cannot run — no Transitions file loaded, or no boundary declared.
     """
-    if data.first_stage is None or not data.transitions:
+    if stage is None or not data.transitions:
         return None
-    entered = {t.key for t in data.transitions if t.label == data.first_stage}
+    entered = {t.key for t in data.transitions if t.label == stage}
     return sum(1 for k in keys if k not in entered)
+
+
+def boundary_note(
+    first_stage: str | None,
+    closed_stage: str | None,
+    ct_method: str,
+    derived_starts: int | None,
+    derived_ends: int | None,
+    item_count: int,
+) -> str:
+    """
+    Build the part of the declaration that reports skipped boundary stages.
+
+    Both boundaries can be missed. A status can be skipped on the way in, and
+    because the <Closed> stage need not be the last one in the workflow — Done
+    and Monitoring may sit behind it — it can be skipped on the way out too.
+    transform_data then derives the missing date from a neighbouring stage, so
+    the clock runs between different points than the header declares.
+
+    Under Method A a derived boundary moves the measurement itself. Under
+    Method B the cycle time is a sum of dwell times and does not read either
+    date, so a derived boundary only decides whether an item takes part at all
+    — the wording says which of the two it is rather than blurring them.
+
+    The clean case is stated out loud. The difference between "we checked and
+    found nothing" and "we did not look" is the whole point of AA1, and
+    silence cannot carry it.
+
+    Args:
+        first_stage:    <First> marker, or None when undeclared.
+        closed_stage:   <Closed> marker, or None when undeclared.
+        ct_method:      CT_METHOD_A or CT_METHOD_B.
+        derived_starts: Items that never entered <First>, or None if unchecked.
+        derived_ends:   Items that never entered <Closed>, or None if unchecked.
+        item_count:     Number of issues behind the figure.
+
+    Returns:
+        One clause, ready to append to the clock declaration.
+    """
+    if derived_starts is None and derived_ends is None:
+        return "boundary check needs --workflow and --transitions"
+
+    findings = []
+    if derived_starts:
+        findings.append(f"{derived_starts} of {item_count} items never entered "
+                        f"'{first_stage}'")
+    if derived_ends:
+        findings.append(f"{derived_ends} of {item_count} items never entered "
+                        f"'{closed_stage}'")
+
+    if findings:
+        effect = ("taking part on a derived boundary" if ct_method == CT_METHOD_B
+                  else "clock derived from a neighbouring stage")
+        return f"{', '.join(findings)} — {effect}"
+
+    # Nothing derived on the sides that could be checked; name those sides so
+    # a half-checked run is not read as a fully clean one.
+    checked = [f"'{s}'" for s, n in ((first_stage, derived_starts),
+                                     (closed_stage, derived_ends)) if n is not None]
+    return f"all {item_count} items entered {' and '.join(checked)}"
 
 
 def clock_declaration(
@@ -86,6 +151,7 @@ def clock_declaration(
     closed_stage: str | None,
     ct_method: str,
     derived_starts: int | None,
+    derived_ends: int | None,
     item_count: int,
 ) -> str:
     """
@@ -105,7 +171,8 @@ def clock_declaration(
         first_stage:    <First> marker, or None when undeclared.
         closed_stage:   <Closed> marker, or None when undeclared.
         ct_method:      CT_METHOD_A or CT_METHOD_B.
-        derived_starts: Result of count_derived_starts(), or None if unchecked.
+        derived_starts: Items that never entered <First>, or None if unchecked.
+        derived_ends:   Items that never entered <Closed>, or None if unchecked.
         item_count:     Number of issues behind the figure.
 
     Returns:
@@ -120,18 +187,8 @@ def clock_declaration(
     else:
         clock = f"Clock: start boundary not declared (pass --workflow) → last entry into {end}"
 
-    # First Date decides which issues take part under both methods, so the note
-    # belongs on Method B too — there a derived start moves the population
-    # rather than the measurement, and it says so.
-    effect = "included via a derived start" if ct_method == CT_METHOD_B else "start derived"
-    if derived_starts is None:
-        note = "start check needs --workflow and --transitions"
-    elif derived_starts:
-        note = (f"{derived_starts} of {item_count} items never entered "
-                f"'{first_stage}' — {effect}")
-    else:
-        note = f"all {item_count} items entered '{first_stage}'"
-
+    note = boundary_note(first_stage, closed_stage, ct_method,
+                         derived_starts, derived_ends, item_count)
     return f"{clock} | {note}"
 
 
@@ -366,10 +423,12 @@ class FlowTimeMetric(MetricPlugin):
                 cycle_days=delta,
             ))
 
+        keys = [p.key for p in points]
         boundary_stats: dict[str, object] = {
             "first_stage": data.first_stage,
             "closed_stage": data.closed_stage,
-            "derived_starts": count_derived_starts(data, [p.key for p in points]),
+            "derived_starts": count_missed_boundary(data, keys, data.first_stage),
+            "derived_ends": count_missed_boundary(data, keys, data.closed_stage),
         }
 
         if not points:
@@ -397,19 +456,25 @@ class FlowTimeMetric(MetricPlugin):
         )
         stats.update(boundary_stats)
 
-        if stats["derived_starts"]:
-            consequence = (
-                "so they take part on the strength of a start point the workflow "
-                "never recorded"
-                if self.ct_method == CT_METHOD_B else
-                "so their cycle time is measured from a different point than the "
-                "header declares"
-            )
-            warnings.append(
-                f"{stats['derived_starts']} of {len(points)} items never entered "
-                f"'{data.first_stage}' — their start was derived from a later stage, "
-                f"{consequence}."
-            )
+        # Both boundaries can be skipped: <First> on the way in, and <Closed>
+        # whenever the workflow carries further stages behind it.
+        consequence = (
+            "so they take part on the strength of a boundary the workflow never "
+            "recorded"
+            if self.ct_method == CT_METHOD_B else
+            "so their cycle time is measured between different points than the "
+            "header declares"
+        )
+        for side, count, stage, neighbour in (
+            ("start", stats["derived_starts"], data.first_stage, "later"),
+            ("end", stats["derived_ends"], data.closed_stage, "subsequent"),
+        ):
+            if count:
+                warnings.append(
+                    f"{count} of {len(points)} items never entered '{stage}' — "
+                    f"their {side} was derived from a {neighbour} stage, "
+                    f"{consequence}."
+                )
 
         return MetricResult(
             metric_id=self.metric_id,
@@ -447,8 +512,8 @@ class FlowTimeMetric(MetricPlugin):
         # reader has to know what the clock measures before the statistics
         # mean anything (AA1, Vacanti ch. 6).
         clock = clock_declaration(
-            s.get("first_stage"), s.get("closed_stage"),
-            self.ct_method, s.get("derived_starts"), s.get("count", 0),
+            s.get("first_stage"), s.get("closed_stage"), self.ct_method,
+            s.get("derived_starts"), s.get("derived_ends"), s.get("count", 0),
         )
 
         header = (

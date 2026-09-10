@@ -170,14 +170,15 @@ Method B **has no start boundary** — it sums across every stage before the `<C
 
 Without `--workflow` the report does not know the boundaries; it then reads `boundary not declared (pass --workflow)` rather than a guessed stage.
 
-**Derived start points.** When an item skips the `<First>` stage, `transform_data` falls back to the entry into a later stage (`processor.py`, fallback rule). The clock then runs from a different point than the header announces. The report counts those items from the Transitions file:
+**Derived boundaries — both sides.** A status can be skipped in either direction. The `<Closed>` stage is **not necessarily the last one**: with stages such as `Done` or `Monitoring` behind it, an item can jump past the closing status as well. `transform_data` then quietly derives the missing date from a neighbouring stage (`processor.py`, two fallback rules) — the start from a later one, the end from a subsequent one. The clock then runs **between different points** than the header announces. The report counts both cases from the Transitions file:
 
-- `43 of 64 items never entered 'Analysis' — start derived` (Method A: the measurement shifts)
-- `43 of 64 items never entered 'Analysis' — included via a derived start` (Method B: the *population* shifts, not the measurement)
-- `all 64 items entered 'Analysis'` — the clean case is stated, not left to silence
-- `start check needs --workflow and --transitions` — when the check could not run
+- `43 of 64 items never entered 'Analysis', 5 of 64 items never entered 'Releasing' — clock derived from a neighbouring stage` (Method A: the measurement shifts)
+- `… — taking part on a derived boundary` (Method B: the cycle time reads neither date, so only the *population* shifts)
+- `all 64 items entered 'Analysis' and 'Releasing'` — the clean case is stated, not left to silence
+- `all 64 items entered 'Analysis'` — only one side checkable; a half-checked run does not read as a clean one
+- `boundary check needs --workflow and --transitions` — when nothing could be checked at all
 
-On a finding the same statement also appears as a console warning. The counter also fires when `build_reports` was handed a **different** workflow file than `transform_data` used — it is an observation, not an attribution of cause.
+Each finding also appears as its own console warning. The counter also fires when `build_reports` was handed a **different** workflow file than `transform_data` used — it is an observation, not an attribution of cause.
 
 **Charts:**
 

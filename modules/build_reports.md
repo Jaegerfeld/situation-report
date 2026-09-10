@@ -170,14 +170,15 @@ Methode B **hat keine Startgrenze** — sie summiert über alle Stages vor der `
 
 Ohne `--workflow` kennt der Bericht die Grenzen nicht; dann steht `boundary not declared (pass --workflow)` statt einer geratenen Stage.
 
-**Abgeleitete Startpunkte.** Überspringt ein Vorgang die `<First>`-Stage, setzt `transform_data` den Startpunkt ersatzweise auf den Eintritt in eine spätere Stage (`processor.py`, Ersatzregel). Die Uhr läuft dann von einem anderen Punkt aus als der Kopf ankündigt. Der Bericht zählt diese Vorgänge aus der Transitions-Datei aus:
+**Abgeleitete Grenzen — beide Seiten.** Ein Status kann in beide Richtungen übersprungen werden. Die `<Closed>`-Stage ist dabei **nicht zwingend die letzte**: Stehen dahinter noch Stages wie `Done` oder `Monitoring`, kann ein Vorgang auch am Abschluss vorbeispringen. `transform_data` leitet das fehlende Datum dann still aus einer Nachbarstage ab (`processor.py`, zwei Ersatzregeln) — den Start aus einer späteren, das Ende aus einer nachfolgenden Stage. Die Uhr läuft dann **zwischen anderen Punkten**, als der Kopf ankündigt. Der Bericht zählt beide Fälle aus der Transitions-Datei aus:
 
-- `43 of 64 items never entered 'Analysis' — start derived` (Methode A: die Messung verschiebt sich)
-- `43 of 64 items never entered 'Analysis' — included via a derived start` (Methode B: die *Menge* verschiebt sich, nicht die Messung)
-- `all 64 items entered 'Analysis'` — der saubere Fall wird ausgesprochen, nicht verschwiegen
-- `start check needs --workflow and --transitions` — wenn die Prüfung nicht laufen konnte
+- `43 of 64 items never entered 'Analysis', 5 of 64 items never entered 'Releasing' — clock derived from a neighbouring stage` (Methode A: die Messung verschiebt sich)
+- `… — taking part on a derived boundary` (Methode B: die Zykluszeit liest keines der beiden Daten, hier verschiebt sich nur die *Menge*)
+- `all 64 items entered 'Analysis' and 'Releasing'` — der saubere Fall wird ausgesprochen, nicht verschwiegen
+- `all 64 items entered 'Analysis'` — nur eine Seite prüfbar; ein halb geprüfter Lauf liest sich nicht wie ein sauberer
+- `boundary check needs --workflow and --transitions` — wenn gar nichts geprüft werden konnte
 
-Bei Fund steht derselbe Befund zusätzlich als Warnung auf der Konsole. Der Zähler schlägt auch an, wenn `build_reports` eine **andere** Workflow-Datei bekommen hat als `transform_data` benutzt hat — er ist eine Beobachtung, keine Ursachenzuweisung.
+Jeder Fund steht zusätzlich als eigene Warnung auf der Konsole. Der Zähler schlägt auch an, wenn `build_reports` eine **andere** Workflow-Datei bekommen hat als `transform_data` benutzt hat — er ist eine Beobachtung, keine Ursachenzuweisung.
 
 **Diagramme:**
 

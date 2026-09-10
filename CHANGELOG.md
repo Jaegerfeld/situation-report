@@ -25,16 +25,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   `--workflow` steht `boundary not declared (pass --workflow)` statt einer
   geratenen Stage.
 
-  **Abgeleitete Startpunkte werden ausgezählt.** Überspringt ein Vorgang die
-  `<First>`-Stage, setzt `transform_data` den Startpunkt still auf den Eintritt
-  in eine spätere Stage — die Uhr läuft dann von einem anderen Punkt aus als
-  der Kopf ankündigt. Der Bericht zählt diese Vorgänge aus der
-  Transitions-Datei aus (`43 of 64 items never entered 'Analysis' — start
-  derived`) und meldet sie zusätzlich als Warnung. Der saubere Fall wird
-  ebenso ausgesprochen (`all 64 items entered 'Analysis'`), und wenn die
-  Prüfung nicht laufen kann, steht auch das da. In den mitgelieferten
-  Testdaten ist das kein Randfall: In `ART_E` betrifft es **45 von 78**
-  Vorgängen der Zykluszeit-Rechnung.
+  **Abgeleitete Grenzen werden ausgezählt — beide Seiten.** Ein Status kann in
+  beide Richtungen übersprungen werden. Die `<Closed>`-Stage ist dabei **nicht
+  zwingend die letzte**: Stehen dahinter noch Stages wie `Done` oder
+  `Monitoring`, kann ein Vorgang auch am Abschluss vorbeispringen.
+  `transform_data` leitet das fehlende Datum dann still aus einer Nachbarstage
+  ab — den Start aus einer späteren, das Ende aus einer nachfolgenden Stage.
+  Die Uhr läuft dann **zwischen anderen Punkten**, als der Kopf ankündigt. Der
+  Bericht zählt beide Fälle aus der Transitions-Datei aus (`43 of 64 items
+  never entered 'Analysis', 5 of 64 items never entered 'Releasing' — clock
+  derived from a neighbouring stage`) und meldet jeden Fund zusätzlich als
+  eigene Warnung. Der saubere Fall wird ebenso ausgesprochen (`all 64 items
+  entered 'Analysis' and 'Releasing'`); konnte nur eine Seite geprüft werden,
+  wird auch nur diese genannt, damit ein halb geprüfter Lauf sich nicht wie
+  ein sauberer liest. In den mitgelieferten Testdaten ist das kein Randfall:
+  In `ART_E` betrifft es **45 von 78** Vorgängen am Start und **5** am Ende.
 
 ---
 
