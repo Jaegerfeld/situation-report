@@ -5,7 +5,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
-## [Unreleased]
+## [0.29.0] – 2026-09-10
 
 ### Added
 - **Flow-Debt-Anzeige (A6)** — Bestand, Durchsatz und Durchlaufzeit standen im
@@ -51,6 +51,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   der Konferenzmappe erscheint er bewusst nicht, denn die ist die Unterlage
   einer bereits einberufenen Konferenz.
 
+### Changed
+- **Demo-Portfolio zeigt den Entscheidungspunkt** — das Szenario erzeugt zwei
+  Nähte zwischen den Solutions (AD-4, BD-3) mit einem Druckverlauf **9 → 14**
+  zwischen den beiden Delta-Ständen: jeder einzelne Train sieht unauffällig
+  aus, die Naht überschreitet die Schwelle.
+
 - Grenzauflösung und Kumulation der CFD-Reihen sind als
   `resolve_flow_boundaries` und `cumulative_stage_series` aus `cfd.py`
   herausgezogen, damit CFD-Diagramm und Flow-Debt-Anzeige nie über
@@ -58,15 +64,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Projektvorlage `build_reports` auf Version 5 (neues Feld
   `debt_tolerance_pct`); ältere Vorlagen werden weiter gelesen.
 
-### Changed
-- **Demo-Portfolio zeigt den Entscheidungspunkt** — das Szenario erzeugt zwei
-  Nähte zwischen den Solutions (AD-4, BD-3) mit einem Druckverlauf **9 → 14**
-  zwischen den beiden Delta-Ständen: jeder einzelne Train sieht unauffällig
-  aus, die Naht überschreitet die Schwelle.
-
----
-
-### Changed
 - **Selbstbeschreibung auf den heutigen Umfang gebracht** — Projekt, Doku-Site,
   Paket-Metadaten und Architekturbild sprachen noch vom „Jira issue data
   toolsuite for metrics and reports“ aus der Anfangszeit. Beschrieben wird jetzt,
@@ -86,6 +83,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   Verzeichnisstruktur aus leeren `__init__.py`-Dateien). Die Modulübersicht
   steht dort bewusst nur noch als Verweis — eine vierte handgepflegte Tabelle
   wäre die nächste Drift-Quelle.
+
+### Fixed
+- **Testdaten-CFD passte nicht mehr zur Pipeline** —
+  `transform_data.write_cfd` schreibt seit April tägliche
+  **Eintrittszählungen** je Stage, `build_reports` kumuliert selbst.
+  `tests/testdata/ART_A/ART_A_CFD.xlsx` trug weiterhin
+  **Bestands-Snapshots** — die Umstellung hatte das Fixture nicht
+  mitgenommen. Jeder Test und jede Handbuch-Abbildung dagegen lief
+  seither gegen Daten, die die Pipeline gar nicht erzeugt
+  (`Done` 101166 statt 338 bei 533 Vorgängen). Neu erzeugt; der Weg
+  dahin liegt jetzt dokumentiert bei (`tests/testdata/_regenerate_cfd.py`,
+  `tests/testdata/README.md`), damit derselbe Schritt nicht noch einmal
+  vergessen wird. Am ausgelieferten Code ändert sich nichts.
 
 ---
 
