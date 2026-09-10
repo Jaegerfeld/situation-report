@@ -89,6 +89,16 @@ Nicht nach „Feature-Wunschliste", sondern nach **Datenherkunft** (das BGS-Prin
 
 ---
 
+### A8 · Protokollfenster statt einzeiliger Statuszeile · 🔎 **Entscheidung offen**
+*(aus der Bugmeldung vom 11.09.2026)*
+- **Was:** Ein aufklappbarer Bereich unter der Statuszeile, der die letzten Meldungen einer Sitzung behält — mit Zeitstempel und Aktion, statt sie bei jeder neuen Aktion zu überschreiben. Reine Oberflächenarbeit, keine neue Eingabe, keine neue Rechnung.
+- **Warum:** Der Mangel ist zweimal in derselben Gestalt aufgetreten. Am **04.09.2026** meldete der Feldbericht fünf verworfene KI-Entwürfe, während die GUI immer nur „Report erzeugt“ sagte — behoben, indem `_done()` den Grund an die Erfolgsmeldung anhängt. Am **11.09.2026** war der Grund wieder weg: Die nächste Aktion (Konferenzmappe, 00:20) hat die Zeile des Report-Laufs (00:14) überschrieben. **Eine einzeilige Statuszeile kann einen Befund nicht über eine Aktionsgrenze hinweg tragen** — jeder Fix daran flickt den Einzelfall, nicht die Ursache.
+- **Zu entscheiden:** Ob es das Protokollfenster wird oder etwas Kleineres. Alternativen: eine Meldung, die erst auf Klick verschwindet; oder das Schreiben in eine Sitzungs-Logdatei neben der Ausgabe (analog `llm_audit.jsonl`), die man hinterher lesen kann. Das Fenster ist die sichtbarste, die Logdatei die belastbarste Lösung — und sie schließen sich nicht aus.
+- **Wo:** `portfolio/gui.py`; die anderen GUIs (`build_reports`, `transform_data`, `testdata_generator`) haben dasselbe Muster — vor dem Bauen klären, ob es einmal gelöst und geteilt wird.
+- **Aufwand:** S–M.
+
+---
+
 ## Phase B — neuer lokaler Input-Contract (G/B) · analog `solution_config`
 
 *Jede Dimension = ein neues, versioniertes JSON-Artefakt (geschätzt/beobachtet im PI-Planning/Review erhoben), geladen & validiert wie die Solution-Config, in den Report gerendert. Mittlerer Aufwand. **Hier entsteht der eigentliche EA-Mehrwert.***
@@ -198,6 +208,15 @@ Nicht nach „Feature-Wunschliste", sondern nach **Datenherkunft** (das BGS-Prin
 ### D7 · Noise-Audit-Unterstützung *(neu, KI-Denkschrift v2.0)*
 - **Was:** Dieselbe Frage n-fach in variierter Formulierung an die KI-Schicht stellen, Antworten protokollieren und die **Streuung ausweisen** (Konsistenz-Score, abweichende Aussagen markiert) — die KI misst ihre eigene Lautstärke. Optional Gegenüberstellung mit den unabhängigen Einschätzungen mehrerer Nutzer (Noise-Audit des Stabs, KI-Denkschrift D.3).
 - **Warum:** Nicht-deterministische Modelle streuen selbst; blindes Vertrauen importiert diese Streuung als Scheinobjektivität (Risiko „Noise-Verstärkung"). Prinzip 7. **Voraussetzung:** D3. **Aufwand:** M.
+
+### D8 · KI-Narration für die Konferenzmappe · 🔎 **Entscheidung offen**
+*(aus der Bugmeldung vom 11.09.2026)*
+- **Was:** Die Konferenzmappe (B6) um einen gekennzeichneten KI-Entwurf ergänzen — technisch derselbe Baustein wie D1/D2, mit Zahlen-Wächter, Kennzeichnung und Betreiber-Nachweis.
+- **Warum die Frage überhaupt aufkam:** Der KI-Haken sitzt im selben Fenster und wirkte auf die Mappe nicht — stillschweigend. Behoben ist seit dem 11.09.2026 nur das **Schweigen** (die Statuszeile sagt jetzt, dass der Haken hier nicht gilt); ob die Mappe einen Entwurf bekommen *soll*, ist damit ausdrücklich **nicht** entschieden.
+- **Was dagegen spricht:** Die Mappe ist bauartbedingt deterministisch — sie ist die Unterlage einer **bereits einberufenen** Konferenz, kein Erkundungsbericht. Aus demselben Grund steht der Entscheidungspunkt-Wecker (P4) bewusst nicht darin: Er stellt die Frage, *ob* einberufen wird, und die ist in der Mappe schon beantwortet. Ein KI-Entwurf in einer Unterlage, die in der Sitzung vorgelesen wird, trägt ein höheres Freigaberisiko als einer im Report, den ein Mensch am Schreibtisch redigiert.
+- **Was dafür spricht:** Genau weil die Mappe vorgelesen wird, ist die Vorbereitungszeit knapp — ein Entwurf der Einleitung könnte den Aufwand senken. Der Freigabe-Weg existiert bereits (Art.-50-Banner, `.md`-Entwurfsdatei zum Redigieren).
+- **Zu entscheiden:** Falls ja — welcher Teil der Mappe? Eine Einleitung über alle vier Eingaben, oder je Eingabe ein Absatz? Und: erscheint der Entwurf in der Mappe selbst oder nur als separate `.md`, die ein Mensch bewusst hineinholt? Letzteres wäre der vorsichtigere Weg.
+- **Aufwand:** S (der Baustein existiert), die Entscheidung ist der Aufwand.
 
 **Zuordnung der D-Funktionen zu Entscheidungsbestandteilen** (Zerlegung nach Agrawal/Gans/Goldfarb, KI-Denkschrift C.6): D1/D2/D6 → *Aktion* (formulieren) · D3/D7 → *Vorhersage/Feedback* (erklären, konsistent halten) · D4 → *Ergebnis* · D5 → *Urteil* (nur Rohmaterial — **kein Empfehlungs-Button, der das Urteil automatisiert**).
 
