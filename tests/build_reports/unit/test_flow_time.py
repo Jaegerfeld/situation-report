@@ -24,8 +24,9 @@ from build_reports.metrics.flow_time import (
     _loess,
     _month_ticks,
     _point_color,
+    boundary_note,
     clock_declaration,
-    count_derived_starts,
+    count_missed_boundary,
 )
 from build_reports.terminology import GLOBAL, SAFE
 
@@ -667,90 +668,131 @@ class TestMethodBClosedStage:
 
 
 # ---------------------------------------------------------------------------
-# AA1 - Zykluszeit-Grenzen im Bericht benennen
+# AA1 - Zykluszeit-Grenzen im Bericht benennen (beide Grenzen)
 # ---------------------------------------------------------------------------
 
+# The <Closed> stage is deliberately NOT the last one here: 'Done' sits behind
+# it, which is what makes the end boundary skippable in the first place.
+BOUNDARY_STAGES = ["Analysis", "Implementation", "Releasing", "Done"]
+
+
 def _tr(key: str, label: str) -> TransitionEntry:
-    """Create a TransitionEntry; the timestamp is irrelevant for the start check."""
+    """Create a TransitionEntry; the timestamp is irrelevant for the boundary check."""
     return TransitionEntry(key=key, label=label, timestamp="01.01.2025 00:00:00")
 
 
-@pytest.fixture
-def declared_data() -> ReportData:
-    """Two issues, both of which actually entered the declared start stage."""
+def _boundary_data(*paths: tuple[str, list[str]]) -> ReportData:
+    """Build ReportData from (issue key, stages the issue actually entered) pairs."""
     return ReportData(
-        issues=[
-            _issue("A-1", datetime(2025, 1, 1), datetime(2025, 1, 11)),
-            _issue("A-2", datetime(2025, 1, 1), datetime(2025, 1, 21)),
-        ],
+        issues=[_issue(key, datetime(2025, 1, 1), datetime(2025, 1, 11))
+                for key, _ in paths],
         cfd=[],
-        transitions=[_tr("A-1", "Analysis"), _tr("A-2", "Analysis"),
-                     _tr("A-1", "Done"), _tr("A-2", "Done")],
-        stages=STAGES, source_prefix="TEST",
-        first_stage="Analysis", closed_stage="Done",
+        transitions=[_tr(key, stage) for key, stages in paths for stage in stages],
+        stages=BOUNDARY_STAGES, source_prefix="TEST",
+        first_stage="Analysis", closed_stage="Releasing",
     )
 
 
 @pytest.fixture
-def derived_start_data() -> ReportData:
-    """Two issues, one of which never entered the declared start stage.
+def clean_boundary_data() -> ReportData:
+    """Two issues that passed through both declared boundary stages."""
+    return _boundary_data(
+        ("A-1", ["Analysis", "Implementation", "Releasing"]),
+        ("A-2", ["Analysis", "Implementation", "Releasing"]),
+    )
 
-    A-2 carries a First Date but has no transition into 'Analysis' -- exactly
-    the case transform_data's fallback rule produces when the First stage was
-    skipped. Without such a fixture the derived-start branch is never executed.
+
+@pytest.fixture
+def skipped_start_data() -> ReportData:
+    """A-2 never entered the start stage; its First Date was derived."""
+    return _boundary_data(
+        ("A-1", ["Analysis", "Implementation", "Releasing"]),
+        ("A-2", ["Implementation", "Releasing"]),
+    )
+
+
+@pytest.fixture
+def skipped_end_data() -> ReportData:
+    """A-2 jumped past the closed stage straight to 'Done'.
+
+    This is only possible because 'Done' sits BEHIND the <Closed> stage in the
+    workflow -- the case Robert pointed out: the closing status can be skipped
+    just as the opening one can.
     """
-    return ReportData(
-        issues=[
-            _issue("A-1", datetime(2025, 1, 1), datetime(2025, 1, 11)),
-            _issue("A-2", datetime(2025, 1, 1), datetime(2025, 1, 21)),
-        ],
-        cfd=[],
-        transitions=[_tr("A-1", "Analysis"), _tr("A-2", "Implementation"),
-                     _tr("A-1", "Done"), _tr("A-2", "Done")],
-        stages=STAGES, source_prefix="TEST",
-        first_stage="Analysis", closed_stage="Done",
+    return _boundary_data(
+        ("A-1", ["Analysis", "Implementation", "Releasing"]),
+        ("A-2", ["Analysis", "Implementation", "Done"]),
     )
 
 
-class TestDerivedStartFixtures:
-    """Guards: the fixtures must actually exercise the branches they are named for."""
+@pytest.fixture
+def skipped_both_data() -> ReportData:
+    """A-2 missed both boundaries: in past 'Analysis', out past 'Releasing'."""
+    return _boundary_data(
+        ("A-1", ["Analysis", "Implementation", "Releasing"]),
+        ("A-2", ["Implementation", "Done"]),
+    )
 
-    def test_declared_fixture_has_no_derived_starts(self, metric, declared_data):
-        """The clean fixture must produce zero derived starts, or the 'all items' branch is untested."""
-        result = metric.compute(declared_data, SAFE)
-        assert result.stats["derived_starts"] == 0
 
-    def test_derived_fixture_actually_derives(self, metric, derived_start_data):
-        """The derived fixture must produce exactly one derived start.
+class TestBoundaryFixtures:
+    """Guards: each fixture must actually exercise the branch it is named for."""
 
-        This is the counterpart to the Flow Debt fixture guard: the branch that
-        matters most is the one no real test data set exercises (ART_A has zero
-        derived starts).
+    def test_clean_fixture_derives_nothing(self, metric, clean_boundary_data):
+        """The clean fixture must derive neither boundary."""
+        stats = metric.compute(clean_boundary_data, SAFE).stats
+        assert (stats["derived_starts"], stats["derived_ends"]) == (0, 0)
+
+    def test_skipped_start_fixture_derives_a_start(self, metric, skipped_start_data):
+        """Exactly one derived start, no derived end."""
+        stats = metric.compute(skipped_start_data, SAFE).stats
+        assert (stats["derived_starts"], stats["derived_ends"]) == (1, 0)
+
+    def test_skipped_end_fixture_derives_an_end(self, metric, skipped_end_data):
+        """Exactly one derived end, no derived start.
+
+        Without this guard the end branch would never be executed: ART_A has no
+        skipped boundaries at all, which is how the Flow Debt bug survived 20
+        green tests on the same day.
         """
-        result = metric.compute(derived_start_data, SAFE)
-        assert result.stats["derived_starts"] == 1
+        stats = metric.compute(skipped_end_data, SAFE).stats
+        assert (stats["derived_starts"], stats["derived_ends"]) == (0, 1)
+
+    def test_skipped_both_fixture_derives_both(self, metric, skipped_both_data):
+        """One item missing both boundaries counts on both sides."""
+        stats = metric.compute(skipped_both_data, SAFE).stats
+        assert (stats["derived_starts"], stats["derived_ends"]) == (1, 1)
+
+    def test_closed_stage_is_not_the_last_stage(self):
+        """The fixture workflow must keep a stage behind <Closed>.
+
+        If 'Done' were dropped, the end boundary could not be skipped and the
+        end tests would silently stop testing anything.
+        """
+        assert BOUNDARY_STAGES.index("Releasing") < len(BOUNDARY_STAGES) - 1
 
 
-class TestCountDerivedStarts:
-    """Tests for the count_derived_starts() helper."""
+class TestCountMissedBoundary:
+    """Tests for the count_missed_boundary() helper."""
 
-    def test_counts_issues_without_entry_into_first_stage(self, derived_start_data):
-        """An issue whose transitions never name the start stage counts as derived."""
-        assert count_derived_starts(derived_start_data, ["A-1", "A-2"]) == 1
+    def test_counts_items_that_skipped_the_start(self, skipped_start_data):
+        """An issue whose transitions never name the start stage is counted."""
+        assert count_missed_boundary(skipped_start_data, ["A-1", "A-2"], "Analysis") == 1
+
+    def test_counts_items_that_skipped_the_end(self, skipped_end_data):
+        """An issue that jumped past the closed stage is counted."""
+        assert count_missed_boundary(skipped_end_data, ["A-1", "A-2"], "Releasing") == 1
 
     def test_returns_none_without_transitions(self, simple_data):
         """Without a Transitions file the check cannot run and says so with None."""
-        simple_data.first_stage = "Analysis"
-        assert count_derived_starts(simple_data, ["A-1"]) is None
+        assert count_missed_boundary(simple_data, ["A-1"], "Analysis") is None
 
-    def test_returns_none_without_first_stage(self, derived_start_data):
-        """Without a declared start boundary there is nothing to check against."""
-        derived_start_data.first_stage = None
-        assert count_derived_starts(derived_start_data, ["A-1", "A-2"]) is None
+    def test_returns_none_without_a_declared_stage(self, skipped_start_data):
+        """Without a declared boundary there is nothing to check against."""
+        assert count_missed_boundary(skipped_start_data, ["A-1", "A-2"], None) is None
 
-    def test_only_counts_the_given_keys(self, derived_start_data):
+    def test_only_counts_the_given_keys(self, skipped_start_data):
         """Issues outside the cycle time population are not counted."""
-        assert count_derived_starts(derived_start_data, ["A-1"]) == 0
+        assert count_missed_boundary(skipped_start_data, ["A-1"], "Analysis") == 0
 
 
 class TestClockDeclaration:
@@ -758,9 +800,9 @@ class TestClockDeclaration:
 
     def test_method_a_names_both_boundaries(self):
         """Method A declares the start and end stage explicitly."""
-        line = clock_declaration("Analysis", "Done", CT_METHOD_A, 0, 2)
+        line = clock_declaration("Analysis", "Releasing", CT_METHOD_A, 0, 0, 2)
         assert "first entry into 'Analysis'" in line
-        assert "last entry into 'Done'" in line
+        assert "last entry into 'Releasing'" in line
 
     def test_method_b_names_no_start_boundary(self):
         """Method B sums dwell time over all stages before the end and has no start stage.
@@ -768,83 +810,117 @@ class TestClockDeclaration:
         Printing a start stage here would assert a boundary the calculation does
         not use -- the very failure AA1 exists to prevent.
         """
-        line = clock_declaration("Analysis", "Done", CT_METHOD_B, 0, 2)
+        line = clock_declaration("Analysis", "Releasing", CT_METHOD_B, 0, 0, 2)
         assert "no start boundary" in line
         assert "first entry into" not in line
-        assert "before 'Done'" in line
+        assert "before 'Releasing'" in line
 
     def test_undeclared_start_is_stated_not_guessed(self):
         """Without a <First> marker the line says so and points at --workflow."""
-        line = clock_declaration(None, "Done", CT_METHOD_A, None, 2)
+        line = clock_declaration(None, "Releasing", CT_METHOD_A, None, 0, 2)
         assert "start boundary not declared" in line
         assert "--workflow" in line
 
     def test_undeclared_end_is_stated_not_guessed(self):
         """Without a <Closed> marker the line names no end stage."""
-        line = clock_declaration("Analysis", None, CT_METHOD_A, 0, 2)
+        line = clock_declaration("Analysis", None, CT_METHOD_A, 0, None, 2)
         assert "end boundary not declared" in line
 
-    def test_unchecked_start_says_what_is_missing(self):
-        """When the check could not run, the line names the two missing inputs."""
-        line = clock_declaration("Analysis", "Done", CT_METHOD_A, None, 2)
-        assert "start check needs --workflow and --transitions" in line
+
+class TestBoundaryNote:
+    """Tests for the boundary_note() clause."""
+
+    def test_unchecked_says_what_is_missing(self):
+        """When neither side could be checked, the clause names the two missing inputs."""
+        note = boundary_note("Analysis", "Releasing", CT_METHOD_A, None, None, 2)
+        assert note == "boundary check needs --workflow and --transitions"
 
     def test_derived_starts_are_counted_out(self):
         """A derived start is reported with both numbers, not as a bare flag."""
-        line = clock_declaration("Analysis", "Done", CT_METHOD_A, 43, 64)
-        assert "43 of 64 items never entered 'Analysis'" in line
-        assert "start derived" in line
+        note = boundary_note("Analysis", "Releasing", CT_METHOD_A, 43, 0, 64)
+        assert "43 of 64 items never entered 'Analysis'" in note
+        assert "Releasing" not in note
 
-    def test_method_b_derived_start_moves_the_population(self):
-        """Under Method B a derived start changes who takes part, not what is measured."""
-        line = clock_declaration("Analysis", "Done", CT_METHOD_B, 43, 64)
-        assert "included via a derived start" in line
+    def test_derived_ends_are_counted_out(self):
+        """A skipped closing status is reported just like a skipped opening one."""
+        note = boundary_note("Analysis", "Releasing", CT_METHOD_A, 0, 5, 64)
+        assert "5 of 64 items never entered 'Releasing'" in note
+        assert "Analysis" not in note
 
-    def test_clean_case_is_stated_positively(self):
-        """Zero derived starts is said out loud rather than left to silence."""
-        line = clock_declaration("Analysis", "Done", CT_METHOD_A, 0, 2)
-        assert "all 2 items entered 'Analysis'" in line
+    def test_both_sides_appear_together(self):
+        """Both boundaries can be missed by the same data set."""
+        note = boundary_note("Analysis", "Releasing", CT_METHOD_A, 43, 5, 64)
+        assert "43 of 64 items never entered 'Analysis'" in note
+        assert "5 of 64 items never entered 'Releasing'" in note
+        assert "clock derived from a neighbouring stage" in note
+
+    def test_method_b_says_the_population_moved(self):
+        """Method B reads neither date, so a derived boundary only decides who takes part."""
+        note = boundary_note("Analysis", "Releasing", CT_METHOD_B, 43, 5, 64)
+        assert "taking part on a derived boundary" in note
+
+    def test_clean_case_names_both_checked_sides(self):
+        """Zero derived boundaries is said out loud rather than left to silence."""
+        note = boundary_note("Analysis", "Releasing", CT_METHOD_A, 0, 0, 2)
+        assert note == "all 2 items entered 'Analysis' and 'Releasing'"
+
+    def test_half_checked_run_names_only_the_checked_side(self):
+        """A run that could only check one side must not read as fully clean."""
+        note = boundary_note("Analysis", None, CT_METHOD_A, 0, None, 2)
+        assert note == "all 2 items entered 'Analysis'"
 
 
 class TestClockInTitle:
     """The declaration has to reach the figure, not just the stats dict."""
 
-    def test_title_carries_the_clock_line(self, metric, declared_data):
+    def test_title_carries_the_clock_line(self, metric, clean_boundary_data):
         """Both figures show the boundary declaration above the statistics."""
-        result = metric.compute(declared_data, SAFE)
-        figures = metric.render(result, SAFE)
+        figures = metric.render(metric.compute(clean_boundary_data, SAFE), SAFE)
         for fig in figures:
             assert "first entry into 'Analysis'" in fig.layout.title.text
 
-    def test_clock_line_precedes_the_statistics(self, metric, declared_data):
+    def test_clock_line_precedes_the_statistics(self, metric, clean_boundary_data):
         """The reader learns what the clock measures before seeing the numbers."""
-        result = metric.compute(declared_data, SAFE)
-        title = metric.render(result, SAFE)[0].layout.title.text
+        title = metric.render(metric.compute(clean_boundary_data, SAFE), SAFE)[0].layout.title.text
         assert title.index("Clock:") < title.index("Min:")
 
-    def test_derived_starts_reach_the_title(self, metric, derived_start_data):
+    def test_derived_starts_reach_the_title(self, metric, skipped_start_data):
         """A derived start is visible in the figure, not only in the console log."""
-        result = metric.compute(derived_start_data, SAFE)
-        title = metric.render(result, SAFE)[0].layout.title.text
+        title = metric.render(metric.compute(skipped_start_data, SAFE), SAFE)[0].layout.title.text
         assert "1 of 2 items never entered 'Analysis'" in title
 
-    def test_derived_starts_raise_a_warning(self, metric, derived_start_data):
-        """compute() also reports the derived starts as a warning for the CLI."""
-        result = metric.compute(derived_start_data, SAFE)
-        assert any("never entered 'Analysis'" in w for w in result.warnings)
+    def test_derived_ends_reach_the_title(self, metric, skipped_end_data):
+        """A derived end is visible in the figure too."""
+        title = metric.render(metric.compute(skipped_end_data, SAFE), SAFE)[0].layout.title.text
+        assert "1 of 2 items never entered 'Releasing'" in title
 
-    def test_no_warning_when_nothing_was_derived(self, metric, declared_data):
-        """A clean data set produces no derived-start warning."""
-        result = metric.compute(declared_data, SAFE)
-        assert not any("never entered" in w for w in result.warnings)
+    def test_derived_starts_raise_a_warning(self, metric, skipped_start_data):
+        """compute() also reports a derived start as a warning for the CLI."""
+        result = metric.compute(skipped_start_data, SAFE)
+        assert any("their start was derived" in w for w in result.warnings)
+
+    def test_derived_ends_raise_a_warning(self, metric, skipped_end_data):
+        """compute() also reports a derived end as a warning for the CLI."""
+        result = metric.compute(skipped_end_data, SAFE)
+        assert any("their end was derived" in w for w in result.warnings)
+
+    def test_both_sides_raise_two_warnings(self, metric, skipped_both_data):
+        """Two independent findings are two independent warnings."""
+        result = metric.compute(skipped_both_data, SAFE)
+        assert len([w for w in result.warnings if "derived" in w]) == 2
+
+    def test_no_warning_when_nothing_was_derived(self, metric, clean_boundary_data):
+        """A clean data set produces no derived-boundary warning."""
+        result = metric.compute(clean_boundary_data, SAFE)
+        assert not any("derived" in w for w in result.warnings)
 
     def test_empty_result_still_carries_the_boundaries(self, metric):
         """Even with no eligible issues the boundaries are reported."""
         data = ReportData(
             issues=[_issue("A-1", None, None)],
-            cfd=[], stages=STAGES, source_prefix="TEST",
-            first_stage="Analysis", closed_stage="Done",
+            cfd=[], stages=BOUNDARY_STAGES, source_prefix="TEST",
+            first_stage="Analysis", closed_stage="Releasing",
         )
-        result = metric.compute(data, SAFE)
-        assert result.stats["first_stage"] == "Analysis"
-        assert result.stats["closed_stage"] == "Done"
+        stats = metric.compute(data, SAFE).stats
+        assert stats["first_stage"] == "Analysis"
+        assert stats["closed_stage"] == "Releasing"

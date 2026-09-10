@@ -1394,7 +1394,8 @@ ONEPAGERS: dict[str, dict[str, dict]] = {
         "de": {
             "title": "Zykluszeit-Grenzen",
             "tagline": "AA1 \u2013 Eine Durchlaufzeit ist ohne ihre beiden "
-                       "Grenzen nicht lesbar",
+                       "Grenzen nicht lesbar \u2013 und beide k\u00f6nnen "
+                       "\u00fcbersprungen werden",
             "sections": [
                 ("h", "Worum geht es?"),
                 ("p", "Der Bericht zeigte eine Durchlaufzeit \u2013 und sagte "
@@ -1423,16 +1424,20 @@ ONEPAGERS: dict[str, dict[str, dict]] = {
                        "\u00fcber eine Grenze, die nicht benutzt wird"),
                 ("li", "Ohne --workflow: \u201eboundary not declared\u201c "
                        "\u2013 nicht eine geratene Stage"),
-                ("h", "Abgeleitete Startpunkte werden ausgez\u00e4hlt"),
-                ("p", "\u00dcberspringt ein Vorgang die <First>-Stage, setzt "
-                      "transform_data den Startpunkt still auf den Eintritt in "
-                      "eine sp\u00e4tere Stage. Die Uhr l\u00e4uft dann von "
-                      "einem anderen Punkt aus als der Kopf ank\u00fcndigt. "
-                      "Der Bericht z\u00e4hlt diese Vorg\u00e4nge aus und sagt "
-                      "es: \u201e43 of 64 items never entered ...\u201c. Der "
-                      "saubere Fall wird ebenso ausgesprochen. Kein Randfall: "
-                      "In den Testdaten ART_E betrifft es 45 von 78 "
-                      "Vorg\u00e4ngen."),
+                ("h", "Abgeleitete Grenzen werden ausgez\u00e4hlt"),
+                ("p", "Ein Status kann in beide Richtungen \u00fcbersprungen "
+                      "werden. Die <Closed>-Stage muss n\u00e4mlich nicht die "
+                      "letzte sein \u2013 stehen dahinter noch Done oder "
+                      "Monitoring, kann ein Vorgang auch am Abschluss "
+                      "vorbeispringen. transform_data leitet das fehlende "
+                      "Datum dann still aus einer Nachbarstage ab, und die Uhr "
+                      "l\u00e4uft zwischen anderen Punkten als der Kopf "
+                      "ank\u00fcndigt. Der Bericht z\u00e4hlt beide F\u00e4lle "
+                      "aus und sagt es: \u201e43 of 64 items never entered "
+                      "\u2018Analysis\u2019, 5 of 64 items never entered "
+                      "\u2018Releasing\u2019\u201c. Der saubere Fall wird "
+                      "ebenso ausgesprochen. Kein Randfall: In den Testdaten "
+                      "ART_E sind es 45 von 78 am Start und 5 am Ende."),
                 ("h", "So benutzt du es"),
                 ("code", "python -m build_reports IssueTimes.xlsx "
                          "--workflow workflow.txt "
@@ -1446,7 +1451,7 @@ ONEPAGERS: dict[str, dict[str, dict]] = {
         "en": {
             "title": "Cycle Time Boundaries",
             "tagline": "AA1 \u2013 A cycle time cannot be read without its two "
-                       "boundaries",
+                       "boundaries \u2013 and either can be skipped",
             "sections": [
                 ("h", "What is it?"),
                 ("p", "The report showed a cycle time and never said where the "
@@ -1473,14 +1478,19 @@ ONEPAGERS: dict[str, dict[str, dict]] = {
                        "in use"),
                 ("li", "Without --workflow: \u201cboundary not declared\u201d "
                        "\u2013 not a guessed stage"),
-                ("h", "Derived start points are counted out"),
-                ("p", "When an item skips the <First> stage, transform_data "
-                      "quietly falls back to the entry into a later stage. The "
-                      "clock then runs from a different point than the header "
-                      "announces. The report counts those items and says so: "
-                      "\u201c43 of 64 items never entered ...\u201d. The clean "
-                      "case is stated just as plainly. Not an edge case: in "
-                      "the ART_E test data it affects 45 of 78 items."),
+                ("h", "Derived boundaries are counted out"),
+                ("p", "A status can be skipped in either direction. The "
+                      "<Closed> stage need not be the last one \u2013 with Done "
+                      "or Monitoring behind it, an item can jump past the "
+                      "closing status as well. transform_data then quietly "
+                      "derives the missing date from a neighbouring stage, and "
+                      "the clock runs between different points than the header "
+                      "announces. The report counts both cases and says so: "
+                      "\u201c43 of 64 items never entered \u2018Analysis\u2019, "
+                      "5 of 64 items never entered \u2018Releasing\u2019\u201d. "
+                      "The clean case is stated just as plainly. Not an edge "
+                      "case: in the ART_E test data it is 45 of 78 at the "
+                      "start and 5 at the end."),
                 ("h", "How to use it"),
                 ("code", "python -m build_reports IssueTimes.xlsx "
                          "--workflow workflow.txt "

@@ -788,14 +788,18 @@ def content_de(st, images: dict[str, Path] | None = None):
         "\u201eboundary not declared\u201c -- nicht eine geratene Stage.", st))
     story.append(SP(4))
     story.append(box(
-        "<b>Abgeleitete Startpunkte.</b> Ueberspringt ein Vorgang die "
-        "&lt;First&gt;-Stage, setzt transform_data den Startpunkt ersatzweise "
-        "auf den Eintritt in eine spaetere Stage. Die Uhr laeuft dann von "
-        "einem anderen Punkt aus als der Kopf ankuendigt. Der Bericht zaehlt "
-        "diese Vorgaenge aus (\u201e43 of 64 items never entered ...\u201c) "
-        "und weist sie zusaetzlich als Warnung aus. Dafuer wird "
-        "--transitions gebraucht; fehlt die Datei, sagt der Kopf, dass die "
-        "Pruefung nicht laufen konnte.", st))
+        "<b>Abgeleitete Grenzen.</b> Ein Status kann in beide Richtungen "
+        "uebersprungen werden. Die &lt;Closed&gt;-Stage muss naemlich nicht "
+        "die letzte sein -- stehen dahinter noch Stages wie Done oder "
+        "Monitoring, kann ein Vorgang auch am Abschluss vorbeispringen. "
+        "transform_data leitet das fehlende Datum dann still aus einer "
+        "Nachbarstage ab: den Start aus einer spaeteren, das Ende aus einer "
+        "nachfolgenden Stage. Die Uhr laeuft dann zwischen anderen Punkten "
+        "als der Kopf ankuendigt. Der Bericht zaehlt beide Faelle aus "
+        "(\u201e43 of 64 items never entered ...\u201c) und weist sie "
+        "zusaetzlich als Warnung aus. Dafuer wird --transitions gebraucht; "
+        "fehlt die Datei, sagt der Kopf, dass die Pruefung nicht laufen "
+        "konnte.", st))
     story.append(SP(6))
     story.append(H3("Diagramm 1: Boxplot (Verteilung)", st))
     story.append(P(
@@ -1624,13 +1628,16 @@ def content_en(st, images: dict[str, Path] | None = None):
         "reads “boundary not declared” — not a guessed stage.", st))
     story.append(SP(4))
     story.append(box(
-        "<b>Derived start points.</b> When an item skips the &lt;First&gt; "
-        "stage, transform_data falls back to the entry into a later stage. "
-        "The clock then runs from a different point than the header "
-        "announces. The report counts those items out (“43 of 64 items never "
-        "entered ...”) and reports them as a warning as well. This needs "
-        "--transitions; without that file the header says the check could not "
-        "run.", st))
+        "<b>Derived boundaries.</b> A status can be skipped in either "
+        "direction. The &lt;Closed&gt; stage need not be the last one — with "
+        "stages such as Done or Monitoring behind it, an item can jump past "
+        "the closing status as well. transform_data then quietly derives the "
+        "missing date from a neighbouring stage: the start from a later one, "
+        "the end from a subsequent one. The clock then runs between different "
+        "points than the header announces. The report counts both cases out "
+        "(“43 of 64 items never entered ...”) and reports them as warnings as "
+        "well. This needs --transitions; without that file the header says "
+        "the check could not run.", st))
     story.append(SP(6))
     story.append(H3("Chart 1: Box plot (distribution)", st))
     story.append(P(
@@ -2453,13 +2460,17 @@ def content_ro(st, images=None):
         "\u201eboundary not declared\u201d — nu un stage ghicit.", st))
     story.append(SP(4))
     story.append(box(
-        "<b>Puncte de start derivate.</b> Daca un issue sare peste stage-ul "
-        "&lt;First&gt;, transform_data foloseste in loc intrarea intr-un "
-        "stage ulterior. Ceasul porneste atunci din alt punct decat anunta "
-        "antetul. Raportul numara aceste issues (\u201e43 of 64 items never "
-        "entered ...\u201d) si le semnaleaza suplimentar ca avertisment. "
-        "Pentru asta este nevoie de --transitions; fara acel fisier antetul "
-        "spune ca verificarea nu a putut rula.", st))
+        "<b>Limite derivate.</b> Un status poate fi sarit in ambele "
+        "directii. Stage-ul &lt;Closed&gt; nu trebuie sa fie ultimul — daca "
+        "in spatele lui mai sunt stage-uri precum Done sau Monitoring, un "
+        "issue poate sari si peste statusul de inchidere. transform_data "
+        "deriva atunci in tacere data lipsa dintr-un stage vecin: startul "
+        "dintr-unul ulterior, finalul dintr-unul subsecvent. Ceasul merge "
+        "atunci intre alte puncte decat anunta antetul. Raportul numara "
+        "ambele cazuri (\u201e43 of 64 items never entered ...\u201d) si le "
+        "semnaleaza suplimentar ca avertismente. Pentru asta este nevoie de "
+        "--transitions; fara acel fisier antetul spune ca verificarea nu a "
+        "putut rula.", st))
     story.append(SP(6))
     story.append(H3("Diagrama 1: Box plot (distributia)", st))
     story.append(P(
@@ -3278,12 +3289,15 @@ def content_pt(st, images=None):
         "\u201eboundary not declared\u201d — nao um stage adivinhado.", st))
     story.append(SP(4))
     story.append(box(
-        "<b>Pontos de inicio derivados.</b> Quando um issue salta o stage "
-        "&lt;First&gt;, o transform_data recorre a entrada num stage "
-        "posterior. O relogio corre entao a partir de outro ponto que nao o "
-        "anunciado no cabecalho. O relatorio conta esses issues "
+        "<b>Fronteiras derivadas.</b> Um estado pode ser saltado nos dois "
+        "sentidos. O stage &lt;Closed&gt; nao tem de ser o ultimo — com "
+        "stages como Done ou Monitoring atras dele, um issue pode saltar "
+        "tambem o estado de fecho. O transform_data deriva entao em silencio "
+        "a data em falta de um stage vizinho: o inicio de um posterior, o fim "
+        "de um subsequente. O relogio corre entao entre outros pontos que nao "
+        "os anunciados no cabecalho. O relatorio conta os dois casos "
         "(\u201e43 of 64 items never entered ...\u201d) e assinala-os "
-        "tambem como aviso. Para isso e preciso --transitions; sem esse "
+        "tambem como avisos. Para isso e preciso --transitions; sem esse "
         "ficheiro o cabecalho diz que a verificacao nao pode correr.", st))
     story.append(SP(6))
     story.append(H3("Grafico 1: Box plot (distribuicao)", st))
@@ -4119,12 +4133,16 @@ def content_fr(st, images=None):
         "\u201eboundary not declared\u201d — et non une etape devinee.", st))
     story.append(SP(4))
     story.append(box(
-        "<b>Points de depart deduits.</b> Lorsqu'un ticket saute l'etape "
-        "&lt;First&gt;, transform_data se rabat sur l'entree dans une etape "
-        "ulterieure. L'horloge part alors d'un autre point que celui annonce "
-        "en en-tete. Le rapport denombre ces tickets "
+        "<b>Bornes deduites.</b> Un statut peut etre saute dans les deux "
+        "sens. L'etape &lt;Closed&gt; n'est pas forcement la derniere — si "
+        "des etapes comme Done ou Monitoring se trouvent derriere elle, un "
+        "ticket peut aussi sauter le statut de cloture. transform_data deduit "
+        "alors silencieusement la date manquante d'une etape voisine : le "
+        "debut d'une etape ulterieure, la fin d'une etape suivante. "
+        "L'horloge tourne alors entre d'autres points que ceux annonces en "
+        "en-tete. Le rapport denombre les deux cas "
         "(\u201e43 of 64 items never entered ...\u201d) et les signale en "
-        "outre par un avertissement. Cela necessite --transitions ; sans ce "
+        "outre par des avertissements. Cela necessite --transitions ; sans ce "
         "fichier, l'en-tete indique que la verification n'a pas pu "
         "s'executer.", st))
     story.append(SP(6))
