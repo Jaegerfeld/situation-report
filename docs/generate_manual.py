@@ -112,6 +112,7 @@ def _generate_chart_images(out_dir: Path) -> dict[str, Path]:
     from build_reports.filters import FilterConfig, apply_filters
     from build_reports.loader import load_report_data
     from build_reports.metrics.cfd import CfdMetric
+    from build_reports.metrics.flow_debt import FlowDebtMetric
     from build_reports.metrics.flow_distribution import FlowDistributionMetric
     from build_reports.metrics.flow_load import FlowLoadMetric
     from build_reports.metrics.flow_time import FlowTimeMetric
@@ -160,6 +161,12 @@ def _generate_chart_images(out_dir: Path) -> dict[str, Path]:
     r = m.compute(filtered, SAFE)
     figs = m.render(r, SAFE)
     imgs["cfd"] = save(figs[0], "cfd", h=680)
+
+    # Flow Debt (same window as the CFD – both read the CFD boundaries)
+    m = FlowDebtMetric()
+    r = m.compute(filtered, SAFE)
+    figs = m.render(r, SAFE)
+    imgs["flow_debt"] = save(figs[0], "flow_debt", h=540)
 
     # Flow Distribution (unfiltered – all issue types should appear)
     m = FlowDistributionMetric()
@@ -1041,6 +1048,8 @@ def content_de(st, images: dict[str, Path] | None = None):
         "<b>Typische Ursachen.</b> Eilspuren, Blockaden und unausgesprochene "
         "Reihenfolgeregeln beim Ziehen. Die Anzeige nennt keine Schuldigen -- "
         "sie zeigt nur, dass eine Bevorzugung stattgefunden hat.", st))
+    add_img("flow_debt",
+            "Abb. 11: Flow Debt -- Bestandsverlauf ueber das Auswertungsfenster. Das Beispiel zeigt absichtlich einen Datensatz, in dem Little's Law nicht gilt: Der Bestand waechst durchgehend, deshalb steht ueber dem Urteil \u201everdict not dependable\u201c.")
     story.append(SP(4))
     story.append(box(
         "<b>Wichtig:</b> Little's Law gilt nur unter Bedingungen. Zwei davon "
@@ -1847,6 +1856,8 @@ def content_en(st, images: dict[str, Path] | None = None):
         "<b>Typical causes.</b> Expedite lanes, blockers and unspoken "
         "pull-order policies. The indicator names no culprit — it only shows "
         "that preferential treatment took place.", st))
+    add_img("flow_debt",
+            "Fig. 11: Flow Debt \u2014 WIP over the evaluation window. The example deliberately shows a data set where Little's Law does not hold: WIP grows throughout, which is why the header reads \u201cverdict not dependable\u201d.")
     story.append(SP(4))
     story.append(box(
         "<b>Important:</b> Little's Law only holds under conditions. Two of "
@@ -2649,6 +2660,8 @@ def content_ro(st, images=None):
         "<b>Cauze tipice.</b> Benzi de urgenta, blocaje si reguli nespuse de "
         "ordine la tragere. Indicatorul nu numeste vinovati -- arata doar ca a "
         "avut loc un tratament preferential.", st))
+    add_img("flow_debt",
+            "Fig. 11: Flow Debt \u2014 evolutia WIP pe fereastra de evaluare. Exemplul arata intentionat un set de date in care legea lui Little nu se aplica: WIP creste continuu, de aceea antetul spune \u201everdict not dependable\u201d.")
     story.append(SP(4))
     story.append(box(
         "<b>Important:</b> Legea lui Little este valabila doar in anumite "
@@ -3456,6 +3469,8 @@ def content_pt(st, images=None):
         "<b>Causas tipicas.</b> Vias de urgencia, bloqueios e regras nao ditas "
         "de ordem ao puxar trabalho. O indicador nao aponta culpados -- apenas "
         "mostra que houve tratamento preferencial.", st))
+    add_img("flow_debt",
+            "Fig. 11: Flow Debt \u2014 evolucao do WIP na janela de avaliacao. O exemplo mostra de proposito um conjunto de dados em que a lei de Little nao se aplica: o WIP cresce sempre, por isso o cabecalho diz \u201everdict not dependable\u201d.")
     story.append(SP(4))
     story.append(box(
         "<b>Importante:</b> A lei de Little so e valida sob certas condicoes. "
@@ -4274,6 +4289,8 @@ def content_fr(st, images=None):
         "<b>Causes typiques.</b> Voies express, blocages et regles d'ordre de "
         "tirage non dites. L'indicateur ne designe aucun coupable -- il montre "
         "seulement qu'un traitement preferentiel a eu lieu.", st))
+    add_img("flow_debt",
+            "Fig. 11: Flow Debt \u2014 evolution de l'encours sur la fenetre d'analyse. L'exemple montre volontairement un jeu de donnees ou la loi de Little ne s'applique pas : l'encours croit sans cesse, d'ou la mention \u201everdict not dependable\u201d en en-tete.")
     story.append(SP(4))
     story.append(box(
         "<b>Important :</b> La loi de Little n'est valable que sous "
