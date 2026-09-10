@@ -83,6 +83,7 @@ def run_red_team(
     provider_id: str = "ollama",
     lang: str = "de",
     llm_model: str | None = None,
+    llm_base_url: str | None = None,
     log: Callable[[str], None] = print,
 ) -> Any:
     """
@@ -98,6 +99,7 @@ def run_red_team(
         RuntimeError:       Provider failures.
     """
     from llm.audit import AUDIT_FILENAME
+    from llm.base import provider_config
     from llm.narrate import narrate
     from llm.prompts import red_team_system_prompt
 
@@ -113,7 +115,7 @@ def run_red_team(
         f"({len(entries)} log entries) ...")
     narration = narrate(
         contract, provider_id=provider_id, lang=lang,
-        config={"model": llm_model} if llm_model else None,
+        config=provider_config(llm_model, llm_base_url),
         audit_path=output.parent / AUDIT_FILENAME,
         system_prompt=red_team_system_prompt(lang),
         purpose="d5_red_team")

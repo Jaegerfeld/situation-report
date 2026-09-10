@@ -69,8 +69,16 @@ CODE_SMOKE = ('ollama run mistral-nemo "Antworte mit einem Satz: '
               "# Chat beenden / leave the chat: /bye")
 
 CODE_WIRING = ("python -m llm providers\n"
+               "python -m llm models\n"
                "python -m llm test\n"
                "python -m llm test --lang en --model mistral")
+
+CODE_CHOOSE = ("# Installierte Modelle auflisten / list installed models:\n"
+               "python -m llm models\n\n"
+               "# Ein bestimmtes Modell benutzen / use a specific model:\n"
+               "python -m llm test --model qwen3.8:latest\n\n"
+               "# Ollama auf einem anderen Rechner / Ollama on another host:\n"
+               "python -m llm models --base-url http://gpu-box:11434")
 
 CODE_USE = ("python -m portfolio --delta prev.json now.json --narrate "
             "--output delta.html --browser\n\n"
@@ -127,7 +135,28 @@ _DE = [
           "die entdeckten KI-Anbieter, und der test-Befehl macht eine "
           "erste gekennzeichnete Probe-Narration über Ollama:"),
     ("code", CODE_WIRING),
-    ("h1", "6  Benutzen"),
+    ("h1", "6  Modell und Adresse waehlen"),
+    ("p", "Liegen mehrere Modelle in Ollama, entscheidet der Name, welches "
+          "benutzt wird. Der Befehl models listet, was tatsaechlich "
+          "installiert ist, und markiert die Voreinstellung. Der Name muss "
+          "genau so geschrieben werden, wie er dort steht \u2014 mit Tag, "
+          "also qwen3.8:latest statt qwen3.8. Kennt Ollama den Namen nicht, "
+          "sagt SituationReport das mit dem passenden ollama-pull-Befehl."),
+    ("code", CODE_CHOOSE),
+    ("p", "In der Oberflaeche stehen neben dem Anbieter die Felder Modell "
+          "und Adresse. Das Modellfeld schlaegt die installierten Modelle "
+          "vor, laesst sich aber auch frei beschriften \u2014 ein Modell, das "
+          "erst noch geladen wird, kann so schon eingetragen werden. Leer "
+          "bedeutet: der Anbieter entscheidet. Beide Felder werden gemerkt "
+          "und stehen beim naechsten Start wieder da; sie gehoeren zu diesem "
+          "Rechner und wandern deshalb NICHT in die gespeicherte "
+          "Solution-Konfiguration, die man an Kolleginnen und Kollegen "
+          "weitergibt."),
+    ("p", "Laeuft Ollama nicht auf diesem Rechner, traegt man die Adresse "
+          "ein \u2014 im Feld Adresse, per --base-url bzw. --llm-base-url, oder "
+          "einmalig ueber die Umgebungsvariable OLLAMA_HOST, die Ollama "
+          "selbst benutzt. Ohne Angabe gilt http://localhost:11434."),
+    ("h1", "7  Benutzen"),
     ("p", "CLI: --narrate ergänzt das Delta-Briefing um den Abschnitt "
           "„Narration (Entwurf)“ — inklusive KI-Kennzeichnung, "
           "Zahlen-Wächter und Betreiber-Nachweis (llm_audit.jsonl neben "
@@ -135,10 +164,10 @@ _DE = [
           "Checkbox „KI-Narration (Entwurf)“ anhaken und daneben den "
           "Provider wählen, dann wie gewohnt „Delta-Briefing …“:"),
     ("code", CODE_USE),
-    ("h1", "7  Wenn etwas hakt"),
+    ("h1", "8  Wenn etwas hakt"),
     ("li", "„Python wurde nicht gefunden“ (Hinweis auf den Microsoft "
            "Store): Windows leitet den Befehl python auf einen "
-           "Store-Platzhalter um. Die Befehle aus Abschnitt 5/6 im "
+           "Store-Platzhalter um. Die Befehle aus Abschnitt 5 bis 7 im "
            "Repo-Ordner ausführen und dort .venv\\Scripts\\python.exe "
            "statt python verwenden (oder einmalig "
            ".venv\\Scripts\\Activate.ps1) — alternativ mit installiertem "
@@ -157,7 +186,7 @@ _DE = [
     ("code", CODE_MODELS_DIR),
     ("li", "Beenden: Rechtsklick auf das Lama-Symbol im Infobereich → "
            "„Quit Ollama“."),
-    ("h1", "8  Datenschutz in einem Satz"),
+    ("h1", "9  Datenschutz in einem Satz"),
     ("p", "Ollama lauscht nur auf dem eigenen Rechner "
           "(localhost:11434); weder Briefing noch Narration verlassen das "
           "System — der Unterschied zum externen Weg (Claude-API) bleibt "
@@ -207,7 +236,26 @@ _EN = [
           "the discovered AI backends, and the test command runs a first "
           "labeled sample narration through Ollama:"),
     ("code", CODE_WIRING),
-    ("h1", "6  Use it"),
+    ("h1", "6  Choosing a model and an address"),
+    ("p", "With more than one model in Ollama, the name decides which one "
+          "runs. The models command lists what is actually installed and "
+          "marks the default. Write the name exactly as it appears there "
+          "\u2014 with its tag, so qwen3.8:latest rather than qwen3.8. If "
+          "Ollama does not know the name, SituationReport says so and gives "
+          "the matching ollama pull command."),
+    ("code", CODE_CHOOSE),
+    ("p", "In the GUI, a Model field and an Address field sit next to the "
+          "provider. The model field offers the installed models but stays "
+          "typable \u2014 a model still being pulled can be entered already. "
+          "Empty means: let the provider decide. Both fields are remembered "
+          "for the next start; they belong to THIS machine and therefore do "
+          "NOT go into the saved solution configuration you hand to "
+          "colleagues."),
+    ("p", "If Ollama runs elsewhere, name the address \u2014 in the Address "
+          "field, via --base-url or --llm-base-url, or once via the "
+          "OLLAMA_HOST environment variable that Ollama itself uses. Without "
+          "one, http://localhost:11434 applies."),
+    ("h1", "7  Use it"),
     ("p", "CLI: --narrate adds the \"Narration (Entwurf)\" section to the "
           "delta briefing — including the AI label, the numbers guard and "
           "the operator evidence (llm_audit.jsonl next to the output). "
@@ -215,10 +263,10 @@ _EN = [
           "(draft)\", pick the provider next to it, then run \"Delta "
           "briefing …\" as usual:"),
     ("code", CODE_USE),
-    ("h1", "7  Troubleshooting"),
+    ("h1", "8  Troubleshooting"),
     ("li", "\"Python was not found\" (pointing to the Microsoft Store): "
            "Windows redirects the python command to a Store placeholder. "
-           "Run the commands from sections 5/6 in the repository folder "
+           "Run the commands from sections 5 to 7 in the repository folder "
            "and use .venv\\Scripts\\python.exe there instead of python "
            "(or activate once via .venv\\Scripts\\Activate.ps1) — "
            "alternatively py -m llm test with the Python launcher "
@@ -237,7 +285,7 @@ _EN = [
     ("code", CODE_MODELS_DIR),
     ("li", "Quit: right-click the llama icon in the notification area → "
            "\"Quit Ollama\"."),
-    ("h1", "8  Privacy in one sentence"),
+    ("h1", "9  Privacy in one sentence"),
     ("p", "Ollama listens on your machine only (localhost:11434); "
           "neither briefing nor narration ever leaves the system — and "
           "the difference from the external path (Claude API) stays "

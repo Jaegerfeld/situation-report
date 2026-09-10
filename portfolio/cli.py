@@ -134,6 +134,7 @@ def run_delta_briefing(
     open_browser: bool = False,
     narrate_with: str | None = None,
     llm_model: str | None = None,
+    llm_base_url: str | None = None,
     llm_lang: str = "de",
     translate_langs: list[str] | None = None,
     log: Callable[[str], None] = print,
@@ -156,6 +157,7 @@ def run_delta_briefing(
         open_browser: Open a written HTML file in the default browser.
         narrate_with: LLM provider id ("ollama", "claude", "mock") or None.
         llm_model:    Model override (None = provider default).
+        llm_base_url: Backend address override (None = provider default).
         llm_lang:     Narration language (default: de).
         translate_langs: D6 — additionally deliver the primary text in
                       these house languages: with a narration the DRAFT
@@ -178,9 +180,10 @@ def run_delta_briefing(
         audit_path = ((output.parent if output else Path.cwd())
                       / AUDIT_FILENAME)
         log(f"Narration draft via '{narrate_with}' ...")
+        from llm.base import provider_config
         narration = narrate(delta_md, provider_id=narrate_with,
                             lang=llm_lang,
-                            config={"model": llm_model} if llm_model else None,
+                            config=provider_config(llm_model, llm_base_url),
                             audit_path=audit_path)
         log(f"  audit: {audit_path}")
 
@@ -223,9 +226,10 @@ def run_delta_briefing(
         infix = ".narration" if narration is not None else ""
         audit_path = output.parent / AUDIT_FILENAME
         for lang in translate_langs:
+            from llm.base import provider_config
             translated = translate_text(
                 source_text, lang, provider_id=narrate_with or "ollama",
-                config={"model": llm_model} if llm_model else None,
+                config=provider_config(llm_model, llm_base_url),
                 audit_path=audit_path)
             target = output.with_suffix(
                 output.suffix + f"{infix}.{lang}.md")
@@ -344,6 +348,11 @@ def build_parser() -> argparse.ArgumentParser:
                         help="Model override for --narrate (default: the "
                              "provider's default, e.g. mistral-nemo / "
                              "claude-sonnet-5).")
+    parser.add_argument("--llm-base-url", default=None, dest="llm_base_url",
+                        metavar="URL",
+                        help="Address of the LLM backend (Ollama). Default: "
+                             "the OLLAMA_HOST environment variable, else "
+                             "http://localhost:11434.")
     parser.add_argument("--llm-lang", default="de", dest="llm_lang",
                         choices=["de", "en"],
                         help="Narration language (default: de).")
@@ -386,7 +395,9 @@ def main() -> None:
         run_delta_briefing(args.delta[0], args.delta[1],
                            output=args.output, open_browser=args.browser,
                            narrate_with=args.narrate,
-                           llm_model=args.llm_model, llm_lang=args.llm_lang,
+                           llm_model=args.llm_model,
+                           llm_base_url=args.llm_base_url,
+                           llm_lang=args.llm_lang,
                            translate_langs=args.translate_langs)
         return
     if args.config is None:
@@ -404,7 +415,8 @@ def main() -> None:
         from .red_team import run_red_team
         run_red_team(load_solution_config(args.config), args.red_team,
                      provider_id=args.narrate or "ollama",
-                     lang=args.llm_lang, llm_model=args.llm_model)
+                     lang=args.llm_lang, llm_model=args.llm_model,
+                     llm_base_url=args.llm_base_url)
         if not args.output and not args.pdf and not args.conference:
             return
 
@@ -462,6 +474,7 @@ def _attach_report_exec_summary(args: argparse.Namespace,
     html, narration = attach_exec_summary(
         html, load_solution_config(args.config), args.narrate,
         lang=args.llm_lang, llm_model=args.llm_model,
+        llm_base_url=args.llm_base_url,
         audit_path=audit_path, as_of=args.as_of,
         target_ct=args.target_ct)
     args.output.write_text(html, encoding="utf-8")
@@ -473,10 +486,10 @@ def _attach_report_exec_summary(args: argparse.Namespace,
     if args.translate_langs:
         from llm.translate import translate_text
         for lang in args.translate_langs:
+            from llm.base import provider_config
             translated = translate_text(
                 narration.text, lang, provider_id=args.narrate,
-                config=({"model": args.llm_model}
-                        if args.llm_model else None),
+                config=provider_config(args.llm_model, args.llm_base_url),
                 audit_path=audit_path)
             target = args.output.with_suffix(
                 args.output.suffix + f".exec_summary.{lang}.md")

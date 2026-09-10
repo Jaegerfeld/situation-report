@@ -77,18 +77,26 @@ _MANUAL_URLS: dict[str, str] = {
 }
 
 
-def _load_lang_pref() -> str:
-    """Load the shared language preference, defaulting to English."""
+def _load_pref(key: str, default: str = "") -> str:
+    """
+    Read one machine-level preference, defaulting quietly.
+
+    These belong here and not in the solution config: which Ollama to talk
+    to and which model it has pulled are properties of THIS machine, while a
+    solution config gets saved with relative paths and handed to colleagues.
+    An address from someone else's laptop in a shared config would be a
+    puzzle, not a setting.
+    """
     try:
         with open(_PREFS_PATH) as f:
-            val = json.load(f).get("lang", LANG_EN)
-            return val if val in _LANG_ORDER else LANG_EN
+            value = json.load(f).get(key, default)
+        return str(value) if value is not None else default
     except Exception:
-        return LANG_EN
+        return default
 
 
-def _save_lang_pref(lang: str) -> None:
-    """Persist the language preference to the shared preferences file."""
+def _save_pref(key: str, value: str) -> None:
+    """Persist one preference, leaving the rest of the file untouched."""
     try:
         _PREFS_PATH.parent.mkdir(parents=True, exist_ok=True)
         prefs: dict = {}
@@ -97,11 +105,22 @@ def _save_lang_pref(lang: str) -> None:
                 prefs = json.load(f)
         except Exception:
             pass
-        prefs["lang"] = lang
+        prefs[key] = value
         with open(_PREFS_PATH, "w") as f:
             json.dump(prefs, f, indent=2)
     except Exception:
         pass
+
+
+def _load_lang_pref() -> str:
+    """Load the shared language preference, defaulting to English."""
+    val = _load_pref("lang", LANG_EN)
+    return val if val in _LANG_ORDER else LANG_EN
+
+
+def _save_lang_pref(lang: str) -> None:
+    """Persist the language preference to the shared preferences file."""
+    _save_pref("lang", lang)
 
 
 # ---------------------------------------------------------------------------
@@ -181,6 +200,9 @@ _T: dict[str, dict[str, str]] = {
         "msg_delta_done": "Delta-Briefing im Browser geöffnet",
         "msg_delta_error": "Delta-Briefing fehlgeschlagen: {error}",
         "chk_narrate": "KI-Narration (Entwurf)",
+        "lbl_llm_model": "Modell",
+        "lbl_llm_url": "Adresse",
+
         "chk_art_depth": "Bis auf ART-Ebene auswerten",
         "lbl_vsc_threshold": "VSC-Schwelle",
         "btn_red_team": "Red-Team-Fragen …",
@@ -277,6 +299,9 @@ _T: dict[str, dict[str, str]] = {
         "msg_delta_done": "Delta briefing opened in the browser",
         "msg_delta_error": "Delta briefing failed: {error}",
         "chk_narrate": "AI narration (draft)",
+        "lbl_llm_model": "Model",
+        "lbl_llm_url": "Address",
+
         "chk_art_depth": "Evaluate down to ART level",
         "lbl_vsc_threshold": "VSC threshold",
         "btn_red_team": "Red-team questions …",
@@ -373,6 +398,9 @@ _T: dict[str, dict[str, str]] = {
         "msg_delta_done": "Delta briefing deschis în browser",
         "msg_delta_error": "Delta briefing eșuat: {error}",
         "chk_narrate": "Narațiune AI (schiță)",
+        "lbl_llm_model": "Model",
+        "lbl_llm_url": "Adresă",
+
         "chk_art_depth": "Evaluare până la nivel de ART",
         "lbl_vsc_threshold": "Prag VSC",
         "btn_red_team": "Întrebări red-team …",
@@ -469,6 +497,9 @@ _T: dict[str, dict[str, str]] = {
         "msg_delta_done": "Delta briefing aberto no browser",
         "msg_delta_error": "Delta briefing falhou: {error}",
         "chk_narrate": "Narração por IA (rascunho)",
+        "lbl_llm_model": "Modelo",
+        "lbl_llm_url": "Endereço",
+
         "chk_art_depth": "Avaliar até ao nível de ART",
         "lbl_vsc_threshold": "Limiar VSC",
         "btn_red_team": "Perguntas red-team …",
@@ -565,6 +596,9 @@ _T: dict[str, dict[str, str]] = {
         "msg_delta_done": "Delta briefing ouvert dans le navigateur",
         "msg_delta_error": "Échec du delta briefing : {error}",
         "chk_narrate": "Narration IA (brouillon)",
+        "lbl_llm_model": "Modèle",
+        "lbl_llm_url": "Adresse",
+
         "chk_art_depth": "Analyser jusqu'au niveau ART",
         "lbl_vsc_threshold": "Seuil VSC",
         "btn_red_team": "Questions red-team …",
@@ -605,9 +639,86 @@ def _llm_provider_ids() -> list[str]:
         return ["ollama", "claude", "mock"]
 
 
+def _llm_models(provider_id: str, base_url: str = "") -> list[str]:
+    """
+    Ask a provider which models it has, for the chooser to offer.
+
+    Listing models is an optional provider capability, not part of the
+    LlmProvider contract — not every backend can enumerate them without
+    credentials, and requiring it would break provider discovery for those
+    that cannot. So this asks with ``hasattr`` and accepts a no.
+
+    Never raises: an empty list simply means the chooser stays a free-text
+    field. That is the case whenever Ollama is not running, and a chooser
+    that refuses to open then would be worse than one that offers nothing.
+
+    Args:
+        provider_id: Which backend to ask.
+        base_url:    Address override; empty means the provider decides.
+
+    Returns:
+        Model names, or an empty list when nothing could be listed.
+    """
+    try:
+        from llm.base import discover_providers, provider_config
+        provider = discover_providers().get(provider_id)
+        lister = getattr(provider, "list_models", None)
+        if lister is None:
+            return []
+        return list(lister(provider_config(base_url=base_url)))
+    except Exception:
+        return []
+
+
+def _preselect_model(stored: str, models: list[str], default: str) -> str:
+    """
+    Decide what the model box shows when the GUI opens.
+
+    A stored choice always wins, even when it is not in the list — the model
+    may simply not be pulled yet, and silently replacing the user's entry
+    would hide that. Ollama's own 404 says ``ollama pull …`` far better than
+    a chooser that quietly picks something else.
+
+    With nothing stored, the provider default is matched against the list by
+    Ollama's naming rule, so ``mistral-nemo`` finds ``mistral-nemo:latest``
+    instead of falling through as a stranger.
+
+    Args:
+        stored:  Previously saved model name, possibly empty.
+        models:  What the provider reported, possibly empty.
+        default: The provider's default model.
+
+    Returns:
+        The name to show; empty means "let the provider decide".
+    """
+    if stored:
+        return stored
+    try:
+        from llm.providers.ollama import normalise_model
+    except Exception:
+        return ""
+    wanted = normalise_model(default)
+    for name in models:
+        if normalise_model(name) == wanted:
+            return name
+    return ""
+
+
+def _llm_default_model(provider_id: str) -> str:
+    """The provider's own default model name, or empty when unknown."""
+    try:
+        from llm.base import discover_providers
+        provider = discover_providers().get(provider_id)
+        return str(getattr(provider, "default_model", "") or "")
+    except Exception:
+        return ""
+
+
 def _build_delta_html_file(prev_path: Path, now_path: Path,
                            narrate_with: str | None = None,
-                           llm_lang: str = "de") -> str:
+                           llm_lang: str = "de",
+                           llm_model: str | None = None,
+                           llm_base_url: str | None = None) -> str:
     """
     Render the delta briefing for two snapshot files into a temp HTML file.
 
@@ -622,6 +733,8 @@ def _build_delta_html_file(prev_path: Path, now_path: Path,
         now_path:     Later snapshot JSON.
         narrate_with: LLM provider id or None (deterministic briefing).
         llm_lang:     Narration language.
+        llm_model:    Model override, or None for the provider default.
+        llm_base_url: Backend address override, or None for the default.
 
     Returns:
         Path of the written temporary .html file.
@@ -639,12 +752,14 @@ def _build_delta_html_file(prev_path: Path, now_path: Path,
     html = render_delta_html(delta)
     if narrate_with:
         from llm.audit import AUDIT_FILENAME
+        from llm.base import provider_config
         from llm.narrate import narrate
 
         from .cli import narration_html_section
 
         narration = narrate(delta_to_markdown(delta),
                             provider_id=narrate_with, lang=llm_lang,
+                            config=provider_config(llm_model, llm_base_url),
                             audit_path=now_path.parent / AUDIT_FILENAME)
         html = html.replace("</body></html>",
                             narration_html_section(narration)
@@ -874,7 +989,11 @@ class SolutionManagerApp(tk.Tk):
         self._art_depth = tk.BooleanVar(value=False)
         self._cross_vs_threshold = tk.StringVar(value="")
         self._narrate = tk.BooleanVar(value=False)
-        self._llm_provider = tk.StringVar(value="ollama")
+        self._llm_provider = tk.StringVar(
+            value=_load_pref("llm_provider", "ollama") or "ollama")
+        self._llm_model = tk.StringVar(value=_load_pref("llm_model"))
+        self._llm_base_url = tk.StringVar(value=_load_pref("llm_base_url"))
+        self._llm_model_box: ttk.Combobox | None = None
         self._member_rows: list[dict] = []
         self._col_source_lbl: tk.Label | None = None
         self._flag_imgs: dict[str, tk.PhotoImage] = {}
@@ -885,6 +1004,7 @@ class SolutionManagerApp(tk.Tk):
 
         self._create_flag_imgs()
         self._build_ui()
+        self._refresh_llm_models(preselect=True)
 
     def _tr(self, key: str) -> str:
         return _T.get(self._lang, _T[LANG_EN]).get(key, key)
@@ -1039,9 +1159,28 @@ class SolutionManagerApp(tk.Tk):
         ki_frame.pack(fill="x", pady=(6, 0))
         ttk.Checkbutton(ki_frame, text=self._tr("chk_narrate"),
                         variable=self._narrate).pack(side="left")
-        ttk.Combobox(ki_frame, textvariable=self._llm_provider,
-                     values=_llm_provider_ids(), width=10,
-                     state="readonly").pack(side="left", padx=(8, 0))
+        provider_box = ttk.Combobox(
+            ki_frame, textvariable=self._llm_provider,
+            values=_llm_provider_ids(), width=10, state="readonly")
+        provider_box.pack(side="left", padx=(8, 0))
+        provider_box.bind("<<ComboboxSelected>>", self._on_llm_provider_change)
+
+        tk.Label(ki_frame, text=self._tr("lbl_llm_model")).pack(
+            side="left", padx=(8, 0))
+        # Editable on purpose: the installed set can grow while the window is
+        # open, and a model typed but not pulled must reach Ollama's own
+        # "ollama pull ..." message instead of being swapped out here.
+        self._llm_model_box = ttk.Combobox(
+            ki_frame, textvariable=self._llm_model, values=[], width=20)
+        self._llm_model_box.pack(side="left", padx=(4, 0))
+
+        tk.Label(ki_frame, text=self._tr("lbl_llm_url")).pack(
+            side="left", padx=(8, 0))
+        url_entry = ttk.Entry(ki_frame, textvariable=self._llm_base_url,
+                              width=22)
+        url_entry.pack(side="left", padx=(4, 0))
+        url_entry.bind("<FocusOut>", self._on_llm_provider_change)
+        url_entry.bind("<Return>", self._on_llm_provider_change)
         ttk.Button(ki_frame, text=self._tr("btn_red_team"),
                    command=self._red_team).pack(side="left", padx=(12, 0))
         ttk.Button(ki_frame, text=self._tr("btn_translate"),
@@ -1068,6 +1207,51 @@ class SolutionManagerApp(tk.Tk):
             fill="x", pady=(10, 0))
 
         self._add_member_row()
+
+    def _on_llm_provider_change(self, _event: object = None) -> None:
+        """Re-fetch the model list for the provider and address now selected."""
+        self._refresh_llm_models()
+
+    def _refresh_llm_models(self, preselect: bool = False) -> None:
+        """
+        Fill the model box in the background.
+
+        Off the main thread on purpose: an unreachable Ollama would otherwise
+        freeze the window for the length of the timeout, and the one moment
+        this runs is while someone is looking at it.
+        """
+        box = self._llm_model_box
+        if box is None:
+            return
+        provider_id = self._llm_provider.get() or "ollama"
+        base_url = self._llm_base_url.get().strip()
+
+        def worker() -> None:
+            models = _llm_models(provider_id, base_url)
+            self.after(0, lambda: self._apply_llm_models(models, preselect))
+
+        threading.Thread(target=worker, daemon=True).start()
+
+    def _apply_llm_models(self, models: list[str], preselect: bool) -> None:
+        """Put the fetched names into the box, without overruling a choice."""
+        box = self._llm_model_box
+        if box is None:
+            return
+        box["values"] = models
+        if preselect and not self._llm_model.get():
+            self._llm_model.set(_preselect_model(
+                "", models, _llm_default_model(self._llm_provider.get())))
+
+    def _llm_config(self) -> tuple[str | None, str | None]:
+        """The model and address overrides as the report functions take them."""
+        return (self._llm_model.get().strip() or None,
+                self._llm_base_url.get().strip() or None)
+
+    def _remember_llm_choice(self) -> None:
+        """Keep provider, model and address for the next start of the window."""
+        _save_pref("llm_provider", self._llm_provider.get())
+        _save_pref("llm_model", self._llm_model.get().strip())
+        _save_pref("llm_base_url", self._llm_base_url.get().strip())
 
     def _switch_lang(self) -> None:
         # self._lang is already set by the caller (_toggle_language).
@@ -1228,6 +1412,9 @@ class SolutionManagerApp(tk.Tk):
 
         narrate_with = (self._llm_provider.get()
                         if self._narrate.get() and not is_pdf else None)
+        llm_model, llm_base_url = self._llm_config()
+        if narrate_with:
+            self._remember_llm_choice()
         lang = self._lang if self._lang in ("de", "en") else "en"
         if narrate_with:
             # Lokale Inferenz darf dauern — Status VOR dem Start setzen.
@@ -1252,6 +1439,7 @@ class SolutionManagerApp(tk.Tk):
                         from .exec_summary import attach_exec_summary
                         html, narration = attach_exec_summary(
                             html, cfg, narrate_with, lang=lang,
+                            llm_model=llm_model, llm_base_url=llm_base_url,
                             audit_path=out_path.parent / AUDIT_FILENAME,
                             log=lambda *_: None)
                         draft = out_path.with_suffix(
@@ -1461,6 +1649,8 @@ class SolutionManagerApp(tk.Tk):
         if not path:
             return
         provider = self._llm_provider.get() or "ollama"
+        llm_model, llm_base_url = self._llm_config()
+        self._remember_llm_choice()
         self._status.set(self._tr("msg_red_team_running"))
         self.update_idletasks()
 
@@ -1468,6 +1658,7 @@ class SolutionManagerApp(tk.Tk):
             try:
                 from .red_team import run_red_team
                 run_red_team(cfg, Path(path), provider_id=provider,
+                             llm_model=llm_model, llm_base_url=llm_base_url,
                              lang=self._lang if self._lang in ("de", "en")
                              else "en", log=lambda *_: None)
                 msg = self._tr("msg_red_team_done").format(path=path)
@@ -1491,6 +1682,8 @@ class SolutionManagerApp(tk.Tk):
             self._status.set(self._tr("msg_translate_none"))
             return
         provider = self._llm_provider.get() or "ollama"
+        llm_model, llm_base_url = self._llm_config()
+        self._remember_llm_choice()
         self._status.set(self._tr("msg_translate_running").format(
             n=len(langs)))
         self.update_idletasks()
@@ -1502,8 +1695,10 @@ class SolutionManagerApp(tk.Tk):
                 src_path = Path(source)
                 text = src_path.read_text(encoding="utf-8")
                 for lang in langs:
+                    from llm.base import provider_config
                     narration = translate_text(
                         text, lang, provider_id=provider,
+                        config=provider_config(llm_model, llm_base_url),
                         audit_path=src_path.parent / AUDIT_FILENAME)
                     src_path.with_suffix(
                         src_path.suffix + f".{lang}.md").write_text(
@@ -1559,7 +1754,9 @@ class SolutionManagerApp(tk.Tk):
             return
         narrate_with = (self._llm_provider.get()
                         if self._narrate.get() else None)
+        llm_model, llm_base_url = self._llm_config()
         if narrate_with:
+            self._remember_llm_choice()
             # Lokale Inferenz darf dauern — Status VOR dem Start setzen.
             self._status.set(self._tr("msg_narrate_running"))
             self.update_idletasks()
@@ -1570,7 +1767,9 @@ class SolutionManagerApp(tk.Tk):
                                              narrate_with=narrate_with,
                                              llm_lang=self._lang if
                                              self._lang in ("de", "en")
-                                             else "en")
+                                             else "en",
+                                             llm_model=llm_model,
+                                             llm_base_url=llm_base_url)
                 webbrowser.open(Path(tmp).resolve().as_uri())
                 msg = self._tr("msg_delta_done")
             except Exception as exc:
