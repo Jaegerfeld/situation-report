@@ -20,7 +20,7 @@ import sys
 from pathlib import Path
 
 from .audit import AUDIT_FILENAME
-from .base import discover_providers
+from .base import discover_providers, provider_config
 from .narrate import narrate
 from .prompts import TRANSLATION_LANGS
 from .translate import translate_text
@@ -34,6 +34,46 @@ def run_providers(_args: argparse.Namespace) -> int:
     return 0
 
 
+def _normalise(name: str) -> str:
+    """Compare model names the way the naming scheme means them, not literally."""
+    try:
+        from .providers.ollama import normalise_model
+        return normalise_model(name)
+    except Exception:  # noqa: BLE001 - a listing must not fail over a marker
+        return name
+
+
+def run_models(args: argparse.Namespace) -> int:
+    """
+    List the models a provider has available (Ollama: what has been pulled).
+
+    Not every backend can enumerate its models without credentials, so this
+    is an optional provider capability rather than part of the contract.
+    """
+    providers = discover_providers()
+    provider = providers.get(args.llm)
+    if provider is None:
+        print(f"ERROR: unknown provider '{args.llm}'. Known: "
+              f"{', '.join(providers)}", file=sys.stderr)
+        return 1
+    lister = getattr(provider, "list_models", None)
+    if lister is None:
+        print(f"{args.llm} cannot list its models; default is "
+              f"{provider.default_model}.")
+        return 0
+    models = lister(provider_config(base_url=args.base_url))
+    if not models:
+        print(f"No models reported by '{args.llm}'. Is it running and "
+              f"reachable? (default would be {provider.default_model})",
+              file=sys.stderr)
+        return 1
+    default = _normalise(provider.default_model)
+    for name in models:
+        marker = "  <- default" if _normalise(name) == default else ""
+        print(f"{name}{marker}")
+    return 0
+
+
 def run_test(args: argparse.Namespace) -> int:
     """One guarded sample completion (the post-install wiring check)."""
     sample = ("# Delta Briefing - Probe\n"
@@ -41,7 +81,8 @@ def run_test(args: argparse.Namespace) -> int:
               "- [Demo] D-1: sample dependency - at_risk -> blocked\n")
     try:
         narration = narrate(sample, provider_id=args.llm, lang=args.lang,
-                            config={"model": args.model} if args.model else None)
+                            config=provider_config(args.model,
+                                                   args.base_url))
     except RuntimeError as exc:
         print(f"ERROR: {exc}", file=sys.stderr)
         return 1
@@ -80,7 +121,7 @@ def run_translate(args: argparse.Namespace) -> int:
         try:
             narration = translate_text(
                 text, lang, provider_id=args.llm,
-                config={"model": args.model} if args.model else None,
+                config=provider_config(args.model, args.base_url),
                 audit_path=audit)
         except (ValueError, RuntimeError) as exc:
             print(f"ERROR [{lang}]: {exc}", file=sys.stderr)
@@ -105,11 +146,27 @@ def main(argv: list[str] | None = None) -> int:
                                help="List every discovered LLM provider.")
     providers.set_defaults(func=run_providers)
 
+    models = sub.add_parser(
+        "models", help="List the models a provider has available.")
+    models.add_argument("--llm", default="ollama",
+                        help="Provider id (default: ollama).")
+    models.add_argument("--base-url", default=None, dest="base_url",
+                        metavar="URL",
+                        help="Ollama address (default: $OLLAMA_HOST, else "
+                             "http://localhost:11434).")
+    models.set_defaults(func=run_models)
+
     test = sub.add_parser("test", help="Run one guarded sample completion.")
     test.add_argument("--llm", default="ollama",
                       help="Provider id (default: ollama).")
     test.add_argument("--model", default=None,
-                      help="Model override (default: provider default).")
+                      help="Model override (default: provider default). "
+                           "Use the name as 'ollama list' prints it, tag "
+                           "included, e.g. llama3.1:8b.")
+    test.add_argument("--base-url", default=None, dest="base_url",
+                      metavar="URL",
+                      help="Ollama address (default: $OLLAMA_HOST, else "
+                           "http://localhost:11434).")
     test.add_argument("--lang", default="de", choices=["de", "en"],
                       help="Narration language (default: de).")
     test.set_defaults(func=run_test)
@@ -128,7 +185,12 @@ def main(argv: list[str] | None = None) -> int:
                            help="Provider id (default: ollama).")
     translate.add_argument("--model", default=None,
                            help="Model override (default: provider "
-                                "default).")
+                                "default). Use the name as 'ollama list' "
+                                "prints it, tag included.")
+    translate.add_argument("--base-url", default=None, dest="base_url",
+                           metavar="URL",
+                           help="Ollama address (default: $OLLAMA_HOST, "
+                                "else http://localhost:11434).")
     translate.set_defaults(func=run_translate)
 
     args = parser.parse_args(argv)

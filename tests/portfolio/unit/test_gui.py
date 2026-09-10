@@ -14,6 +14,7 @@
 
 from __future__ import annotations
 
+import dataclasses
 from datetime import date
 from pathlib import Path
 
@@ -27,7 +28,11 @@ from portfolio.gui import (
     LANG_PT,
     LANG_RO,
     _build_delta_html_file,
+    _llm_models,
+    _load_pref,
     _member_dict,
+    _preselect_model,
+    _save_pref,
     build_config_from_fields,
     default_metrics_for_mode,
 )
@@ -488,3 +493,114 @@ class TestCrossVsThresholdField:
         from portfolio.gui import _PRESERVED_FIELDS
 
         assert "cross_vs_threshold" not in _PRESERVED_FIELDS
+
+
+
+class TestLlmModelChooser:
+    """The model list behind the chooser — display-independent parts only."""
+
+    def test_unreachable_provider_yields_an_empty_list(self, monkeypatch) -> None:
+        """Ollama not running must leave a usable free-text field, not an error.
+
+        This is the branch that matters: a chooser which raises or hangs when
+        the backend is down is worse than one that simply offers nothing.
+        """
+        def boom(*_a, **_k):
+            raise OSError("refused")
+
+        monkeypatch.setattr("llm.providers.ollama._urlopen", boom)
+        assert _llm_models("ollama") == []
+
+    def test_provider_without_the_capability_yields_an_empty_list(self) -> None:
+        """Listing models is optional; a provider that cannot simply says nothing."""
+        assert _llm_models("claude") == []
+
+    def test_unknown_provider_yields_an_empty_list(self) -> None:
+        assert _llm_models("does-not-exist") == []
+
+    def test_models_are_passed_through(self, monkeypatch) -> None:
+        monkeypatch.setattr(
+            "llm.providers.ollama.OllamaProvider.list_models",
+            lambda self, config=None: ["a:latest", "b:latest"])
+        assert _llm_models("ollama") == ["a:latest", "b:latest"]
+
+    def test_base_url_reaches_the_provider(self, monkeypatch) -> None:
+        """The list must come from the host the user named, not from localhost."""
+        seen: list = []
+
+        def spy(self, config=None):
+            seen.append(config)
+            return []
+
+        monkeypatch.setattr(
+            "llm.providers.ollama.OllamaProvider.list_models", spy)
+        _llm_models("ollama", "http://gpu-box:11434")
+        assert seen == [{"base_url": "http://gpu-box:11434"}]
+
+
+class TestPreselectModel:
+    """What the box shows on open."""
+
+    def test_a_stored_choice_always_wins(self) -> None:
+        """Even an unlisted model stays — it may simply not be pulled yet."""
+        assert _preselect_model("llama3.1:8b", ["mistral-nemo:latest"],
+                                "mistral-nemo") == "llama3.1:8b"
+
+    def test_default_is_matched_by_ollama_naming(self) -> None:
+        """'mistral-nemo' must recognise itself in 'mistral-nemo:latest'."""
+        assert _preselect_model("", ["mistral-nemo:latest", "qwen3.8:latest"],
+                                "mistral-nemo") == "mistral-nemo:latest"
+
+    def test_empty_when_the_default_is_not_installed(self) -> None:
+        """Empty means 'provider decides' — no silent substitution."""
+        assert _preselect_model("", ["qwen3.8:latest"], "mistral-nemo") == ""
+
+    def test_empty_without_any_models(self) -> None:
+        assert _preselect_model("", [], "mistral-nemo") == ""
+
+
+class TestPrefsRoundTrip:
+    """Machine-level settings live in prefs.json, not in the shared config."""
+
+    def test_save_and_load(self, tmp_path, monkeypatch) -> None:
+        monkeypatch.setattr("portfolio.gui._PREFS_PATH",
+                            tmp_path / "prefs.json")
+        _save_pref("llm_model", "llama3.1:8b")
+        _save_pref("llm_base_url", "http://gpu-box:11434")
+        assert _load_pref("llm_model") == "llama3.1:8b"
+        assert _load_pref("llm_base_url") == "http://gpu-box:11434"
+
+    def test_other_keys_survive_a_write(self, tmp_path, monkeypatch) -> None:
+        """Writing one preference must not drop the language setting."""
+        monkeypatch.setattr("portfolio.gui._PREFS_PATH",
+                            tmp_path / "prefs.json")
+        _save_pref("lang", "de")
+        _save_pref("llm_model", "x:latest")
+        assert _load_pref("lang") == "de"
+
+    def test_missing_file_returns_the_default(self, tmp_path, monkeypatch) -> None:
+        monkeypatch.setattr("portfolio.gui._PREFS_PATH",
+                            tmp_path / "nope.json")
+        assert _load_pref("llm_model") == ""
+        assert _load_pref("llm_model", "fallback") == "fallback"
+
+    def test_the_solution_config_carries_no_llm_settings(self) -> None:
+        """An address from someone else's laptop has no business in a shared config.
+
+        Solution configs get relativized and handed to colleagues; the model
+        and the backend address are properties of one machine.
+        """
+        from portfolio.solution_config import SolutionConfig
+        fields = {f.name for f in dataclasses.fields(SolutionConfig)}
+        assert not {f for f in fields if "llm" in f or "model" in f
+                    or "base_url" in f}
+
+
+class TestLlmLabelsInAllLanguages:
+    """The two new fields must be named in every language."""
+
+    @pytest.mark.parametrize("lang", [LANG_DE, LANG_EN, LANG_RO, LANG_PT,
+                                      LANG_FR])
+    def test_labels_present(self, lang) -> None:
+        for key in ("lbl_llm_model", "lbl_llm_url"):
+            assert _T[lang][key].strip()

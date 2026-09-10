@@ -8,6 +8,34 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- **Modell und Adresse für den KI-Anbieter wählbar** — die Oberfläche ließ
+  den *Anbieter* wählen (ollama / claude / mock), nicht aber das *Modell*. Wer
+  mehrere Modelle in Ollama liegen hatte, bekam über die GUI immer die
+  Voreinstellung; `--llm-model` gab es nur auf der Kommandozeile. Die Adresse
+  des Dienstes stand überhaupt nur im Code — Ollama auf einem anderen Rechner
+  war ohne Codeänderung nicht erreichbar.
+
+  Neu im Solutions-&-Portfolios-Fenster: die Felder **Modell** und **Adresse**
+  neben der Anbieterwahl. Das Modellfeld schlägt die installierten Modelle vor,
+  bleibt aber frei beschreibbar — ein Modell, das erst noch geladen wird, kann
+  man schon eintragen, und Ollamas eigene `ollama pull`-Meldung ist die bessere
+  Auskunft als eine stille Ersetzung. Läuft Ollama nicht, bleibt das Feld ein
+  gewöhnliches Textfeld: die Abfrage läuft im Hintergrund mit kurzem Zeitlimit,
+  kein Warten und kein Fehlerdialog.
+
+  Auf der Kommandozeile neu: **`python -m llm models`** listet, was tatsächlich
+  installiert ist, und markiert die Voreinstellung; `--base-url` (llm) und
+  `--llm-base-url` (portfolio) benennen die Adresse. Ohne Angabe gilt die
+  Umgebungsvariable **`OLLAMA_HOST`**, die Ollama selbst benutzt — auch in der
+  Schreibweise `127.0.0.1:11434` ohne Schema —, sonst
+  `http://localhost:11434`.
+
+  **Wo die Einstellungen liegen:** Anbieter, Modell und Adresse gehören zu
+  *diesem Rechner* und werden in `~/.situation_report/prefs.json` gemerkt,
+  nicht in der Solution-Konfiguration. Die wird mit relativen Pfaden
+  gespeichert und weitergegeben; eine Ollama-Adresse von einem fremden Laptop
+  wäre darin ein Rätsel, keine Einstellung.
+
 - **Zykluszeit-Grenzen im Diagrammkopf (AA1)** — der Bericht zeigte eine
   Durchlaufzeit, ohne je zu sagen, **wo die Uhr läuft**. Ein Leser konnte
   deshalb nicht wissen, worauf sich „Flow Time“ bezieht. Vacanti definiert

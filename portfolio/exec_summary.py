@@ -131,6 +131,7 @@ def attach_exec_summary(
     provider_id: str,
     lang: str = "de",
     llm_model: str | None = None,
+    llm_base_url: str | None = None,
     audit_path: Path | None = None,
     as_of: date | None = None,
     target_ct: int = 90,
@@ -154,6 +155,7 @@ def attach_exec_summary(
         NumbersGuardError: Every attempt invented numbers (the last
                            error is raised).
     """
+    from llm.base import provider_config
     from llm.guard import NumbersGuardError
     from llm.narrate import narrate
     from llm.prompts import exec_summary_system_prompt
@@ -169,7 +171,7 @@ def attach_exec_summary(
         try:
             narration = narrate(
                 contract, provider_id=provider_id, lang=lang,
-                config={"model": llm_model} if llm_model else None,
+                config=provider_config(llm_model, llm_base_url),
                 audit_path=audit_path,
                 system_prompt=exec_summary_system_prompt(lang),
                 purpose="d1_exec_summary")

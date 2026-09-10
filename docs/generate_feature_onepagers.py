@@ -1492,6 +1492,102 @@ ONEPAGERS: dict[str, dict[str, dict]] = {
             ],
         },
     },
+    "llm_model_choice": {
+        "de": {
+            "title": "Modell und Adresse wählen",
+            "tagline": "Mehrere Modelle in Ollama – jetzt auch in der "
+                       "Oberfläche auswählbar",
+            "sections": [
+                ("h", "Worum geht es?"),
+                ("p", "Die Oberfläche ließ den ANBIETER wählen "
+                      "(ollama / claude / mock), nicht aber das MODELL. Wer "
+                      "mehrere Modelle in Ollama liegen hatte, bekam über "
+                      "die GUI immer die Voreinstellung – der Schalter "
+                      "--llm-model gab es nur auf der Kommandozeile. Und die "
+                      "Adresse des Dienstes stand überhaupt nur im Code: "
+                      "Ollama auf einem anderen Rechner war ohne "
+                      "Codeänderung nicht erreichbar."),
+                ("h", "Was jetzt geht"),
+                ("li", "Feld Modell neben der Anbieterwahl: schlägt die "
+                       "installierten Modelle vor, lässt sich aber frei "
+                       "beschriften – ein Modell, das erst noch geladen "
+                       "wird, kann man schon eintragen"),
+                ("li", "Feld Adresse: Ollama auf einem anderen Rechner. Ohne "
+                       "Angabe gilt die Umgebungsvariable OLLAMA_HOST, sonst "
+                       "http://localhost:11434"),
+                ("li", "Neuer Befehl python -m llm models: listet, was "
+                       "tatsächlich installiert ist, und markiert die "
+                       "Voreinstellung"),
+                ("li", "--base-url bzw. --llm-base-url auf der Kommandozeile"),
+                ("h", "Zwei Entwurfsentscheidungen"),
+                ("p", "<b>Die Einstellungen liegen bei diesem Rechner, nicht "
+                      "beim Portfolio.</b> Eine Solution-Konfiguration wird "
+                      "mit relativen Pfaden gespeichert und an Kolleginnen "
+                      "und Kollegen weitergegeben – eine Ollama-Adresse "
+                      "von einem fremden Laptop wäre darin ein Rätsel, "
+                      "keine Einstellung. Anbieter, Modell und Adresse landen "
+                      "deshalb in den Voreinstellungen des Rechners und "
+                      "stehen beim nächsten Start wieder da."),
+                ("p", "<b>Nichts wird stillschweigend ersetzt.</b> Ein "
+                      "eingetragenes Modell bleibt stehen, auch wenn es nicht "
+                      "in der Liste steht – es ist vielleicht nur noch "
+                      "nicht geladen. Ollama sagt daraufhin selbst, welcher "
+                      "ollama-pull-Befehl fehlt; das ist eine bessere "
+                      "Auskunft als eine Oberfläche, die leise etwas "
+                      "anderes nimmt. Läuft Ollama nicht, bleibt das Feld "
+                      "ein normales Textfeld – kein Warten, kein "
+                      "Fehlerdialog."),
+                ("h", "So benutzt du es"),
+                ("code", "python -m llm models\n"
+                         "python -m llm test --model qwen3.8:latest\n"
+                         "python -m llm models --base-url http://gpu-box:11434"),
+            ],
+        },
+        "en": {
+            "title": "Choosing a Model and an Address",
+            "tagline": "More than one model in Ollama – now selectable "
+                       "in the GUI too",
+            "sections": [
+                ("h", "What is it?"),
+                ("p", "The GUI let you pick the PROVIDER (ollama / claude / "
+                      "mock) but not the MODEL. With several models pulled in "
+                      "Ollama, the GUI always ran the default – the "
+                      "--llm-model flag existed only on the command line. And "
+                      "the service address lived in the code alone: Ollama on "
+                      "another machine was unreachable without editing "
+                      "source."),
+                ("h", "What works now"),
+                ("li", "A Model field next to the provider picker: offers the "
+                       "installed models but stays typable – a model still "
+                       "being pulled can be entered already"),
+                ("li", "An Address field: Ollama on another machine. Without "
+                       "one, the OLLAMA_HOST environment variable applies, "
+                       "else http://localhost:11434"),
+                ("li", "A new command, python -m llm models: lists what is "
+                       "actually installed and marks the default"),
+                ("li", "--base-url and --llm-base-url on the command line"),
+                ("h", "Two design decisions"),
+                ("p", "<b>These settings belong to the machine, not to the "
+                      "portfolio.</b> A solution configuration is saved with "
+                      "relative paths and handed to colleagues – an Ollama "
+                      "address from someone else's laptop would be a puzzle "
+                      "inside it, not a setting. Provider, model and address "
+                      "therefore go into the machine's preferences and come "
+                      "back on the next start."),
+                ("p", "<b>Nothing is silently substituted.</b> A model you "
+                      "typed stays, even when it is not in the list – it "
+                      "may simply not be pulled yet. Ollama then says which "
+                      "ollama pull command is missing, which is better "
+                      "information than a GUI quietly running something else. "
+                      "If Ollama is not running, the field stays an ordinary "
+                      "text box – no wait, no error dialog."),
+                ("h", "How to use it"),
+                ("code", "python -m llm models\n"
+                         "python -m llm test --model qwen3.8:latest\n"
+                         "python -m llm models --base-url http://gpu-box:11434"),
+            ],
+        },
+    },
 }
 
 

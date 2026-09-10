@@ -61,6 +61,28 @@ class LlmProvider(Protocol):
         ...  # pragma: no cover - protocol signature
 
 
+def provider_config(model: str | None = None,
+                    base_url: str | None = None) -> dict[str, str] | None:
+    """
+    Turn caller overrides into a provider config, or None when there are none.
+
+    Every entry point that lets a user name a model or an address builds the
+    same dict, and each one used to build it inline — which is how the model
+    override reached the CLI but never the GUI. One helper keeps the two
+    knobs together and returns None for "nothing overridden", so a provider
+    falls back to its own defaults instead of receiving empty strings.
+
+    Args:
+        model:    Model name, or None/empty for the provider default.
+        base_url: Backend address, or None/empty for the provider default.
+
+    Returns:
+        A config dict, or None when nothing was given.
+    """
+    config = {k: v for k, v in (("model", model), ("base_url", base_url)) if v}
+    return config or None
+
+
 def discover_providers() -> dict[str, LlmProvider]:
     """
     Find every provider in llm.providers (one file = one backend).
