@@ -17,6 +17,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Container
 from dataclasses import dataclass
 from datetime import date, timedelta
 
@@ -33,6 +34,70 @@ _MONTH_ABBR_CFD = [
 
 
 _WEEK_LABEL_HTML = '<span style="font-size:8px; color:#aaa">{week}</span>'
+
+
+def resolve_flow_boundaries(
+    data: ReportData, available: Container[str]
+) -> tuple[str, str]:
+    """
+    Resolve the <First> and <Closed> workflow boundaries for CFD-derived views.
+
+    Falls back to the outermost stages when the workflow file is not available
+    or the named stage is not present in the given data set. Shared by the CFD
+    metric and the Flow Debt metric so both always agree on where the system
+    starts and ends.
+
+    Args:
+        data:      ReportData carrying optional first_stage / closed_stage markers.
+        available: Container of the stage names actually present in the data
+                   (e.g. the stage_series dict).
+
+    Returns:
+        Tuple of (effective first stage, effective closed stage).
+
+    Raises:
+        ValueError: If data.stages is empty.
+    """
+    if not data.stages:
+        raise ValueError("Cannot resolve flow boundaries without stages.")
+    first = (
+        data.first_stage
+        if data.first_stage and data.first_stage in available
+        else data.stages[0]
+    )
+    closed = (
+        data.closed_stage
+        if data.closed_stage and data.closed_stage in available
+        else data.stages[-1]
+    )
+    return first, closed
+
+
+def cumulative_stage_series(
+    data: ReportData,
+) -> tuple[list[date], dict[str, list[int]]]:
+    """
+    Build the cumulative per-stage entry series from the CFD records.
+
+    CFD.xlsx holds DAILY ENTRY COUNTS per stage; this accumulates them into
+    running totals, which is the form both the CFD chart and Little's Law
+    need. Records are sorted by day.
+
+    Args:
+        data: ReportData with cfd records and stages populated.
+
+    Returns:
+        Tuple of (ordered list of days, {stage: cumulative counts per day}).
+    """
+    records = sorted(data.cfd, key=lambda r: r.day)
+    days = [r.day for r in records]
+    series: dict[str, list[int]] = {s: [] for s in data.stages}
+    for stage in data.stages:
+        running = 0
+        for record in records:
+            running += record.stage_counts.get(stage, 0)
+            series[stage].append(running)
+    return days, series
 
 
 def _cfd_tick_labels(
@@ -163,19 +228,9 @@ class CfdMetric(MetricPlugin):
             for i in range(len(records))
         ]
 
-        # Resolve <First> and <Closed> boundaries; fall back to the outermost
-        # stages when the workflow file is not available or the named stage is
-        # not present in the CFD data.
-        eff_first = (
-            data.first_stage
-            if data.first_stage and data.first_stage in stage_series
-            else stages[0]
-        )
-        eff_closed = (
-            data.closed_stage
-            if data.closed_stage and data.closed_stage in stage_series
-            else stages[-1]
-        )
+        # Resolve <First> and <Closed> boundaries via the shared helper so the
+        # CFD chart and the Flow Debt metric never disagree about them.
+        eff_first, eff_closed = resolve_flow_boundaries(data, stage_series)
 
         # In/Out ratio based on the correct workflow boundaries
         in_total = stage_series[eff_first][-1] if stage_series[eff_first] else 0
