@@ -159,6 +159,26 @@ Berechnet die Durchlaufzeit (in Tagen) von der ersten Aktivität (`First Date`) 
 - **Methode A** (Standard): Differenz in Kalendertagen zwischen `First Date` und `Closed Date`.
 - **Methode B**: Summe der Stage-Minuten aller Stages außer der letzten, dividiert durch 1440.
 
+**Grenz-Deklaration im Diagrammkopf.** Über den Kennzahlen steht eine Zeile, die sagt, **wo die Uhr läuft** — eine Durchlaufzeit ist ohne ihre beiden Grenzen nicht lesbar (Vacanti, *Actionable Agile Metrics for Predictability*, 2015, Kap. 6). Die beiden Methoden deklarieren verschieden, weil sie verschieden messen:
+
+| Methode | Zeile |
+|---|---|
+| A | `Clock: first entry into 'Analysis' → last entry into 'Releasing'` |
+| B | `Clock: dwell time summed over all stages before 'Releasing' — no start boundary` |
+
+Methode B **hat keine Startgrenze** — sie summiert über alle Stages vor der `<Closed>`-Stage. Eine Startstage zu nennen wäre dort eine Behauptung über eine Grenze, die nicht benutzt wird.
+
+Ohne `--workflow` kennt der Bericht die Grenzen nicht; dann steht `boundary not declared (pass --workflow)` statt einer geratenen Stage.
+
+**Abgeleitete Startpunkte.** Überspringt ein Vorgang die `<First>`-Stage, setzt `transform_data` den Startpunkt ersatzweise auf den Eintritt in eine spätere Stage (`processor.py`, Ersatzregel). Die Uhr läuft dann von einem anderen Punkt aus als der Kopf ankündigt. Der Bericht zählt diese Vorgänge aus der Transitions-Datei aus:
+
+- `43 of 64 items never entered 'Analysis' — start derived` (Methode A: die Messung verschiebt sich)
+- `43 of 64 items never entered 'Analysis' — included via a derived start` (Methode B: die *Menge* verschiebt sich, nicht die Messung)
+- `all 64 items entered 'Analysis'` — der saubere Fall wird ausgesprochen, nicht verschwiegen
+- `start check needs --workflow and --transitions` — wenn die Prüfung nicht laufen konnte
+
+Bei Fund steht derselbe Befund zusätzlich als Warnung auf der Konsole. Der Zähler schlägt auch an, wenn `build_reports` eine **andere** Workflow-Datei bekommen hat als `transform_data` benutzt hat — er ist eine Beobachtung, keine Ursachenzuweisung.
+
 **Diagramme:**
 
 - **Boxplot** — Verteilung der Durchlaufzeiten mit Statistik-Header (Min, Q1, Mittelwert, Median, Q3, Max, **90d CT%** = Anteil der Issues mit CT ≤ 90 Tagen, Standardabweichung, Variationskoeffizient, Anzahl Zero-Day Issues).

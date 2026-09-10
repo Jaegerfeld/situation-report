@@ -51,6 +51,90 @@ class _FlowTimePoint:
 # Pure helper functions (testable without a running display)
 # ---------------------------------------------------------------------------
 
+def count_derived_starts(data: ReportData, keys: list[str]) -> int | None:
+    """
+    Count how many of the given issues never entered the declared start stage.
+
+    transform_data sets First Date when an issue transitions into <First>. If
+    that stage was skipped, a fallback rule derives the start from a later
+    stage instead — silently. Those issues carry a First Date that does not
+    mark the moment they entered the system, so their cycle time is measured
+    from a different point than the header declares. AA1 asks for that to be
+    stated rather than hidden.
+
+    The check reads the Transitions data: an issue whose transition list never
+    names the start stage did not enter it. This also catches a mismatched
+    workflow file (build_reports was given a different one than transform_data
+    used) — the count is an observation, not an attribution of cause.
+
+    Args:
+        data: ReportData carrying transitions and the first_stage marker.
+        keys: Issue keys that take part in the cycle time computation.
+
+    Returns:
+        Number of issues with a derived start, or None when the check cannot
+        run — no Transitions file loaded, or no start boundary declared.
+    """
+    if data.first_stage is None or not data.transitions:
+        return None
+    entered = {t.key for t in data.transitions if t.label == data.first_stage}
+    return sum(1 for k in keys if k not in entered)
+
+
+def clock_declaration(
+    first_stage: str | None,
+    closed_stage: str | None,
+    ct_method: str,
+    derived_starts: int | None,
+    item_count: int,
+) -> str:
+    """
+    Build the one-line statement of what the cycle time clock actually measures.
+
+    A reader cannot judge a Flow Time number without knowing where the clock
+    starts and stops (Vacanti, *Actionable Agile Metrics for Predictability*,
+    2015, ch. 6). The two methods measure differently, so they declare
+    differently: Method A runs entry to entry between the two boundaries,
+    while Method B sums dwell time across every stage before the end boundary
+    and therefore has no start boundary at all. Printing a start stage for
+    Method B would assert a boundary that is not in use.
+
+    Where a boundary is unknown, that is said instead of guessed.
+
+    Args:
+        first_stage:    <First> marker, or None when undeclared.
+        closed_stage:   <Closed> marker, or None when undeclared.
+        ct_method:      CT_METHOD_A or CT_METHOD_B.
+        derived_starts: Result of count_derived_starts(), or None if unchecked.
+        item_count:     Number of issues behind the figure.
+
+    Returns:
+        A single line of plain text, ready for the figure title.
+    """
+    end = f"'{closed_stage}'" if closed_stage else "the last stage (end boundary not declared)"
+
+    if ct_method == CT_METHOD_B:
+        clock = f"Clock: dwell time summed over all stages before {end} — no start boundary"
+    elif first_stage:
+        clock = f"Clock: first entry into '{first_stage}' → last entry into {end}"
+    else:
+        clock = f"Clock: start boundary not declared (pass --workflow) → last entry into {end}"
+
+    # First Date decides which issues take part under both methods, so the note
+    # belongs on Method B too — there a derived start moves the population
+    # rather than the measurement, and it says so.
+    effect = "included via a derived start" if ct_method == CT_METHOD_B else "start derived"
+    if derived_starts is None:
+        note = "start check needs --workflow and --transitions"
+    elif derived_starts:
+        note = (f"{derived_starts} of {item_count} items never entered "
+                f"'{first_stage}' — {effect}")
+    else:
+        note = f"all {item_count} items entered '{first_stage}'"
+
+    return f"{clock} | {note}"
+
+
 def _loess(x_num: list[float], y: list[float], frac: float = 0.4) -> list[float]:
     """
     Compute LOESS-smoothed y values using local weighted linear regression.
@@ -282,6 +366,12 @@ class FlowTimeMetric(MetricPlugin):
                 cycle_days=delta,
             ))
 
+        boundary_stats: dict[str, object] = {
+            "first_stage": data.first_stage,
+            "closed_stage": data.closed_stage,
+            "derived_starts": count_derived_starts(data, [p.key for p in points]),
+        }
+
         if not points:
             warnings.append("No issues with valid First Date and Closed Date found.")
             return MetricResult(
@@ -290,6 +380,7 @@ class FlowTimeMetric(MetricPlugin):
                     "zero_day_count": zero_day_count,
                     "zero_day_records": zero_day_records,
                     "ct_method": self.ct_method,
+                    **boundary_stats,
                 },
                 warnings=warnings,
             )
@@ -304,6 +395,21 @@ class FlowTimeMetric(MetricPlugin):
         stats["target_ct_pct"] = round(
             sum(1 for v in values if v <= self.target_ct) / len(values) * 100, 1
         )
+        stats.update(boundary_stats)
+
+        if stats["derived_starts"]:
+            consequence = (
+                "so they take part on the strength of a start point the workflow "
+                "never recorded"
+                if self.ct_method == CT_METHOD_B else
+                "so their cycle time is measured from a different point than the "
+                "header declares"
+            )
+            warnings.append(
+                f"{stats['derived_starts']} of {len(points)} items never entered "
+                f"'{data.first_stage}' — their start was derived from a later stage, "
+                f"{consequence}."
+            )
 
         return MetricResult(
             metric_id=self.metric_id,
@@ -337,8 +443,17 @@ class FlowTimeMetric(MetricPlugin):
         label = term(FLOW_TIME, terminology)
         method_label = f"Methode {s.get('ct_method', CT_METHOD_A)}"
 
+        # The boundary declaration goes above the numbers, not beside them: a
+        # reader has to know what the clock measures before the statistics
+        # mean anything (AA1, Vacanti ch. 6).
+        clock = clock_declaration(
+            s.get("first_stage"), s.get("closed_stage"),
+            self.ct_method, s.get("derived_starts"), s.get("count", 0),
+        )
+
         header = (
-            f"{label} ({method_label})  "
+            f"{label} ({method_label})<br>"
+            f"<span style='font-size:10px'>{clock}</span><br>"
             f"Min: {s['min']} | Q1: {s['q1']} | Mean: {round(s['mean'], 2)} | "
             f"Median: {s['median']} | Q3: {s['q3']} | Max: {s['max']} | "
             f"#Items: {s['count']} | Target CT ({s['target_ct']}d): {s['target_ct_pct']}% | "

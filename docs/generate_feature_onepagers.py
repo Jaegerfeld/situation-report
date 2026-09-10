@@ -1390,6 +1390,108 @@ ONEPAGERS: dict[str, dict[str, dict]] = {
             ],
         },
     },
+    "cycle_time_boundaries": {
+        "de": {
+            "title": "Zykluszeit-Grenzen",
+            "tagline": "AA1 \u2013 Eine Durchlaufzeit ist ohne ihre beiden "
+                       "Grenzen nicht lesbar",
+            "sections": [
+                ("h", "Worum geht es?"),
+                ("p", "Der Bericht zeigte eine Durchlaufzeit \u2013 und sagte "
+                      "nirgends, wo die Uhr l\u00e4uft. Ein Leser konnte "
+                      "deshalb nicht wissen, worauf sich \u201eFlow Time\u201c "
+                      "\u00fcberhaupt bezieht. Daniel Vacanti definiert die "
+                      "Zykluszeit \u00fcber zwei ausdr\u00fccklich gesetzte "
+                      "Grenzen (\u201eActionable Agile Metrics for "
+                      "Predictability\u201c, 2015, Kap. 6). Genannt hat unser "
+                      "Bericht sie nie. Jetzt steht \u00fcber den Kennzahlen "
+                      "eine Zeile, die sie nennt \u2013 VOR den Zahlen, weil "
+                      "die Zahlen ohne sie nichts bedeuten."),
+                ("h", "Warum das z\u00e4hlt"),
+                ("p", "Es kostet keine neue Eingabe und keine neue Rechnung. "
+                      "Es macht nur eine Angabe sichtbar, die das Werkzeug "
+                      "l\u00e4ngst kennt und bisher f\u00fcr sich behielt. "
+                      "Genau daran scheitern Gespr\u00e4che \u00fcber "
+                      "Durchlaufzeiten: Zwei Leute lesen dieselbe Zahl und "
+                      "meinen verschiedene Uhren."),
+                ("h", "Beide Methoden deklarieren verschieden"),
+                ("li", "Methode A: erster Eintritt in die <First>-Stage bis "
+                       "letzter Eintritt in die <Closed>-Stage"),
+                ("li", "Methode B: Summe der Verweilzeiten aller Stages vor "
+                       "der <Closed>-Stage \u2013 KEINE Startgrenze. Dort eine "
+                       "Startstage zu drucken w\u00e4re eine Behauptung "
+                       "\u00fcber eine Grenze, die nicht benutzt wird"),
+                ("li", "Ohne --workflow: \u201eboundary not declared\u201c "
+                       "\u2013 nicht eine geratene Stage"),
+                ("h", "Abgeleitete Startpunkte werden ausgez\u00e4hlt"),
+                ("p", "\u00dcberspringt ein Vorgang die <First>-Stage, setzt "
+                      "transform_data den Startpunkt still auf den Eintritt in "
+                      "eine sp\u00e4tere Stage. Die Uhr l\u00e4uft dann von "
+                      "einem anderen Punkt aus als der Kopf ank\u00fcndigt. "
+                      "Der Bericht z\u00e4hlt diese Vorg\u00e4nge aus und sagt "
+                      "es: \u201e43 of 64 items never entered ...\u201c. Der "
+                      "saubere Fall wird ebenso ausgesprochen. Kein Randfall: "
+                      "In den Testdaten ART_E betrifft es 45 von 78 "
+                      "Vorg\u00e4ngen."),
+                ("h", "So benutzt du es"),
+                ("code", "python -m build_reports IssueTimes.xlsx "
+                         "--workflow workflow.txt "
+                         "--transitions Transitions.xlsx --browser"),
+                ("p", "Nichts einzuschalten \u2013 die Zeile steht immer da. "
+                      "--workflow liefert die Grenzen, --transitions die "
+                      "Pr\u00fcfung auf abgeleitete Startpunkte. Fehlt eines "
+                      "von beiden, sagt der Kopf, was fehlt."),
+            ],
+        },
+        "en": {
+            "title": "Cycle Time Boundaries",
+            "tagline": "AA1 \u2013 A cycle time cannot be read without its two "
+                       "boundaries",
+            "sections": [
+                ("h", "What is it?"),
+                ("p", "The report showed a cycle time and never said where the "
+                      "clock runs. A reader had no way of knowing what "
+                      "\u201cFlow Time\u201d even referred to. Daniel Vacanti "
+                      "defines cycle time through two explicitly set "
+                      "boundaries (\u201cActionable Agile Metrics for "
+                      "Predictability\u201d, 2015, ch. 6). Our report never "
+                      "named them. Now a line above the statistics does \u2013 "
+                      "BEFORE the numbers, because without it the numbers mean "
+                      "nothing."),
+                ("h", "Why it matters"),
+                ("p", "It costs no new input and no new computation. It only "
+                      "surfaces something the tool has known all along and "
+                      "kept to itself. That is exactly where conversations "
+                      "about cycle time break down: two people read the same "
+                      "number and mean different clocks."),
+                ("h", "The two methods declare differently"),
+                ("li", "Method A: first entry into the <First> stage to last "
+                       "entry into the <Closed> stage"),
+                ("li", "Method B: dwell time summed over all stages before the "
+                       "<Closed> stage \u2013 NO start boundary. Printing a "
+                       "start stage there would assert a boundary that is not "
+                       "in use"),
+                ("li", "Without --workflow: \u201cboundary not declared\u201d "
+                       "\u2013 not a guessed stage"),
+                ("h", "Derived start points are counted out"),
+                ("p", "When an item skips the <First> stage, transform_data "
+                      "quietly falls back to the entry into a later stage. The "
+                      "clock then runs from a different point than the header "
+                      "announces. The report counts those items and says so: "
+                      "\u201c43 of 64 items never entered ...\u201d. The clean "
+                      "case is stated just as plainly. Not an edge case: in "
+                      "the ART_E test data it affects 45 of 78 items."),
+                ("h", "How to use it"),
+                ("code", "python -m build_reports IssueTimes.xlsx "
+                         "--workflow workflow.txt "
+                         "--transitions Transitions.xlsx --browser"),
+                ("p", "Nothing to switch on \u2013 the line is always there. "
+                      "--workflow supplies the boundaries, --transitions the "
+                      "derived-start check. Without either one, the header "
+                      "says what is missing."),
+            ],
+        },
+    },
 }
 
 

@@ -5,6 +5,39 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [Unreleased]
+
+### Added
+- **Zykluszeit-Grenzen im Diagrammkopf (AA1)** — der Bericht zeigte eine
+  Durchlaufzeit, ohne je zu sagen, **wo die Uhr läuft**. Ein Leser konnte
+  deshalb nicht wissen, worauf sich „Flow Time“ bezieht. Vacanti definiert
+  die Zykluszeit über zwei ausdrücklich gesetzte Grenzen
+  (*Actionable Agile Metrics for Predictability*, 2015, Kap. 6); genannt hat
+  der Bericht sie nirgends. Über den Kennzahlen steht jetzt eine Zeile, die
+  sie nennt — vor den Zahlen, weil die Zahlen ohne sie nichts bedeuten.
+
+  **Die beiden Methoden deklarieren verschieden, weil sie verschieden messen.**
+  Methode A läuft vom ersten Eintritt in die `<First>`-Stage bis zum letzten
+  Eintritt in die `<Closed>`-Stage. Methode B **hat gar keine Startgrenze** —
+  sie summiert die Verweilzeiten aller Stages vor der `<Closed>`-Stage. Dort
+  eine Startstage zu drucken wäre eine Behauptung über eine Grenze, die nicht
+  benutzt wird — also genau der Fehler, den AA1 verhindern soll. Ohne
+  `--workflow` steht `boundary not declared (pass --workflow)` statt einer
+  geratenen Stage.
+
+  **Abgeleitete Startpunkte werden ausgezählt.** Überspringt ein Vorgang die
+  `<First>`-Stage, setzt `transform_data` den Startpunkt still auf den Eintritt
+  in eine spätere Stage — die Uhr läuft dann von einem anderen Punkt aus als
+  der Kopf ankündigt. Der Bericht zählt diese Vorgänge aus der
+  Transitions-Datei aus (`43 of 64 items never entered 'Analysis' — start
+  derived`) und meldet sie zusätzlich als Warnung. Der saubere Fall wird
+  ebenso ausgesprochen (`all 64 items entered 'Analysis'`), und wenn die
+  Prüfung nicht laufen kann, steht auch das da. In den mitgelieferten
+  Testdaten ist das kein Randfall: In `ART_E` betrifft es **45 von 78**
+  Vorgängen der Zykluszeit-Rechnung.
+
+---
+
 ## [0.29.0] – 2026-09-10
 
 ### Added
