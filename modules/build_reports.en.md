@@ -41,6 +41,8 @@ python -m build_reports.cli <IssueTimes.xlsx> [options]
 | `--zero-day-threshold MINUTES` | Cycle time threshold in minutes for zero-day detection (default: 5) |
 | `--terminology` | Terminology mode: `SAFe` (default) or `Global` |
 | `--ct-method` | CT calculation method: `A` (calendar days, default) or `B` (stage minutes) |
+| `--debt-tolerance PCT` | Flow Debt: band around the measured mean cycle time that still counts as stable (default: 15) |
+| `--assumption-tolerance PCT` | Flow Debt: band for the two checked Little's Law assumptions (default: 25) |
 | `--pdf FILE` | Export all charts to this PDF file |
 | `--browser` | Open charts in the default browser |
 
@@ -229,6 +231,41 @@ Reads the daily entry counts from `CFD.xlsx` and accumulates them cumulatively. 
 | SAFe | Global |
 |------|--------|
 | Cumulative Flow Diagram | Cumulative Flow Diagram |
+
+---
+
+### Flow Debt
+
+**Metric ID:** `flow_debt`
+
+Computes WIP, throughput and cycle time **against** each other instead of showing them side by side. The CFD daily data yields a WIP time series (entries into the `<First>` stage minus entries into the `<Closed>` stage); mean WIP divided by throughput gives the **approximate** mean cycle time per Little's Law. Comparing it against the **measured** mean shows whether some items were finished faster at the expense of others — Daniel Vacanti calls this *Flow Debt* (*Actionable Agile Metrics for Predictability*, 2015, ch. 9).
+
+**Requires `--cfd`.** Without the CFD file the metric says so rather than computing.
+
+**Chart:** WIP over time; the header carries the assumption status, the approximate and measured means, and the verdict.
+
+**Three verdicts:**
+
+| Comparison | Verdict | Meaning |
+|---|---|---|
+| approximation **higher** than measurement | `accumulating Flow Debt` | Some items were sped up, borrowing cycle time from others in progress |
+| approximation **lower** | `paying off Flow Debt` | The items left sitting are coming out now |
+| inside the tolerance band | `stable` | Nothing to report |
+
+**Tolerance band.** Vacanti gives no number for his third state ("roughly equal"). Without a band, `approximate ≠ measured` would be true for practically any data set and the indicator would report Flow Debt permanently. Default **15 %** of the measured mean, configurable via `--debt-tolerance` or the GUI field *Flow Debt tolerance* (stored in the project template).
+
+**Assumption check before the verdict.** Little's Law only holds under conditions. Two of them are checked and stated in the header **before** the verdict:
+
+- **Assumption 1** — arrival and departure rates in balance across the window. **Rates** are compared, not cumulative totals: the latter always differ by exactly the standing WIP.
+- **Assumption 3** — WIP comparable at the start and the end of the window.
+
+When they are violated the header reads `verdict not dependable`; the verdict stays visible but is explicitly marked as not dependable. Band for both checks: `--assumption-tolerance` (default 25 %).
+
+**Further warnings:** when the departure counts from the CFD and from Closed Date diverge strongly, throughput and the measured mean describe different populations — this is stated. Likewise when the CFD holds more departures than arrivals (items that skipped the `<First>` stage push WIP down).
+
+| SAFe | Global |
+|------|--------|
+| Flow Debt | Flow Debt |
 
 ---
 

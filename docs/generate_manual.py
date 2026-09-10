@@ -1018,6 +1018,39 @@ def content_de(st, images: dict[str, Path] | None = None):
         "Verglichen mit Process Flow: Transitions laesst sich erkennen, ob haeufige "
         "Uebergaenge auch zeitlich ins Gewicht fallen oder nur kurze Statuswechsel sind.", st))
 
+    # --- 5.8 Flow Debt -------------------------------------------------------
+    story.append(H2("5.8  Flow Debt", st))
+    story.append(P(
+        "<b>Was wird gemessen?</b> Ob einzelne Vorgaenge auf Kosten anderer "
+        "beschleunigt wurden. Teilt man den mittleren Bestand durch den "
+        "Durchsatz, sagt Little's Law eine mittlere Durchlaufzeit voraus. Liegt "
+        "diese genaeherte Zeit ueber der tatsaechlich gemessenen, hat der "
+        "Prozess einigen Vorgaengen Zeit verschafft, die er anderen genommen "
+        "hat -- gleichzeitig laufenden, die dadurch aelter werden. Daniel "
+        "Vacanti nennt das Flow Debt.", st))
+    story.append(P(
+        "<b>Drei Zustaende.</b> Genaehert groesser als gemessen: der Prozess "
+        "nimmt Flow Debt auf. Genaehert kleiner: er tilgt sie -- die lange "
+        "liegen gebliebenen Vorgaenge kommen jetzt heraus. Innerhalb des "
+        "Toleranzbands: stabil. Fuer diesen dritten Zustand gibt es keine "
+        "Zahl aus der Literatur; ohne Band meldete die Anzeige praktisch "
+        "dauerhaft Flow Debt. Voreinstellung sind 15 Prozent der gemessenen "
+        "Mitte, einstellbar ueber --debt-tolerance bzw. das GUI-Feld "
+        "\u201eFlow-Debt-Toleranz\u201c.", st))
+    story.append(P(
+        "<b>Typische Ursachen.</b> Eilspuren, Blockaden und unausgesprochene "
+        "Reihenfolgeregeln beim Ziehen. Die Anzeige nennt keine Schuldigen -- "
+        "sie zeigt nur, dass eine Bevorzugung stattgefunden hat.", st))
+    story.append(SP(4))
+    story.append(box(
+        "<b>Wichtig:</b> Little's Law gilt nur unter Bedingungen. Zwei davon "
+        "werden geprueft und in der Kopfzeile VOR dem Urteil ausgewiesen: "
+        "Zugangs- und Abgangsrate im Gleichgewicht und Bestand am Ende wie am "
+        "Anfang. Sind sie verletzt, steht dort \u201everdict not dependable\u201c "
+        "-- dann bedeutet die Zahl nichts, und der Bericht sagt es, statt sie "
+        "stehen zu lassen. Die Metrik braucht CFD.xlsx; ohne diese Datei "
+        "rechnet sie nicht, sondern sagt es.", st))
+
     # =========================================================================
     # 6. PDF-Export
     # =========================================================================
@@ -1792,6 +1825,38 @@ def content_en(st, images: dict[str, Path] | None = None):
         "Transitions, you can see whether frequent transitions also carry significant "
         "time weight or are just brief status changes.", st))
 
+    # --- 5.8 Flow Debt -------------------------------------------------------
+    story.append(H2("5.8  Flow Debt", st))
+    story.append(P(
+        "<b>What is measured?</b> Whether some items were finished faster at "
+        "the expense of others. Divide mean WIP by throughput and Little's Law "
+        "predicts a mean cycle time. When that approximation is higher than "
+        "the measured mean, the process bought time for some items by taking "
+        "it from others in progress, which age as a result. Daniel Vacanti "
+        "calls this Flow Debt.", st))
+    story.append(P(
+        "<b>Three verdicts.</b> Approximation higher than measurement: the "
+        "process is accumulating Flow Debt. Approximation lower: it is paying "
+        "it off — the items left sitting are coming out now. Inside the "
+        "tolerance band: stable. There is no number in the literature for that "
+        "third state; without a band the indicator would report Flow Debt "
+        "almost always. The default is 15 percent of the measured mean, "
+        "configurable via --debt-tolerance or the GUI field “Flow Debt "
+        "tolerance”.", st))
+    story.append(P(
+        "<b>Typical causes.</b> Expedite lanes, blockers and unspoken "
+        "pull-order policies. The indicator names no culprit — it only shows "
+        "that preferential treatment took place.", st))
+    story.append(SP(4))
+    story.append(box(
+        "<b>Important:</b> Little's Law only holds under conditions. Two of "
+        "them are checked and stated in the header BEFORE the verdict: "
+        "arrival and departure rates in balance, and WIP comparable at the "
+        "start and the end. When they are violated the header says “verdict "
+        "not dependable” — the number means nothing then, and the report says "
+        "so instead of letting it stand. The metric requires CFD.xlsx; "
+        "without that file it says so rather than computing.", st))
+
     # =========================================================================
     # 6. PDF Export
     # =========================================================================
@@ -2562,6 +2627,37 @@ def content_ro(st, images=None):
         "stationeaza deosebit de mult — potentiale blocaje. Comparativ cu Process Flow: "
         "Transitions, poti vedea daca tranzitiile frecvente au si o pondere semnificativa "
         "de timp sau sunt doar schimbari rapide de stare.", st))
+
+    # --- 5.8 Flow Debt -------------------------------------------------------
+    story.append(H2("5.8  Flow Debt", st))
+    story.append(P(
+        "<b>Ce se masoara?</b> Daca unele issues au fost finalizate mai repede "
+        "pe seama altora. Impartind WIP-ul mediu la debit, legea lui Little "
+        "prezice un timp mediu de ciclu. Cand aceasta aproximare este mai mare "
+        "decat valoarea masurata, procesul a castigat timp pentru unele issues "
+        "luandu-l de la altele aflate in lucru, care imbatranesc astfel. "
+        "Daniel Vacanti numeste acest lucru Flow Debt.", st))
+    story.append(P(
+        "<b>Trei verdicte.</b> Aproximare mai mare decat masuratoarea: "
+        "procesul acumuleaza Flow Debt. Aproximare mai mica: o achita -- "
+        "issues ramase in asteptare ies acum. In interiorul benzii de "
+        "toleranta: stabil. Pentru aceasta a treia stare nu exista o valoare "
+        "in literatura; fara banda, indicatorul ar raporta aproape intotdeauna "
+        "Flow Debt. Implicit 15 la suta din media masurata, configurabil prin "
+        "--debt-tolerance sau campul GUI \u201eToleranta Flow Debt\u201d.", st))
+    story.append(P(
+        "<b>Cauze tipice.</b> Benzi de urgenta, blocaje si reguli nespuse de "
+        "ordine la tragere. Indicatorul nu numeste vinovati -- arata doar ca a "
+        "avut loc un tratament preferential.", st))
+    story.append(SP(4))
+    story.append(box(
+        "<b>Important:</b> Legea lui Little este valabila doar in anumite "
+        "conditii. Doua dintre ele sunt verificate si afisate in antet INAINTE "
+        "de verdict: ratele de intrare si iesire in echilibru si WIP "
+        "comparabil la inceput si la sfarsit. Daca sunt incalcate, antetul "
+        "spune \u201everdict not dependable\u201d -- atunci valoarea nu inseamna "
+        "nimic, iar raportul o spune in loc sa o lase asa. Metrica are nevoie "
+        "de CFD.xlsx; fara acest fisier o spune, in loc sa calculeze.", st))
 
     # =========================================================================
     # 6. Export PDF
@@ -3338,6 +3434,37 @@ def content_pt(st, images=None):
         "permanecem particularmente tempo -- possiveis estrangulamentos. Comparando com "
         "Process Flow: Transitions, pode verificar-se se transicoes frequentes tambem "
         "implicam peso temporal significativo ou sao apenas breves mudancas de estado.", st))
+
+    # --- 5.8 Flow Debt -------------------------------------------------------
+    story.append(H2("5.8  Flow Debt", st))
+    story.append(P(
+        "<b>O que e medido?</b> Se alguns issues foram concluidos mais depressa "
+        "a custa de outros. Dividindo o WIP medio pelo debito, a lei de Little "
+        "preve um tempo medio de ciclo. Quando essa aproximacao e superior ao "
+        "valor medido, o processo ganhou tempo para alguns issues retirando-o "
+        "de outros em curso, que envelhecem por causa disso. Daniel Vacanti "
+        "chama a isto Flow Debt.", st))
+    story.append(P(
+        "<b>Tres veredictos.</b> Aproximacao superior ao medido: o processo "
+        "acumula Flow Debt. Aproximacao inferior: esta a paga-la -- os issues "
+        "que ficaram parados saem agora. Dentro da faixa de tolerancia: "
+        "estavel. Para esse terceiro estado nao existe um valor na literatura; "
+        "sem faixa, o indicador reportaria Flow Debt quase sempre. Por omissao "
+        "15 por cento da media medida, configuravel com --debt-tolerance ou o "
+        "campo da interface \u201eTolerancia Flow Debt\u201d.", st))
+    story.append(P(
+        "<b>Causas tipicas.</b> Vias de urgencia, bloqueios e regras nao ditas "
+        "de ordem ao puxar trabalho. O indicador nao aponta culpados -- apenas "
+        "mostra que houve tratamento preferencial.", st))
+    story.append(SP(4))
+    story.append(box(
+        "<b>Importante:</b> A lei de Little so e valida sob certas condicoes. "
+        "Duas delas sao verificadas e indicadas no cabecalho ANTES do "
+        "veredicto: taxas de entrada e saida em equilibrio e WIP comparavel no "
+        "inicio e no fim. Se forem violadas, o cabecalho diz \u201everdict not "
+        "dependable\u201d -- entao o numero nao significa nada, e o relatorio "
+        "di-lo em vez de o deixar ficar. A metrica precisa de CFD.xlsx; sem "
+        "esse ficheiro di-lo, em vez de calcular.", st))
 
     # =========================================================================
     # 6. Exportacao PDF
@@ -4124,6 +4251,39 @@ def content_fr(st, images=None):
         "d'etranglement potentiels. Compare a Process Flow: Transitions, vous pouvez "
         "voir si des transitions frequentes comportent egalement un poids temporel "
         "significatif ou s'il s'agit simplement de brefs changements de statut.", st))
+
+    # --- 5.8 Flow Debt -------------------------------------------------------
+    story.append(H2("5.8  Flow Debt", st))
+    story.append(P(
+        "<b>Que mesure-t-on ?</b> Si certains tickets ont ete termines plus "
+        "vite aux depens d'autres. En divisant l'encours moyen par le debit, "
+        "la loi de Little predit un temps de cycle moyen. Lorsque cette "
+        "approximation depasse la valeur mesuree, le processus a gagne du "
+        "temps pour certains tickets en le prenant a d'autres en cours, qui "
+        "vieillissent d'autant. Daniel Vacanti appelle cela Flow Debt.", st))
+    story.append(P(
+        "<b>Trois verdicts.</b> Approximation superieure a la mesure : le "
+        "processus accumule de la Flow Debt. Approximation inferieure : il la "
+        "rembourse -- les tickets restes en attente sortent maintenant. A "
+        "l'interieur de la plage de tolerance : stable. Pour ce troisieme etat "
+        "la litterature ne donne aucune valeur ; sans plage, l'indicateur "
+        "signalerait presque toujours de la Flow Debt. Par defaut 15 pour cent "
+        "de la moyenne mesuree, reglable via --debt-tolerance ou le champ "
+        "\u201eTolerance Flow Debt\u201d de l'interface.", st))
+    story.append(P(
+        "<b>Causes typiques.</b> Voies express, blocages et regles d'ordre de "
+        "tirage non dites. L'indicateur ne designe aucun coupable -- il montre "
+        "seulement qu'un traitement preferentiel a eu lieu.", st))
+    story.append(SP(4))
+    story.append(box(
+        "<b>Important :</b> La loi de Little n'est valable que sous "
+        "conditions. Deux d'entre elles sont verifiees et indiquees dans "
+        "l'en-tete AVANT le verdict : taux d'arrivee et de sortie equilibres, "
+        "et encours comparable au debut et a la fin. Si elles sont violees, "
+        "l'en-tete indique \u201everdict not dependable\u201d -- le chiffre ne "
+        "signifie alors rien, et le rapport le dit plutot que de le laisser "
+        "tel quel. La metrique a besoin de CFD.xlsx ; sans ce fichier elle le "
+        "dit au lieu de calculer.", st))
 
     # =========================================================================
     # 6. Export PDF
