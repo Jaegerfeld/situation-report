@@ -1,6 +1,6 @@
 # situation-report
 
-**Version 0.29.0** ![Coverage](docs/coverage.svg)
+**Version 0.30.0** ![Coverage](docs/coverage.svg)
 
 Toolsuite for the situational picture at portfolio and solution level: flow metrics from Jira, governance registers, Value-Stream-Conference preparation, forecasts and AI-drafted narration — running locally on your own machine.
 
