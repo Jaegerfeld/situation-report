@@ -159,6 +159,26 @@ Computes lead time (in days) from first activity (`First Date`) to completion (`
 - **Method A** (default): Difference in calendar days between `First Date` and `Closed Date`.
 - **Method B**: Sum of stage minutes for all stages except the last, divided by 1440.
 
+**Boundary declaration in the chart header.** Above the statistics sits a line saying **where the clock runs** — a cycle time cannot be read without its two boundaries (Vacanti, *Actionable Agile Metrics for Predictability*, 2015, ch. 6). The two methods declare differently because they measure differently:
+
+| Method | Line |
+|---|---|
+| A | `Clock: first entry into 'Analysis' → last entry into 'Releasing'` |
+| B | `Clock: dwell time summed over all stages before 'Releasing' — no start boundary` |
+
+Method B **has no start boundary** — it sums across every stage before the `<Closed>` stage. Naming a start stage there would assert a boundary that is not in use.
+
+Without `--workflow` the report does not know the boundaries; it then reads `boundary not declared (pass --workflow)` rather than a guessed stage.
+
+**Derived start points.** When an item skips the `<First>` stage, `transform_data` falls back to the entry into a later stage (`processor.py`, fallback rule). The clock then runs from a different point than the header announces. The report counts those items from the Transitions file:
+
+- `43 of 64 items never entered 'Analysis' — start derived` (Method A: the measurement shifts)
+- `43 of 64 items never entered 'Analysis' — included via a derived start` (Method B: the *population* shifts, not the measurement)
+- `all 64 items entered 'Analysis'` — the clean case is stated, not left to silence
+- `start check needs --workflow and --transitions` — when the check could not run
+
+On a finding the same statement also appears as a console warning. The counter also fires when `build_reports` was handed a **different** workflow file than `transform_data` used — it is an observation, not an attribution of cause.
+
 **Charts:**
 
 - **Boxplot** — Distribution of lead times with a statistics header (Min, Q1, Mean, Median, Q3, Max, **90d CT%** = share of issues with CT ≤ 90 days, standard deviation, coefficient of variation, zero-day issue count).

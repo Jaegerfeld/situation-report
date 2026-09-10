@@ -79,6 +79,16 @@ Nicht nach „Feature-Wunschliste", sondern nach **Datenherkunft** (das BGS-Prin
 
 ---
 
+### A7 · Zykluszeit-Grenzen im Diagrammkopf benennen · ✅ umgesetzt (10.09.2026)
+- **Was:** Über den Kennzahlen des Flow-Time-Diagramms steht jetzt eine Zeile, die sagt, **wo die Uhr läuft**: bei Methode A vom ersten Eintritt in die `<First>`-Stage bis zum letzten Eintritt in die `<Closed>`-Stage, bei Methode B als Summe der Verweilzeiten aller Stages vor der `<Closed>`-Stage — dort ausdrücklich **ohne Startgrenze**. Ist eine Grenze nicht deklariert (kein `--workflow`), steht das da statt einer geratenen Stage. Zusätzlich zählt der Bericht aus der Transitions-Datei aus, wie viele Vorgänge die `<First>`-Stage nie betreten haben und deshalb mit einem **abgeleiteten Startpunkt** in die Rechnung eingehen; bei Fund steht derselbe Befund auch als Warnung auf der Konsole.
+- **Warum:** Vacanti definiert die Zykluszeit über zwei ausdrücklich gesetzte Grenzen (*Actionable Agile Metrics for Predictability*, 2015, Kap. 6, S. 89 f.). Unser `first_date` ist bereits eine konfigurierte Workflow-Grenze — **genannt** hat der Bericht sie nie, und ein Leser konnte deshalb nicht wissen, worauf sich „Flow Time“ bezieht. Herleitung: Analyse `Quellen/Buchanalysen/Actionable-Agile-Metrics-I_Vacanti_Analyse.md`, Abschnitt C.2, Kandidat **AA1**.
+- **Wo:** `build_reports/metrics/flow_time.py` — `clock_declaration()` und `count_derived_starts()`; die Zeile geht in den Titel beider Figuren.
+- **Die Entwurfsentscheidung, die begründet werden muss:** Die beiden Methoden deklarieren **verschieden**, weil sie verschieden messen. `_cycle_days_method_b` summiert `stages[:index(closed_stage)]`, also ab der allerersten Stage — Methode B hat gar keine Startgrenze. Dieselbe Zeile für beide zu drucken hätte eine Grenze behauptet, die nicht benutzt wird: genau der Fehler, den AA1 verhindern soll, und schlimmer als das bisherige Schweigen, weil er selbstsicher auftritt.
+- **Bewusst nicht:** `L1` (DoD-Deklaration je Quelle) ist Phase B und braucht ein Konfigurationsfeld, das es nicht gibt; `L3` (Zweck und Urheber neben der Zahl) setzt ein Metrik-Definitionsblatt voraus, das ebenfalls fehlt — beide sind eigene Vorgänge. Ebenfalls offen: Die `<Closed>`-Ersatzregel leitet auch das **Ende** ab (in `ART_E` fünf Vorgänge); AA1 verlangt nur den Startpunkt, der Befund gehört als eigener Kandidat aufgenommen.
+- **Aufwand:** S.
+
+---
+
 ## Phase B — neuer lokaler Input-Contract (G/B) · analog `solution_config`
 
 *Jede Dimension = ein neues, versioniertes JSON-Artefakt (geschätzt/beobachtet im PI-Planning/Review erhoben), geladen & validiert wie die Solution-Config, in den Report gerendert. Mittlerer Aufwand. **Hier entsteht der eigentliche EA-Mehrwert.***

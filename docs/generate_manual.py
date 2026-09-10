@@ -773,6 +773,30 @@ def content_de(st, images: dict[str, Path] | None = None):
         "ein Issue von der ersten Bearbeitung bis zum Abschluss benoetigt. Je kuerzer, "
         "desto besser.", st))
 
+    story.append(H3("Wo die Uhr laeuft", st))
+    story.append(P(
+        "Eine Durchlaufzeit ist ohne ihre beiden Grenzen nicht lesbar. Der "
+        "Kopf des Diagramms nennt sie deshalb, bevor er eine Zahl zeigt: "
+        "<b>Methode A</b> misst vom ersten Eintritt in die "
+        "&lt;First&gt;-Stage bis zum letzten Eintritt in die "
+        "&lt;Closed&gt;-Stage. <b>Methode B</b> hat gar keine Startgrenze -- "
+        "sie summiert die Verweilzeiten aller Stages vor der "
+        "&lt;Closed&gt;-Stage, und der Kopf sagt genau das, statt eine "
+        "Startgrenze zu behaupten, die nicht benutzt wird.", st))
+    story.append(P(
+        "Ohne --workflow kennt der Bericht die Grenzen nicht. Dann steht dort "
+        "\u201eboundary not declared\u201c -- nicht eine geratene Stage.", st))
+    story.append(SP(4))
+    story.append(box(
+        "<b>Abgeleitete Startpunkte.</b> Ueberspringt ein Vorgang die "
+        "&lt;First&gt;-Stage, setzt transform_data den Startpunkt ersatzweise "
+        "auf den Eintritt in eine spaetere Stage. Die Uhr laeuft dann von "
+        "einem anderen Punkt aus als der Kopf ankuendigt. Der Bericht zaehlt "
+        "diese Vorgaenge aus (\u201e43 of 64 items never entered ...\u201c) "
+        "und weist sie zusaetzlich als Warnung aus. Dafuer wird "
+        "--transitions gebraucht; fehlt die Datei, sagt der Kopf, dass die "
+        "Pruefung nicht laufen konnte.", st))
+    story.append(SP(6))
     story.append(H3("Diagramm 1: Boxplot (Verteilung)", st))
     story.append(P(
         "Der Boxplot zeigt auf einen Blick, wie die Durchlaufzeiten verteilt sind. "
@@ -1585,6 +1609,29 @@ def content_en(st, images: dict[str, Path] | None = None):
         "<b>What is measured?</b> The cycle time — i.e. the number of days an issue "
         "takes from first work to completion. Shorter is better.", st))
 
+    story.append(H3("Where the clock runs", st))
+    story.append(P(
+        "A cycle time cannot be read without its two boundaries. The chart "
+        "header therefore names them before it shows a number: "
+        "<b>Method A</b> measures from the first entry into the "
+        "&lt;First&gt; stage to the last entry into the &lt;Closed&gt; stage. "
+        "<b>Method B</b> has no start boundary at all — it sums the dwell "
+        "times of every stage before the &lt;Closed&gt; stage, and the header "
+        "says exactly that instead of asserting a start boundary that is not "
+        "in use.", st))
+    story.append(P(
+        "Without --workflow the report does not know the boundaries. It then "
+        "reads “boundary not declared” — not a guessed stage.", st))
+    story.append(SP(4))
+    story.append(box(
+        "<b>Derived start points.</b> When an item skips the &lt;First&gt; "
+        "stage, transform_data falls back to the entry into a later stage. "
+        "The clock then runs from a different point than the header "
+        "announces. The report counts those items out (“43 of 64 items never "
+        "entered ...”) and reports them as a warning as well. This needs "
+        "--transitions; without that file the header says the check could not "
+        "run.", st))
+    story.append(SP(6))
     story.append(H3("Chart 1: Box plot (distribution)", st))
     story.append(P(
         "The box plot shows at a glance how cycle times are distributed. "
@@ -2391,6 +2438,29 @@ def content_ro(st, images=None):
         "<b>Ce se masoara?</b> Timpul de ciclu — adica numarul de zile pe care un issue "
         "il petrece de la prima activitate pana la finalizare. Mai scurt inseamna mai bine.", st))
 
+    story.append(H3("Unde porneste ceasul", st))
+    story.append(P(
+        "Un timp de ciclu nu poate fi citit fara cele doua limite ale sale. "
+        "De aceea antetul diagramei le numeste inainte de a arata o valoare: "
+        "<b>Metoda A</b> masoara de la prima intrare in stage-ul "
+        "&lt;First&gt; pana la ultima intrare in stage-ul &lt;Closed&gt;. "
+        "<b>Metoda B</b> nu are deloc o limita de start — insumeaza timpii "
+        "petrecuti in toate stage-urile dinaintea stage-ului &lt;Closed&gt;, "
+        "iar antetul spune exact asta, in loc sa afirme o limita care nu este "
+        "folosita.", st))
+    story.append(P(
+        "Fara --workflow raportul nu cunoaste limitele. Atunci acolo scrie "
+        "\u201eboundary not declared\u201d — nu un stage ghicit.", st))
+    story.append(SP(4))
+    story.append(box(
+        "<b>Puncte de start derivate.</b> Daca un issue sare peste stage-ul "
+        "&lt;First&gt;, transform_data foloseste in loc intrarea intr-un "
+        "stage ulterior. Ceasul porneste atunci din alt punct decat anunta "
+        "antetul. Raportul numara aceste issues (\u201e43 of 64 items never "
+        "entered ...\u201d) si le semnaleaza suplimentar ca avertisment. "
+        "Pentru asta este nevoie de --transitions; fara acel fisier antetul "
+        "spune ca verificarea nu a putut rula.", st))
+    story.append(SP(6))
     story.append(H3("Diagrama 1: Box plot (distributia)", st))
     story.append(P(
         "Box plot-ul arata dintr-o privire cum sunt distribuite timpii de ciclu. "
@@ -3194,6 +3264,28 @@ def content_pt(st, images=None):
         "<b>O que e medido?</b> O tempo de ciclo -- ou seja, o numero de dias que um "
         "issue demora desde o inicio do trabalho ate a conclusao. Quanto menor, melhor.", st))
 
+    story.append(H3("Onde corre o relogio", st))
+    story.append(P(
+        "Um tempo de ciclo nao se le sem as suas duas fronteiras. Por isso o "
+        "cabecalho do grafico nomeia-as antes de mostrar um numero: "
+        "<b>Metodo A</b> mede da primeira entrada no stage &lt;First&gt; ate "
+        "a ultima entrada no stage &lt;Closed&gt;. <b>Metodo B</b> nao tem "
+        "fronteira de inicio nenhuma — soma os tempos de permanencia de todos "
+        "os stages antes do stage &lt;Closed&gt;, e o cabecalho diz "
+        "exatamente isso, em vez de afirmar uma fronteira que nao e usada.", st))
+    story.append(P(
+        "Sem --workflow o relatorio nao conhece as fronteiras. Diz entao "
+        "\u201eboundary not declared\u201d — nao um stage adivinhado.", st))
+    story.append(SP(4))
+    story.append(box(
+        "<b>Pontos de inicio derivados.</b> Quando um issue salta o stage "
+        "&lt;First&gt;, o transform_data recorre a entrada num stage "
+        "posterior. O relogio corre entao a partir de outro ponto que nao o "
+        "anunciado no cabecalho. O relatorio conta esses issues "
+        "(\u201e43 of 64 items never entered ...\u201d) e assinala-os "
+        "tambem como aviso. Para isso e preciso --transitions; sem esse "
+        "ficheiro o cabecalho diz que a verificacao nao pode correr.", st))
+    story.append(SP(6))
     story.append(H3("Grafico 1: Box plot (distribuicao)", st))
     story.append(P(
         "O box plot mostra de imediato como se distribuem os tempos de ciclo. "
@@ -4012,6 +4104,30 @@ def content_fr(st, images=None):
         "jours qu'un ticket prend depuis le premier travail jusqu'a la completion. "
         "Moins c'est mieux.", st))
 
+    story.append(H3("Ou tourne l'horloge", st))
+    story.append(P(
+        "Un temps de cycle ne se lit pas sans ses deux bornes. L'en-tete du "
+        "graphique les nomme donc avant d'afficher un chiffre : "
+        "<b>Methode A</b> mesure de la premiere entree dans l'etape "
+        "&lt;First&gt; jusqu'a la derniere entree dans l'etape "
+        "&lt;Closed&gt;. <b>Methode B</b> n'a aucune borne de depart — elle "
+        "additionne les temps passes dans toutes les etapes avant l'etape "
+        "&lt;Closed&gt;, et l'en-tete le dit precisement, plutot que "
+        "d'affirmer une borne qui n'est pas utilisee.", st))
+    story.append(P(
+        "Sans --workflow le rapport ignore les bornes. Il indique alors "
+        "\u201eboundary not declared\u201d — et non une etape devinee.", st))
+    story.append(SP(4))
+    story.append(box(
+        "<b>Points de depart deduits.</b> Lorsqu'un ticket saute l'etape "
+        "&lt;First&gt;, transform_data se rabat sur l'entree dans une etape "
+        "ulterieure. L'horloge part alors d'un autre point que celui annonce "
+        "en en-tete. Le rapport denombre ces tickets "
+        "(\u201e43 of 64 items never entered ...\u201d) et les signale en "
+        "outre par un avertissement. Cela necessite --transitions ; sans ce "
+        "fichier, l'en-tete indique que la verification n'a pas pu "
+        "s'executer.", st))
+    story.append(SP(6))
     story.append(H3("Diagramme 1 : Boite a moustaches (distribution)", st))
     story.append(P(
         "La boite a moustaches montre en un coup d'oeil comment les cycle times sont "
