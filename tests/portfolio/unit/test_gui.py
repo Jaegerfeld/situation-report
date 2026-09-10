@@ -35,6 +35,7 @@ from portfolio.gui import (
     _save_pref,
     build_config_from_fields,
     default_metrics_for_mode,
+    narrate_unused_key,
 )
 from portfolio.solution_config import (
     KIND_PORTFOLIO,
@@ -603,4 +604,35 @@ class TestLlmLabelsInAllLanguages:
                                       LANG_FR])
     def test_labels_present(self, lang) -> None:
         for key in ("lbl_llm_model", "lbl_llm_url"):
+            assert _T[lang][key].strip()
+
+
+class TestNarrateUnused:
+    """Der KI-Haken wirkt nicht ueberall -- das muss gesagt werden."""
+
+    def test_conference_never_uses_the_ai(self):
+        """render_conference_html hat keinen Narrations-Parameter; der Haken
+        stand trotzdem daneben und sah so aus, als gelte er auch hier."""
+        assert narrate_unused_key("conference", True) ==             "msg_narrate_unused_conference"
+
+    def test_pdf_report_never_uses_the_ai(self):
+        """PDF hat keinen Ort fuer den redigierbaren Entwurf."""
+        assert narrate_unused_key("report", True, is_pdf=True) ==             "msg_narrate_unused_pdf"
+
+    def test_html_report_does_use_the_ai(self):
+        assert narrate_unused_key("report", True, is_pdf=False) is None
+
+    def test_delta_does_use_the_ai(self):
+        assert narrate_unused_key("delta", True) is None
+
+    def test_nothing_to_say_when_the_box_is_off(self):
+        """Ohne Haken gibt es keinen wirkungslosen Haken zu erklaeren."""
+        for action in ("report", "conference", "delta", "snapshot"):
+            assert narrate_unused_key(action, False) is None
+            assert narrate_unused_key(action, False, is_pdf=True) is None
+
+    @pytest.mark.parametrize("lang", [LANG_DE, LANG_EN, LANG_RO, LANG_PT,
+                                      LANG_FR])
+    def test_messages_exist_in_all_languages(self, lang):
+        for key in ("msg_narrate_unused_conference", "msg_narrate_unused_pdf"):
             assert _T[lang][key].strip()

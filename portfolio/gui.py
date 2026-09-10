@@ -224,6 +224,8 @@ _T: dict[str, dict[str, str]] = {
         "btn_conference": "Konferenzmappe …",
         "dlg_save_conference": "Konferenzmappe speichern",
         "msg_conference_building": "Konferenzmappe wird erzeugt …",
+        "msg_narrate_unused_conference": "der KI-Haken wirkt hier nicht: die Konferenzmappe ist bewusst deterministisch",
+        "msg_narrate_unused_pdf": "der KI-Haken wirkt nicht auf PDF-Ausgabe — für den Entwurf HTML wählen",
         "msg_conference_done": "Konferenzmappe erzeugt: {path}",
         "msg_conference_error": "Konferenzmappe fehlgeschlagen: {error}",
     },
@@ -323,6 +325,8 @@ _T: dict[str, dict[str, str]] = {
         "btn_conference": "Conference pre-read …",
         "dlg_save_conference": "Save conference pre-read",
         "msg_conference_building": "Building conference pre-read …",
+        "msg_narrate_unused_conference": "the AI checkbox has no effect here: the conference pre-read is deterministic by design",
+        "msg_narrate_unused_pdf": "the AI checkbox has no effect on PDF output — choose HTML for the draft",
         "msg_conference_done": "Conference pre-read written: {path}",
         "msg_conference_error": "Conference pre-read failed: {error}",
     },
@@ -422,6 +426,8 @@ _T: dict[str, dict[str, str]] = {
         "btn_conference": "Mapa conferinței …",
         "dlg_save_conference": "Salvează mapa conferinței",
         "msg_conference_building": "Se creează mapa conferinței …",
+        "msg_narrate_unused_conference": "caseta AI nu are efect aici: mapa conferinței este intenționat deterministă",
+        "msg_narrate_unused_pdf": "caseta AI nu are efect asupra ieșirii PDF — pentru schiță alegeți HTML",
         "msg_conference_done": "Mapa conferinței creată: {path}",
         "msg_conference_error": "Mapa conferinței a eșuat: {error}",
     },
@@ -521,6 +527,8 @@ _T: dict[str, dict[str, str]] = {
         "btn_conference": "Dossier da conferência …",
         "dlg_save_conference": "Guardar o dossier da conferência",
         "msg_conference_building": "A criar o dossier da conferência …",
+        "msg_narrate_unused_conference": "a caixa de IA não tem efeito aqui: o dossier da conferência é determinista por concepção",
+        "msg_narrate_unused_pdf": "a caixa de IA não tem efeito na saída PDF — para o rascunho escolha HTML",
         "msg_conference_done": "Dossier da conferência criado: {path}",
         "msg_conference_error": "Dossier da conferência falhou: {error}",
     },
@@ -620,6 +628,8 @@ _T: dict[str, dict[str, str]] = {
         "btn_conference": "Dossier de conférence …",
         "dlg_save_conference": "Enregistrer le dossier de conférence",
         "msg_conference_building": "Création du dossier de conférence …",
+        "msg_narrate_unused_conference": "la case IA est sans effet ici : le dossier de conférence est déterministe par conception",
+        "msg_narrate_unused_pdf": "la case IA est sans effet sur la sortie PDF — choisir HTML pour le brouillon",
         "msg_conference_done": "Dossier de conférence créé : {path}",
         "msg_conference_error": "Échec du dossier de conférence : {error}",
     },
@@ -702,6 +712,46 @@ def _preselect_model(stored: str, models: list[str], default: str) -> str:
         if normalise_model(name) == wanted:
             return name
     return ""
+
+
+#: Actions that never use the AI, and the message key explaining why.
+NARRATE_UNUSED = {
+    "conference": "msg_narrate_unused_conference",
+    "pdf": "msg_narrate_unused_pdf",
+}
+
+
+def narrate_unused_key(action: str, narrate_on: bool,
+                       is_pdf: bool = False) -> str | None:
+    """
+    Say which message explains a ticked AI checkbox that will do nothing.
+
+    The Konferenzmappe is deterministic by design — the pre-read is the
+    paper for an already convened conference — and PDF output has nowhere
+    to put an editable draft. Both were simply ignoring the checkbox, which
+    sits three centimetres away and looks like it applies. A user who ticks
+    it and gets an instant document without AI text concludes the AI is
+    broken; that is exactly the bug report of 11.09.2026.
+
+    Nothing about the behaviour changes here. What changes is that the
+    ignoring is said out loud, in the status line, where the user is
+    already looking.
+
+    Args:
+        action:     'report', 'conference', 'delta' or 'snapshot'.
+        narrate_on: State of the AI checkbox.
+        is_pdf:     For 'report': whether PDF was chosen as the target.
+
+    Returns:
+        A translation key, or None when the action does use the AI.
+    """
+    if not narrate_on:
+        return None
+    if action == "conference":
+        return NARRATE_UNUSED["conference"]
+    if action == "report" and is_pdf:
+        return NARRATE_UNUSED["pdf"]
+    return None
 
 
 def _llm_default_model(provider_id: str) -> str:
@@ -1416,9 +1466,14 @@ class SolutionManagerApp(tk.Tk):
         if narrate_with:
             self._remember_llm_choice()
         lang = self._lang if self._lang in ("de", "en") else "en"
+        unused = narrate_unused_key("report", self._narrate.get(), is_pdf)
+        note = f" — {self._tr(unused)}" if unused else ""
         if narrate_with:
             # Lokale Inferenz darf dauern — Status VOR dem Start setzen.
             self._status.set(self._tr("msg_narrate_running"))
+            self.update_idletasks()
+        elif note:
+            self._status.set(self._tr("msg_generating") + note)
             self.update_idletasks()
 
         def worker() -> None:
@@ -1453,7 +1508,10 @@ class SolutionManagerApp(tk.Tk):
                         warning = self._tr("msg_exec_error").format(error=exc)
                 if html:
                     out_path.write_text(html, encoding="utf-8")
-            self.after(0, lambda: self._done(out, ok, warning))
+            # note ueberlebt die Erfolgsmeldung — ein Hinweis, den das
+            # Ergebnis wegwischt, ist kein Hinweis (Bugmeldung 11.09.2026).
+            final = warning or note.removeprefix(" — ")
+            self.after(0, lambda: self._done(out, ok, final))
 
         threading.Thread(target=worker, daemon=True).start()
 
@@ -1510,7 +1568,9 @@ class SolutionManagerApp(tk.Tk):
             filetypes=[("HTML", "*.html")])
         if not path:
             return
-        self._status.set(self._tr("msg_conference_building"))
+        unused = narrate_unused_key("conference", self._narrate.get())
+        note = f" — {self._tr(unused)}" if unused else ""
+        self._status.set(self._tr("msg_conference_building") + note)
         self.update_idletasks()
 
         def worker() -> None:
@@ -1521,7 +1581,9 @@ class SolutionManagerApp(tk.Tk):
                                               art_depth=cfg.art_depth)
                 Path(path).write_text(html, encoding="utf-8")
                 webbrowser.open(Path(path).resolve().as_uri())
-                msg = self._tr("msg_conference_done").format(path=path)
+                # Der Hinweis muss die Erfolgsmeldung ueberleben: sonst ist
+                # er weg, sobald das Ergebnis da ist (Bugmeldung 11.09.2026).
+                msg = self._tr("msg_conference_done").format(path=path) + note
             except Exception as exc:
                 msg = self._tr("msg_conference_error").format(error=exc)
             self.after(0, lambda: self._status.set(msg))

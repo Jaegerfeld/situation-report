@@ -5,6 +5,25 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [Unreleased]
+
+### Fixed
+- **Der KI-Haken wirkte bei Konferenzmappe und PDF-Ausgabe nicht — und sagte
+  es nicht.** Die Konferenzmappe ist absichtlich deterministisch (sie ist die
+  Unterlage einer bereits einberufenen Konferenz), und die PDF-Ausgabe hat
+  keinen Ort für den redigierbaren Entwurf. Beide übergingen den Haken aber
+  **stillschweigend**, obwohl er drei Zentimeter daneben sitzt und so aussieht,
+  als gälte er auch dort. Wer ihn setzt und ein sofort fertiges Dokument ohne
+  KI-Text bekommt, schließt daraus, die KI werde gar nicht benutzt — genau so
+  gemeldet am 11.09.2026.
+
+  Am Verhalten ändert sich nichts. Geändert hat sich, dass es **ausgesprochen**
+  wird: Die Statuszeile nennt beim Start der Aktion den Grund und behält ihn
+  auch in der Erfolgsmeldung. Letzteres ist der eigentliche Punkt — ein
+  Hinweis, den das Ergebnis wegwischt, ist kein Hinweis.
+
+---
+
 ## [0.30.0] – 2026-09-11
 
 ### Added
