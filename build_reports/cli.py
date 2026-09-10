@@ -31,6 +31,11 @@ from .export import (
 from .filters import FilterConfig, apply_filters
 from .loader import load_report_data
 from .metrics import all_metrics, get_metric
+from .metrics.flow_debt import (
+    DEFAULT_ASSUMPTION_TOLERANCE_PCT,
+    DEFAULT_TOLERANCE_PCT,
+    FlowDebtMetric,
+)
 from .metrics.flow_load import FlowLoadMetric
 from .metrics.flow_time import CT_METHOD_A, CT_METHOD_B, FlowTimeMetric
 from .metrics.flow_velocity import FlowVelocityMetric
@@ -76,6 +81,8 @@ def run_reports(  # noqa: C901
     terminology: str = SAFE,
     ct_method: str = CT_METHOD_A,
     target_ct: int = 90,
+    debt_tolerance_pct: float = DEFAULT_TOLERANCE_PCT,
+    assumption_tolerance_pct: float = DEFAULT_ASSUMPTION_TOLERANCE_PCT,
     proportional_box_width: bool = True,
     show_edge_labels: bool = True,
     pi_config: Path | None = None,
@@ -108,6 +115,10 @@ def run_reports(  # noqa: C901
         terminology:          Display mode — SAFE or GLOBAL.
         ct_method:            Cycle time calculation method: CT_METHOD_A (date diff)
                               or CT_METHOD_B (sum of stage minutes).
+        debt_tolerance_pct:   Half-width of the band around the exact mean cycle time
+                              that still counts as "stable" for Flow Debt, in percent.
+        assumption_tolerance_pct: Band for the two checked Little's Law assumptions,
+                              in percent.
         target_ct:            Cycle time threshold in days for the "Target CT" percentage
                               shown in the Flow Time header (default 90).
         pi_config:            Path to a JSON PI interval config file (optional).
@@ -150,6 +161,9 @@ def run_reports(  # noqa: C901
         if isinstance(plugin, FlowTimeMetric):
             plugin.ct_method = ct_method
             plugin.target_ct = target_ct
+        if isinstance(plugin, FlowDebtMetric):
+            plugin.tolerance_pct = debt_tolerance_pct
+            plugin.assumption_tolerance_pct = assumption_tolerance_pct
         if isinstance(plugin, FlowLoadMetric):
             plugin.target_ct = target_ct
             plugin.proportional_box_width = proportional_box_width
@@ -220,6 +234,8 @@ def render_combined_html(
     terminology: str = SAFE,
     ct_method: str = CT_METHOD_A,
     target_ct: int = 90,
+    debt_tolerance_pct: float = DEFAULT_TOLERANCE_PCT,
+    assumption_tolerance_pct: float = DEFAULT_ASSUMPTION_TOLERANCE_PCT,
     proportional_box_width: bool = True,
     show_edge_labels: bool = True,
     pi_config: Path | None = None,
@@ -272,6 +288,9 @@ def render_combined_html(
         if isinstance(plugin, FlowTimeMetric):
             plugin.ct_method = ct_method
             plugin.target_ct = target_ct
+        if isinstance(plugin, FlowDebtMetric):
+            plugin.tolerance_pct = debt_tolerance_pct
+            plugin.assumption_tolerance_pct = assumption_tolerance_pct
         if isinstance(plugin, FlowLoadMetric):
             plugin.target_ct = target_ct
             plugin.proportional_box_width = proportional_box_width
@@ -362,6 +381,15 @@ def main() -> None:
                         metavar="DAYS", dest="target_ct",
                         help="Cycle time target in days for the Target CT%% shown in "
                              "the Flow Time header (default: 90)")
+    parser.add_argument("--debt-tolerance", type=float, default=DEFAULT_TOLERANCE_PCT,
+                        metavar="PCT", dest="debt_tolerance_pct",
+                        help="Flow Debt: band around the exact mean cycle time that still "
+                             "counts as stable, in percent (default: %(default)s).")
+    parser.add_argument("--assumption-tolerance", type=float,
+                        default=DEFAULT_ASSUMPTION_TOLERANCE_PCT,
+                        metavar="PCT", dest="assumption_tolerance_pct",
+                        help="Flow Debt: band for the two checked Little's Law assumptions, "
+                             "in percent (default: %(default)s).")
     parser.add_argument("--pi-config", type=Path, default=None,
                         metavar="FILE", dest="pi_config",
                         help="JSON file defining custom PI intervals for Flow Velocity "
@@ -399,6 +427,8 @@ def main() -> None:
         terminology=args.terminology,
         ct_method=args.ct_method,
         target_ct=args.target_ct,
+        debt_tolerance_pct=args.debt_tolerance_pct,
+        assumption_tolerance_pct=args.assumption_tolerance_pct,
         proportional_box_width=args.proportional_box_width,
         show_edge_labels=args.show_edge_labels,
         pi_config=args.pi_config,

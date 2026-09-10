@@ -8,6 +8,24 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- **Flow-Debt-Anzeige (A6)** — Bestand, Durchsatz und Durchlaufzeit standen im
+  Report bisher nebeneinander, wurden aber nie gegeneinander gerechnet. Genau
+  dieser Vergleich ist der Fund aus Vacantis *Actionable Agile Metrics for
+  Predictability* (2015, Kap. 9): Teilt man den mittleren Bestand durch den
+  Durchsatz, sagt Little's Law eine mittlere Durchlaufzeit voraus. Liegt sie
+  **über** der gemessenen, hat der Prozess einzelne Vorgänge beschleunigt und
+  die Zeit dafür von anderen geborgt — Vacanti nennt das *Flow Debt*. Es ist
+  die einzige Auswertung im Werkzeug, die stille Bevorzugung sichtbar macht,
+  ohne dass irgendjemand eine Zahl gefälscht hätte.
+  Neue Metrik `flow_debt` (GUI-Haken *Flow Debt*, CLI `--metrics flow_debt`),
+  mit einstellbarem Toleranzband (`--debt-tolerance`, Voreinstellung 15 %) für
+  Vacantis dritten Zustand „ungefähr gleich“, für den er selbst keine Zahl
+  nennt. **Über** dem Urteil steht immer die Prüfung der Little's-Law-Annahmen 1
+  und 3 — sind sie verletzt, ist das Urteil ausdrücklich als nicht belastbar
+  gekennzeichnet, denn dann bedeutet die Zahl nichts.
+  Die Bestandszeitreihe entsteht aus den vorhandenen CFD-Tagesdaten; neue
+  Eingaben braucht es nicht.
+
 - **Entscheidungspunkt-Wecker (P4)** — im Wolfsburg-Workshop stand der Satz
   „Trigger it when there are significant cross-value-stream dependencies;
   skip it when there aren't.“ Genau das war nicht messbar, also entschied der
@@ -32,6 +50,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   der Block das ausdrücklich, statt eine beruhigende Null zu zeigen; und in
   der Konferenzmappe erscheint er bewusst nicht, denn die ist die Unterlage
   einer bereits einberufenen Konferenz.
+
+- Grenzauflösung und Kumulation der CFD-Reihen sind als
+  `resolve_flow_boundaries` und `cumulative_stage_series` aus `cfd.py`
+  herausgezogen, damit CFD-Diagramm und Flow-Debt-Anzeige nie über
+  `<First>`/`<Closed>` auseinanderlaufen. Verhalten des CFD unverändert.
+- Projektvorlage `build_reports` auf Version 5 (neues Feld
+  `debt_tolerance_pct`); ältere Vorlagen werden weiter gelesen.
 
 ### Changed
 - **Demo-Portfolio zeigt den Entscheidungspunkt** — das Szenario erzeugt zwei

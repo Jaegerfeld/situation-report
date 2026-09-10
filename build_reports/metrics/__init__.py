@@ -71,6 +71,7 @@ def all_metrics() -> list[MetricPlugin]:
 # Add new metric modules here when they are created.
 from . import (
     cfd,  # noqa: E402, F401
+    flow_debt,  # noqa: E402, F401
     flow_distribution,  # noqa: E402, F401
     flow_load,  # noqa: E402, F401
     flow_time,  # noqa: E402, F401

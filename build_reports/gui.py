@@ -43,6 +43,11 @@ import project_template
 from .cli import run_reports
 from .export import _build_combined_html
 from .metrics import all_metrics
+from .metrics.flow_debt import (
+    DEFAULT_ASSUMPTION_TOLERANCE_PCT,
+    DEFAULT_TOLERANCE_PCT,
+    FlowDebtMetric,
+)
 from .metrics.flow_load import FlowLoadMetric
 from .metrics.flow_time import CT_METHOD_A, CT_METHOD_B, FlowTimeMetric
 from .metrics.flow_velocity import FlowVelocityMetric
@@ -185,6 +190,8 @@ _T: dict[str, dict[str, str]] = {
         "tip_pick":          "Aus der geladenen IssueTimes-Datei ausw\u00e4hlen.",
         "tip_ct_a":          "Berechnet CT als Differenz der Kalendertage zwischen First Date und Closed Date.",
         "tip_ct_b":          "Berechnet CT als Summe der Stage-Minuten von First Date bis Closed Date (letzte Stage ausgeschlossen).",
+        "lbl_debt_tolerance": "Flow-Debt-Toleranz",
+        "tip_debt_tolerance": "Band um die gemessene mittlere Durchlaufzeit, das noch als „stabil“ gilt (in Prozent). Vacanti nennt dafür keine Zahl; ohne Band meldet die Anzeige praktisch immer Flow Debt.",
         "lbl_target_ct":     "Target CT",
         "tip_target_ct":     "Cycle-Time-Ziel in Tagen. Issues, die innerhalb dieser Grenze abgeschlossen wurden, werden im Flow-Time-Header als 'Target CT X%' angezeigt.",
         "tip_show":          "Metriken berechnen und Ergebnisse im Standard-Browser anzeigen.",
@@ -193,6 +200,7 @@ _T: dict[str, dict[str, str]] = {
         "tip_metric_flow_velocity":     "Wie viele Issues werden pro Zeiteinheit abgeschlossen?",
         "tip_metric_flow_load":         "Wie viele Issues befinden sich gleichzeitig in Bearbeitung?",
         "tip_metric_cfd":               "Kumulative Anzahl von Issues pro Stage \u00fcber die Zeit.",
+        "tip_metric_flow_debt":         "Vergleicht die aus Little's Law genäherte mit der gemessenen mittleren Durchlaufzeit. Ist die genäherte größer, nimmt der Prozess Flow Debt auf: Einzelne Vorgänge werden auf Kosten anderer beschleunigt. Braucht CFD.xlsx.",
         "tip_metric_flow_distribution": "Verteilung der Issues nach Typ oder Kategorie.",
         "tip_metric_process_flow":      "Gerichteter Graph der Statusübergänge — zeigt häufige Pfade, Rückwärtsschritte und Self-Loops.",
         # Exclusions
@@ -306,6 +314,8 @@ _T: dict[str, dict[str, str]] = {
         "tip_pick":          "Select from the loaded IssueTimes file.",
         "tip_ct_a":          "Computes CT as the calendar-day difference between First Date and Closed Date.",
         "tip_ct_b":          "Computes CT as the sum of stage minutes from First Date to Closed Date (last stage excluded).",
+        "lbl_debt_tolerance": "Flow Debt tolerance",
+        "tip_debt_tolerance": "Band around the measured mean cycle time that still counts as stable (percent). Vacanti gives no number for it; without a band the display reports Flow Debt almost always.",
         "lbl_target_ct":     "Target CT",
         "tip_target_ct":     "Cycle time target in days. Issues closed within this threshold are shown as 'Target CT X%' in the Flow Time header.",
         "tip_show":          "Compute metrics and display results in the default browser.",
@@ -314,6 +324,7 @@ _T: dict[str, dict[str, str]] = {
         "tip_metric_flow_velocity":     "How many issues are completed per time unit?",
         "tip_metric_flow_load":         "How many issues are simultaneously in progress?",
         "tip_metric_cfd":               "Cumulative count of issues per stage over time.",
+        "tip_metric_flow_debt":         "Compares the mean cycle time approximated from Little's Law against the measured one. A larger approximation means the process is accumulating Flow Debt: some items are sped up at the expense of others. Requires CFD.xlsx.",
         "tip_metric_flow_distribution": "Distribution of issues by type or category.",
         "tip_metric_process_flow":      "Directed graph of status transitions — highlights frequent paths, backward steps, and self-loops.",
         # Exclusions
@@ -429,6 +440,8 @@ _T: dict[str, dict[str, str]] = {
         "tip_pick":          "Selectați din fişierul IssueTimes încărcat.",
         "tip_ct_a":          "Calculează CT ca diferența de zile calendaristice între Prima dată şi Data închiderii.",
         "tip_ct_b":          "Calculează CT ca suma minutelor pe etapă de la Prima dată la Data închiderii (ultima etapă exclusă).",
+        "lbl_debt_tolerance": "Toleranță Flow Debt",
+        "tip_debt_tolerance": "Banda în jurul timpului mediu de ciclu măsurat care încă este considerată stabilă (procent). Vacanti nu indică o valoare; fără bandă afişajul raportează aproape întotdeauna Flow Debt.",
         "lbl_target_ct":     "Target CT",
         "tip_target_ct":     "Obiectiv de timp de ciclu în zile. Issue-urile închise în această limită sunt afişate ca 'Target CT X%' în antetul Flow Time.",
         "tip_show":          "Calculează metrici şi afişează rezultatele în browserul implicit.",
@@ -437,6 +450,7 @@ _T: dict[str, dict[str, str]] = {
         "tip_metric_flow_velocity":     "Câte issue-uri sunt finalizate per unitate de timp?",
         "tip_metric_flow_load":         "Câte issue-uri sunt simultan în lucru?",
         "tip_metric_cfd":               "Numărul cumulativ de issue-uri per etapă de-a lungul timpului.",
+        "tip_metric_flow_debt":         "Compară timpul mediu de ciclu aproximat prin legea lui Little cu cel măsurat. O aproximare mai mare înseamnă că procesul acumulează Flow Debt: unele issue-uri sunt accelerate în detrimentul altora. Necesită CFD.xlsx.",
         "tip_metric_flow_distribution": "Distribuția issue-urilor pe tip sau categorie.",
         "tip_metric_process_flow":      "Graf direcționat al tranzițiilor de stare — evidențiază căile frecvente, paşii înaoi şi auto-buclele.",
         "sec_exclusions":    "Excluderi",
@@ -548,6 +562,8 @@ _T: dict[str, dict[str, str]] = {
         "tip_pick":          "Selecionar a partir do ficheiro IssueTimes carregado.",
         "tip_ct_a":          "Calcula CT como a diferença em dias de calendário entre a Primeira data e a Data de fecho.",
         "tip_ct_b":          "Calcula CT como a soma dos minutos por etapa da Primeira data até à Data de fecho (última etapa excluída).",
+        "lbl_debt_tolerance": "Tolerancia Flow Debt",
+        "tip_debt_tolerance": "Faixa em torno do tempo medio de ciclo medido que ainda conta como estavel (percentagem). Vacanti nao indica um valor; sem faixa o indicador reporta Flow Debt quase sempre.",
         "lbl_target_ct":     "Target CT",
         "tip_target_ct":     "Objetivo de tempo de ciclo em dias. Issues fechados dentro deste limite são mostrados como 'Target CT X%' no cabeçalho Flow Time.",
         "tip_show":          "Calcular métricas e mostrar resultados no browser predefinido.",
@@ -556,6 +572,7 @@ _T: dict[str, dict[str, str]] = {
         "tip_metric_flow_velocity":     "Quantos issues são concluídos por unidade de tempo?",
         "tip_metric_flow_load":         "Quantos issues estão simultaneamente em progresso?",
         "tip_metric_cfd":               "Contagem cumulativa de issues por etapa ao longo do tempo.",
+        "tip_metric_flow_debt":         "Compara o tempo medio de ciclo aproximado pela lei de Little com o medido. Uma aproximacao maior significa que o processo acumula Flow Debt: alguns issues sao acelerados a custa de outros. Requer CFD.xlsx.",
         "tip_metric_flow_distribution": "Distribuição de issues por tipo ou categoria.",
         "tip_metric_process_flow":      "Grafo dirigido das transições de estado — destaca caminhos frequentes, passos retroativos e auto-ciclos.",
         "sec_exclusions":    "Exclusões",
@@ -667,6 +684,8 @@ _T: dict[str, dict[str, str]] = {
         "tip_pick":          "Sélectionner depuis le fichier IssueTimes chargé.",
         "tip_ct_a":          "Calcule le CT comme la différence en jours calendaires entre la Première date et la Date de clôture.",
         "tip_ct_b":          "Calcule le CT comme la somme des minutes par étape de la Première date à la Date de clôture (dernière étape exclue).",
+        "lbl_debt_tolerance": "Tolérance Flow Debt",
+        "tip_debt_tolerance": "Plage autour du temps de cycle moyen mesuré qui compte encore comme stable (pourcentage). Vacanti n’indique aucune valeur ; sans plage l’affichage signale presque toujours de la Flow Debt.",
         "lbl_target_ct":     "Target CT",
         "tip_target_ct":     "Objectif de temps de cycle en jours. Les issues clôturés dans cette limite sont affichés comme 'Target CT X%' dans l’en-tête Flow Time.",
         "tip_show":          "Calculer les métriques et afficher les résultats dans le navigateur par défaut.",
@@ -675,6 +694,7 @@ _T: dict[str, dict[str, str]] = {
         "tip_metric_flow_velocity":     "Combien d’issues sont terminés par unité de temps ?",
         "tip_metric_flow_load":         "Combien d’issues sont simultanément en cours ?",
         "tip_metric_cfd":               "Nombre cumulatif d’issues par étape au fil du temps.",
+        "tip_metric_flow_debt":         "Compare le temps de cycle moyen approché par la loi de Little au temps mesuré. Une approximation plus grande signifie que le processus accumule de la Flow Debt : certains issues sont accélérés au détriment d’autres. Nécessite CFD.xlsx.",
         "tip_metric_flow_distribution": "Répartition des issues par type ou catégorie.",
         "tip_metric_process_flow":      "Graphe orienté des transitions d’état — met en évidence les chemins fréquents, les étapes rétrogrades et les auto-boucles.",
         "sec_exclusions":    "Exclusions",
@@ -893,7 +913,7 @@ class _ToolTip:
 
 
 # Template version bump when the schema changes in a backward-incompatible way.
-_TEMPLATE_VERSION = 4
+_TEMPLATE_VERSION = 5
 
 
 def _build_template_dict(
@@ -915,6 +935,7 @@ def _build_template_dict(
     exclude_zero_day: bool = False,
     zero_day_threshold_minutes: int = 5,
     target_ct: int = 90,
+    debt_tolerance_pct: float = DEFAULT_TOLERANCE_PCT,
     proportional_box_width: bool = True,
     show_edge_labels: bool = True,
 ) -> dict:
@@ -943,6 +964,8 @@ def _build_template_dict(
         exclude_zero_day:           True if zero-day issues should be excluded.
         zero_day_threshold_minutes: Cycle time threshold in minutes for zero-day detection.
         target_ct:                  Cycle time target in days for the Target CT% display.
+        debt_tolerance_pct:         Band around the measured mean cycle time that still
+                                    counts as stable for Flow Debt, in percent.
 
     Returns:
         JSON-serialisable dict with a ``version`` key.
@@ -963,6 +986,7 @@ def _build_template_dict(
         "exclude_zero_day": exclude_zero_day,
         "zero_day_threshold_minutes": zero_day_threshold_minutes,
         "target_ct": target_ct,
+        "debt_tolerance_pct": debt_tolerance_pct,
         "proportional_box_width": proportional_box_width,
         "show_edge_labels": show_edge_labels,
         "terminology": terminology,
@@ -1012,6 +1036,7 @@ def _parse_template_dict(data: dict) -> dict:
         "exclude_zero_day": bool(data.get("exclude_zero_day", False)),
         "zero_day_threshold_minutes": int(data.get("zero_day_threshold_minutes", 5)),
         "target_ct": int(data.get("target_ct", 90)),
+        "debt_tolerance_pct": float(data.get("debt_tolerance_pct", DEFAULT_TOLERANCE_PCT)),
         "proportional_box_width": bool(data.get("proportional_box_width", True)),
         "show_edge_labels": bool(data.get("show_edge_labels", True)),
         "terminology": str(data.get("terminology", SAFE)),
@@ -1061,6 +1086,7 @@ class BuildReportsApp(tk.Tk):
         self._excl_zero_day_var = tk.BooleanVar(value=False)
         self._zero_day_minutes_var = tk.StringVar(value="5")
         self._target_ct_var = tk.StringVar(value="90")
+        self._debt_tolerance_var = tk.StringVar(value=str(DEFAULT_TOLERANCE_PCT))
         self._proportional_box_var = tk.BooleanVar(value=True)
         self._show_edge_labels_var = tk.BooleanVar(value=True)
         self._available_projects: list[str] = []
@@ -1540,6 +1566,18 @@ class BuildReportsApp(tk.Tk):
         tk.Label(f, text="d", anchor="w").grid(row=row, column=2, sticky="w", **pad)
         row += 1
 
+        lbl_debt = tk.Label(f, text=self._tr("lbl_debt_tolerance"), anchor="w")
+        lbl_debt.grid(row=row, column=0, sticky="w", **pad)
+        self._i18n.append((lbl_debt, "lbl_debt_tolerance"))
+        debt_spin = ttk.Spinbox(f, from_=0, to=100, increment=5, width=6,
+                                textvariable=self._debt_tolerance_var)
+        debt_spin.grid(row=row, column=1, sticky="w", **pad)
+        self._tips.append(
+            (_ToolTip(debt_spin, self._tr("tip_debt_tolerance")), "tip_debt_tolerance")
+        )
+        tk.Label(f, text="%", anchor="w").grid(row=row, column=2, sticky="w", **pad)
+        row += 1
+
         chk_prop = tk.Checkbutton(
             f,
             text=self._tr("chk_proportional_box"),
@@ -1693,6 +1731,9 @@ class BuildReportsApp(tk.Tk):
                 exclude_zero_day=self._excl_zero_day_var.get(),
                 zero_day_threshold_minutes=int(self._zero_day_minutes_var.get() or 5),
                 target_ct=int(self._target_ct_var.get() or 90),
+                debt_tolerance_pct=float(
+                    self._debt_tolerance_var.get() or DEFAULT_TOLERANCE_PCT
+                ),
                 proportional_box_width=self._proportional_box_var.get(),
                 show_edge_labels=self._show_edge_labels_var.get(),
                 terminology=self._terminology_var.get(),
@@ -1762,6 +1803,7 @@ class BuildReportsApp(tk.Tk):
         self._excl_zero_day_var.set(state["exclude_zero_day"])
         self._zero_day_minutes_var.set(str(state["zero_day_threshold_minutes"]))
         self._target_ct_var.set(str(state["target_ct"]))
+        self._debt_tolerance_var.set(str(state["debt_tolerance_pct"]))
         self._proportional_box_var.set(state["proportional_box_width"])
         self._show_edge_labels_var.set(state["show_edge_labels"])
         self._terminology_var.set(state["terminology"])
@@ -2123,6 +2165,12 @@ class BuildReportsApp(tk.Tk):
             target_ct = int(self._target_ct_var.get() or 90)
         except ValueError:
             target_ct = 90
+        try:
+            debt_tolerance_pct = float(
+                self._debt_tolerance_var.get() or DEFAULT_TOLERANCE_PCT
+            )
+        except ValueError:
+            debt_tolerance_pct = DEFAULT_TOLERANCE_PCT
         proportional_box_width = self._proportional_box_var.get()
         show_edge_labels = self._show_edge_labels_var.get()
 
@@ -2146,6 +2194,7 @@ class BuildReportsApp(tk.Tk):
             terminology=terminology,
             ct_method=ct_method,
             target_ct=target_ct,
+            debt_tolerance_pct=debt_tolerance_pct,
             proportional_box_width=proportional_box_width,
             show_edge_labels=show_edge_labels,
             metrics=metrics,
@@ -2209,6 +2258,13 @@ class BuildReportsApp(tk.Tk):
                     if isinstance(plugin, FlowTimeMetric):
                         plugin.ct_method = inputs.get("ct_method", CT_METHOD_A)
                         plugin.target_ct = inputs.get("target_ct", 90)
+                    if isinstance(plugin, FlowDebtMetric):
+                        plugin.tolerance_pct = inputs.get(
+                            "debt_tolerance_pct", DEFAULT_TOLERANCE_PCT
+                        )
+                        plugin.assumption_tolerance_pct = (
+                            DEFAULT_ASSUMPTION_TOLERANCE_PCT
+                        )
                     if isinstance(plugin, FlowLoadMetric):
                         plugin.target_ct = inputs.get("target_ct", 90)
                         plugin.proportional_box_width = inputs.get(
@@ -2306,6 +2362,9 @@ class BuildReportsApp(tk.Tk):
                     terminology=inputs["terminology"],
                     ct_method=inputs["ct_method"],
                     target_ct=inputs.get("target_ct", 90),
+                    debt_tolerance_pct=inputs.get(
+                        "debt_tolerance_pct", DEFAULT_TOLERANCE_PCT
+                    ),
                     proportional_box_width=inputs.get("proportional_box_width", True),
                     show_edge_labels=inputs.get("show_edge_labels", True),
                     pi_config=inputs.get("pi_config"),

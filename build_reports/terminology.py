@@ -25,6 +25,7 @@ FLOW_VELOCITY = "flow_velocity"
 FLOW_LOAD = "flow_load"
 FLOW_DISTRIBUTION = "flow_distribution"
 FLOW_PREDICTABILITY = "flow_predictability"
+FLOW_DEBT = "flow_debt"
 CFD = "cfd"
 PROCESS_FLOW = "process_flow"
 PROCESS_FLOW_TIME = "process_flow_time"
@@ -36,6 +37,7 @@ _TERMS: dict[str, dict[str, str]] = {
         FLOW_LOAD: "Flow Load",
         FLOW_DISTRIBUTION: "Flow Distribution",
         FLOW_PREDICTABILITY: "Flow Predictability",
+        FLOW_DEBT: "Flow Debt",
         CFD: "Cumulative Flow Diagram",
         PROCESS_FLOW: "Process Flow: Transitions",
         PROCESS_FLOW_TIME: "Process Flow: Time",
@@ -46,6 +48,7 @@ _TERMS: dict[str, dict[str, str]] = {
         FLOW_LOAD: "WIP",
         FLOW_DISTRIBUTION: "Flow Distribution",
         FLOW_PREDICTABILITY: "Flow Predictability",
+        FLOW_DEBT: "Flow Debt",
         CFD: "Cumulative Flow Diagram",
         PROCESS_FLOW: "Process Flow: Transitions",
         PROCESS_FLOW_TIME: "Process Flow: Time",
