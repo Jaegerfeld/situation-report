@@ -1283,6 +1283,113 @@ ONEPAGERS: dict[str, dict[str, dict]] = {
             ],
         },
     },
+    "flow_debt": {
+        "de": {
+            "title": "Flow-Debt-Anzeige",
+            "tagline": "A6 \u2013 Wenn ein Vorgang schneller fertig wird, "
+                       "zahlt ein anderer daf\u00fcr",
+            "sections": [
+                ("h", "Worum geht es?"),
+                ("p", "Bestand, Durchsatz und Durchlaufzeit standen im Report "
+                      "bisher nebeneinander \u2013 nie gegeneinander. Genau "
+                      "dieser Vergleich ist der Fund aus Daniel Vacantis "
+                      "\u201eActionable Agile Metrics for Predictability\u201c "
+                      "(2015): Teilt man den mittleren Bestand durch den "
+                      "Durchsatz, sagt Little's Law eine mittlere "
+                      "Durchlaufzeit voraus. Liegt sie \u00dcBER der "
+                      "gemessenen, wurden einzelne Vorg\u00e4nge beschleunigt "
+                      "\u2013 und die Zeit daf\u00fcr von anderen geborgt, die "
+                      "gleichzeitig laufen. Vacanti nennt das Flow Debt. "
+                      "Typische Ursachen: Eilspuren, Blockaden und "
+                      "unausgesprochene Reihenfolgeregeln beim Ziehen."),
+                ("h", "Warum das z\u00e4hlt"),
+                ("p", "Es ist die einzige Auswertung im Werkzeug, die STILLE "
+                      "BEVORZUGUNG sichtbar macht \u2013 ohne dass irgendjemand "
+                      "eine Zahl gef\u00e4lscht h\u00e4tte. Und sie braucht keine "
+                      "neue Eingabe: Der Bestandsverlauf entsteht aus den "
+                      "CFD-Tagesdaten, die die Pipeline ohnehin erzeugt."),
+                ("h", "So benutzt du es"),
+                ("code", "python -m build_reports IssueTimes.xlsx "
+                         "--cfd CFD.xlsx --metrics flow_debt --browser"),
+                ("p", "Oder per GUI: Haken \u201eFlow Debt\u201c in der "
+                      "Metrik-Liste; das Feld \u201eFlow-Debt-Toleranz\u201c "
+                      "steht unter Target CT und wird in der Projektvorlage "
+                      "gespeichert. Der CFD wird gebraucht \u2013 ohne ihn "
+                      "sagt die Metrik das und rechnet nicht."),
+                ("h", "Drei Zust\u00e4nde, ein Vorbehalt"),
+                ("li", "Gen\u00e4hert GR\u00d6SSER als gemessen: der Prozess nimmt "
+                       "Flow Debt auf \u2013 einige Vorg\u00e4nge werden auf "
+                       "Kosten anderer beschleunigt"),
+                ("li", "Gen\u00e4hert KLEINER: der Prozess tilgt \u2013 die "
+                       "l\u00e4nger liegen gebliebenen Vorg\u00e4nge kommen jetzt "
+                       "heraus"),
+                ("li", "Innerhalb des Toleranzbands: stabil. Vacanti nennt "
+                       "f\u00fcr diesen dritten Zustand keine Zahl \u2013 ohne "
+                       "Band meldete die Anzeige praktisch dauerhaft Flow "
+                       "Debt. Voreinstellung 15 %, einstellbar"),
+                ("h", "Die Annahmen stehen \u00fcber dem Urteil"),
+                ("p", "Little's Law gilt nur unter Bedingungen. Zwei davon "
+                      "werden gepr\u00fcft und in der Kopfzeile VOR dem Urteil "
+                      "ausgewiesen: Zugangs- und Abgangsrate im Gleichgewicht "
+                      "(Annahme 1) und Bestand am Ende wie am Anfang "
+                      "(Annahme 3). Sind sie verletzt, steht dort ausdr\u00fccklich "
+                      "\u201everdict not dependable\u201c \u2013 die Zahl bedeutet "
+                      "dann nichts, und der Bericht sagt es, statt sie "
+                      "stehen zu lassen."),
+            ],
+        },
+        "en": {
+            "title": "Flow Debt Indicator",
+            "tagline": "A6 \u2013 When one item finishes sooner, another one "
+                       "is paying for it",
+            "sections": [
+                ("h", "What is it?"),
+                ("p", "WIP, throughput and cycle time sat next to each other "
+                      "in the report \u2013 never against each other. That "
+                      "comparison is the find in Daniel Vacanti's "
+                      "\u201cActionable Agile Metrics for Predictability\u201d "
+                      "(2015): divide mean WIP by throughput and Little's Law "
+                      "predicts a mean cycle time. When it is HIGHER than the "
+                      "measured one, some items were finished faster \u2013 by "
+                      "borrowing cycle time from others still in progress. "
+                      "Vacanti calls it Flow Debt. Typical causes: expedite "
+                      "lanes, blockers and unspoken pull-order policies."),
+                ("h", "Why it matters"),
+                ("p", "It is the only view in the tool that makes SILENT "
+                      "PREFERENTIAL TREATMENT visible \u2013 without anyone "
+                      "having falsified a number. And it needs no new input: "
+                      "the WIP series is derived from the CFD daily data the "
+                      "pipeline already produces."),
+                ("h", "How to use it"),
+                ("code", "python -m build_reports IssueTimes.xlsx "
+                         "--cfd CFD.xlsx --metrics flow_debt --browser"),
+                ("p", "Or in the GUI: the \u201cFlow Debt\u201d checkbox in the "
+                      "metrics list; the \u201cFlow Debt tolerance\u201d field "
+                      "sits below Target CT and is stored in the project "
+                      "template. The CFD is required \u2013 without it the "
+                      "metric says so instead of computing."),
+                ("h", "Three verdicts, one caveat"),
+                ("li", "Approximation HIGHER than measurement: the process is "
+                       "accumulating Flow Debt \u2013 some items are sped up at "
+                       "the expense of others"),
+                ("li", "Approximation LOWER: the process is paying it off \u2013 "
+                       "the items left sitting are coming out now"),
+                ("li", "Inside the tolerance band: stable. Vacanti gives no "
+                       "number for this third state \u2013 without a band the "
+                       "indicator would report Flow Debt almost always. "
+                       "Default 15 %, configurable"),
+                ("h", "Assumptions come before the verdict"),
+                ("p", "Little's Law only holds under conditions. Two of them "
+                      "are checked and stated in the header BEFORE the "
+                      "verdict: arrival and departure rates in balance "
+                      "(assumption 1) and WIP comparable at the start and the "
+                      "end (assumption 3). When they are violated the header "
+                      "says \u201cverdict not dependable\u201d \u2013 the number "
+                      "means nothing then, and the report says so instead of "
+                      "letting it stand."),
+            ],
+        },
+    },
 }
 
 

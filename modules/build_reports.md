@@ -41,6 +41,8 @@ python -m build_reports.cli <IssueTimes.xlsx> [Optionen]
 | `--zero-day-threshold MINUTEN` | Schwellwert in Minuten für Zero-Day-Erkennung (Standard: 5) |
 | `--terminology` | Terminologie: `SAFe` (Standard) oder `Global` |
 | `--ct-method` | CT-Berechnungsmethode: `A` (Kalendertage, Standard) oder `B` (Stage-Minuten) |
+| `--debt-tolerance PCT` | Flow Debt: Band um die gemessene mittlere Durchlaufzeit, das noch als stabil gilt (Standard: 15) |
+| `--assumption-tolerance PCT` | Flow Debt: Band für die beiden geprüften Little's-Law-Annahmen (Standard: 25) |
 | `--pdf FILE` | Alle Diagramme als PDF speichern |
 | `--browser` | Diagramme im Standard-Browser öffnen |
 
@@ -229,6 +231,41 @@ Liest die täglichen Eintrittszählungen aus `CFD.xlsx` und akkumuliert diese ku
 | SAFe | Global |
 |------|--------|
 | Cumulative Flow Diagram | Cumulative Flow Diagram |
+
+---
+
+### Flow Debt
+
+**Metrik-ID:** `flow_debt`
+
+Rechnet Bestand, Durchsatz und Durchlaufzeit **gegeneinander** statt sie nebeneinander zu zeigen. Aus den CFD-Tagesdaten entsteht der Bestand als Zeitreihe (Eintritte in die `<First>`-Stage minus Eintritte in die `<Closed>`-Stage); mittlerer Bestand geteilt durch Durchsatz ergibt nach Little's Law eine **genäherte** mittlere Durchlaufzeit. Der Vergleich mit der **gemessenen** mittleren Durchlaufzeit zeigt, ob einzelne Vorgänge auf Kosten anderer beschleunigt wurden — Daniel Vacanti nennt das *Flow Debt* (*Actionable Agile Metrics for Predictability*, 2015, Kap. 9).
+
+**Braucht `--cfd`.** Ohne CFD-Datei rechnet die Metrik nicht, sondern sagt es.
+
+**Diagramm:** Bestandsverlauf über die Zeit; die Kopfzeile trägt Annahmenstatus, genäherte und gemessene Mitte sowie das Urteil.
+
+**Drei Urteile:**
+
+| Vergleich | Urteil | Bedeutung |
+|---|---|---|
+| genähert **größer** als gemessen | `accumulating Flow Debt` | Einige Vorgänge wurden beschleunigt, die Zeit dafür von gleichzeitig laufenden geborgt |
+| genähert **kleiner** | `paying off Flow Debt` | Die länger liegen gebliebenen Vorgänge kommen jetzt heraus |
+| innerhalb des Toleranzbands | `stable` | Kein Befund |
+
+**Toleranzband.** Vacanti nennt für seinen dritten Zustand („roughly equal") keine Zahl. Ohne Band wäre `genähert ≠ gemessen` für praktisch jeden Datensatz wahr und die Anzeige meldete dauerhaft Flow Debt. Voreinstellung **15 %** der gemessenen Mitte, einstellbar über `--debt-tolerance` bzw. das GUI-Feld *Flow-Debt-Toleranz* (wird in der Projektvorlage gespeichert).
+
+**Annahmenprüfung vor dem Urteil.** Little's Law gilt nur unter Bedingungen. Zwei davon werden geprüft und in der Kopfzeile **vor** dem Urteil ausgewiesen:
+
+- **Annahme 1** — Zugangs- und Abgangsrate im Fenster im Gleichgewicht. Verglichen werden **Raten**, nicht kumulierte Summen: Letztere übersteigen sich immer um genau den stehenden Bestand.
+- **Annahme 3** — Bestand am Ende wie am Anfang des Fensters.
+
+Sind sie verletzt, trägt die Kopfzeile `verdict not dependable`; das Urteil bleibt sichtbar, ist aber ausdrücklich als nicht belastbar gekennzeichnet. Band für beide Prüfungen: `--assumption-tolerance` (Voreinstellung 25 %).
+
+**Weitere Warnungen:** Weichen die Abgangszählungen aus CFD und Closed Date stark voneinander ab, beschreiben Durchsatz und gemessene Mitte verschiedene Mengen — das wird gesagt. Ebenso, wenn mehr Abgänge als Zugänge im CFD stehen (Vorgänge, die die `<First>`-Stage übersprungen haben, drücken den Bestand nach unten).
+
+| SAFe | Global |
+|------|--------|
+| Flow Debt | Flow Debt |
 
 ---
 
