@@ -1303,11 +1303,12 @@ ONEPAGERS: dict[str, dict[str, dict]] = {
                       "Typische Ursachen: Eilspuren, Blockaden und "
                       "unausgesprochene Reihenfolgeregeln beim Ziehen."),
                 ("h", "Warum das z\u00e4hlt"),
-                ("p", "Es ist die einzige Auswertung im Werkzeug, die STILLE "
-                      "BEVORZUGUNG sichtbar macht \u2013 ohne dass irgendjemand "
-                      "eine Zahl gef\u00e4lscht h\u00e4tte. Und sie braucht keine "
-                      "neue Eingabe: Der Bestandsverlauf entsteht aus den "
-                      "CFD-Tagesdaten, die die Pipeline ohnehin erzeugt."),
+                ("p", "Sie macht STILLE BEVORZUGUNG sichtbar \u2013 ohne dass "
+                      "irgendjemand eine Zahl gef\u00e4lscht h\u00e4tte; eine "
+                      "zweite Auswertung mit dieser Eigenschaft ist im Werkzeug "
+                      "bisher nicht gebaut. Und sie braucht keine neue Eingabe: "
+                      "Der Bestandsverlauf entsteht aus den CFD-Tagesdaten, die "
+                      "die Pipeline ohnehin erzeugt."),
                 ("h", "So benutzt du es"),
                 ("code", "python -m build_reports IssueTimes.xlsx "
                          "--cfd CFD.xlsx --metrics flow_debt --browser"),
@@ -1355,11 +1356,11 @@ ONEPAGERS: dict[str, dict[str, dict]] = {
                       "Vacanti calls it Flow Debt. Typical causes: expedite "
                       "lanes, blockers and unspoken pull-order policies."),
                 ("h", "Why it matters"),
-                ("p", "It is the only view in the tool that makes SILENT "
-                      "PREFERENTIAL TREATMENT visible \u2013 without anyone "
-                      "having falsified a number. And it needs no new input: "
-                      "the WIP series is derived from the CFD daily data the "
-                      "pipeline already produces."),
+                ("p", "It makes SILENT PREFERENTIAL TREATMENT visible \u2013 "
+                      "without anyone having falsified a number; no second view "
+                      "with that property has been built into the tool so far. "
+                      "And it needs no new input: the WIP series is derived "
+                      "from the CFD daily data the pipeline already produces."),
                 ("h", "How to use it"),
                 ("code", "python -m build_reports IssueTimes.xlsx "
                          "--cfd CFD.xlsx --metrics flow_debt --browser"),
