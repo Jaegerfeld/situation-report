@@ -99,9 +99,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   Predictability* (2015, Kap. 9): Teilt man den mittleren Bestand durch den
   Durchsatz, sagt Little's Law eine mittlere Durchlaufzeit voraus. Liegt sie
   **über** der gemessenen, hat der Prozess einzelne Vorgänge beschleunigt und
-  die Zeit dafür von anderen geborgt — Vacanti nennt das *Flow Debt*. Es ist
-  die einzige Auswertung im Werkzeug, die stille Bevorzugung sichtbar macht,
-  ohne dass irgendjemand eine Zahl gefälscht hätte.
+  die Zeit dafür von anderen geborgt — Vacanti nennt das *Flow Debt*. Sie
+  macht stille Bevorzugung sichtbar, ohne dass irgendjemand eine Zahl
+  gefälscht hätte; eine zweite Auswertung mit dieser Eigenschaft ist im
+  Werkzeug bisher nicht gebaut.
   Neue Metrik `flow_debt` (GUI-Haken *Flow Debt*, CLI `--metrics flow_debt`),
   mit einstellbarem Toleranzband (`--debt-tolerance`, Voreinstellung 15 %) für
   Vacantis dritten Zustand „ungefähr gleich“, für den er selbst keine Zahl
