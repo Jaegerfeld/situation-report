@@ -320,9 +320,28 @@ Input 3 · business objectives (capability map + SLOs), Input 4 · the
 integrated roadmap & strategic themes (B7). The full interactive report
 stays the detail source. **In the GUI:** the manager window's
 *Conference pre-read …* button writes the same page for the currently
-configured solution (filename suggests today's date) and opens it in
-the browser — print to PDF from there; the test-data generator's demo
-section has *Open Conference Pre-Read* for the one-click demo.
+configured solution and opens it in the browser — print to PDF from
+there; the test-data generator's demo section has *Open Conference
+Pre-Read* for the one-click demo.
+
+**The conference date (since 0.31.0).** The pre-read is written for a
+*planned* date, not for the day it was produced. The **"Conference on"**
+field in the manager window stores it as `report.conference_date` in the
+configuration; `--conference-date` overrides it for a single run. The
+header then names the date together with the remaining lead time ("noch
+19 Tage"), and the file name suggests the conference date. **Without** a
+date the header says *"Konferenztermin nicht gesetzt"* rather than
+today's date, which would claim a conference held today. The field is
+optional; configurations without the key load unchanged.
+
+**Colour legend (since 0.31.0).** Every shaded cell draws from the same
+five backgrounds. Each page therefore opens with a **colour key** (green
+· blue · yellow · red · grey), and every shaded table carries a line with
+**its own status words** underneath — needed because the same colour
+means different things per register: grey is *done* for a dependency and
+*accepted* for a ROAM risk. Status scales are shown in full; single
+flags (overdue, aging, uncovered) appear only when they occur on the
+page. The same holds for the full report and the delta briefing.
 
 ## Strategic themes & integrated roadmap (optional, B7)
 

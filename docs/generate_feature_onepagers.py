@@ -59,6 +59,106 @@ _FOOT = ParagraphStyle("foot", fontName="Helvetica", fontSize=8, leading=10,
 #: Onepager je Feature: slug -> {lang -> {title, tagline, sections, footer_note}}
 #: sections: Liste aus ("h", Text) | ("p", Text) | ("code", Text) | ("li", Text)
 ONEPAGERS: dict[str, dict[str, dict]] = {
+    "conference_legend_date": {
+        "de": {
+            "title": "Farblegende & Konferenztermin",
+            "tagline": "Feldmeldungen 19.09.2026 \u00b7 Eine eingef\u00e4rbte Zelle, "
+                       "die ihre Farbe nicht erkl\u00e4rt, ist eine Behauptung.",
+            "sections": [
+                ("h", "Worum geht es?"),
+                ("p", "Zwei Dinge, die beim Lesen der Konferenzmappe auffielen. "
+                      "Erstens: In allen Reports waren Zellen eingef\u00e4rbt, ohne "
+                      "dass irgendwo stand, was die Farben bedeuten. Zweitens: "
+                      "Im Kopf der Mappe stand \u201eKonferenz \u2039heute\u203a\u201c \u2014 "
+                      "ausgerechnet der eine Tag, an dem die Konferenz nicht "
+                      "stattfindet, ist der Tag, an dem man die Mappe erzeugt."),
+                ("h", "So benutzt du es"),
+                ("code", "// Termin in der Konfiguration hinterlegen:\n"
+                         "\"report\": {\"conference_date\": \"2026-10-08\", ...}\n\n"
+                         "// oder f\u00fcr einen einzelnen Lauf \u00fcberschreiben:\n"
+                         "python -m portfolio portfolio.json \\\n"
+                         "    --conference mappe.html --conference-date 2026-10-08"),
+                ("p", "In der GUI: das Feld \u201eKonferenz am\u201c im Solutions-&-"
+                      "Portfolios-Fenster, mit Kalenderkn\u00f6pfchen, in allen "
+                      "f\u00fcnf Sprachen. Das Feld ist optional \u2014 Konfigurationen "
+                      "ohne den Schl\u00fcssel laden unver\u00e4ndert."),
+                ("h", "Was sich in den Reports \u00e4ndert"),
+                ("li", "Farbschl\u00fcssel am Kopf jeder Seite, noch vor der ersten "
+                       "Tabelle: gr\u00fcn im Plan \u00b7 blau zugesagt \u00b7 gelb "
+                       "aufmerksam \u00b7 rot kritisch \u00b7 grau erledigt"),
+                ("li", "Unter jeder eingef\u00e4rbten Tabelle eine Zeile mit deren "
+                       "eigenen Statusw\u00f6rtern \u2014 n\u00f6tig, weil dieselbe Farbe je "
+                       "Register etwas anderes hei\u00dft: Grau ist bei einer "
+                       "Abh\u00e4ngigkeit \u201edone\u201c, bei einem ROAM-Risiko \u201eaccepted\u201c"),
+                ("li", "Statusskalen vollst\u00e4ndig (dass es \u201eblocked\u201c gibt, "
+                       "geh\u00f6rt zum Lesen einer ganz gr\u00fcnen Tabelle); "
+                       "Einzelmarkierungen nur, wenn sie vorkommen"),
+                ("li", "Konferenztermin mit Vorlaufzeit im Kopf (\u201enoch 19 "
+                       "Tage\u201c); ohne Termin steht dort, dass keiner gesetzt "
+                       "ist \u2014 kein Datum, das eine Konferenz von heute behauptet"),
+                ("li", "Der Dateiname der Mappe folgt dem Konferenztermin, "
+                       "nicht dem Erzeugungstag"),
+                ("h", "Leitplanken"),
+                ("p", "Die Legende wird aus den Farbtabellen des Codes "
+                      "abgeleitet, nicht danebengeschrieben: Wer einen Status "
+                      "hinzuf\u00fcgt oder umf\u00e4rbt, \u00e4ndert die Legende mit. Abgedeckt "
+                      "sind Konferenzmappe, voller Report und Delta-Briefing; "
+                      "die PDF-Ausgabe zeichnet ihre Tabellen \u00fcber eine eigene "
+                      "F\u00fcllmatrix und bleibt vorerst ohne Legende. Der "
+                      "hinterlegte Termin ist zugleich die Zeitspanne, \u00fcber die "
+                      "eine sp\u00e4tere Vorhersage bis zur Konferenz laufen m\u00fcsste."),
+            ],
+        },
+        "en": {
+            "title": "Colour legend & conference date",
+            "tagline": "Field reports 19.09.2026 \u00b7 A shaded cell that does not "
+                       "explain its colour is an assertion.",
+            "sections": [
+                ("h", "What is it?"),
+                ("p", "Two things noticed while reading the conference "
+                      "pre-read. First: cells were shaded across every report "
+                      "without anything stating what the colours mean. "
+                      "Second: the header read 'Konferenz \u2039today\u203a' \u2014 and the "
+                      "one day on which the conference is not held is the day "
+                      "the pre-read is produced."),
+                ("h", "How to use it"),
+                ("code", "// store the date in the configuration:\n"
+                         "\"report\": {\"conference_date\": \"2026-10-08\", ...}\n\n"
+                         "// or override it for a single run:\n"
+                         "python -m portfolio portfolio.json \\\n"
+                         "    --conference preread.html --conference-date 2026-10-08"),
+                ("p", "In the GUI: the 'Conference on' field in the Solutions "
+                      "& Portfolios window, with a calendar button, in all "
+                      "five languages. The field is optional \u2014 configurations "
+                      "without the key load unchanged."),
+                ("h", "What changes in the reports"),
+                ("li", "A colour key at the top of every page, before the "
+                       "first table: green on plan \u00b7 blue committed \u00b7 yellow "
+                       "watch \u00b7 red critical \u00b7 grey closed"),
+                ("li", "Under every shaded table a line with that table's own "
+                       "status words \u2014 needed because the same colour means "
+                       "different things per register: grey is 'done' for a "
+                       "dependency and 'accepted' for a ROAM risk"),
+                ("li", "Status scales in full (knowing that 'blocked' exists "
+                       "is part of reading an all-green table); single flags "
+                       "only when they actually occur"),
+                ("li", "The conference date with its remaining lead time in "
+                       "the header; without a date the header says so rather "
+                       "than showing one that claims a conference held today"),
+                ("li", "The pre-read's file name follows the conference date, "
+                       "not the day it was produced"),
+                ("h", "Guard rails"),
+                ("p", "The legend is derived from the colour tables in the "
+                      "code rather than written beside them: adding or "
+                      "recolouring a status changes the legend with it. "
+                      "Covered are the pre-read, the full report and the delta "
+                      "briefing; the PDF output draws its tables through a "
+                      "separate fill matrix and carries no legend yet. The "
+                      "stored date is also the span a later forecast to the "
+                      "conference would have to cover."),
+            ],
+        },
+    },
     "strategic_themes": {
         "de": {
             "title": "Strategic Themes & Roadmap",
