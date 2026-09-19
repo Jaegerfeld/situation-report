@@ -342,6 +342,20 @@ nicht gesetzt"* — nicht das heutige Datum, das eine Konferenz von heute
 behaupten würde. Das Feld ist optional; Konfigurationen ohne den
 Schlüssel laden unverändert.
 
+**Reportsprache (seit 0.32.0).** Die Beschriftungen und Texte der Reports
+folgen der **Sprache des Fensters** — wer die Oberfläche auf Französisch
+stellt, bekommt den Report auf Französisch. Wer eine Sprache festnageln will,
+wählt sie im Feld **Reportsprache**; die Vorgabe „—" heißt „wie Oberfläche"
+und speichert nichts. Rangfolge: `--lang` (Kommandozeile) sticht
+`report.language` (Konfiguration) sticht die Fenstersprache; ohne alles drei
+Englisch. **Das Datumsformat folgt mit** (de/ro `19.09.2026`, pt/fr
+`19/09/2026`, en `2026-09-19`) — bis 0.31.0 stand in jedem Report das deutsche
+Format, auch im englischen. **Nicht übersetzt** werden die Metriknamen (die
+regelt weiter die SAFe/Global-Umschaltung), die Achsenbeschriftungen
+**innerhalb der eingebetteten Diagramme** (sie kommen aus `build_reports`) und
+die Markdown-Fassung des Delta-Briefings (sie ist der Eingabe-Contract der
+LLM-Narration, deren Sprache `--llm-lang` regelt).
+
 **Farblegende (seit 0.31.0).** Alle eingefärbten Zellen ziehen aus
 denselben fünf Hintergründen. Am Kopf jeder Seite steht deshalb ein
 **Farbschlüssel** (grün · blau · gelb · rot · grau) und unter jeder

@@ -334,6 +334,19 @@ date the header says *"Konferenztermin nicht gesetzt"* rather than
 today's date, which would claim a conference held today. The field is
 optional; configurations without the key load unchanged.
 
+**Report language (since 0.32.0).** Report labels and texts follow the
+**language of the window** — set the interface to French and the report comes
+out in French. To pin a report to one language, pick it in the **Report
+language** field; the default "—" means "follow the interface" and stores
+nothing. Precedence: `--lang` (command line) beats `report.language`
+(configuration) beats the window language; without any of the three, English.
+**The date format follows** (de/ro `19.09.2026`, pt/fr `19/09/2026`, en
+`2026-09-19`) — up to 0.31.0 every report carried the German format, including
+the English one. **Not translated:** the metric names (still governed by the
+SAFe/Global switch), the axis labels **inside the embedded charts** (they come
+from `build_reports`) and the Markdown form of the delta briefing (it is the
+input contract of the AI narration, whose language `--llm-lang` governs).
+
 **Colour legend (since 0.31.0).** Every shaded cell draws from the same
 five backgrounds. Each page therefore opens with a **colour key** (green
 · blue · yellow · red · grey), and every shaded table carries a line with
