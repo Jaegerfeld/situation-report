@@ -305,6 +305,28 @@ class TestGuiOnRealData:
         finally:
             app.destroy()
 
+    def test_chart_language_comes_from_the_window(self):
+        """Die Diagrammsprache wird VOR dem Thread aus der tkinter-Variablen
+        gelesen — im Worker gehoert sie dem Hauptthread nicht mehr. Und sie
+        heisst `_lang_var`: ein erster Entwurf griff auf ein `_lang` zu, das
+        es in diesem Modul gar nicht gibt (19.09.2026)."""
+        import inspect
+
+        from build_reports.chart_texts import LANGUAGES
+        from build_reports.gui import BuildReportsApp
+        app = BuildReportsApp()
+        try:
+            assert app._lang_var.get() in LANGUAGES
+            quelle = inspect.getsource(app._show_in_browser_from_inputs)
+            assert "chart_lang = self._lang_var.get()" in quelle
+            assert (quelle.index("chart_lang = self._lang_var.get()")
+                    < quelle.index("def worker()")), \
+                "Sprache muss vor dem Thread gelesen werden"
+            assert "run_render(result, inputs[" in quelle
+            assert "chart_lang)" in quelle
+        finally:
+            app.destroy()
+
     def test_read_inputs_fails_without_file(self):
         """_read_inputs returns None when no IssueTimes file is set."""
         from build_reports.gui import BuildReportsApp

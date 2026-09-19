@@ -2220,6 +2220,8 @@ class BuildReportsApp(tk.Tk):
             inputs: Dict of validated pipeline inputs from _read_inputs().
         """
         self._set_buttons_enabled(False)
+        # Vor dem Thread lesen: tkinter-Variablen gehoeren dem Hauptthread.
+        chart_lang = self._lang_var.get()
 
         def worker() -> None:  # noqa: C901
             from .filters import FilterConfig, apply_filters
@@ -2284,7 +2286,7 @@ class BuildReportsApp(tk.Tk):
                     for w in result.warnings:
                         self._log(f"  WARNING: {w}")
                     figs = plugin.run_render(result, inputs["terminology"],
-                                             self._lang)
+                                             chart_lang)
                     if figs:
                         section_breaks[len(all_figures)] = term(
                             plugin.metric_id, inputs["terminology"]
