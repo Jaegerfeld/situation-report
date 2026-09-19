@@ -20,24 +20,21 @@
 
 from __future__ import annotations
 
-LANG_DE = "de"
-LANG_EN = "en"
-LANG_RO = "ro"
-LANG_PT = "pt"
-LANG_FR = "fr"
+# Die Sprachliste steht genau einmal, in der unteren Schicht: die
+# Diagrammbeschriftungen brauchen sie ebenso, und die Abhängigkeit läuft
+# ohnehin von portfolio nach build_reports. Zwei Listen würden auseinanderlaufen.
+from build_reports.chart_texts import (
+    DEFAULT_LANG,
+    LANG_DE,
+    LANG_EN,
+    LANG_FR,
+    LANG_PT,
+    LANG_RO,
+    LANGUAGES,
+    normalise,
+)
 
-#: Sprachen in der Reihenfolge der GUI-Flaggen.
-LANGUAGES: tuple[str, ...] = (LANG_DE, LANG_EN, LANG_RO, LANG_PT, LANG_FR)
-
-#: Vorgabe, wenn niemand eine Sprache nennt. Englisch, weil die Reporttexte
-#: bis 0.31.0 englisch waren — so bleibt eine unveränderte Aufrufstelle bei
-#: ihrer bisherigen Ausgabe.
-DEFAULT_LANG = LANG_EN
-
-
-def normalise(lang: str | None) -> str:
-    """Eine unbekannte oder fehlende Sprachangabe fällt auf die Vorgabe."""
-    return lang if lang in LANGUAGES else DEFAULT_LANG
+__all__ = ["DEFAULT_LANG", "LANGUAGES", "keys", "normalise", "t"]
 
 
 _TEXTS: dict[str, dict[str, str]] = {

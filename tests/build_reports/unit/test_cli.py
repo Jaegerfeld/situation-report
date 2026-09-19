@@ -22,6 +22,7 @@ from unittest.mock import MagicMock, patch
 import plotly.graph_objects as go
 import pytest
 
+from build_reports.chart_texts import DEFAULT_LANG
 from build_reports.cli import _parse_date, run_reports
 from build_reports.metrics.base import MetricResult
 from build_reports.terminology import GLOBAL, SAFE
@@ -268,13 +269,28 @@ class TestRunReports:
     def test_render_called_with_result_and_terminology(
         self, issue_times, mock_data, mock_filtered
     ):
-        """plugin.run_render() receives the MetricResult from run() and the terminology."""
+        """plugin.run_render() receives the MetricResult from run(), the
+        terminology and the chart language."""
         plugin = _make_plugin()
         with patch("build_reports.cli.load_report_data", return_value=mock_data), \
              patch("build_reports.cli.apply_filters", return_value=mock_filtered), \
              patch("build_reports.cli.all_metrics", return_value=[plugin]):
             run_reports(issue_times, terminology=GLOBAL, log=lambda *_: None)
-        plugin.run_render.assert_called_once_with(plugin.run.return_value, GLOBAL)
+        plugin.run_render.assert_called_once_with(
+            plugin.run.return_value, GLOBAL, DEFAULT_LANG)
+
+    def test_render_receives_the_chosen_language(
+        self, issue_times, mock_data, mock_filtered
+    ):
+        """--lang erreicht die Diagramme, nicht nur die Tabellen."""
+        plugin = _make_plugin()
+        with patch("build_reports.cli.load_report_data", return_value=mock_data), \
+             patch("build_reports.cli.apply_filters", return_value=mock_filtered), \
+             patch("build_reports.cli.all_metrics", return_value=[plugin]):
+            run_reports(issue_times, terminology=GLOBAL, log=lambda *_: None,
+                        lang="fr")
+        plugin.run_render.assert_called_once_with(
+            plugin.run.return_value, GLOBAL, "fr")
 
     def test_warnings_from_result_are_logged(
         self, issue_times, mock_data, mock_filtered

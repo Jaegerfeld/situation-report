@@ -3,7 +3,7 @@
 # Repository:     https://github.com/Jaegerfeld/situation-report
 # KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
 # Erstellt:       15.04.2026
-# Geändert:       27.04.2026
+# Geändert:       19.09.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
@@ -19,6 +19,8 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any
+
+from ..chart_texts import DEFAULT_LANG
 
 if TYPE_CHECKING:
     from ..loader import ReportData
@@ -74,7 +76,8 @@ class MetricPlugin(ABC):
         """
 
     @abstractmethod
-    def render(self, result: MetricResult, terminology: str) -> list[Any]:
+    def render(self, result: MetricResult, terminology: str,
+               lang: str = DEFAULT_LANG) -> list[Any]:
         """
         Build a list of plotly Figure objects from a MetricResult.
 
@@ -84,6 +87,10 @@ class MetricPlugin(ABC):
         Args:
             result:      MetricResult produced by compute().
             terminology: Active mode — either terminology.SAFE or terminology.GLOBAL.
+            lang:        Language of the labels *the code* produces — axes,
+                         chart titles, curve names. Everything that comes from
+                         the data (stage names, issue types, project keys)
+                         passes through untranslated.
 
         Returns:
             List of plotly Figure objects ready for display or export.
@@ -110,7 +117,8 @@ class MetricPlugin(ABC):
         result.source_prefix = data.source_prefix
         return result
 
-    def run_render(self, result: MetricResult, terminology: str) -> list[Any]:
+    def run_render(self, result: MetricResult, terminology: str,
+                   lang: str = DEFAULT_LANG) -> list[Any]:
         """
         Render figures and prepend the Jira project key to every figure title.
 
@@ -119,11 +127,12 @@ class MetricPlugin(ABC):
         Args:
             result:      MetricResult from run().
             terminology: Active terminology mode.
+            lang:        Language of the code-produced labels.
 
         Returns:
             List of plotly Figure objects with project key in the title.
         """
-        figures = self.render(result, terminology)
+        figures = self.render(result, terminology, lang)
         if result.source_prefix:
             for fig in figures:
                 existing = getattr(getattr(fig, "layout", None), "title", None)

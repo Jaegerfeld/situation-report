@@ -3,7 +3,7 @@
 # Repository:     https://github.com/Jaegerfeld/situation-report
 # KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
 # Erstellt:       15.04.2026
-# Geändert:       17.04.2026
+# Geändert:       19.09.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
@@ -25,6 +25,7 @@ from datetime import date
 
 import plotly.graph_objects as go
 
+from ..chart_texts import DEFAULT_LANG, t
 from ..loader import ReportData
 from ..pi_config import (
     PIInterval,
@@ -157,7 +158,8 @@ class FlowVelocityMetric(MetricPlugin):
         return MetricResult(metric_id=self.metric_id, stats=stats,
                             chart_data=chart_data, warnings=warnings)
 
-    def render(self, result: MetricResult, terminology: str) -> list[go.Figure]:
+    def render(self, result: MetricResult, terminology: str,
+               lang: str = DEFAULT_LANG) -> list[go.Figure]:
         """
         Render three Flow Velocity figures: daily histogram, weekly line, per-PI bars.
 
@@ -179,10 +181,9 @@ class FlowVelocityMetric(MetricPlugin):
         # --- Daily frequency histogram ---
         x_daily = list(vd.daily_freq.keys())
         y_daily = list(vd.daily_freq.values())
-        header_daily = (
-            f"{label}:  from:  {s['from_date']}  to:  {s['to_date']}  "
-            f"Days delivered:  {s['days_delivered']}"
-        )
+        header_daily = t("velocity.daily", lang, label=label,
+                         start=s["from_date"], end=s["to_date"],
+                         days=s["days_delivered"])
         fig_daily = go.Figure(go.Bar(
             x=x_daily, y=y_daily,
             marker_color="#4a4a4a",
@@ -190,7 +191,8 @@ class FlowVelocityMetric(MetricPlugin):
         ))
         fig_daily.update_layout(
             title=header_daily, title_font_size=11,
-            xaxis_title="Feature per Day", yaxis_title="Freq",
+            xaxis_title=t("axis.feature_per_day", lang),
+            yaxis_title=t("axis.freq", lang),
             plot_bgcolor="#e8e8e8", paper_bgcolor="#e8e8e8",
             height=450,
         )
@@ -205,9 +207,10 @@ class FlowVelocityMetric(MetricPlugin):
             name=label,
         ))
         fig_weekly.update_layout(
-            title=f"{label}: Feature per week",
+            title=t("velocity.per_week", lang, label=label),
             title_font_size=11,
-            xaxis_title="Week", yaxis_title="count",
+            xaxis_title=t("axis.week", lang),
+            yaxis_title=t("axis.count_lower", lang),
             plot_bgcolor="#e8e8e8", paper_bgcolor="#e8e8e8",
             height=400,
         )
@@ -237,7 +240,7 @@ class FlowVelocityMetric(MetricPlugin):
                 colors.append("lightgray")
 
         # PI axis label: "PI" for custom config, "Quarter" for quarterly defaults
-        xaxis_label = "PI" if self.pi_config_path else "Quarter"
+        xaxis_label = "PI" if self.pi_config_path else t("axis.quarter", lang)
 
         fig_pi = go.Figure(go.Bar(
             x=pis, y=counts_pi,
@@ -247,13 +250,13 @@ class FlowVelocityMetric(MetricPlugin):
         ))
         fig_pi.add_hline(
             y=avg_per_pi, line_color="red", line_dash="dot",
-            annotation_text=f"Avg: {avg_per_pi}",
+            annotation_text=t("velocity.avg", lang, value=avg_per_pi),
             annotation_position="right",
         )
         fig_pi.update_layout(
-            title=f"{label}: Feature per PI.  Average = {avg_per_pi}",
+            title=t("velocity.per_pi", lang, label=label, avg=avg_per_pi),
             title_font_size=11,
-            xaxis_title=xaxis_label, yaxis_title="count",
+            xaxis_title=xaxis_label, yaxis_title=t("axis.count_lower", lang),
             plot_bgcolor="#e8e8e8", paper_bgcolor="#e8e8e8",
             height=450,
         )

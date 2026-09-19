@@ -3,7 +3,7 @@
 # Repository:     https://github.com/Jaegerfeld/situation-report
 # KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
 # Erstellt:       15.04.2026
-# Geändert:       24.04.2026
+# Geändert:       19.09.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
@@ -25,6 +25,7 @@ from dataclasses import dataclass
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 
+from ..chart_texts import DEFAULT_LANG, t
 from ..loader import ReportData
 from ..stage_groups import GROUP_DONE, classify_stages
 from ..terminology import FLOW_DISTRIBUTION, term
@@ -140,7 +141,8 @@ class FlowDistributionMetric(MetricPlugin):
         return MetricResult(metric_id=self.metric_id, stats=stats,
                             chart_data=chart_data, warnings=warnings)
 
-    def render(self, result: MetricResult, terminology: str) -> list[go.Figure]:
+    def render(self, result: MetricResult, terminology: str,
+               lang: str = DEFAULT_LANG) -> list[go.Figure]:
         """
         Render two pie charts (by issue type, stage prominence) and one bar chart
         (avg cycle time by issue type).
@@ -162,9 +164,9 @@ class FlowDistributionMetric(MetricPlugin):
         fig = make_subplots(
             rows=1, cols=3,
             subplot_titles=[
-                "By Issue Type",
-                f"Stage Prominence (n={dd.prominence_n})",
-                "Avg Cycle Time by Type (days)",
+                t("dist.by_type", lang),
+                t("dist.stage_prominence", lang, total=dd.prominence_n),
+                t("dist.avg_ct_by_type", lang),
             ],
             specs=[[{"type": "pie"}, {"type": "pie"}, {"type": "xy"}]],
         )
@@ -196,13 +198,13 @@ class FlowDistributionMetric(MetricPlugin):
         ), row=1, col=3)
 
         fig.update_layout(
-            title=f"{label}  (n={dd.total})",
+            title=t("dist.title", lang, label=label, total=dd.total),
             title_font_size=12,
             paper_bgcolor="#e8e8e8",
             height=450,
             showlegend=False,
         )
-        fig.update_yaxes(title_text="days", row=1, col=3)
+        fig.update_yaxes(title_text=t("axis.days", lang), row=1, col=3)
 
         return [fig]
 

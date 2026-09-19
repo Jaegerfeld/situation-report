@@ -3,7 +3,7 @@
 # Repository:     https://github.com/Jaegerfeld/situation-report
 # KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
 # Erstellt:       15.04.2026
-# Geändert:       25.04.2026
+# Geändert:       19.09.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
@@ -23,14 +23,13 @@ from datetime import date, timedelta
 
 import plotly.graph_objects as go
 
+from ..chart_texts import DEFAULT_LANG, month_abbr, t
 from ..loader import ReportData
 from . import register
 from .base import MetricPlugin, MetricResult
 
-_MONTH_ABBR_CFD = [
-    "", "Jan", "Feb", "Mär", "Apr", "Mai", "Jun",
-    "Jul", "Aug", "Sep", "Okt", "Nov", "Dez",
-]
+# Die Monatsabkuerzungen stehen seit 0.33.0 im Sprachkatalog
+# (build_reports/chart_texts.py) — vorher deutsch und in zwei Modulen doppelt.
 
 
 _WEEK_LABEL_HTML = '<span style="font-size:8px; color:#aaa">{week}</span>'
@@ -102,6 +101,7 @@ def cumulative_stage_series(
 
 def _cfd_tick_labels(
     dates: list[str],
+    lang: str = DEFAULT_LANG,
 ) -> tuple[list[str], list[str]]:
     """
     Generate x-axis tick positions and labels for the CFD chart.
@@ -123,6 +123,7 @@ def _cfd_tick_labels(
     d_start = date.fromisoformat(dates[0])
     d_end = date.fromisoformat(dates[-1])
 
+    months = month_abbr(lang)
     tickvals: list[str] = []
     ticktext: list[str] = []
     seen: set[str] = set()
@@ -135,7 +136,7 @@ def _cfd_tick_labels(
         is_monday = d.weekday() == 0  # 0 = Monday
 
         if is_month_start:
-            label = f"{_MONTH_ABBR_CFD[d.month]} {d.year}"
+            label = f"{months[d.month]} {d.year}"
             tickvals.append(iso)
             ticktext.append(label)
             seen.add(iso)
@@ -254,7 +255,8 @@ class CfdMetric(MetricPlugin):
         return MetricResult(metric_id=self.metric_id, stats=stats,
                             chart_data=chart_data, warnings=warnings)
 
-    def render(self, result: MetricResult, terminology: str) -> list[go.Figure]:
+    def render(self, result: MetricResult, terminology: str,
+               lang: str = DEFAULT_LANG) -> list[go.Figure]:
         """
         Render the Cumulative Flow Diagram as a stacked area chart.
 
@@ -312,26 +314,26 @@ class CfdMetric(MetricPlugin):
             fig.add_trace(go.Scatter(
                 x=trend_x,
                 y=[first_y[0], first_y[-1]],
-                mode="lines", name="Inflow trend",
+                mode="lines", name=t("cfd.inflow", lang),
                 line=dict(color="black", width=1.5, dash="solid"),
                 showlegend=False,
             ))
             fig.add_trace(go.Scatter(
                 x=trend_x,
                 y=[closed_y[0], closed_y[-1]],
-                mode="lines", name="Outflow trend",
+                mode="lines", name=t("cfd.outflow", lang),
                 line=dict(color="black", width=1.5, dash="solid"),
                 showlegend=False,
             ))
 
         # X-axis ticks: months large, calendar weeks small
-        tickvals, ticktext = _cfd_tick_labels(cd.dates)
+        tickvals, ticktext = _cfd_tick_labels(cd.dates, lang)
 
         fig.update_layout(
-            title=f"Ratio In/out  {s['ratio']} : 1",
+            title=t("cfd.ratio", lang, ratio=s["ratio"]),
             title_font_size=12,
-            xaxis_title="Date",
-            yaxis_title="Count",
+            xaxis_title=t("axis.date", lang),
+            yaxis_title=t("axis.count", lang),
             plot_bgcolor="#e8e8e8",
             paper_bgcolor="#e8e8e8",
             legend=dict(orientation="v", x=1.02, y=1),

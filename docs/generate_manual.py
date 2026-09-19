@@ -95,7 +95,8 @@ LANG_FR = "fr"
 # Chart image generation
 # ---------------------------------------------------------------------------
 
-def _generate_chart_images(out_dir: Path) -> dict[str, Path]:
+def _generate_chart_images(out_dir: Path,
+                           lang: str = "en") -> dict[str, Path]:
     """
     Render all metric charts from the ART_A test dataset as PNG files.
 
@@ -103,8 +104,14 @@ def _generate_chart_images(out_dir: Path) -> dict[str, Path]:
     dataset. Flow Load and Flow Distribution use the full unfiltered dataset
     so that open issues are always included.
 
+    Seit 0.33.0 je Sprache ein eigener Satz Bilder: Ein deutsches Handbuch mit
+    englisch beschrifteten Diagrammen zeigt nicht, was der Leser vor sich hat.
+    Die Rechnung (compute) läuft dabei nur einmal je Aufruf; teuer ist ohnehin
+    der PNG-Export.
+
     Args:
         out_dir: Directory where PNG files are written.
+        lang:    Language of the chart labels.
 
     Returns:
         Dict mapping image key to PNG file path.
@@ -138,14 +145,14 @@ def _generate_chart_images(out_dir: Path) -> dict[str, Path]:
     # Flow Time
     m = FlowTimeMetric()
     r = m.compute(filtered, SAFE)
-    figs = m.render(r, SAFE)
+    figs = m.render(r, SAFE, lang)
     imgs["flow_time_box"]     = save(figs[0], "flow_time_box",     h=480)
     imgs["flow_time_scatter"] = save(figs[1], "flow_time_scatter", h=540)
 
     # Flow Velocity
     m = FlowVelocityMetric()
     r = m.compute(filtered, SAFE)
-    figs = m.render(r, SAFE)
+    figs = m.render(r, SAFE, lang)
     imgs["velocity_daily"]  = save(figs[0], "velocity_daily",  h=460)
     imgs["velocity_weekly"] = save(figs[1], "velocity_weekly", h=480)
     imgs["velocity_pi"]     = save(figs[2], "velocity_pi",     h=480)
@@ -153,38 +160,38 @@ def _generate_chart_images(out_dir: Path) -> dict[str, Path]:
     # Flow Load (unfiltered – open issues must be present)
     m = FlowLoadMetric()
     r = m.compute(data, SAFE)
-    figs = m.render(r, SAFE)
+    figs = m.render(r, SAFE, lang)
     imgs["flow_load"] = save(figs[0], "flow_load", h=540)
 
     # CFD
     m = CfdMetric()
     r = m.compute(filtered, SAFE)
-    figs = m.render(r, SAFE)
+    figs = m.render(r, SAFE, lang)
     imgs["cfd"] = save(figs[0], "cfd", h=680)
 
     # Flow Debt (same window as the CFD – both read the CFD boundaries)
     m = FlowDebtMetric()
     r = m.compute(filtered, SAFE)
-    figs = m.render(r, SAFE)
+    figs = m.render(r, SAFE, lang)
     imgs["flow_debt"] = save(figs[0], "flow_debt", h=540)
 
     # Flow Distribution (unfiltered – all issue types should appear)
     m = FlowDistributionMetric()
     r = m.compute(data, SAFE)
-    figs = m.render(r, SAFE)
+    figs = m.render(r, SAFE, lang)
     imgs["flow_dist"] = save(figs[0], "flow_dist", w=1600, h=560)
 
     # Process Flow: Transitions (uses full dataset with transitions)
     m = ProcessFlowMetric()
     r = m.compute(data, SAFE)
-    figs = m.render(r, SAFE)
+    figs = m.render(r, SAFE, lang)
     if figs:
         imgs["process_flow"] = save(figs[0], "process_flow", w=1400, h=700)
 
     # Process Flow: Time (uses full dataset with transitions)
     m = ProcessFlowTimeMetric()
     r = m.compute(data, SAFE)
-    figs = m.render(r, SAFE)
+    figs = m.render(r, SAFE, lang)
     if figs:
         imgs["process_flow_time"] = save(figs[0], "process_flow_time", w=1400, h=700)
 
@@ -4644,38 +4651,42 @@ def main():
     print("Generating chart images from ART_A test data...")
     tmp_dir = Path(tempfile.mkdtemp(prefix="br_manual_"))
     try:
-        images = _generate_chart_images(tmp_dir)
-        print(f"  {len(images)} chart(s) rendered.")
+        images = {
+            lang: _generate_chart_images(tmp_dir / lang, lang)
+            for lang in (LANG_DE, LANG_EN, LANG_RO, LANG_PT, LANG_FR)
+        }
+        print(f"  {sum(len(v) for v in images.values())} chart(s) rendered "
+              f"in {len(images)} language(s).")
 
         _build_doc(
             OUTPUT_DE, LANG_DE, content_de,
             title="build_reports Benutzerhandbuch",
             subject="Flow-Metriken fuer agile Teams",
-            images=images,
+            images=images[LANG_DE],
         )
         _build_doc(
             OUTPUT_EN, LANG_EN, content_en,
             title="build_reports User Manual",
             subject="Flow Metrics for Agile Teams",
-            images=images,
+            images=images[LANG_EN],
         )
         _build_doc(
             OUTPUT_RO, LANG_RO, content_ro,
             title="build_reports Manual de Utilizator",
             subject="Metrici de flux pentru echipe agile",
-            images=images,
+            images=images[LANG_RO],
         )
         _build_doc(
             OUTPUT_PT, LANG_PT, content_pt,
             title="build_reports Manual do Utilizador",
             subject="Metricas de fluxo para equipas ageis",
-            images=images,
+            images=images[LANG_PT],
         )
         _build_doc(
             OUTPUT_FR, LANG_FR, content_fr,
             title="build_reports Manuel d'utilisation",
             subject="Metriques de flux pour equipes agiles",
-            images=images,
+            images=images[LANG_FR],
         )
     finally:
         import shutil
