@@ -59,6 +59,105 @@ _FOOT = ParagraphStyle("foot", fontName="Helvetica", fontSize=8, leading=10,
 #: Onepager je Feature: slug -> {lang -> {title, tagline, sections, footer_note}}
 #: sections: Liste aus ("h", Text) | ("p", Text) | ("code", Text) | ("li", Text)
 ONEPAGERS: dict[str, dict[str, dict]] = {
+    "chart_language": {
+        "de": {
+            "title": "Sprache der Diagramme",
+            "tagline": "19.09.2026 \u00b7 Ein deutscher Report mit einer Achse "
+                       "\u201eWeek\u201c ist kein deutscher Report.",
+            "sections": [
+                ("h", "Worum geht es?"),
+                ("p", "Mit 0.32.0 sprachen die Tabellen und die Prosa die "
+                      "Sprache der Oberfl\u00e4che. Die Beschriftungen "
+                      "<i>innerhalb</i> der Diagramme kamen aber aus einem "
+                      "anderen Modul und blieben englisch. Damit ist die "
+                      "Umstellung vollst\u00e4ndig."),
+                ("h", "So benutzt du es"),
+                ("code", "// Portfolio-Report: wie gehabt\n"
+                         "python -m portfolio portfolio.json \\\n"
+                         "    --output report.html --lang de\n\n"
+                         "// build_reports allein hat jetzt auch --lang:\n"
+                         "python -m build_reports IssueTimes.xlsx \\\n"
+                         "    --lang de --browser"),
+                ("p", "In beiden Oberfl\u00e4chen ohne Zutun: Das Fenster gibt "
+                      "seine Sprache an die Diagramme weiter."),
+                ("h", "Was jetzt mitspricht"),
+                ("li", "Achsen: Datum, Anzahl, Woche, Quartal, Stage, "
+                       "Gesamtalter, Zykluszeit \u2026"),
+                ("li", "Diagrammtitel und Kopfzeilen samt Statistikzeile "
+                       "(Min, Q1, Mittel, Median \u2026)"),
+                ("li", "Kurvennamen: Zufluss-Trend, Abfluss-Trend, "
+                       "Trend (LOESS), CT-Median, Ziel-CT"),
+                ("li", "Die Erkl\u00e4rung der Zykluszeit-Grenzen (AA1): "
+                       "\u201eUhr: erster Eintritt in \u2039Stage\u203a \u2192 letzter "
+                       "Eintritt in \u2039Stage\u203a\u201c"),
+                ("li", "Die Legenden des Process-Flow-Diagramms"),
+                ("li", "Die <b>Monatsabk\u00fcrzungen</b> der Zeitachsen"),
+                ("h", "Zwei Altlasten, nebenbei berichtigt"),
+                ("p", "Die <b>Monatsabk\u00fcrzungen waren fest deutsch</b> \u2014 in "
+                      "jedem Report, auch im englischen \u2014 und wurden in "
+                      "<b>zwei Modulen doppelt</b> gepflegt. Ebenso "
+                      "\u201eMethode A\u201c im Titel des Flow-Time-Diagramms. Beides "
+                      "steht jetzt einmal im Katalog, je Sprache."),
+                ("h", "Die Grenze, die dabei gezogen wurde"),
+                ("p", "Einen Katalogschl\u00fcssel bekommt <b>nur, was im Code "
+                      "entsteht</b>. Alles, was aus den Daten kommt \u2014 "
+                      "Stage-Namen aus der Workflow-Konfiguration, "
+                      "Vorgangsarten, Projektk\u00fcrzel \u2014 l\u00e4uft "
+                      "un\u00fcbersetzt durch. Ein Stage hei\u00dft so, wie er in Jira "
+                      "hei\u00dft; ihn zu \u00fcbersetzen hie\u00dfe, eine fremde "
+                      "Konfiguration zu verf\u00e4lschen. Die Metriknamen regelt "
+                      "weiterhin die SAFe/Global-Umschaltung."),
+            ],
+        },
+        "en": {
+            "title": "Chart language",
+            "tagline": "19.09.2026 \u00b7 A German report with an axis labelled "
+                       "'Week' is not a German report.",
+            "sections": [
+                ("h", "What is it?"),
+                ("p", "With 0.32.0 the tables and the prose spoke the "
+                      "language of the interface. The labels <i>inside</i> "
+                      "the charts came from a different module and stayed "
+                      "English. This completes the change."),
+                ("h", "How to use it"),
+                ("code", "// portfolio report: as before\n"
+                         "python -m portfolio portfolio.json \\\n"
+                         "    --output report.html --lang de\n\n"
+                         "// build_reports on its own now has --lang too:\n"
+                         "python -m build_reports IssueTimes.xlsx \\\n"
+                         "    --lang de --browser"),
+                ("p", "In both GUIs without doing anything: the window passes "
+                      "its language on to the charts."),
+                ("h", "What follows now"),
+                ("li", "Axes: date, count, week, quarter, stage, total age, "
+                       "cycle days \u2026"),
+                ("li", "Chart titles and headers including the statistics "
+                       "line (min, Q1, mean, median \u2026)"),
+                ("li", "Curve names: inflow trend, outflow trend, "
+                       "trend (LOESS), CT median, target CT"),
+                ("li", "The cycle-time boundary declaration (AA1): 'Clock: "
+                       "first entry into \u2039stage\u203a \u2192 last entry into "
+                       "\u2039stage\u203a'"),
+                ("li", "The process-flow diagram legends"),
+                ("li", "The <b>month abbreviations</b> on the time axes"),
+                ("h", "Two old defects fixed along the way"),
+                ("p", "The <b>month abbreviations were hard-wired German</b> "
+                      "\u2014 in every report, including the English one \u2014 and "
+                      "were maintained <b>twice, in two modules</b>. The same "
+                      "held for 'Methode A' in the Flow Time chart title. "
+                      "Both now live once in the catalogue, per language."),
+                ("h", "The boundary drawn here"),
+                ("p", "A catalogue key goes only to <b>what originates in "
+                      "code</b>. Everything arriving from the data \u2014 stage "
+                      "names from the workflow configuration, issue types, "
+                      "project keys \u2014 passes through untranslated. A stage "
+                      "is called what it is called in Jira; translating it "
+                      "would falsify someone else's configuration. The "
+                      "metric names remain governed by the SAFe/Global "
+                      "switch."),
+            ],
+        },
+    },
     "report_language": {
         "de": {
             "title": "Reportsprache",

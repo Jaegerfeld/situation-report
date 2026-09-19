@@ -342,10 +342,12 @@ nothing. Precedence: `--lang` (command line) beats `report.language`
 (configuration) beats the window language; without any of the three, English.
 **The date format follows** (de/ro `19.09.2026`, pt/fr `19/09/2026`, en
 `2026-09-19`) — up to 0.31.0 every report carried the German format, including
-the English one. **Not translated:** the metric names (still governed by the
-SAFe/Global switch), the axis labels **inside the embedded charts** (they come
-from `build_reports`) and the Markdown form of the delta briefing (it is the
-input contract of the AI narration, whose language `--llm-lang` governs).
+the English one. **Since 0.33.0 the labels *inside* the charts follow
+too** — axes, chart titles, curve names and the month abbreviations on the
+time axes. **Not translated:** the metric names (still governed by the
+SAFe/Global switch), everything that comes **from the data** — stage names,
+issue types, project keys — and the Markdown form of the delta briefing (it is
+the input contract of the AI narration, whose language `--llm-lang` governs).
 
 **Colour legend (since 0.31.0).** Every shaded cell draws from the same
 five backgrounds. Each page therefore opens with a **colour key** (green

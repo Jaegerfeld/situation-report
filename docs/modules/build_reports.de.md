@@ -72,7 +72,24 @@ figs = plugin.render(result, "SAFe")
 python -m build_reports IssueTimes.xlsx --pdf report.pdf
 python -m build_reports IssueTimes.xlsx --cfd CFD.xlsx --transitions Transitions.xlsx --browser
 python -m build_reports IssueTimes.xlsx --metrics flow_time process_flow process_flow_time --from-date 2025-01-01
+python -m build_reports IssueTimes.xlsx --lang de --browser
 ```
+
+## Sprache der Diagramme (seit 0.33.0)
+
+Die Beschriftungen **innerhalb** der Diagramme — Achsen, Diagrammtitel,
+Kurvennamen und die **Monatsabkürzungen** der Zeitachsen — folgen der
+gewählten Sprache. In der Oberfläche ist das die Fenstersprache, auf der
+Kommandozeile `--lang {de|en|ro|pt|fr}` (Vorgabe: Englisch).
+
+**Was aus den Daten kommt, bleibt unberührt:** Stage-Namen aus der
+Workflow-Konfiguration, Vorgangsarten und Projektkürzel. Ein Stage heißt so,
+wie er in Jira heißt — ihn zu übersetzen hieße, eine fremde Konfiguration zu
+verfälschen. Die **Metriknamen** regelt weiterhin die SAFe/Global-Umschaltung.
+
+Bis 0.32.0 waren die Monatsabkürzungen fest **deutsch** — in jedem Report,
+auch im englischen — und in zwei Modulen doppelt gepflegt; dasselbe galt für
+„Methode A" im Titel des Flow-Time-Diagramms.
 
 ## Templates
 
