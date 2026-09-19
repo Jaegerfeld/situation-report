@@ -15,10 +15,10 @@
 from __future__ import annotations
 
 import dataclasses
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 
 from build_reports.loader import CfdRecord, IssueRecord, ReportData
-from portfolio import aggregator
+from portfolio import aggregator, summary
 from portfolio.solution_config import KIND_PORTFOLIO, Member, SolutionConfig, StageMap
 
 
@@ -514,6 +514,72 @@ class TestArtDepthInReports:
         portfolio = _portfolio_setup(monkeypatch)
         html = aggregator.render_conference_html(portfolio, log=lambda *_: None)
         assert "ART Detail" not in html
+
+
+# ---------------------------------------------------------------------------
+# Konferenztermin im Kopf der Mappe (Feldmeldung 19.09.2026)
+# ---------------------------------------------------------------------------
+
+class TestConferenceDate:
+    def test_without_a_date_the_header_says_so(self, monkeypatch) -> None:
+        """Das heutige Datum im Konferenz-Feld liest sich, als faende die
+        Konferenz heute statt — das ist das eine, was sie nie tut."""
+        portfolio = _portfolio_setup(monkeypatch)
+        html = aggregator.render_conference_html(portfolio, log=lambda *_: None)
+        assert "Konferenztermin nicht gesetzt" in html
+        assert date.today().strftime("%d.%m.%Y") not in html.split("Stand")[0]
+
+    def test_the_config_supplies_the_date(self, monkeypatch) -> None:
+        portfolio = _portfolio_setup(monkeypatch)
+        planned = date.today() + timedelta(days=7)
+        cfg = dataclasses.replace(portfolio, conference_date=planned)
+        html = aggregator.render_conference_html(cfg, log=lambda *_: None)
+        assert f"Konferenz {planned.strftime('%d.%m.%Y')}" in html
+        assert "noch 7 Tage" in html
+
+    def test_the_argument_beats_the_config(self, monkeypatch) -> None:
+        """--conference-date sticht den in der Konfig hinterlegten Termin."""
+        portfolio = _portfolio_setup(monkeypatch)
+        cfg = dataclasses.replace(
+            portfolio, conference_date=date.today() + timedelta(days=7))
+        html = aggregator.render_conference_html(
+            cfg, conference_date=date(2026, 12, 24), log=lambda *_: None)
+        assert "Konferenz 24.12.2026" in html
+        assert "noch 7 Tage" not in html
+
+    def test_lead_time_wording(self) -> None:
+        today = date.today()
+        slot = aggregator._conference_slot
+        assert "heute" in slot(today)
+        assert "morgen" in slot(today + timedelta(days=1))
+        assert "gestern" in slot(today - timedelta(days=1))
+        assert "vor 3 Tagen" in slot(today - timedelta(days=3))
+        assert slot(None) == "Konferenztermin nicht gesetzt"
+
+
+# ---------------------------------------------------------------------------
+# Farblegende (Feldmeldung 19.09.2026)
+# ---------------------------------------------------------------------------
+
+class TestColourLegend:
+    def test_pre_read_carries_the_key(self, monkeypatch) -> None:
+        portfolio = _portfolio_setup(monkeypatch)
+        html = aggregator.render_conference_html(portfolio, log=lambda *_: None)
+        assert "Colour key" in html
+        for colour, _meaning in summary.LEGEND_PALETTE:
+            assert colour in html
+
+    def test_full_report_carries_the_key(self, monkeypatch) -> None:
+        portfolio = _portfolio_setup(monkeypatch)
+        html = aggregator.render_pooled_html(
+            portfolio, metrics=["flow_time"], log=lambda *_: None)
+        assert "Colour key" in html
+
+    def test_the_key_stands_before_the_first_table(self, monkeypatch) -> None:
+        """Wer auf eine farbige Zelle trifft, soll die Farbe schon kennen."""
+        portfolio = _portfolio_setup(monkeypatch)
+        html = aggregator.render_conference_html(portfolio, log=lambda *_: None)
+        assert html.index("Colour key") < html.index("<table")
 
 
 # ---------------------------------------------------------------------------

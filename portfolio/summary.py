@@ -3,7 +3,7 @@
 # Repository:     https://github.com/Jaegerfeld/situation-report
 # KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
 # Erstellt:       22.06.2026
-# Geändert:       22.06.2026
+# Geändert:       19.09.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
@@ -257,6 +257,108 @@ def _fmt_pct(value: float | None) -> str:
     return f"{value:.0f}%" if value is not None else "–"
 
 
+# =============================================================================
+# Colour legend
+#
+# Every coloured cell in every report draws from the same five backgrounds.
+# The legend is *derived* from the colour dictionaries below rather than
+# written out by hand: when a status is added or recoloured, the legend
+# follows automatically and cannot drift out of step with the table.
+# =============================================================================
+
+#: The shared palette. Order = the order the overall key is shown in.
+LEGEND_PALETTE: tuple[tuple[str, str], ...] = (
+    ("#e6f4e6", "on plan — no action needed"),
+    ("#d1ecf1", "committed — action agreed, in progress"),
+    ("#fff3cd", "watch — open, at risk or not yet covered"),
+    ("#f8d7da", "critical — breached, blocked or overdue"),
+    ("#e2e3e5", "closed or deliberately accepted — no action"),
+)
+
+
+def _legend_label(key: str) -> str:
+    """Display text for a status key ('at_risk' -> 'at risk')."""
+    return key.replace("_", " ")
+
+
+def _swatch(color: str, text: str) -> str:
+    """A single legend item: colour chip plus its plain-text meaning."""
+    return (f"<span class='sr-legend-item'>"
+            f"<span class='sr-legend-chip' style='background:{color}'></span>"
+            f"{_html.escape(text)}</span>")
+
+
+def _legend_group(caption: str, colors: dict[str, str],
+                  labels: dict[str, str] | None = None) -> str:
+    """
+    One legend group for a coloured column, e.g. "Status: ■ open ■ blocked".
+
+    Statuses that share a colour are folded into one chip ("open / proposed"),
+    because the reader cannot tell them apart by colour anyway.
+    """
+    by_color: dict[str, list[str]] = {}
+    for key, color in colors.items():
+        label = (labels or {}).get(key) or _legend_label(key)
+        by_color.setdefault(color, []).append(label)
+    items = "".join(_swatch(c, " / ".join(ls)) for c, ls in by_color.items())
+    return f"<span class='sr-legend-group'><b>{_html.escape(caption)}:</b> {items}</span>"
+
+
+def _legend_flag(caption: str, color: str, text: str) -> str:
+    """
+    One legend group for a single-purpose flag colour (overdue, aging, ...).
+
+    Callers pass these only when the flag actually occurs on the page. A status
+    scale is different: it describes the column and is shown in full, because
+    knowing that "blocked" exists is part of reading an all-green table.
+    """
+    return (f"<span class='sr-legend-group'><b>{_html.escape(caption)}:</b> "
+            f"{_swatch(color, text)}</span>")
+
+
+#: Shared styling for both the per-table legend lines and the overall key.
+LEGEND_STYLE = (
+    "<style>"
+    "p.sr-legend{font-size:0.82rem;color:#555;margin:-16px 0 20px 0;"
+    "line-height:1.9;}"
+    "span.sr-legend-group{margin-right:18px;white-space:nowrap;}"
+    "span.sr-legend-item{margin-right:10px;white-space:nowrap;}"
+    "span.sr-legend-chip{display:inline-block;width:11px;height:11px;"
+    "border:1px solid #b0b0b0;margin-right:4px;vertical-align:-1px;}"
+    "div.sr-legend-key{border:1px solid #d0d0d0;background:#fbfbfb;"
+    "padding:10px 14px;margin:12px 0 22px 0;font-size:0.85rem;color:#444;}"
+    "div.sr-legend-key b.sr-legend-title{display:block;margin-bottom:6px;"
+    "color:#2b5b84;}"
+    "</style>"
+)
+
+
+def _legend_line(*groups: str) -> str:
+    """Assemble the legend line placed underneath a coloured table."""
+    filled = [g for g in groups if g]
+    if not filled:
+        return ""
+    return LEGEND_STYLE + "<p class='sr-legend'>" + "".join(filled) + "</p>"
+
+
+def render_legend_key_html(
+    title: str = "Colour key — what the shaded cells mean") -> str:
+    """
+    Render the overall colour key shown once at the top of a report.
+
+    The five backgrounds carry the same meaning in every table; the individual
+    statuses behind them are named in the legend line under each table, because
+    the same colour stands for different words depending on the register (grey
+    is "done" for a dependency and "accepted" for a ROAM risk).
+    """
+    items = "".join(_swatch(color, meaning) for color, meaning in LEGEND_PALETTE)
+    return (f"{LEGEND_STYLE}<div class='sr-legend-key'>"
+            f"<b class='sr-legend-title'>{_html.escape(title)}</b>{items}"
+            f"<div style='margin-top:6px;font-size:0.8rem;color:#666'>"
+            f"Each table repeats the key with its own status words underneath."
+            f"</div></div>")
+
+
 def _summary_headers(target_ct: int) -> list[str]:
     """Column headers for the summary table (shared by HTML and the PDF figure)."""
     return ["", "Items", "Completed", "Open (WIP)",
@@ -321,10 +423,17 @@ def render_summary_html(
         "table.sr-summary th{background:#f2f2f2;}"
         "</style>"
     )
+    # The legend only earns its place when something is actually shaded.
+    legend = _legend_line(_legend_flag(
+        "Outlier", _OUTLIER_COLOR,
+        f"more than {_OUTLIER_FACTOR:g}x the median of that column")
+    ) if outliers else ""
+
     return (
         f"{style}"
         f"<h2 class='metric-heading'>{_html.escape(title)}</h2>"
         f"<table class='sr-summary'><tr>{head_html}</tr>{rows_html}</table>"
+        f"{legend}"
     )
 
 
@@ -433,9 +542,12 @@ def render_quality_html(
         rows_html += (f"<tr>{body}"
                       f"<td style='background:{color};font-weight:600'>{cells[-1]}</td></tr>")
 
+    legend = _legend_line(_legend_group("Confidence", _CONF_COLORS))
+
     return (
         f"<h2 class='metric-heading'>{_html.escape(title)}</h2>"
         f"<table class='sr-summary'><tr>{head_html}</tr>{rows_html}</table>"
+        f"{legend}"
     )
 
 
@@ -610,6 +722,7 @@ def render_roam_html(
     include_source = _roam_include_source(entries)
     ordered = _sorted_roam(entries)
     title = _roam_title(entries, title, reference)
+    aging_seen = False
     head_html = "".join(
         f"<th>{_html.escape(h)}</th>" for h in _roam_headers(include_source))
 
@@ -627,14 +740,23 @@ def render_roam_html(
                 color = _IMPACT_COLORS.get(risk.impact, "#ffffff")
                 tds.append(f"<td style='background:{color}'>{c}</td>")
             elif col == offset + 4 and _risk_is_aging(risk, reference):  # since
+                aging_seen = True
                 tds.append(f"<td style='background:{_AGING_COLOR};font-weight:600'>{c}</td>")
             else:
                 tds.append(f"<td>{c}</td>")
         rows_html += f"<tr>{''.join(tds)}</tr>"
 
+    legend = _legend_line(
+        _legend_group("ROAM", _ROAM_COLORS),
+        _legend_group("Impact", _IMPACT_COLORS),
+        _legend_flag("Since", _AGING_COLOR, "aging — open beyond the review age")
+        if aging_seen else "",
+    )
+
     return (
         f"<h2 class='metric-heading'>{_html.escape(title)}</h2>"
         f"<table class='sr-summary'><tr>{head_html}</tr>{rows_html}</table>"
+        f"{legend}"
     )
 
 
@@ -843,9 +965,12 @@ def render_nfr_html(
                 else:
                     tds.append(f"<td>{c}</td>")
             rows += f"<tr>{''.join(tds)}</tr>"
-        html += f"<table class='sr-summary'><tr>{head}</tr>{rows}</table>"
+        html += (f"<table class='sr-summary'><tr>{head}</tr>{rows}</table>"
+                 + _legend_line(_legend_group("Status", _NFR_STATUS_COLORS,
+                                              _STATUS_LABELS)))
 
     if runway:
+        runway_overdue = False
         head = "".join(f"<th>{_html.escape(h)}</th>"
                        for h in _runway_headers(include_source))
         rows = ""
@@ -858,11 +983,17 @@ def render_nfr_html(
                     color = _RUNWAY_COLORS.get(item.status, "#ffffff")
                     tds.append(f"<td style='background:{color};font-weight:600'>{c}</td>")
                 elif col == offset + 2 and _runway_is_overdue(item, reference):
+                    runway_overdue = True
                     tds.append(f"<td style='background:{_OVERDUE_COLOR};font-weight:600'>{c}</td>")
                 else:
                     tds.append(f"<td>{c}</td>")
             rows += f"<tr>{''.join(tds)}</tr>"
-        html += f"<table class='sr-summary'><tr>{head}</tr>{rows}</table>"
+        html += (f"<table class='sr-summary'><tr>{head}</tr>{rows}</table>"
+                 + _legend_line(
+                     _legend_group("Status", _RUNWAY_COLORS, _STATUS_LABELS),
+                     _legend_flag("Needed by", _OVERDUE_COLOR,
+                                  "overdue — the date has passed")
+                     if runway_overdue else ""))
 
     return html
 
@@ -1018,6 +1149,7 @@ def render_capabilities_html(
     include_source = _capability_include_source(entries)
     offset = 1 if include_source else 0
     heading = _capability_title(entries, title)
+    uncovered_seen = False
     head_html = "".join(
         f"<th>{_html.escape(h)}</th>"
         for h in _capability_headers(include_source))
@@ -1032,14 +1164,22 @@ def render_capabilities_html(
                 color = _HEALTH_COLORS.get(cap.health, "#ffffff")
                 tds.append(f"<td style='background:{color};font-weight:600'>{c}</td>")
             elif col == offset + 2 and not cap.arts:  # uncovered
+                uncovered_seen = True
                 tds.append(f"<td style='background:{_UNCOVERED_COLOR};font-weight:600'>{c}</td>")
             else:
                 tds.append(f"<td>{c}</td>")
         rows_html += f"<tr>{''.join(tds)}</tr>"
 
+    legend = _legend_line(
+        _legend_group("Health", _HEALTH_COLORS, _HEALTH_LABELS),
+        _legend_flag("ARTs", _UNCOVERED_COLOR, "uncovered — no ART delivers it")
+        if uncovered_seen else "",
+    )
+
     return (
         f"<h2 class='metric-heading'>{_html.escape(heading)}</h2>"
         f"<table class='sr-summary'><tr>{head_html}</tr>{rows_html}</table>"
+        f"{legend}"
     )
 
 
@@ -1234,8 +1374,12 @@ def render_dependencies_html(
                 else:
                     grid_tds += "<td style='text-align:center'>–</td>"
             rows += f"<tr>{grid_tds}</tr>"
-        html += f"<table class='sr-summary'><tr>{head}</tr>{rows}</table>"
+        html += (f"<table class='sr-summary'><tr>{head}</tr>{rows}</table>"
+                 + _legend_line(_legend_group(
+                     "Cell colour = worst status of that pair",
+                     _DEP_STATUS_COLORS, _DEP_STATUS_LABELS)))
 
+    dep_overdue = False
     head = "".join(f"<th>{_html.escape(h)}</th>"
                    for h in _dep_headers(include_source))
     rows = ""
@@ -1248,11 +1392,17 @@ def render_dependencies_html(
                 color = _DEP_STATUS_COLORS.get(dep.status, "#ffffff")
                 tds.append(f"<td style='background:{color};font-weight:600'>{c}</td>")
             elif col == offset + 4 and _dep_is_overdue(dep, reference):
+                dep_overdue = True
                 tds.append(f"<td style='background:{_OVERDUE_COLOR};font-weight:600'>{c}</td>")
             else:
                 tds.append(f"<td>{c}</td>")
         rows += f"<tr>{''.join(tds)}</tr>"
-    html += f"<table class='sr-summary'><tr>{head}</tr>{rows}</table>"
+    html += (f"<table class='sr-summary'><tr>{head}</tr>{rows}</table>"
+             + _legend_line(
+                 _legend_group("Status", _DEP_STATUS_COLORS, _DEP_STATUS_LABELS),
+                 _legend_flag("Needed by", _OVERDUE_COLOR,
+                              "overdue — the date has passed")
+                 if dep_overdue else ""))
 
     return html
 
@@ -1435,6 +1585,7 @@ def render_decisions_html(
     include_source = _log_include_source(entries)
     offset = 1 if include_source else 0
     heading = _log_title(entries, title, reference)
+    review_due = False
     head_html = "".join(f"<th>{_html.escape(h)}</th>"
                         for h in _log_headers(include_source))
 
@@ -1448,14 +1599,22 @@ def render_decisions_html(
                 color = _LOG_STATUS_COLORS.get(entry.status, "#ffffff")
                 tds.append(f"<td style='background:{color};font-weight:600'>{c}</td>")
             elif col == offset + 5 and _entry_review_due(entry, reference):
+                review_due = True
                 tds.append(f"<td style='background:{_OVERDUE_COLOR};font-weight:600'>{c}</td>")
             else:
                 tds.append(f"<td>{c}</td>")
         rows_html += f"<tr>{''.join(tds)}</tr>"
 
+    legend = _legend_line(
+        _legend_group("Status", _LOG_STATUS_COLORS),
+        _legend_flag("Review by", _OVERDUE_COLOR, "review is due")
+        if review_due else "",
+    )
+
     return (
         f"<h2 class='metric-heading'>{_html.escape(heading)}</h2>"
         f"<table class='sr-summary'><tr>{head_html}</tr>{rows_html}</table>"
+        f"{legend}"
     )
 
 
@@ -1589,8 +1748,10 @@ def render_slo_html(
                 tds.append(f"<td>{c}</td>")
         rows += f"<tr>{''.join(tds)}</tr>"
     heading = _slo_title(entries, title)
+    legend = _legend_line(_legend_group("Status", _SLO_STATUS_COLORS))
     return (f"<h2 class='metric-heading'>{_html.escape(heading)}</h2>"
-            f"<table class='sr-summary'><tr>{head}</tr>{rows}</table>")
+            f"<table class='sr-summary'><tr>{head}</tr>{rows}</table>"
+            f"{legend}")
 
 
 def slo_figure(
@@ -1679,7 +1840,8 @@ def render_dora_html(
             rows += f"<tr>{''.join(tds)}</tr>"
         heading = _dora_title(dora_entries, title)
         html += (f"<h2 class='metric-heading'>{_html.escape(heading)}</h2>"
-                 f"<table class='sr-summary'><tr>{head}</tr>{rows}</table>")
+                 f"<table class='sr-summary'><tr>{head}</tr>{rows}</table>"
+                 + _legend_line(_legend_group("Tier", _TIER_COLORS)))
 
     if quality_entries:
         include_source = _log_include_source(quality_entries)  # type: ignore[arg-type]
@@ -1689,6 +1851,7 @@ def render_dora_html(
             head_cols = ["Solution"] + head_cols
         head = "".join(f"<th>{_html.escape(h)}</th>" for h in head_cols)
         rows = ""
+        crit_seen = False
         for source, q in sorted(quality_entries,
                                 key=lambda e: (e[0], e[1].unit)):
             tds = ([f"<td>{_html.escape(source)}</td>"] if include_source else [])
@@ -1699,13 +1862,20 @@ def render_dora_html(
             tds.append(f"<td style='background:{color}'>"
                        f"{_html.escape(rating)}</td>")
             crit = q.critical_issues
+            crit_seen = crit_seen or bool(crit)
             crit_style = (f" style='background:{_SLO_STATUS_COLORS['breached']};"
                           f"font-weight:600'" if crit else "")
             tds.append(f"<td{crit_style}>{'–' if crit is None else crit}</td>")
             tds.append(f"<td>{_html.escape(q.source or '–')}</td>")
             rows += f"<tr>{''.join(tds)}</tr>"
         html += (f"<h3 class='metric-heading'>Code quality</h3>"
-                 f"<table class='sr-summary'><tr>{head}</tr>{rows}</table>")
+                 f"<table class='sr-summary'><tr>{head}</tr>{rows}</table>"
+                 + _legend_line(
+                     _legend_group("Rating", _RATING_COLORS),
+                     _legend_flag("Critical issues",
+                                  _SLO_STATUS_COLORS["breached"],
+                                  "at least one critical issue")
+                     if crit_seen else ""))
     return html
 
 
@@ -1843,6 +2013,7 @@ def render_flow_problems_html(
         return ""
     include_source = _log_include_source(entries)  # type: ignore[arg-type]
     offset = 1 if include_source else 0
+    survivor_seen = False
     head = "".join(f"<th>{_html.escape(h)}</th>"
                    for h in _flow_headers(include_source))
     rows = ""
@@ -1856,6 +2027,7 @@ def render_flow_problems_html(
                 tds.append(
                     f"<td style='background:{color};font-weight:600'>{c}</td>")
             elif col == offset + 6 and p.survived:  # conference counter
+                survivor_seen = True
                 tds.append(f"<td style='background:{_OVERDUE_COLOR};"
                            f"font-weight:700'>{c}</td>")
             elif col == offset + 2 and p.cross_vs:
@@ -1864,8 +2036,15 @@ def render_flow_problems_html(
                 tds.append(f"<td>{c}</td>")
         rows += f"<tr>{''.join(tds)}</tr>"
     heading = _flow_title(entries, title)
+    legend = _legend_line(
+        _legend_group("Status", _FLOW_STATUS_COLORS),
+        _legend_flag("Conferences", _OVERDUE_COLOR,
+                     "survivor — still open after three conferences")
+        if survivor_seen else "",
+    )
     return (f"<h2 class='metric-heading'>{_html.escape(heading)}</h2>"
-            f"<table class='sr-summary'><tr>{head}</tr>{rows}</table>")
+            f"<table class='sr-summary'><tr>{head}</tr>{rows}</table>"
+            f"{legend}")
 
 
 def flow_problems_figure(
@@ -1949,6 +2128,7 @@ def render_themes_html(
             head_cols = ["Solution"] + head_cols
         head = "".join(f"<th>{_html.escape(h)}</th>" for h in head_cols)
         rows = ""
+        forgotten_seen = False
         ordered = sorted(theme_entries,
                          key=lambda t: (t[1].theme_id in used, t[0],
                                         t[1].theme_id))
@@ -1962,11 +2142,16 @@ def render_themes_html(
             if count:
                 tds.append(f"<td>{count}</td>")
             else:
+                forgotten_seen = True
                 tds.append(f"<td style='background:{_OVERDUE_COLOR};"
                            f"font-weight:600'>0 — declared &amp; "
                            f"forgotten</td>")
             rows += f"<tr>{''.join(tds)}</tr>"
-        html += f"<table class='sr-summary'><tr>{head}</tr>{rows}</table>"
+        html += (f"<table class='sr-summary'><tr>{head}</tr>{rows}</table>"
+                 + (_legend_line(_legend_flag(
+                     "Epics", _OVERDUE_COLOR,
+                     "theme declared but no epic carries it"))
+                    if forgotten_seen else ""))
 
     if epic_entries:
         trains = sorted({e.train for _, e in epic_entries})
@@ -1995,9 +2180,17 @@ def render_themes_html(
                             f"font-weight:600'>{label} [ZOMBIE]</span>")
                 row_tds += f"<td>{'<br/>'.join(parts)}</td>"
             rows += f"<tr>{row_tds}</tr>"
+        marks = " · ".join(
+            f"{mark.strip()} = {_legend_label(status)}"
+            for status, mark in _EPIC_STATUS_MARK.items() if mark)
         html += (f"<h3 class='metric-heading'>Integrated roadmap "
                  f"(near-term granular, far-term coarse)</h3>"
-                 f"<table class='sr-summary'><tr>{head}</tr>{rows}</table>")
+                 f"<table class='sr-summary'><tr>{head}</tr>{rows}</table>"
+                 + _legend_line(
+                     f"<span class='sr-legend-group'><b>Marks:</b> "
+                     f"{_html.escape(marks)} (no mark = planned)</span>",
+                     _legend_flag("Epic", _OVERDUE_COLOR,
+                                  "zombie — no strategic theme")))
 
     zombies = [(s, e) for s, e in epic_entries if not e.theme]
     if zombies:
@@ -2006,6 +2199,8 @@ def render_themes_html(
             f"{_html.escape(s)} · {_html.escape(e.epic_id)}: "
             f"{_html.escape(e.title)} ({_html.escape(e.train)}, "
             f"{e.horizon})</li>" for s, e in zombies)
+        # Keine Legende: die Ueberschrift sagt bereits, was jeder Eintrag
+        # dieser Liste ist — eine Farberklaerung waere hier Doppelung.
         html += (f"<h3 class='metric-heading'>Zombie initiatives "
                  f"(no strategic home)</h3><ul class='delta'>{items}</ul>")
     return html

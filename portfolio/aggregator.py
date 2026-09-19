@@ -3,7 +3,7 @@
 # Repository:     https://github.com/Jaegerfeld/situation-report
 # KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
 # Erstellt:       22.06.2026
-# Geändert:       05.09.2026
+# Geändert:       19.09.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
@@ -105,6 +105,7 @@ from .summary import (
     render_dependencies_html,
     render_dora_html,
     render_flow_problems_html,
+    render_legend_key_html,
     render_nfr_html,
     render_quality_html,
     render_roam_html,
@@ -1065,10 +1066,12 @@ def render_html(
     slo = render_slo_html(_collect_slo(config, log=log))
     dora_entries, quality_entries = _collect_delivery(config, log=log)
     dora = render_dora_html(dora_entries, quality_entries)
-    return html.replace(
-        "<body>",
-        "<body>" + summary + quality + caps + roam + nfr + deps
-        + decision_point + decisions + flow + themes + slo + dora, 1)
+    # The key goes above the first shaded table, not at the end: a reader who
+    # meets a coloured cell should already have seen what the colour means.
+    tables = (summary + quality + caps + roam + nfr + deps
+              + decision_point + decisions + flow + themes + slo + dora)
+    key = render_legend_key_html() if tables else ""
+    return html.replace("<body>", "<body>" + key + tables, 1)
 
 
 def render_pdf(
@@ -1180,6 +1183,32 @@ def render_comparison_html(
                        ct_method, target_ct, pi_config, log, art_depth)
 
 
+def _conference_slot(conference_date: date | None) -> str:
+    """
+    The conference-date line of the pre-read header.
+
+    Without a planned date the slot says so instead of showing today's date:
+    a pre-read stamped with the day it was produced reads as if the conference
+    were today, which is the one thing it never is (field report 19.09.2026).
+    With a date the remaining lead time is spelled out — that span is what the
+    pre-read is about, and what a forecast to the conference would run over.
+    """
+    if conference_date is None:
+        return "Konferenztermin nicht gesetzt"
+    days = (conference_date - date.today()).days
+    if days > 1:
+        lead = f"noch {days} Tage"
+    elif days == 1:
+        lead = "morgen"
+    elif days == 0:
+        lead = "heute"
+    elif days == -1:
+        lead = "gestern"
+    else:
+        lead = f"vor {abs(days)} Tagen"
+    return f"Konferenz {conference_date.strftime('%d.%m.%Y')} ({lead})"
+
+
 def render_conference_html(
     config: SolutionConfig,
     conference_date: date | None = None,
@@ -1204,14 +1233,16 @@ def render_conference_html(
 
     Args:
         config:          The solution or portfolio configuration.
-        conference_date: Date shown in the header (default: today).
+        conference_date: Planned conference date; falls back to the
+                         config's ``conference_date``. Without either the
+                         header states that no date is set.
         log:             Progress callback.
         art_depth:       Add the per-ART drill-down to Input 1.
 
     Returns:
         A complete standalone HTML document.
     """
-    conference_date = conference_date or date.today()
+    conference_date = conference_date or config.conference_date
     qualities: list[SourceQuality] = []
     build_pooled_report_data(config, log=log, quality_sink=qualities)
     units = load_comparison_units(config, log=log)
@@ -1243,10 +1274,11 @@ def render_conference_html(
         "<style>body{font-family:'Segoe UI',Arial,sans-serif;margin:24px;"
         "color:#222;} p.meta{color:#555;}</style></head><body>"
         f"<h1 style='font-size:1.5rem'>Value-Stream Conference — Pre-Read</h1>"
-        f"<p class='meta'>{config.name} · Konferenz "
-        f"{conference_date.strftime('%d.%m.%Y')} · Stand "
-        f"{date.today().strftime('%d.%m.%Y')} — Inputs in Sitzungsreihenfolge; "
-        f"der vollständige interaktive Report bleibt die Detailquelle.</p>"
+        f"<p class='meta'>{config.name} · {_conference_slot(conference_date)}"
+        f" · Stand {date.today().strftime('%d.%m.%Y')} — Inputs in "
+        f"Sitzungsreihenfolge; der vollständige interaktive Report bleibt "
+        f"die Detailquelle.</p>"
+        f"{render_legend_key_html()}"
     )
     body = (
         block("Input 1 · Aktuelle Daten", summary, quality)

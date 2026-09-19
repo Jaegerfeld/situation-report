@@ -3,7 +3,7 @@
 # Repository:     https://github.com/Jaegerfeld/situation-report
 # KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
 # Erstellt:       22.06.2026
-# Geändert:       05.09.2026
+# Geändert:       19.09.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
@@ -330,8 +330,10 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--conference-date", type=date.fromisoformat,
                         default=None, dest="conference_date",
                         metavar="YYYY-MM-DD",
-                        help="Conference date shown in the pre-read header "
-                             "(default: today).")
+                        help="Date of the planned conference, shown in the "
+                             "pre-read header (default: the config's "
+                             "conference_date; without either the header "
+                             "states that no date is set).")
     parser.add_argument("--narrate", nargs="?", const="ollama", default=None,
                         metavar="PROVIDER",
                         help="Add an AI-drafted section: with --delta the "
