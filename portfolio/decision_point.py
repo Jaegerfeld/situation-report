@@ -3,7 +3,7 @@
 # Repository:     https://github.com/Jaegerfeld/situation-report
 # KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
 # Erstellt:       05.09.2026
-# Geändert:       05.09.2026
+# Geändert:       19.09.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
@@ -55,6 +55,8 @@ from .dependency_config import (
     DEP_ON_TRACK,
     Dependency,
 )
+from .report_texts import DEFAULT_LANG, t
+from .summary import _DEP_TEXT_KEYS
 
 #: Gewicht je Status — der Status ist das gepflegte Kritikalitätsurteil.
 STATUS_WEIGHT: dict[str, int] = {
@@ -205,25 +207,25 @@ def compute_pressure(
     )
 
 
-def _verdict_line(pressure: DependencyPressure) -> tuple[str, str]:
+def _verdict_line(pressure: DependencyPressure,
+                  lang: str = DEFAULT_LANG) -> tuple[str, str]:
     """The headline sentence and its colour — the whole point of the feature."""
     if not pressure.applicable:
-        return ("Only meaningful across value streams — this configuration "
-                "knows a single solution.", "#666666")
+        return (t("dp.not_applicable", lang), "#666666")
     if pressure.threshold is None:
-        return (f"Pressure {pressure.value}. No threshold agreed yet — "
-                f"reporting only, no alarm.", "#666666")
+        return (t("dp.verdict.no_threshold", lang, value=pressure.value),
+                "#666666")
     if pressure.triggered:
-        return (f"Pressure {pressure.value} of {pressure.threshold} — "
-                f"threshold reached. Convene a Value Stream Conference?",
-                "#c0392b")
-    return (f"Pressure {pressure.value} of {pressure.threshold} — "
-            f"below threshold.", "#2e7d32")
+        return (t("dp.verdict.reached", lang, value=pressure.value,
+                  threshold=pressure.threshold), "#c0392b")
+    return (t("dp.verdict.below", lang, value=pressure.value,
+              threshold=pressure.threshold), "#2e7d32")
 
 
 def render_decision_point_html(
     pressure: DependencyPressure,
-    title: str = "Decision Point — Cross-Value-Stream Dependency Pressure",
+    title: str | None = None,
+    lang: str = DEFAULT_LANG,
 ) -> str:
     """
     Render the decision-point block as a self-contained HTML fragment.
@@ -239,7 +241,8 @@ def render_decision_point_html(
     Returns:
         An HTML fragment (heading, verdict, contributing table).
     """
-    verdict, colour = _verdict_line(pressure)
+    title = title or t("dp.heading", lang)
+    verdict, colour = _verdict_line(pressure, lang)
     head = (
         f"<h2 class='metric-heading'>{_html.escape(title)}</h2>"
         f"<p style='font-size:1.05rem;font-weight:600;color:{colour};"
@@ -251,15 +254,12 @@ def render_decision_point_html(
     note = ""
     if pressure.external_open:
         note = (f"<p style='color:#555;margin:0 0 10px 0'>"
-                f"{pressure.external_open} further open dependencies point "
-                f"outside the portfolio (vendors, external systems). They are "
-                f"real pressure, but no conference of these value streams can "
-                f"decide about them — they are excluded from the indicator."
+                f"{_html.escape(t('dp.external', lang, count=pressure.external_open))}"
                 f"</p>")
     if not pressure.items:
         return head + note + (
-            "<p style='color:#555'>No open dependencies between the value "
-            "streams of this portfolio.</p>")
+            f"<p style='color:#555'>"
+            f"{_html.escape(t('dp.no_open', lang))}</p>")
 
     rows = ""
     for item in pressure.items:
@@ -272,7 +272,7 @@ def render_decision_point_html(
             f"<td>{_html.escape(item.source)} · {_html.escape(dep.from_art)}</td>"
             f"<td>{_html.escape(item.target_solution)} · "
             f"{_html.escape(dep.to_art)}</td>"
-            f"<td>{_html.escape(dep.status)}</td>"
+            f"<td>{_html.escape(t(_DEP_TEXT_KEYS[dep.status], lang))}</td>"
             f"<td>{due}</td><td>{overdue}</td>"
             f"<td style='font-weight:600'>{item.weight}</td></tr>")
 
@@ -286,16 +286,20 @@ def render_decision_point_html(
         "table.sr-decision td:last-child,table.sr-decision th:last-child{"
         "text-align:right;}"
         "</style>")
-    header = ("<tr><th>ID</th><th>Dependency</th><th>Needs (from)</th>"
-              "<th>Delivers (to)</th><th>Status</th><th>Due</th>"
-              "<th>Overdue</th><th>Weight</th></tr>")
+    cols = [t("dp.col.id", lang), t("dep.col.dependency", lang),
+            t("dep.col.from", lang), t("dep.col.to", lang),
+            t("col.status", lang), t("dep.col.due", lang),
+            t("dp.col.overdue", lang), t("dp.col.weight", lang)]
+    header = "<tr>" + "".join(
+        f"<th>{_html.escape(c)}</th>" for c in cols) + "</tr>"
     return (head + note + style
             + f"<table class='sr-decision'>{header}{rows}</table>")
 
 
 def decision_point_figure(
     pressure: DependencyPressure,
-    title: str = "Decision Point — Cross-Value-Stream Dependency Pressure",
+    title: str | None = None,
+    lang: str = DEFAULT_LANG,
 ):
     """
     Render the decision-point block as a plotly table figure (PDF path).

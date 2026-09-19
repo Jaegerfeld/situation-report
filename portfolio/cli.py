@@ -30,6 +30,7 @@ from build_reports.metrics.flow_time import CT_METHOD_A, CT_METHOD_B
 from build_reports.terminology import GLOBAL, SAFE
 
 from .aggregator import render_comparison_html, render_pdf, render_pooled_html
+from .report_texts import DEFAULT_LANG, LANGUAGES
 from .solution_config import MODE_COMPARISON, MODE_POOLED, load_solution_config
 
 
@@ -47,6 +48,7 @@ def run_solution_report(
     log: Callable[[str], None] = print,
     art_depth: bool | None = None,
     cross_vs_threshold: int | None = None,
+    lang: str | None = None,
 ) -> str:
     """
     Execute the solution-report pipeline: load config → aggregate → render.
@@ -68,6 +70,10 @@ def run_solution_report(
                       config's own report.art_depth setting.
         cross_vs_threshold: Decision-point alarm threshold. None = take the
                       config's own report.cross_vs_threshold.
+        lang:         Report language. None = take the config's own
+                      report.language, and English if that is unset too.
+                      Rangfolge: Aufrufer (--lang / GUI) vor Konfiguration
+                      vor Vorgabe.
 
     Returns:
         The combined HTML string (empty if HTML was not generated). PDF output,
@@ -78,6 +84,8 @@ def run_solution_report(
     # terminology is used. --art-depth/--no-art-depth work the same way.
     if terminology is None:
         terminology = config.terminology
+    if lang is None:
+        lang = config.language or DEFAULT_LANG
     if art_depth is None:
         art_depth = config.art_depth
     if cross_vs_threshold is not None:
@@ -90,7 +98,7 @@ def run_solution_report(
         render_pdf(
             config, output_pdf, mode=mode, metrics=metrics, terminology=terminology,
             ct_method=ct_method, target_ct=target_ct, pi_config=pi_config, log=log,
-            art_depth=art_depth)
+            art_depth=art_depth, lang=lang)
 
     # Generate HTML when explicitly requested, or when no other output was asked
     # for (so a bare run still produces the report string).
@@ -99,7 +107,8 @@ def run_solution_report(
         render = render_comparison_html if mode == MODE_COMPARISON else render_pooled_html
         html = render(
             config, metrics=metrics, terminology=terminology, ct_method=ct_method,
-            target_ct=target_ct, pi_config=pi_config, log=log, art_depth=art_depth)
+            target_ct=target_ct, pi_config=pi_config, log=log,
+            art_depth=art_depth, lang=lang)
         if html and output_html:
             output_html.parent.mkdir(parents=True, exist_ok=True)
             output_html.write_text(html, encoding="utf-8")
@@ -138,6 +147,7 @@ def run_delta_briefing(
     llm_lang: str = "de",
     translate_langs: list[str] | None = None,
     log: Callable[[str], None] = print,
+    lang: str = DEFAULT_LANG,
 ) -> None:
     """
     Compare two snapshot files and emit the delta briefing (D2).
@@ -205,7 +215,7 @@ def run_delta_briefing(
     if output.suffix.lower() == ".md":
         output.write_text(_md_with_narration(), encoding="utf-8")
     else:
-        html_doc = render_delta_html(delta)
+        html_doc = render_delta_html(delta, lang=lang)
         if narration is not None:
             html_doc = html_doc.replace(
                 "</body></html>",
@@ -327,6 +337,10 @@ def build_parser() -> argparse.ArgumentParser:
                         help="Write the Value-Stream-Conference pre-read "
                              "(Konferenzmappe, B6) to this HTML file: the "
                              "conference inputs in meeting order, printable.")
+    parser.add_argument("--lang", choices=list(LANGUAGES), default=None,
+                        help="Language of the report labels and texts "
+                             "(default: the config's report.language, else "
+                             "English). The GUI passes its own language.")
     parser.add_argument("--conference-date", type=date.fromisoformat,
                         default=None, dest="conference_date",
                         metavar="YYYY-MM-DD",
@@ -400,7 +414,8 @@ def main() -> None:
                            llm_model=args.llm_model,
                            llm_base_url=args.llm_base_url,
                            llm_lang=args.llm_lang,
-                           translate_langs=args.translate_langs)
+                           translate_langs=args.translate_langs,
+                           lang=args.lang or DEFAULT_LANG)
         return
     if args.config is None:
         parser.error("config is required (except with --delta).")
@@ -428,7 +443,8 @@ def main() -> None:
         html_doc = render_conference_html(
             conf_config, conference_date=args.conference_date,
             art_depth=(conf_config.art_depth if args.art_depth is None
-                       else args.art_depth))
+                       else args.art_depth),
+            lang=args.lang or conf_config.language or DEFAULT_LANG)
         args.conference.write_text(html_doc, encoding="utf-8")
         print(f"Conference pre-read written: {args.conference}")
         if args.browser:
@@ -452,6 +468,7 @@ def main() -> None:
         open_browser=args.browser and not narrate_report,
         art_depth=args.art_depth,
         cross_vs_threshold=args.cross_vs_threshold,
+        lang=args.lang,
     )
     if not html and not args.pdf:
         print("ERROR: No report produced (no figures).", file=sys.stderr)

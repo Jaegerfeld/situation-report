@@ -505,9 +505,9 @@ class TestArtDepthInReports:
     def test_conference_pre_read_carries_the_art_detail(self, monkeypatch) -> None:
         portfolio = _portfolio_setup(monkeypatch)
         html = aggregator.render_conference_html(
-            portfolio, log=lambda *_: None, art_depth=True)
+            portfolio, log=lambda *_: None, art_depth=True, lang="de")
         assert "Input 1 · Aktuelle Daten" in html
-        assert "ART Detail — Management Summary per ART" in html
+        assert "ART-Detail — Management Summary je ART" in html
         assert "Solution B · ART B1" in html
 
     def test_conference_pre_read_unchanged_when_off(self, monkeypatch) -> None:
@@ -525,7 +525,8 @@ class TestConferenceDate:
         """Das heutige Datum im Konferenz-Feld liest sich, als faende die
         Konferenz heute statt — das ist das eine, was sie nie tut."""
         portfolio = _portfolio_setup(monkeypatch)
-        html = aggregator.render_conference_html(portfolio, log=lambda *_: None)
+        html = aggregator.render_conference_html(portfolio, log=lambda *_: None,
+                                                 lang="de")
         assert "Konferenztermin nicht gesetzt" in html
         assert date.today().strftime("%d.%m.%Y") not in html.split("Stand")[0]
 
@@ -533,7 +534,8 @@ class TestConferenceDate:
         portfolio = _portfolio_setup(monkeypatch)
         planned = date.today() + timedelta(days=7)
         cfg = dataclasses.replace(portfolio, conference_date=planned)
-        html = aggregator.render_conference_html(cfg, log=lambda *_: None)
+        html = aggregator.render_conference_html(cfg, log=lambda *_: None,
+                                                 lang="de")
         assert f"Konferenz {planned.strftime('%d.%m.%Y')}" in html
         assert "noch 7 Tage" in html
 
@@ -543,23 +545,29 @@ class TestConferenceDate:
         cfg = dataclasses.replace(
             portfolio, conference_date=date.today() + timedelta(days=7))
         html = aggregator.render_conference_html(
-            cfg, conference_date=date(2026, 12, 24), log=lambda *_: None)
+            cfg, conference_date=date(2026, 12, 24), log=lambda *_: None,
+            lang="de")
         assert "Konferenz 24.12.2026" in html
         assert "noch 7 Tage" not in html
 
     def test_lead_time_wording(self) -> None:
         today = date.today()
-        slot = aggregator._conference_slot
+
+        def slot(d):
+            return aggregator._conference_slot(d, "de")
+
         assert "heute" in slot(today)
         assert "morgen" in slot(today + timedelta(days=1))
         assert "gestern" in slot(today - timedelta(days=1))
         assert "vor 3 Tagen" in slot(today - timedelta(days=3))
         assert slot(None) == "Konferenztermin nicht gesetzt"
 
+    def test_the_date_format_follows_the_language(self) -> None:
+        """Ein englischer Report schreibt kein deutsches Datum."""
+        planned = date(2026, 10, 8)
+        assert "08.10.2026" in aggregator._conference_slot(planned, "de")
+        assert "2026-10-08" in aggregator._conference_slot(planned, "en")
 
-# ---------------------------------------------------------------------------
-# Farblegende (Feldmeldung 19.09.2026)
-# ---------------------------------------------------------------------------
 
 class TestColourLegend:
     def test_pre_read_carries_the_key(self, monkeypatch) -> None:
