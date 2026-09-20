@@ -65,3 +65,27 @@ build_reports/steckbrief_*.txt
 
 # OneDrive sync-conflict copies (never commit)
 *-AMD-R9-DARKSTAR.py
+
+# -----------------------------------------------------------------------
+# Lokale Arbeitsordner — bleiben auf dem Rechner, gehen nie ins Repository
+#
+# Beschluss Robert, 20.09.2026: „sie sollen nicht öffentlich gehen und lokal
+# verbleiben“. Sie lagen bis dahin **unverfolgt, aber nicht ignoriert** — also
+# dauernd als „??“ in `git status`, und ein unbedachtes `git add -A` hätte sie
+# veröffentlicht. In `Quellen/Schriften/` liegen urheberrechtlich geschützte
+# Werke Dritter; die dürfen das Repository unter keinen Umständen erreichen.
+#
+# Geprüft am 20.09.2026: keiner dieser Pfade war je committet oder gepusht
+# (`git log --remotes -- <pfad>` → 0 Treffer), die Ordner sind also nur künftig
+# zu schützen — nichts nachträglich aus der Historie zu entfernen.
+#
+# Nebenwirkung, die erwünscht ist: `git stash -u` fasst ignorierte Dateien
+# nicht an. Am 19.09.2026 hatte genau das gefehlt — ein `git stash -u` räumte
+# 977 unverfolgte Dateien weg, und `git stash drop` hätte sie endgültig
+# vernichtet.
+# -----------------------------------------------------------------------
+Quellen/
+Ideen/
+feedback/
+site/
+local test data/
