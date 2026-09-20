@@ -3,7 +3,7 @@
 # Repository:     https://github.com/Jaegerfeld/situation-report
 # KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
 # Erstellt:       15.04.2026
-# Geändert:       02.05.2026
+# Geändert:       19.09.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
@@ -26,6 +26,7 @@ from datetime import date
 
 import plotly.graph_objects as go
 
+from ..chart_texts import DEFAULT_LANG, t
 from ..loader import IssueRecord, ReportData
 from ..repel import add_repelled_hlines
 from ..stage_groups import (
@@ -202,7 +203,8 @@ class FlowLoadMetric(MetricPlugin):
         return MetricResult(metric_id=self.metric_id, stats=stats,
                             chart_data=chart_data, warnings=warnings)
 
-    def render(self, result: MetricResult, terminology: str) -> list[go.Figure]:
+    def render(self, result: MetricResult, terminology: str,
+               lang: str = DEFAULT_LANG) -> list[go.Figure]:
         """
         Render a grouped boxplot of open issue ages per workflow stage.
 
@@ -221,11 +223,8 @@ class FlowLoadMetric(MetricPlugin):
 
         ld: _LoadData = result.chart_data
 
-        header = (
-            f"Flow Load: Aging Work in Progress  |  "
-            f"Mean {ld.mean_age} | Median: {ld.median_age} | "
-            f"# Not done items: {ld.open_count}"
-        )
+        header = t("load.header", lang, mean=ld.mean_age,
+                   median=ld.median_age, open=ld.open_count)
 
         fig = go.Figure()
 
@@ -253,20 +252,20 @@ class FlowLoadMetric(MetricPlugin):
         if ld.ct_median is not None:
             fig.add_trace(go.Scatter(
                 x=[None], y=[None], mode="lines",
-                name=f"CT Median: {ld.ct_median}d",
+                name=t("load.ct_median", lang, value=ld.ct_median),
                 line=dict(color="blue", dash="dot", width=1.5),
                 showlegend=True,
             ))
         if ld.ct_pct85 is not None:
             fig.add_trace(go.Scatter(
                 x=[None], y=[None], mode="lines",
-                name=f"CT P85: {ld.ct_pct85}d",
+                name=t("load.ct_p85", lang, value=ld.ct_pct85),
                 line=dict(color="red", dash="dot", width=1.5),
                 showlegend=True,
             ))
         fig.add_trace(go.Scatter(
             x=[None], y=[None], mode="lines",
-            name=f"Target CT: {ld.target_ct_days}d",
+            name=t("load.target_ct", lang, value=ld.target_ct_days),
             line=dict(color="green", dash="dot", width=1.5),
             showlegend=True,
         ))
@@ -284,22 +283,20 @@ class FlowLoadMetric(MetricPlugin):
 
         ct_footer = ""
         if ld.ct_median is not None:
-            ct_footer = (
-                f"Cycle Time Reference | Median: {ld.ct_median}d | "
-                f"P85: {ld.ct_pct85}d | Target CT: {ld.target_ct_days}d | "
-                f"# Done items: {ld.done_count}"
-            )
+            ct_footer = t("load.ct_footer", lang, median=ld.ct_median,
+                          p85=ld.ct_pct85, target=ld.target_ct_days,
+                          done=ld.done_count)
 
         fig.update_layout(
             title=header,
             title_font_size=11,
-            xaxis_title="Stage",
-            yaxis_title="Total Age (days)",
+            xaxis_title=t("axis.stage", lang),
+            yaxis_title=t("axis.total_age", lang),
             plot_bgcolor="#e8e8e8",
             paper_bgcolor="#e8e8e8",
             showlegend=True,
             legend=dict(
-                title="Cycle Time Reference<br>(from closed issues)",
+                title=t("load.ct_reference", lang),
                 bgcolor="rgba(255,255,255,0.85)",
                 bordercolor="#bdc3c7",
                 borderwidth=1,

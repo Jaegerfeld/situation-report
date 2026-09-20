@@ -3,7 +3,7 @@
 # Repository:     https://github.com/Jaegerfeld/situation-report
 # KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
 # Erstellt:       15.04.2026
-# Geändert:       07.05.2026
+# Geändert:       19.09.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
@@ -25,6 +25,7 @@ from datetime import datetime
 
 import plotly.graph_objects as go
 
+from ..chart_texts import DEFAULT_LANG, month_abbr, t
 from ..loader import IssueRecord, ReportData
 from ..repel import add_repelled_hlines
 from ..terminology import FLOW_TIME, term
@@ -35,8 +36,8 @@ CT_METHOD_A = "A"
 CT_METHOD_B = "B"
 
 # Abbreviated month names for x-axis tick labels (German, index 1–12).
-_MONTH_ABBR = ["", "Jan", "Feb", "Mär", "Apr", "Mai", "Jun",
-               "Jul", "Aug", "Sep", "Okt", "Nov", "Dez"]
+# Die Monatsabkuerzungen stehen seit 0.33.0 im Sprachkatalog
+# (build_reports/chart_texts.py) — vorher deutsch und in zwei Modulen doppelt.
 
 
 @dataclass
@@ -93,6 +94,7 @@ def boundary_note(
     derived_starts: int | None,
     derived_ends: int | None,
     item_count: int,
+    lang: str = DEFAULT_LANG,
 ) -> str:
     """
     Build the part of the declaration that reports skipped boundary stages.
@@ -124,26 +126,28 @@ def boundary_note(
         One clause, ready to append to the clock declaration.
     """
     if derived_starts is None and derived_ends is None:
-        return "boundary check needs --workflow and --transitions"
+        return t("boundary.needs_files", lang)
 
     findings = []
     if derived_starts:
-        findings.append(f"{derived_starts} of {item_count} items never entered "
-                        f"'{first_stage}'")
+        findings.append(t("boundary.never_entered", lang, n=derived_starts,
+                          total=item_count, stage=first_stage))
     if derived_ends:
-        findings.append(f"{derived_ends} of {item_count} items never entered "
-                        f"'{closed_stage}'")
+        findings.append(t("boundary.never_entered", lang, n=derived_ends,
+                          total=item_count, stage=closed_stage))
 
     if findings:
-        effect = ("taking part on a derived boundary" if ct_method == CT_METHOD_B
-                  else "clock derived from a neighbouring stage")
-        return f"{', '.join(findings)} — {effect}"
+        effect = t("boundary.effect_b" if ct_method == CT_METHOD_B
+                   else "boundary.effect_a", lang)
+        return t("boundary.findings", lang, findings=", ".join(findings),
+                 effect=effect)
 
     # Nothing derived on the sides that could be checked; name those sides so
     # a half-checked run is not read as a fully clean one.
     checked = [f"'{s}'" for s, n in ((first_stage, derived_starts),
                                      (closed_stage, derived_ends)) if n is not None]
-    return f"all {item_count} items entered {' and '.join(checked)}"
+    return t("boundary.all_entered", lang, total=item_count,
+             stages=t("boundary.and", lang).join(checked))
 
 
 def clock_declaration(
@@ -153,6 +157,7 @@ def clock_declaration(
     derived_starts: int | None,
     derived_ends: int | None,
     item_count: int,
+    lang: str = DEFAULT_LANG,
 ) -> str:
     """
     Build the one-line statement of what the cycle time clock actually measures.
@@ -178,18 +183,19 @@ def clock_declaration(
     Returns:
         A single line of plain text, ready for the figure title.
     """
-    end = f"'{closed_stage}'" if closed_stage else "the last stage (end boundary not declared)"
+    end = (f"'{closed_stage}'" if closed_stage
+           else t("clock.end_undeclared", lang))
 
     if ct_method == CT_METHOD_B:
-        clock = f"Clock: dwell time summed over all stages before {end} — no start boundary"
+        clock = t("clock.method_b", lang, end=end)
     elif first_stage:
-        clock = f"Clock: first entry into '{first_stage}' → last entry into {end}"
+        clock = t("clock.method_a", lang, first=first_stage, end=end)
     else:
-        clock = f"Clock: start boundary not declared (pass --workflow) → last entry into {end}"
+        clock = t("clock.no_start", lang, end=end)
 
     note = boundary_note(first_stage, closed_stage, ct_method,
-                         derived_starts, derived_ends, item_count)
-    return f"{clock} | {note}"
+                         derived_starts, derived_ends, item_count, lang)
+    return t("clock.line", lang, clock=clock, note=note)
 
 
 def _loess(x_num: list[float], y: list[float], frac: float = 0.4) -> list[float]:
@@ -241,7 +247,8 @@ def _loess(x_num: list[float], y: list[float], frac: float = 0.4) -> list[float]
     return result
 
 
-def _month_ticks(dates: list[datetime]) -> tuple[list[str], list[str]]:
+def _month_ticks(dates: list[datetime],
+                 lang: str = DEFAULT_LANG) -> tuple[list[str], list[str]]:
     """
     Generate monthly tick positions and labels for the scatterplot x-axis.
 
@@ -269,6 +276,7 @@ def _month_ticks(dates: list[datetime]) -> tuple[list[str], list[str]]:
         end_month = 1
         end_year += 1
 
+    months = month_abbr(lang)
     tickvals: list[str] = []
     ticktext: list[str] = []
     year, month = min_d.year, min_d.month
@@ -276,7 +284,8 @@ def _month_ticks(dates: list[datetime]) -> tuple[list[str], list[str]]:
     while (year, month) <= (end_year, end_month):
         tickvals.append(f"{year:04d}-{month:02d}-01")
         if month % 2 == 1:  # odd month → name label
-            label = f"Jan {year}" if month == 1 else _MONTH_ABBR[month]
+            label = (f"{months[1]} {year}" if month == 1
+                     else months[month])
         else:              # even month → small dot
             label = "·"
         ticktext.append(label)
@@ -483,7 +492,8 @@ class FlowTimeMetric(MetricPlugin):
             warnings=warnings,
         )
 
-    def render(self, result: MetricResult, terminology: str) -> list[go.Figure]:
+    def render(self, result: MetricResult, terminology: str,
+               lang: str = DEFAULT_LANG) -> list[go.Figure]:
         """
         Render a boxplot and a scatterplot for the Flow Time metric.
 
@@ -506,7 +516,8 @@ class FlowTimeMetric(MetricPlugin):
         points: list[_FlowTimePoint] = result.chart_data
         s = result.stats
         label = term(FLOW_TIME, terminology)
-        method_label = f"Methode {s.get('ct_method', CT_METHOD_A)}"
+        method_label = t("time.method", lang,
+                         method=s.get("ct_method", CT_METHOD_A))
 
         # The boundary declaration goes above the numbers, not beside them: a
         # reader has to know what the clock measures before the statistics
@@ -514,17 +525,16 @@ class FlowTimeMetric(MetricPlugin):
         clock = clock_declaration(
             s.get("first_stage"), s.get("closed_stage"), self.ct_method,
             s.get("derived_starts"), s.get("derived_ends"), s.get("count", 0),
+            lang,
         )
 
-        header = (
-            f"{label} ({method_label})<br>"
-            f"<span style='font-size:10px'>{clock}</span><br>"
-            f"Min: {s['min']} | Q1: {s['q1']} | Mean: {round(s['mean'], 2)} | "
-            f"Median: {s['median']} | Q3: {s['q3']} | Max: {s['max']} | "
-            f"#Items: {s['count']} | Target CT ({s['target_ct']}d): {s['target_ct_pct']}% | "
-            f"SD: {round(s['sd'], 2)} | SD%(CV): {round(s['cv'], 2)} | "
-            f"Zero Day Issues removed: {s['zero_day_count']}"
-        )
+        header = t(
+            "time.header", lang, label=label, method=method_label, clock=clock,
+            min=s["min"], q1=s["q1"], mean=round(s["mean"], 2),
+            median=s["median"], q3=s["q3"], max=s["max"], count=s["count"],
+            target_ct=s["target_ct"], target_pct=s["target_ct_pct"],
+            sd=round(s["sd"], 2), cv=round(s["cv"], 2),
+            zero=s["zero_day_count"])
 
         values = [p.cycle_days for p in points]
 
@@ -544,7 +554,7 @@ class FlowTimeMetric(MetricPlugin):
         fig_box.update_layout(
             title=header,
             title_font_size=11,
-            xaxis_title="CycleDays",
+            xaxis_title=t("axis.cycle_days", lang),
             plot_bgcolor="#e8e8e8",
             paper_bgcolor="#e8e8e8",
             showlegend=False,
@@ -565,7 +575,7 @@ class FlowTimeMetric(MetricPlugin):
         loess_y = _loess(x_num, sorted_values)
 
         # Month tick labels
-        tickvals, ticktext = _month_ticks(sorted_dates)
+        tickvals, ticktext = _month_ticks(sorted_dates, lang)
 
         fig_scatter = go.Figure()
 
@@ -589,16 +599,19 @@ class FlowTimeMetric(MetricPlugin):
             y=loess_y,
             mode="lines",
             line=dict(color="blue", width=2),
-            name="Trend (LOESS)",
+            name=t("time.trend", lang),
         ))
 
         # Reference lines (dotted) — repelled so labels don't overlap
         add_repelled_hlines(
             fig_scatter,
             lines=[
-                (s["median"], "red",        "dot", f"Median: {round(s['median'], 1)}"),
-                (s["pct85"],  "lightgreen", "dot", f"85th %: {round(s['pct85'], 1)}"),
-                (s["pct95"],  "cyan",       "dot", f"95th %: {round(s['pct95'], 1)}"),
+                (s["median"], "red", "dot",
+                 t("time.median", lang, value=round(s["median"], 1))),
+                (s["pct85"], "lightgreen", "dot",
+                 t("time.p85", lang, value=round(s["pct85"], 1))),
+                (s["pct95"], "cyan", "dot",
+                 t("time.p95", lang, value=round(s["pct95"], 1))),
             ],
             y_max=max(values),
             fig_height=500,
@@ -608,8 +621,8 @@ class FlowTimeMetric(MetricPlugin):
         fig_scatter.update_layout(
             title=header,
             title_font_size=11,
-            xaxis_title="Date",
-            yaxis_title="CycleDays",
+            xaxis_title=t("axis.date", lang),
+            yaxis_title=t("axis.cycle_days", lang),
             plot_bgcolor="#e8e8e8",
             paper_bgcolor="#e8e8e8",
             height=500,

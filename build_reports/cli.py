@@ -3,7 +3,7 @@
 # Repository:     https://github.com/Jaegerfeld/situation-report
 # KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
 # Erstellt:       15.04.2026
-# Geändert:       27.04.2026
+# Geändert:       19.09.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
@@ -22,6 +22,7 @@ from pathlib import Path
 
 import plotly.io as pio
 
+from .chart_texts import DEFAULT_LANG, LANGUAGES
 from .export import (
     _build_combined_html,
     export_pdf,
@@ -89,6 +90,7 @@ def run_reports(  # noqa: C901
     output_pdf: Path | None = None,
     open_browser: bool = False,
     log: Callable[[str], None] = print,
+    lang: str = DEFAULT_LANG,
 ) -> None:
     """
     Execute the full build_reports pipeline: load → filter → compute → output.
@@ -97,6 +99,10 @@ def run_reports(  # noqa: C901
     any callable that takes a single string — defaults to print for CLI use.
 
     Args:
+        lang:                 Language of the chart labels the code produces
+                              (axes, titles, curve names). Stage names, issue
+                              types and project keys come from the data and
+                              stay as they are.
         issue_times:          Path to IssueTimes.xlsx (required).
         cfd:                  Path to CFD.xlsx (optional, needed for CFD metric).
         workflow:             Path to the workflow .txt file (optional). When provided,
@@ -180,7 +186,7 @@ def run_reports(  # noqa: C901
         all_results.append(result)
         for w in result.warnings:
             log(f"  WARNING: {w}")
-        figures = plugin.run_render(result, terminology)
+        figures = plugin.run_render(result, terminology, lang)
         log(f"  → {len(figures)} figure(s)")
         all_figures.extend(figures)
 
@@ -240,6 +246,7 @@ def render_combined_html(
     show_edge_labels: bool = True,
     pi_config: Path | None = None,
     log: Callable[[str], None] = print,
+    lang: str = DEFAULT_LANG,
 ) -> str:
     """
     Run the build_reports pipeline and return all metrics as a single HTML page.
@@ -306,7 +313,7 @@ def render_combined_html(
         result = plugin.run(data, terminology)
         for w in result.warnings:
             log(f"  WARNING: {w}")
-        figures = plugin.run_render(result, terminology)
+        figures = plugin.run_render(result, terminology, lang)
         if figures:
             section_breaks[len(all_figures)] = term(plugin.metric_id, terminology)
         log(f"  → {len(figures)} figure(s)")
@@ -373,6 +380,12 @@ def main() -> None:
                         help="Cycle time threshold in minutes for zero-day detection (default: 5)")
     parser.add_argument("--terminology", choices=[SAFE, GLOBAL], default=SAFE,
                         help=f"Terminology mode (default: {SAFE})")
+    parser.add_argument("--lang", choices=list(LANGUAGES),
+                        default=DEFAULT_LANG,
+                        help="Language of the chart labels the code produces "
+                             "— axes, titles, curve names (default: "
+                             f"{DEFAULT_LANG}). Stage names and issue types "
+                             "come from the data and stay as they are.")
     parser.add_argument("--ct-method", choices=[CT_METHOD_A, CT_METHOD_B],
                         default=CT_METHOD_A, dest="ct_method",
                         help="Cycle time method: A=date diff, B=sum of stage minutes "
@@ -425,6 +438,7 @@ def main() -> None:
         exclude_zero_day=args.exclude_zero_day,
         zero_day_threshold_minutes=args.zero_day_threshold_minutes,
         terminology=args.terminology,
+        lang=args.lang,
         ct_method=args.ct_method,
         target_ct=args.target_ct,
         debt_tolerance_pct=args.debt_tolerance_pct,

@@ -3,7 +3,7 @@
 # Repository:     https://github.com/Jaegerfeld/situation-report
 # KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
 # Erstellt:       16.04.2026
-# Geändert:       22.05.2026
+# Geändert:       19.09.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
@@ -2220,6 +2220,8 @@ class BuildReportsApp(tk.Tk):
             inputs: Dict of validated pipeline inputs from _read_inputs().
         """
         self._set_buttons_enabled(False)
+        # Vor dem Thread lesen: tkinter-Variablen gehoeren dem Hauptthread.
+        chart_lang = self._lang_var.get()
 
         def worker() -> None:  # noqa: C901
             from .filters import FilterConfig, apply_filters
@@ -2283,7 +2285,8 @@ class BuildReportsApp(tk.Tk):
                     all_results.append(result)
                     for w in result.warnings:
                         self._log(f"  WARNING: {w}")
-                    figs = plugin.run_render(result, inputs["terminology"])
+                    figs = plugin.run_render(result, inputs["terminology"],
+                                             chart_lang)
                     if figs:
                         section_breaks[len(all_figures)] = term(
                             plugin.metric_id, inputs["terminology"]

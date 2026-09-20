@@ -3,7 +3,7 @@
 # Repository:     https://github.com/Jaegerfeld/situation-report
 # KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
 # Erstellt:       10.09.2026
-# Geändert:       10.09.2026
+# Geändert:       19.09.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
@@ -33,6 +33,7 @@ from datetime import date
 
 import plotly.graph_objects as go
 
+from ..chart_texts import DEFAULT_LANG, t
 from ..loader import ReportData
 from ..terminology import FLOW_DEBT, term
 from . import register
@@ -354,7 +355,8 @@ class FlowDebtMetric(MetricPlugin):
             chart_data=chart_data, warnings=warnings,
         )
 
-    def render(self, result: MetricResult, terminology: str) -> list[go.Figure]:
+    def render(self, result: MetricResult, terminology: str,
+               lang: str = DEFAULT_LANG) -> list[go.Figure]:
         """
         Build the WIP-over-time figure carrying the assumption and debt verdict.
 
@@ -380,38 +382,33 @@ class FlowDebtMetric(MetricPlugin):
             DEBT_PAYING_OFF: _COLOR_PAYING_OFF,
             DEBT_STABLE: _COLOR_STABLE,
         }[cd.verdict]
-        verdict_text = {
-            DEBT_ACCUMULATING: "accumulating Flow Debt",
-            DEBT_PAYING_OFF: "paying off Flow Debt",
-            DEBT_STABLE: "stable",
-        }[cd.verdict]
+        verdict_text = t({
+            DEBT_ACCUMULATING: "debt.accumulating",
+            DEBT_PAYING_OFF: "debt.paying_off",
+            DEBT_STABLE: "debt.stable",
+        }[cd.verdict], lang)
 
         fig = go.Figure()
         fig.add_trace(go.Scatter(
             x=[d.isoformat() for d in cd.days],
             y=cd.wip_total,
             mode="lines",
-            name=f"WIP ({cd.first_stage} → {cd.closed_stage})",
+            name=t("debt.wip_range", lang, first=cd.first_stage,
+                   closed=cd.closed_stage),
             line=dict(color=color, width=2),
             fill="tozeroy",
             fillcolor="rgba(44,127,184,0.12)",
         ))
 
-        assumption_line = (
-            "Little's Law assumptions 1 + 3: OK"
-            if cd.assumptions_ok
-            else "Little's Law assumptions 1 + 3: VIOLATED — verdict not dependable"
-        )
-        header = (
-            f"{assumption_line}<br>"
-            f"Approx. mean CT: {cd.approx_mean}d | "
-            f"Exact mean CT: {cd.exact_mean}d | "
-            f"<b>{verdict_text}</b>"
-        )
+        assumption_line = t("debt.assumptions_ok" if cd.assumptions_ok
+                            else "debt.assumptions_violated", lang)
+        header = t("debt.header", lang, assumptions=assumption_line,
+                   approx=cd.approx_mean, exact=cd.exact_mean,
+                   verdict=verdict_text)
         fig.update_layout(
             title=f"{label}<br><span style='font-size:11px'>{header}</span>",
-            xaxis_title="Date",
-            yaxis_title="Work in Progress",
+            xaxis_title=t("axis.date", lang),
+            yaxis_title=t("axis.wip", lang),
             template="plotly_white",
             showlegend=True,
         )

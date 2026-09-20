@@ -643,6 +643,7 @@ def _collect_report(
     pi_config: Path | None,
     log: Callable[[str], None],
     art_depth: bool = False,
+    lang: str = DEFAULT_LANG,
 ) -> tuple[list, dict[int, str], list[ReportData], list[SourceQuality]]:
     """
     Shared report core: resolve the report units, run the metrics, collect figures.
@@ -685,7 +686,7 @@ def _collect_report(
             result = plugin.run(unit, terminology)
             for w in result.warnings:
                 log(f"  WARNING [{unit.source_prefix}]: {w}")
-            figures = plugin.run_render(result, terminology)
+            figures = plugin.run_render(result, terminology, lang)
             if figures and not group_started:
                 section_breaks[len(all_figures)] = term(plugin.metric_id, terminology)
                 group_started = True
@@ -1044,7 +1045,7 @@ def render_html(
     """
     figures, section_breaks, units, qualities = _collect_report(
         config, mode, metrics, terminology, ct_method, target_ct, pi_config, log,
-        art_depth=art_depth)
+        art_depth=art_depth, lang=lang)
     if not figures:
         log("No figures produced — nothing to render.")
         return ""
@@ -1108,7 +1109,7 @@ def render_pdf(
     """
     figures, _section_breaks, units, qualities = _collect_report(
         config, mode, metrics, terminology, ct_method, target_ct, pi_config, log,
-        art_depth=art_depth)
+        art_depth=art_depth, lang=lang)
     if not figures:
         log("No figures produced — nothing to export.")
         return False

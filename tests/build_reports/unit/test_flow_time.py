@@ -278,13 +278,22 @@ class TestRender:
         """Method A is identified as 'Methode A' in the figure title."""
         result = metric.compute(simple_data, SAFE)
         figures = metric.render(result, SAFE)
-        assert "Methode A" in figures[0].layout.title.text
+        assert "Method A" in figures[0].layout.title.text
 
     def test_method_b_label_in_title(self, metric_b, stage_data):
-        """Method B is identified as 'Methode B' in the figure title."""
+        """Method B is identified as 'Method B' in the figure title."""
         result = metric_b.compute(stage_data, SAFE)
         figures = metric_b.render(result, SAFE)
-        assert "Methode B" in figures[0].layout.title.text
+        assert "Method B" in figures[0].layout.title.text
+
+    def test_method_label_follows_the_language(self, metric, simple_data):
+        """Bis 0.32.0 stand hier fest das deutsche „Methode A" — auch in
+        einem sonst englischen Report. Jetzt folgt es der Sprache."""
+        result = metric.compute(simple_data, SAFE)
+        assert "Methode A" in metric.render(
+            result, SAFE, "de")[0].layout.title.text
+        assert "Méthode A" in metric.render(
+            result, SAFE, "fr")[0].layout.title.text
 
     def test_scatterplot_has_loess_trace(self, metric, simple_data):
         """The scatterplot contains a LOESS trendline trace."""

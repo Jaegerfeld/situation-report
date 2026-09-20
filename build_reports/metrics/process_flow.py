@@ -3,7 +3,7 @@
 # Repository:     https://github.com/Jaegerfeld/situation-report
 # KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
 # Erstellt:       26.04.2026
-# Geändert:       26.04.2026
+# Geändert:       19.09.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
@@ -24,6 +24,9 @@ from datetime import datetime
 
 import plotly.graph_objects as go
 
+# t() heisst hier _t(): process_flow benutzt t als Laufvariable.
+from ..chart_texts import DEFAULT_LANG
+from ..chart_texts import t as _t  # t ist hier eine Laufvariable
 from ..loader import ReportData, TransitionEntry
 from ..terminology import PROCESS_FLOW, PROCESS_FLOW_TIME, term
 from . import register
@@ -767,7 +770,8 @@ class ProcessFlowMetric(MetricPlugin):
             warnings=warnings,
         )
 
-    def render(self, result: MetricResult, terminology: str) -> list[go.Figure]:
+    def render(self, result: MetricResult, terminology: str,
+               lang: str = DEFAULT_LANG) -> list[go.Figure]:
         """
         Render the process flow as a directed graph figure.
 
@@ -816,9 +820,9 @@ class ProcessFlowMetric(MetricPlugin):
 
         # Legend annotations
         legend_items = [
-            ("━", _COLOR_EDGE, "Forward transition"),
-            ("━", _COLOR_EDGE_BACK, "Backward / rework"),
-            ("━", _COLOR_SELF_LOOP, "Self-loop"),
+            ("━", _COLOR_EDGE, _t("pf.forward", lang)),
+            ("━", _COLOR_EDGE_BACK, _t("pf.backward", lang)),
+            ("━", _COLOR_SELF_LOOP, _t("pf.self_loop", lang)),
         ]
         for i, (sym, col, txt) in enumerate(legend_items):
             fig.add_annotation(
@@ -832,9 +836,9 @@ class ProcessFlowMetric(MetricPlugin):
 
         fig.update_layout(
             title=(
-                f"{label}  —  {fd.issue_count} issues, "
-                f"{fd.total_transitions} transitions, "
-                f"{len(fd.edges)} unique pairs"
+                f"{label}  —  "
+                + _t("pf.transitions", lang, issues=fd.issue_count,
+                     transitions=fd.total_transitions, pairs=len(fd.edges))
             ),
             title_font_size=12,
             paper_bgcolor="#e8e8e8",
@@ -995,7 +999,8 @@ class ProcessFlowTimeMetric(MetricPlugin):
             warnings=warnings,
         )
 
-    def render(self, result: MetricResult, terminology: str) -> list[go.Figure]:
+    def render(self, result: MetricResult, terminology: str,
+               lang: str = DEFAULT_LANG) -> list[go.Figure]:
         """
         Render the process flow time chart as a directed graph with coloured nodes.
 
@@ -1070,10 +1075,10 @@ class ProcessFlowTimeMetric(MetricPlugin):
 
         # Color legend
         legend_items = [
-            (_COLOR_TIME_FAST, "Fast (short dwell)"),
-            (_COLOR_TIME_MID,  "Medium"),
-            (_COLOR_TIME_SLOW, "Slow (bottleneck)"),
-            (_COLOR_TIME_NONE, "No data"),
+            (_COLOR_TIME_FAST, _t("pf.fast", lang)),
+            (_COLOR_TIME_MID, _t("pf.medium", lang)),
+            (_COLOR_TIME_SLOW, _t("pf.slow", lang)),
+            (_COLOR_TIME_NONE, _t("pf.no_data", lang)),
         ]
         for i, (col, txt) in enumerate(legend_items):
             fig.add_annotation(
@@ -1087,8 +1092,9 @@ class ProcessFlowTimeMetric(MetricPlugin):
 
         fig.update_layout(
             title=(
-                f"{label}  —  {fd.issue_count} issues, "
-                f"{len(fd.edges)} unique transitions"
+                f"{label}  —  " + _t("pf.transitions_only", lang,
+                                     issues=fd.issue_count,
+                                     transitions=len(fd.edges))
             ),
             title_font_size=12,
             paper_bgcolor="#e8e8e8",

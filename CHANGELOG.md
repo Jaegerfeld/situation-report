@@ -5,6 +5,39 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [0.33.0] – 2026-09-19
+
+### Added
+- **Auch die Beschriftungen *in* den Diagrammen folgen jetzt der Sprache.**
+  0.32.0 hatte die Tabellen und die Prosa umgestellt; die Achsen, Diagrammtitel
+  und Kurvennamen kamen aber aus `build_reports` und blieben englisch — ein
+  deutscher Report mit einer Achse „Week“. Damit ist die Umstellung
+  vollständig.
+
+  Neu: `build_reports/chart_texts.py` mit **63 Schlüsseln in fünf Sprachen**
+  plus den **Monatsabkürzungen**. Die Metrik-Schnittstelle führt dafür einen
+  Parameter mehr: `render(result, terminology, lang)`. Er hat eine Vorgabe,
+  Bestandsaufrufe mit zwei Argumenten funktionieren unverändert weiter — und
+  ein Test läuft die Plugin-Registry ab und prüft, dass **jedes** der acht
+  Plugins ihn führt. Die build_reports-Kommandozeile hat dazu `--lang`, die
+  build_reports-Oberfläche reicht ihre eigene Sprache durch, und das
+  Benutzerhandbuch bekommt seine Diagramme **je Sprache neu gezeichnet**
+  statt fünfmal dieselben englischen.
+
+  **Was weiter aus den Daten kommt, bleibt unberührt:** Stage-Namen,
+  Vorgangsarten, Projektkürzel. Ein Stage heißt so, wie er in Jira heißt; ihn
+  zu übersetzen hieße, eine fremde Konfiguration zu verfälschen. Das steht als
+  Grenze im Kopf des Katalogmoduls.
+
+### Fixed
+- **Die Monatsabkürzungen der Zeitachsen waren fest deutsch** — in *jedem*
+  Report, auch im englischen, und **in zwei Modulen doppelt gepflegt**
+  (`cfd.py` und `flow_time.py`). Jetzt einmal im Katalog, je Sprache.
+- **„Methode A“ im Titel des Flow-Time-Diagramms war ebenfalls fest deutsch.**
+  Jetzt „Method A“ auf Englisch, „Méthode A“ auf Französisch.
+
+---
+
 ## [0.32.0] – 2026-09-19
 
 ### Added
