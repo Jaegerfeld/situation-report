@@ -5,6 +5,48 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [0.31.0] – 2026-09-19
+
+### Added
+- **Farblegende in allen Reports.** In der Konferenzmappe (und im vollen
+  Report) waren Zellen eingefärbt, ohne dass irgendwo stand, was die Farben
+  bedeuten — gemeldet am 19.09.2026. Dreizehn Farbtabellen im Code schöpfen
+  aus denselben fünf Hintergründen, aber nirgends war das ausgesprochen.
+
+  Neu: **ein Farbschlüssel am Kopf der Seite**, noch vor der ersten Tabelle —
+  wer auf eine farbige Zelle trifft, soll die Farbe schon kennen —, und
+  **unter jeder eingefärbten Tabelle eine Zeile mit ihren eigenen
+  Statuswörtern**. Beides ist nötig, weil dieselbe Farbe je nach Register
+  etwas anderes heißt: Grau ist bei einer Abhängigkeit *done*, bei einem
+  ROAM-Risiko *accepted*.
+
+  Die Legende ist **aus den Farbtabellen abgeleitet**, nicht danebengeschrieben:
+  Wer einen Status hinzufügt oder umfärbt, ändert die Legende mit. Statusskalen
+  werden vollständig gezeigt (dass es *blocked* gibt, gehört zum Lesen einer
+  ganz grünen Tabelle); **Einzelmarkierungen** wie überfällig, überaltert oder
+  unabgedeckt erscheinen nur, wenn sie auf der Seite auch vorkommen.
+
+- **Geplanter Konferenztermin statt heutigem Datum.** Im Kopf der
+  Konferenzmappe stand „Konferenz ‹heute›“ — irreführend, denn der einzige
+  Tag, an dem die Konferenz nicht stattfindet, ist der Tag, an dem man die
+  Mappe erzeugt. Die Kommandozeile kannte `--conference-date` bereits, die
+  Oberfläche reichte ihn nicht durch.
+
+  Neu: das Feld **„Konferenz am“** im Solutions-&-Portfolios-Fenster (in allen
+  fünf Sprachen, mit Kalenderknöpfchen), gespeichert als optionales
+  `report.conference_date` in der Konfiguration — additiv, Bestandsdateien
+  laden unverändert. Der Kopf nennt den Termin **samt verbleibender Vorlaufzeit**
+  („noch 19 Tage“); ohne Termin steht dort **„Konferenztermin nicht gesetzt“**
+  statt eines Datums, das etwas anderes behauptet. `--conference-date` sticht
+  weiterhin die Konfiguration, und die Mappe wird nach dem Konferenztermin
+  benannt, nicht nach dem Erzeugungstag.
+
+  Der hinterlegte Termin ist zugleich die Grundlage für Vorhersagen **bis zur
+  Konferenz**: Die Zeitspanne, über die ein Forecast laufen müsste, steht damit
+  in der Konfiguration statt im Kopf des Anwenders.
+
+---
+
 ## [0.30.1] – 2026-09-11
 
 ### Fixed

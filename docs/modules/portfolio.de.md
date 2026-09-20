@@ -327,10 +327,30 @@ Dependencies), Input 3 · Business Objectives (Capability-Map + SLOs),
 Input 4 · Integrierte Roadmap & Strategic Themes (B7). Der vollständige
 interaktive Report bleibt die Detailquelle. **In der GUI:** Der Knopf
 *Konferenzmappe …* im Manager-Fenster schreibt dieselbe Seite für die
-aktuell konfigurierte Solution (Dateiname schlägt das Tagesdatum vor)
-und öffnet sie im Browser — von dort als PDF drucken; im
-Demo-Portfolio-Bereich des Testdaten-Generators öffnet *Konferenzmappe
-öffnen* die Demo-Mappe mit einem Klick.
+aktuell konfigurierte Solution und öffnet sie im Browser — von dort als
+PDF drucken; im Demo-Portfolio-Bereich des Testdaten-Generators öffnet
+*Konferenzmappe öffnen* die Demo-Mappe mit einem Klick.
+
+**Der Konferenztermin (seit 0.31.0).** Die Mappe ist für einen
+*geplanten* Termin geschrieben, nicht für den Tag ihrer Erzeugung. Das
+Feld **„Konferenz am"** im Manager-Fenster hinterlegt ihn als
+`report.conference_date` in der Konfiguration; `--conference-date`
+sticht ihn für einen einzelnen Lauf. Der Kopf der Mappe nennt dann den
+Termin samt Vorlaufzeit („noch 19 Tage"), und der Dateiname schlägt den
+Konferenztermin vor. **Ohne** Termin steht im Kopf *„Konferenztermin
+nicht gesetzt"* — nicht das heutige Datum, das eine Konferenz von heute
+behaupten würde. Das Feld ist optional; Konfigurationen ohne den
+Schlüssel laden unverändert.
+
+**Farblegende (seit 0.31.0).** Alle eingefärbten Zellen ziehen aus
+denselben fünf Hintergründen. Am Kopf jeder Seite steht deshalb ein
+**Farbschlüssel** (grün · blau · gelb · rot · grau) und unter jeder
+eingefärbten Tabelle eine Zeile mit **deren eigenen Statuswörtern** —
+nötig, weil dieselbe Farbe je nach Register etwas anderes bedeutet:
+Grau heißt bei einer Abhängigkeit *done*, bei einem ROAM-Risiko
+*accepted*. Statusskalen werden vollständig gezeigt, Einzelmarkierungen
+(überfällig, überaltert, unabgedeckt) nur, wenn sie auf der Seite
+vorkommen. Dasselbe gilt für den vollen Report und das Delta-Briefing.
 
 ## Strategic Themes & integrierte Roadmap (optional, B7)
 

@@ -632,6 +632,25 @@ def content_de(st: dict) -> list:
            "Sitzungs-Inputs druckbar: Aktuelle Daten, Impediment-Backlog "
            "samt ROAM/Dependencies, Business Objectives (Capabilities + "
            "SLOs) und die integrierte Roadmap (Input 4, B7).", st),
+        _P("<b>Der Konferenztermin</b> (0.31.0): Die Mappe ist fuer einen "
+           "<i>geplanten</i> Termin geschrieben, nicht fuer den Tag ihrer "
+           "Erzeugung. Das Feld <b>Konferenz am</b> im Manager-Fenster "
+           "hinterlegt ihn in der Konfiguration; "
+           "<font name='Courier'>--conference-date</font> sticht ihn fuer "
+           "einen einzelnen Lauf. Der Kopf nennt den Termin samt "
+           "Vorlaufzeit, der Dateiname folgt ihm. Ohne Termin steht im Kopf "
+           "&bdquo;Konferenztermin nicht gesetzt&ldquo; &mdash; nicht das "
+           "heutige Datum, das eine Konferenz von heute behaupten wuerde.", st),
+        _SP(4),
+        _P("<b>Die Farblegende</b> (0.31.0): Alle eingefaerbten Zellen "
+           "ziehen aus denselben fuenf Hintergruenden. Am Kopf jeder Seite "
+           "steht deshalb ein Farbschluessel (gruen im Plan, blau zugesagt, "
+           "gelb aufmerksam, rot kritisch, grau erledigt) und unter jeder "
+           "eingefaerbten Tabelle eine Zeile mit <i>deren eigenen</i> "
+           "Statuswoertern &mdash; noetig, weil dieselbe Farbe je Register "
+           "etwas anderes heisst: Grau ist bei einer Abhaengigkeit "
+           "&bdquo;done&ldquo;, bei einem ROAM-Risiko &bdquo;accepted&ldquo;. "
+           "Das gilt ebenso fuer den vollen Report und das Delta-Briefing.", st),
         _SP(6),
 
         _H2("5.15  Strategic Themes & integrierte Roadmap (B7, VSC)", st),
@@ -1110,6 +1129,23 @@ def content_en(st: dict) -> list:
            "inputs printably: current data, impediment backlog with "
            "ROAM/dependencies, business objectives (capabilities + SLOs) "
            "and the integrated roadmap (input 4, B7).", st),
+        _P("<b>The conference date</b> (0.31.0): the pre-read is written "
+           "for a <i>planned</i> date, not for the day it was produced. The "
+           "<b>Conference on</b> field in the manager window stores it in "
+           "the configuration; <font name='Courier'>--conference-date</font> "
+           "overrides it for a single run. The header names the date with "
+           "its remaining lead time, and the file name follows it. Without a "
+           "date the header says so rather than showing today's date, which "
+           "would claim a conference held today.", st),
+        _SP(4),
+        _P("<b>The colour legend</b> (0.31.0): every shaded cell draws from "
+           "the same five backgrounds. Each page therefore opens with a "
+           "colour key (green on plan, blue committed, yellow watch, red "
+           "critical, grey closed), and every shaded table carries a line "
+           "with <i>its own</i> status words underneath &mdash; needed "
+           "because the same colour means different things per register: "
+           "grey is 'done' for a dependency and 'accepted' for a ROAM risk. "
+           "The same holds for the full report and the delta briefing.", st),
         _SP(6),
 
         _H2("5.15  Strategic themes & integrated roadmap (B7, VSC)", st),
@@ -1579,6 +1615,19 @@ def content_ro(st: dict) -> list:
            "conferintei (<font name='Courier'>--conference mapa.html"
            "</font>) aduna inputurile sedintei intr-o pagina printabila; "
            "roadmap-ul integrat este inputul 4 (B7).", st),
+        _P("<b>Data conferintei</b> (0.31.0): mapa este scrisa pentru o "
+           "data <i>planificata</i>, nu pentru ziua in care a fost creata. "
+           "Campul <b>Conferinta pe</b> din fereastra managerului o "
+           "pastreaza in configuratie; "
+           "<font name='Courier'>--conference-date</font> o suprascrie "
+           "pentru o singura rulare. Fara data, antetul spune asta in loc sa "
+           "arate ziua de azi.", st),
+        _SP(4),
+        _P("<b>Legenda culorilor</b> (0.31.0): toate celulele colorate "
+           "folosesc aceleasi cinci fundaluri. Fiecare pagina incepe cu o "
+           "cheie a culorilor, iar sub fiecare tabel colorat apare un rand "
+           "cu cuvintele <i>lui</i> de stare &mdash; necesar, fiindca "
+           "aceeasi culoare inseamna altceva in fiecare registru.", st),
         _SP(6),
 
         _H2("5.15  Strategic themes & roadmap integrat (B7, VSC)", st),
@@ -2034,6 +2083,19 @@ def content_pt(st: dict) -> list:
            "O dossier da conferencia (<font name='Courier'>--conference "
            "dossier.html</font>) reune os inputs da reuniao numa pagina "
            "imprimivel; o roadmap integrado e o input 4 (B7).", st),
+        _P("<b>A data da conferencia</b> (0.31.0): o dossier e escrito "
+           "para uma data <i>planeada</i>, nao para o dia em que foi "
+           "produzido. O campo <b>Conferencia a</b> na janela do gestor "
+           "guarda-a na configuracao; "
+           "<font name='Courier'>--conference-date</font> substitui-a numa "
+           "unica execucao. Sem data, o cabecalho di-lo em vez de mostrar a "
+           "data de hoje.", st),
+        _SP(4),
+        _P("<b>A legenda de cores</b> (0.31.0): todas as celulas coloridas "
+           "usam os mesmos cinco fundos. Cada pagina abre com uma chave de "
+           "cores e cada tabela colorida tem por baixo uma linha com as "
+           "<i>suas</i> palavras de estado &mdash; necessario, porque a "
+           "mesma cor significa coisas diferentes em cada registo.", st),
         _SP(6),
 
         _H2("5.15  Strategic themes & roadmap integrado (B7, VSC)", st),
@@ -2502,6 +2564,20 @@ def content_fr(st: dict) -> list:
            "dossier de conference (<font name='Courier'>--conference "
            "dossier.html</font>) rassemble les inputs de la seance en une "
            "page imprimable ; la roadmap integree est l'input 4 (B7).", st),
+        _P("<b>La date de la conference</b> (0.31.0) : le dossier est "
+           "ecrit pour une date <i>prevue</i>, non pour le jour de sa "
+           "production. Le champ <b>Conference le</b> de la fenetre du "
+           "gestionnaire l'enregistre dans la configuration ; "
+           "<font name='Courier'>--conference-date</font> la remplace pour "
+           "une seule execution. Sans date, l'en-tete le dit au lieu "
+           "d'afficher la date du jour.", st),
+        _SP(4),
+        _P("<b>La legende des couleurs</b> (0.31.0) : toutes les cellules "
+           "colorees puisent dans les memes cinq fonds. Chaque page s'ouvre "
+           "donc sur une cle des couleurs, et chaque tableau colore porte "
+           "en dessous une ligne avec <i>ses propres</i> mots d'etat "
+           "&mdash; necessaire, car la meme couleur signifie autre chose "
+           "selon le registre.", st),
         _SP(6),
 
         _H2("5.15  Strategic themes & roadmap integree (B7, VSC)", st),

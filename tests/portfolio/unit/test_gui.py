@@ -96,6 +96,20 @@ class TestBuildConfigFromFields:
         assert cfg.from_date == date(2025, 1, 1)
         assert cfg.modes == [MODE_POOLED]
 
+    def test_conference_date_reaches_the_config(self) -> None:
+        """Feldmeldung 19.09.2026: Der Termin muss aus der GUI in die Konfig
+        gelangen — vorher kannte ihn nur die Kommandozeile."""
+        cfg = build_config_from_fields(
+            "Payments", "SAFe", "", "", [("ART A", "a.json")], MODE_POOLED,
+            conference_str="2026-10-08")
+        assert cfg.conference_date == date(2026, 10, 8)
+
+    def test_no_conference_date_stays_empty(self) -> None:
+        """Kein Termin heisst kein Termin — nicht 'heute'."""
+        cfg = build_config_from_fields(
+            "Payments", "SAFe", "", "", [("ART A", "a.json")], MODE_POOLED)
+        assert cfg.conference_date is None
+
     def test_ignores_empty_member_rows(self) -> None:
         cfg = build_config_from_fields(
             "Payments", "SAFe", "", "",

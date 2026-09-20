@@ -3,7 +3,7 @@
 # Repository:     https://github.com/Jaegerfeld/situation-report
 # KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
 # Erstellt:       03.09.2026
-# Geändert:       03.09.2026
+# Geändert:       19.09.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
@@ -25,6 +25,7 @@ from datetime import date
 from typing import Any
 
 from .snapshot import Snapshot
+from .summary import _legend_flag, _legend_line
 
 #: Governance status values that count as a worsening when entered.
 _BAD_STATES = {"blocked", "violated", "critical", "invalidated", "owned"}
@@ -384,7 +385,12 @@ def render_delta_html(delta: DeltaReport) -> str:
     title = (f"<h1>Delta Briefing — {_html.escape(delta.name)}</h1>"
              f"<p class='meta'>{delta.as_of_prev.isoformat()} → "
              f"{delta.as_of_now.isoformat()} ({delta.period_days} days); "
-             f"{delta.completed_delta:+d} items completed in the period.</p>")
+             f"{delta.completed_delta:+d} items completed in the period.</p>"
+             + _legend_line(
+                 _legend_flag("Improved", _GREEN, "moved in the good direction"),
+                 _legend_flag("Worsened", _RED, "moved in the bad direction"),
+                 "<span class='sr-legend-group'>Volume changes (items, "
+                 "completed) stay unshaded — they are neither.</span>"))
 
     if delta.quiet:
         return (head + title

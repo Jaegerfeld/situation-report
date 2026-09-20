@@ -335,7 +335,22 @@ class TestOutlierHighlighting:
         rows = [_summary_with_ct("A", 10, 20), _summary_with_ct("B", 12, 22),
                 _summary_with_ct("C", 40, 90)]
         html = render_summary_html(rows)
-        assert html.count("#f8d7da") == 2  # exactly the two outlier cells
+        # Zellen zaehlen, nicht Vorkommen: seit der Farblegende (19.09.2026)
+        # steht dieselbe Farbe auch im Legenden-Kaestchen unter der Tabelle.
+        assert html.count("<td style='background:#f8d7da") == 2
+
+    def test_html_explains_the_outlier_colour(self) -> None:
+        """Eine eingefaerbte Zelle ohne Legende ist eine Behauptung ohne
+        Erklaerung (Feldmeldung 19.09.2026)."""
+        rows = [_summary_with_ct("A", 10, 20), _summary_with_ct("B", 12, 22),
+                _summary_with_ct("C", 40, 90)]
+        assert "sr-legend" in render_summary_html(rows)
+
+    def test_no_legend_without_a_shaded_cell(self) -> None:
+        """Die Legende nennt nur, was auf der Seite auch vorkommt."""
+        rows = [_summary_with_ct("A", 10, 20), _summary_with_ct("B", 11, 21),
+                _summary_with_ct("C", 12, 22)]
+        assert "sr-legend" not in render_summary_html(rows)
 
     def test_pooled_single_row_is_never_highlighted(self) -> None:
         html = render_summary_html([_summary_with_ct("Solution", 40, 90)])

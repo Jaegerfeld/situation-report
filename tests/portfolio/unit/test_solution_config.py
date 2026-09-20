@@ -139,6 +139,22 @@ class TestSerialisation:
         assert report["from_date"] == "2025-01-01"
         assert report["to_date"] == "2025-12-31"
 
+    def test_conference_date_roundtrips(self) -> None:
+        """Der geplante VSC-Termin (19.09.2026) ueberlebt Schreiben und Lesen."""
+        data = _valid_dict()
+        data["report"]["conference_date"] = "2026-10-08"
+        cfg = parse_solution_config(data)
+        assert cfg.conference_date == date(2026, 10, 8)
+        assert to_dict(cfg)["report"]["conference_date"] == "2026-10-08"
+        assert parse_solution_config(to_dict(cfg)) == cfg
+
+    def test_conference_date_is_optional(self) -> None:
+        """Bestandsdateien ohne den Schluessel laden unveraendert — additiv,
+        daher kein Schema-Bump."""
+        cfg = parse_solution_config(_valid_dict())
+        assert cfg.conference_date is None
+        assert "conference_date" not in to_dict(cfg)["report"]
+
     def test_terminology_defaults_safe(self) -> None:
         cfg = parse_solution_config(_valid_dict())  # report has no terminology
         assert cfg.terminology == "SAFe"

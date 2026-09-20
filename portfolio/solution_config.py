@@ -3,7 +3,7 @@
 # Repository:     https://github.com/Jaegerfeld/situation-report
 # KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
 # Erstellt:       22.06.2026
-# Geändert:       05.09.2026
+# Geändert:       19.09.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
@@ -35,7 +35,9 @@ from typing import Any
 # C1/C2 die optionalen Felder "slo" (SLO-Register) und "dora"
 # (Delivery-Register), seit B6 das optionale "flow_problems"-Feld
 # (Flussproblem-Backlog der VSC), seit B7 das optionale "themes"-Feld
-# (Strategic Themes + Roadmap) — alles additiv, daher kein Schema-Bump.
+# (Strategic Themes + Roadmap), seit 19.09.2026 das optionale
+# report."conference_date" (geplanter VSC-Termin) — alles additiv, daher
+# kein Schema-Bump.
 SCHEMA_VERSION = 2
 APP_NAME = "situation_report"
 
@@ -184,6 +186,11 @@ class SolutionConfig:
                     "" means no backlog.
         themes:     Optional path to a strategic-themes/roadmap JSON (B7);
                     "" means no themes register.
+        conference_date: Date of the *planned* Value-Stream Conference. The
+                    pre-read is written for that date, not for the day it is
+                    produced; None means no date has been set and the pre-read
+                    says so rather than showing today. It also fixes the span
+                    a forecast to the conference has to cover.
     """
     name: str
     kind: str = KIND_SOLUTION
@@ -205,6 +212,7 @@ class SolutionConfig:
     dora: str = ""
     flow_problems: str = ""
     themes: str = ""
+    conference_date: date | None = None
     #: Folder of the file this config was loaded from (set by
     #: load_solution_config, never serialised). Relative paths inside the
     #: config resolve against it — the Datenraum rule that makes a
@@ -353,6 +361,7 @@ def parse_solution_config(data: dict[str, Any]) -> SolutionConfig:
         art_depth=bool(report.get("art_depth", False)),
         cross_vs_threshold=_parse_threshold(report.get("cross_vs_threshold")),
         stage_map=parse_stage_map(data.get("stage_map")),
+        conference_date=_parse_date(report.get("conference_date")),
         risks=str(data.get("risks", "")).strip(),
         nfr=str(data.get("nfr", "")).strip(),
         capabilities=str(data.get("capabilities", "")).strip(),
@@ -417,6 +426,8 @@ def to_dict(config: SolutionConfig) -> dict[str, Any]:
         report["from_date"] = config.from_date.isoformat()
     if config.to_date is not None:
         report["to_date"] = config.to_date.isoformat()
+    if config.conference_date is not None:
+        report["conference_date"] = config.conference_date.isoformat()
 
     out: dict[str, Any] = {
         "schema": SCHEMA_VERSION,

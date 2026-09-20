@@ -3,7 +3,7 @@
 # Repository:     https://github.com/Jaegerfeld/situation-report
 # KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
 # Erstellt:       22.06.2026
-# Geändert:       05.09.2026
+# Geändert:       19.09.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
@@ -137,6 +137,7 @@ _T: dict[str, dict[str, str]] = {
         "btn_ok": "OK",
         "lbl_from": "Von (JJJJ-MM-TT)",
         "lbl_to": "Bis (JJJJ-MM-TT)",
+        "lbl_conference_date": "Konferenz am (JJJJ-MM-TT)",
         "sec_members": "ARTs in dieser Solution",
         "lbl_kind": "Art",
         "col_name": "ART-Name",
@@ -238,6 +239,7 @@ _T: dict[str, dict[str, str]] = {
         "btn_ok": "OK",
         "lbl_from": "From (YYYY-MM-DD)",
         "lbl_to": "To (YYYY-MM-DD)",
+        "lbl_conference_date": "Conference on (YYYY-MM-DD)",
         "sec_members": "ARTs in this solution",
         "lbl_kind": "Kind",
         "col_name": "ART name",
@@ -339,6 +341,7 @@ _T: dict[str, dict[str, str]] = {
         "btn_ok": "OK",
         "lbl_from": "De la (AAAA-LL-ZZ)",
         "lbl_to": "Până la (AAAA-LL-ZZ)",
+        "lbl_conference_date": "Conferința pe (AAAA-LL-ZZ)",
         "sec_members": "ART-uri în această soluție",
         "lbl_kind": "Tip",
         "col_name": "Nume ART",
@@ -440,6 +443,7 @@ _T: dict[str, dict[str, str]] = {
         "btn_ok": "OK",
         "lbl_from": "De (AAAA-MM-DD)",
         "lbl_to": "Até (AAAA-MM-DD)",
+        "lbl_conference_date": "Conferência a (AAAA-MM-DD)",
         "sec_members": "ARTs nesta solução",
         "lbl_kind": "Tipo",
         "col_name": "Nome do ART",
@@ -541,6 +545,7 @@ _T: dict[str, dict[str, str]] = {
         "btn_ok": "OK",
         "lbl_from": "De (AAAA-MM-JJ)",
         "lbl_to": "À (AAAA-MM-JJ)",
+        "lbl_conference_date": "Conférence le (AAAA-MM-JJ)",
         "sec_members": "ARTs dans cette solution",
         "lbl_kind": "Type",
         "col_name": "Nom de l'ART",
@@ -856,6 +861,7 @@ def build_config_from_fields(
     terminology: str = TERMINOLOGY_SAFE,
     art_depth: bool = False,
     cross_vs_threshold: str = "",
+    conference_str: str = "",
 ) -> SolutionConfig:
     """
     Build (and validate) a SolutionConfig from raw form field values.
@@ -875,6 +881,9 @@ def build_config_from_fields(
         art_depth: Evaluate down to the individual ARTs (drill-down).
         cross_vs_threshold: Agreed decision-point threshold as typed; empty or
                    unreadable means "not agreed yet" (report only, no alarm).
+        conference_str: Date of the planned Value-Stream Conference
+                   (YYYY-MM-DD) or ""; "" means no date has been set and the
+                   pre-read says so instead of showing the day it was made.
 
     Returns:
         Validated SolutionConfig.
@@ -892,6 +901,8 @@ def build_config_from_fields(
         report["from_date"] = from_str.strip()
     if to_str.strip():
         report["to_date"] = to_str.strip()
+    if conference_str.strip():
+        report["conference_date"] = conference_str.strip()
     return parse_solution_config({
         "schema": 1,
         "app": "situation_report",
@@ -1035,6 +1046,7 @@ class SolutionManagerApp(tk.Tk):
         self._kind = tk.StringVar(value=KIND_SOLUTION)
         self._from = tk.StringVar()
         self._to = tk.StringVar()
+        self._conference = tk.StringVar()
         self._mode = tk.StringVar(value=MODE_POOLED)
         self._art_depth = tk.BooleanVar(value=False)
         self._cross_vs_threshold = tk.StringVar(value="")
@@ -1177,6 +1189,14 @@ class SolutionManagerApp(tk.Tk):
         tk.Entry(to_f, textvariable=self._to, width=12).pack(side="left")
         ttk.Button(to_f, text="📅", width=3,
                    command=lambda: self._pick_date(self._to)).pack(side="left", padx=(2, 0))
+        tk.Label(top, text=self._tr("lbl_conference_date")).grid(
+            row=1, column=4, sticky="w", pady=(6, 0))
+        conf_f = tk.Frame(top)
+        conf_f.grid(row=1, column=5, sticky="w", pady=(6, 0))
+        tk.Entry(conf_f, textvariable=self._conference, width=12).pack(side="left")
+        ttk.Button(conf_f, text="📅", width=3,
+                   command=lambda: self._pick_date(self._conference)).pack(
+                       side="left", padx=(2, 0))
         top.columnconfigure(1, weight=1)
 
         tk.Label(self, text=self._tr("sec_members"),
@@ -1393,6 +1413,8 @@ class SolutionManagerApp(tk.Tk):
         self._on_kind_change()
         self._from.set(cfg.from_date.isoformat() if cfg.from_date else "")
         self._to.set(cfg.to_date.isoformat() if cfg.to_date else "")
+        self._conference.set(cfg.conference_date.isoformat()
+                             if cfg.conference_date else "")
         self._mode.set(cfg.modes[0] if cfg.modes else MODE_POOLED)
         self._art_depth.set(cfg.art_depth)
         self._cross_vs_threshold.set(
@@ -1417,6 +1439,7 @@ class SolutionManagerApp(tk.Tk):
                 self._name.get(), FRAMEWORK_SAFE,
                 self._from.get(), self._to.get(),
                 self._collect_members(), self._mode.get(),
+                conference_str=self._conference.get(),
                 kind=self._kind.get(), terminology=self._terminology.get(),
                 art_depth=self._art_depth.get(),
                 cross_vs_threshold=self._cross_vs_threshold.get()),
@@ -1564,7 +1587,9 @@ class SolutionManagerApp(tk.Tk):
             return
         path = filedialog.asksaveasfilename(
             title=self._tr("dlg_save_conference"), defaultextension=".html",
-            initialfile=f"{cfg.name}_VSC_{date.today().isoformat()}.html",
+            initialfile=f"{cfg.name}_VSC_"
+                        f"{(cfg.conference_date or date.today()).isoformat()}"
+                        f".html",
             filetypes=[("HTML", "*.html")])
         if not path:
             return
