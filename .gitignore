@@ -89,3 +89,22 @@ Ideen/
 feedback/
 site/
 local test data/
+
+# -----------------------------------------------------------------------
+# Weitere lokale Dateien — Beschluss Robert, 20.09.2026
+#
+# „Klar lokal“: erzeugte Artefakte, Konfliktkopien und Arbeitsstände.
+# -----------------------------------------------------------------------
+coverage.json
+session_log_*.txt
+build_reports/terminologie.xlsx
+testdata_generator/ART_A.json
+testdata_generator/ART_A_*.csv
+docs/*.pptx
+.pytest_tmp/
+
+# OneDrive-Konfliktkopien jeder Art (die Regel oben deckte nur *.py)
+*-AMD-R9-DARKSTAR.*
+
+# Arbeitsdokumente in der Wurzel — bleiben lokal (Beschluss 20.09.2026)
+/Agile_Metriken_*
