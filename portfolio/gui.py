@@ -36,6 +36,7 @@ from .aggregator import (
     render_pdf,
     render_pooled_html,
 )
+from .report_texts import DEFAULT_LANG, LANGUAGES
 from .solution_config import (
     FRAMEWORK_SAFE,
     KIND_PORTFOLIO,
@@ -56,6 +57,10 @@ TERMINOLOGIES = [TERMINOLOGY_SAFE, TERMINOLOGY_GLOBAL]
 # ---------------------------------------------------------------------------
 # Language handling (shared preference file with the launcher)
 # ---------------------------------------------------------------------------
+
+#: Auswahlwert „wie Oberfläche" — dann wird nichts gespeichert und der
+#: Report folgt der Sprache des Fensters.
+LANG_AS_GUI = "—"
 
 LANG_DE = "de"
 LANG_EN = "en"
@@ -138,6 +143,7 @@ _T: dict[str, dict[str, str]] = {
         "lbl_from": "Von (JJJJ-MM-TT)",
         "lbl_to": "Bis (JJJJ-MM-TT)",
         "lbl_conference_date": "Konferenz am (JJJJ-MM-TT)",
+        "lbl_report_lang": "Reportsprache",
         "sec_members": "ARTs in dieser Solution",
         "lbl_kind": "Art",
         "col_name": "ART-Name",
@@ -240,6 +246,7 @@ _T: dict[str, dict[str, str]] = {
         "lbl_from": "From (YYYY-MM-DD)",
         "lbl_to": "To (YYYY-MM-DD)",
         "lbl_conference_date": "Conference on (YYYY-MM-DD)",
+        "lbl_report_lang": "Report language",
         "sec_members": "ARTs in this solution",
         "lbl_kind": "Kind",
         "col_name": "ART name",
@@ -342,6 +349,7 @@ _T: dict[str, dict[str, str]] = {
         "lbl_from": "De la (AAAA-LL-ZZ)",
         "lbl_to": "Până la (AAAA-LL-ZZ)",
         "lbl_conference_date": "Conferința pe (AAAA-LL-ZZ)",
+        "lbl_report_lang": "Limba raportului",
         "sec_members": "ART-uri în această soluție",
         "lbl_kind": "Tip",
         "col_name": "Nume ART",
@@ -444,6 +452,7 @@ _T: dict[str, dict[str, str]] = {
         "lbl_from": "De (AAAA-MM-DD)",
         "lbl_to": "Até (AAAA-MM-DD)",
         "lbl_conference_date": "Conferência a (AAAA-MM-DD)",
+        "lbl_report_lang": "Idioma do relatório",
         "sec_members": "ARTs nesta solução",
         "lbl_kind": "Tipo",
         "col_name": "Nome do ART",
@@ -546,6 +555,7 @@ _T: dict[str, dict[str, str]] = {
         "lbl_from": "De (AAAA-MM-JJ)",
         "lbl_to": "À (AAAA-MM-JJ)",
         "lbl_conference_date": "Conférence le (AAAA-MM-JJ)",
+        "lbl_report_lang": "Langue du rapport",
         "sec_members": "ARTs dans cette solution",
         "lbl_kind": "Type",
         "col_name": "Nom de l'ART",
@@ -773,7 +783,8 @@ def _build_delta_html_file(prev_path: Path, now_path: Path,
                            narrate_with: str | None = None,
                            llm_lang: str = "de",
                            llm_model: str | None = None,
-                           llm_base_url: str | None = None) -> str:
+                           llm_base_url: str | None = None,
+                           lang: str = DEFAULT_LANG) -> str:
     """
     Render the delta briefing for two snapshot files into a temp HTML file.
 
@@ -790,6 +801,7 @@ def _build_delta_html_file(prev_path: Path, now_path: Path,
         llm_lang:     Narration language.
         llm_model:    Model override, or None for the provider default.
         llm_base_url: Backend address override, or None for the default.
+        lang:         Language of the briefing's labels and texts.
 
     Returns:
         Path of the written temporary .html file.
@@ -804,7 +816,7 @@ def _build_delta_html_file(prev_path: Path, now_path: Path,
     from .snapshot import load_snapshot
 
     delta = compute_delta(load_snapshot(prev_path), load_snapshot(now_path))
-    html = render_delta_html(delta)
+    html = render_delta_html(delta, lang=lang)
     if narrate_with:
         from llm.audit import AUDIT_FILENAME
         from llm.base import provider_config
@@ -862,6 +874,7 @@ def build_config_from_fields(
     art_depth: bool = False,
     cross_vs_threshold: str = "",
     conference_str: str = "",
+    report_lang: str = "",
 ) -> SolutionConfig:
     """
     Build (and validate) a SolutionConfig from raw form field values.
@@ -881,6 +894,8 @@ def build_config_from_fields(
         art_depth: Evaluate down to the individual ARTs (drill-down).
         cross_vs_threshold: Agreed decision-point threshold as typed; empty or
                    unreadable means "not agreed yet" (report only, no alarm).
+        report_lang: Pinned report language, or "" to follow the interface
+                   language. Stored as report.language.
         conference_str: Date of the planned Value-Stream Conference
                    (YYYY-MM-DD) or ""; "" means no date has been set and the
                    pre-read says so instead of showing the day it was made.
@@ -903,6 +918,8 @@ def build_config_from_fields(
         report["to_date"] = to_str.strip()
     if conference_str.strip():
         report["conference_date"] = conference_str.strip()
+    if report_lang.strip():
+        report["language"] = report_lang.strip()
     return parse_solution_config({
         "schema": 1,
         "app": "situation_report",
@@ -1047,6 +1064,7 @@ class SolutionManagerApp(tk.Tk):
         self._from = tk.StringVar()
         self._to = tk.StringVar()
         self._conference = tk.StringVar()
+        self._report_lang = tk.StringVar(value=LANG_AS_GUI)
         self._mode = tk.StringVar(value=MODE_POOLED)
         self._art_depth = tk.BooleanVar(value=False)
         self._cross_vs_threshold = tk.StringVar(value="")
@@ -1197,6 +1215,12 @@ class SolutionManagerApp(tk.Tk):
         ttk.Button(conf_f, text="📅", width=3,
                    command=lambda: self._pick_date(self._conference)).pack(
                        side="left", padx=(2, 0))
+        tk.Label(top, text=self._tr("lbl_report_lang")).grid(
+            row=2, column=0, sticky="w", pady=(6, 0))
+        ttk.Combobox(top, textvariable=self._report_lang,
+                     values=[LANG_AS_GUI] + list(LANGUAGES), width=12,
+                     state="readonly").grid(row=2, column=1, sticky="w",
+                                            padx=(6, 16), pady=(6, 0))
         top.columnconfigure(1, weight=1)
 
         tk.Label(self, text=self._tr("sec_members"),
@@ -1415,6 +1439,7 @@ class SolutionManagerApp(tk.Tk):
         self._to.set(cfg.to_date.isoformat() if cfg.to_date else "")
         self._conference.set(cfg.conference_date.isoformat()
                              if cfg.conference_date else "")
+        self._report_lang.set(cfg.language or LANG_AS_GUI)
         self._mode.set(cfg.modes[0] if cfg.modes else MODE_POOLED)
         self._art_depth.set(cfg.art_depth)
         self._cross_vs_threshold.set(
@@ -1440,6 +1465,8 @@ class SolutionManagerApp(tk.Tk):
                 self._from.get(), self._to.get(),
                 self._collect_members(), self._mode.get(),
                 conference_str=self._conference.get(),
+                report_lang=("" if self._report_lang.get() == LANG_AS_GUI
+                             else self._report_lang.get()),
                 kind=self._kind.get(), terminology=self._terminology.get(),
                 art_depth=self._art_depth.get(),
                 cross_vs_threshold=self._cross_vs_threshold.get()),
@@ -1488,7 +1515,9 @@ class SolutionManagerApp(tk.Tk):
         llm_model, llm_base_url = self._llm_config()
         if narrate_with:
             self._remember_llm_choice()
+        # Narration kann nur de/en; die Reportbeschriftungen alle fuenf.
         lang = self._lang if self._lang in ("de", "en") else "en"
+        report_lang = cfg.language or self._lang
         unused = narrate_unused_key("report", self._narrate.get(), is_pdf)
         note = f" — {self._tr(unused)}" if unused else ""
         if narrate_with:
@@ -1502,13 +1531,16 @@ class SolutionManagerApp(tk.Tk):
         def worker() -> None:
             warning = ""
             if is_pdf:
-                ok = render_pdf(cfg, out_path, mode=mode, terminology=terminology,
-                                log=lambda *_: None, art_depth=art_depth)
+                ok = render_pdf(cfg, out_path, mode=mode,
+                                terminology=terminology,
+                                log=lambda *_: None, art_depth=art_depth,
+                                lang=report_lang)
             else:
                 render = (render_comparison_html if mode == MODE_COMPARISON
                           else render_pooled_html)
-                html = render(cfg, terminology=terminology, log=lambda *_: None,
-                              art_depth=art_depth)
+                html = render(cfg, terminology=terminology,
+                              log=lambda *_: None, art_depth=art_depth,
+                              lang=report_lang)
                 ok = bool(html)
                 if html and narrate_with:
                     try:
@@ -1602,8 +1634,9 @@ class SolutionManagerApp(tk.Tk):
             try:
                 from .aggregator import render_conference_html
 
-                html = render_conference_html(cfg, log=lambda *_: None,
-                                              art_depth=cfg.art_depth)
+                html = render_conference_html(
+                    cfg, log=lambda *_: None, art_depth=cfg.art_depth,
+                    lang=cfg.language or self._lang)
                 Path(path).write_text(html, encoding="utf-8")
                 webbrowser.open(Path(path).resolve().as_uri())
                 # Der Hinweis muss die Erfolgsmeldung ueberleben: sonst ist
@@ -1856,7 +1889,8 @@ class SolutionManagerApp(tk.Tk):
                                              self._lang in ("de", "en")
                                              else "en",
                                              llm_model=llm_model,
-                                             llm_base_url=llm_base_url)
+                                             llm_base_url=llm_base_url,
+                                             lang=self._lang)
                 webbrowser.open(Path(tmp).resolve().as_uri())
                 msg = self._tr("msg_delta_done")
             except Exception as exc:

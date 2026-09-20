@@ -56,6 +56,7 @@ from portfolio.nfr_config import (
     Nfr,
     RunwayItem,
 )
+from portfolio.report_texts import DEFAULT_LANG, t
 from portfolio.risks_config import (
     IMPACT_HIGH,
     IMPACT_LOW,
@@ -257,6 +258,81 @@ def _fmt_pct(value: float | None) -> str:
     return f"{value:.0f}%" if value is not None else "–"
 
 
+#: Katalogschlüssel je Statuswert. Die Farbtabellen weiter unten sagen, *wie*
+#: ein Status aussieht; diese Tabellen, *wie er heißt* — in der gewählten
+#: Sprache. Beide haben dieselben Schlüssel; ein Test hält sie deckungsgleich,
+#: damit ein neuer Status nicht in der einen Tabelle steht und in der anderen
+#: fehlt.
+_CONF_TEXT_KEYS = {
+    CONFIDENCE_HIGH: "conf.high",
+    CONFIDENCE_MEDIUM: "conf.medium",
+    CONFIDENCE_LOW: "conf.low",
+}
+_ROAM_TEXT_KEYS = {
+    "resolved": "roam.resolved",
+    "owned": "roam.owned",
+    "accepted": "roam.accepted",
+    "mitigated": "roam.mitigated",
+}
+_IMPACT_TEXT_KEYS = {
+    IMPACT_HIGH: "impact.high",
+    "medium": "impact.medium",
+    IMPACT_LOW: "impact.low",
+}
+_NFR_TEXT_KEYS = {
+    "met": "status.met",
+    "at_risk": "status.at_risk",
+    "violated": "status.violated",
+}
+_RUNWAY_TEXT_KEYS = {
+    "in_place": "status.in_place",
+    "building": "status.building",
+    "gap": "status.gap",
+}
+_HEALTH_TEXT_KEYS = {
+    "healthy": "health.healthy",
+    "at_risk": "health.at_risk",
+    "critical": "health.critical",
+}
+_DEP_TEXT_KEYS = {
+    "blocked": "dep.blocked",
+    "at_risk": "status.at_risk",
+    "on_track": "dep.on_track",
+    "done": "dep.done",
+}
+_LOG_TEXT_KEYS = {
+    "proposed": "log.proposed",
+    "accepted": "log.accepted",
+    "superseded": "log.superseded",
+    "open": "log.open",
+    "confirmed": "log.confirmed",
+    "invalidated": "log.invalidated",
+}
+_KIND_TEXT_KEYS = {
+    KIND_DECISION: "kind.decision",
+    KIND_ASSUMPTION: "kind.assumption",
+}
+_SLO_TEXT_KEYS = {
+    "breached": "slo.breached",
+    "at_risk": "status.at_risk",
+    "met": "status.met",
+    "unknown": "slo.unknown",
+}
+_TIER_TEXT_KEYS = {
+    "elite": "tier.elite",
+    "high": "tier.high",
+    "medium": "tier.medium",
+    "low": "tier.low",
+    TIER_UNKNOWN: "tier.unknown",
+}
+_FLOW_TEXT_KEYS = {
+    "open": "log.open",
+    "committed": "flow.committed",
+    "resolved": "roam.resolved",
+    "dropped": "flow.dropped",
+}
+
+
 # =============================================================================
 # Colour legend
 #
@@ -266,13 +342,14 @@ def _fmt_pct(value: float | None) -> str:
 # follows automatically and cannot drift out of step with the table.
 # =============================================================================
 
-#: The shared palette. Order = the order the overall key is shown in.
+#: The shared palette: colour plus the catalogue key of its meaning.
+#: Order = the order the overall key is shown in.
 LEGEND_PALETTE: tuple[tuple[str, str], ...] = (
-    ("#e6f4e6", "on plan — no action needed"),
-    ("#d1ecf1", "committed — action agreed, in progress"),
-    ("#fff3cd", "watch — open, at risk or not yet covered"),
-    ("#f8d7da", "critical — breached, blocked or overdue"),
-    ("#e2e3e5", "closed or deliberately accepted — no action"),
+    ("#e6f4e6", "legend.green"),
+    ("#d1ecf1", "legend.blue"),
+    ("#fff3cd", "legend.yellow"),
+    ("#f8d7da", "legend.red"),
+    ("#e2e3e5", "legend.grey"),
 )
 
 
@@ -289,16 +366,20 @@ def _swatch(color: str, text: str) -> str:
 
 
 def _legend_group(caption: str, colors: dict[str, str],
-                  labels: dict[str, str] | None = None) -> str:
+                  text_keys: dict[str, str] | None = None,
+                  lang: str = DEFAULT_LANG) -> str:
     """
     One legend group for a coloured column, e.g. "Status: ■ open ■ blocked".
 
     Statuses that share a colour are folded into one chip ("open / proposed"),
-    because the reader cannot tell them apart by colour anyway.
+    because the reader cannot tell them apart by colour anyway. The words come
+    from the catalogue via ``text_keys``; without an entry the raw status name
+    is shown, which is a visible reminder that a key is missing.
     """
     by_color: dict[str, list[str]] = {}
     for key, color in colors.items():
-        label = (labels or {}).get(key) or _legend_label(key)
+        catalogue_key = (text_keys or {}).get(key)
+        label = t(catalogue_key, lang) if catalogue_key else _legend_label(key)
         by_color.setdefault(color, []).append(label)
     items = "".join(_swatch(c, " / ".join(ls)) for c, ls in by_color.items())
     return f"<span class='sr-legend-group'><b>{_html.escape(caption)}:</b> {items}</span>"
@@ -341,8 +422,8 @@ def _legend_line(*groups: str) -> str:
     return LEGEND_STYLE + "<p class='sr-legend'>" + "".join(filled) + "</p>"
 
 
-def render_legend_key_html(
-    title: str = "Colour key — what the shaded cells mean") -> str:
+def render_legend_key_html(lang: str = DEFAULT_LANG,
+                           title: str | None = None) -> str:
     """
     Render the overall colour key shown once at the top of a report.
 
@@ -351,19 +432,23 @@ def render_legend_key_html(
     the same colour stands for different words depending on the register (grey
     is "done" for a dependency and "accepted" for a ROAM risk).
     """
-    items = "".join(_swatch(color, meaning) for color, meaning in LEGEND_PALETTE)
+    title = title or t("legend.key.title", lang)
+    items = "".join(_swatch(color, t(key, lang))
+                    for color, key in LEGEND_PALETTE)
     return (f"{LEGEND_STYLE}<div class='sr-legend-key'>"
             f"<b class='sr-legend-title'>{_html.escape(title)}</b>{items}"
             f"<div style='margin-top:6px;font-size:0.8rem;color:#666'>"
-            f"Each table repeats the key with its own status words underneath."
+            f"{_html.escape(t('legend.key.note', lang))}"
             f"</div></div>")
 
 
-def _summary_headers(target_ct: int) -> list[str]:
+def _summary_headers(target_ct: int, lang: str = DEFAULT_LANG) -> list[str]:
     """Column headers for the summary table (shared by HTML and the PDF figure)."""
-    return ["", "Items", "Completed", "Open (WIP)",
-            "Median CT (d)", "85th % (d)", "95th % (d)", f"≤ {target_ct}d",
-            "Median LT (d)", "85th % LT (d)"]
+    return ["", t("summary.items", lang), t("summary.completed", lang),
+            t("summary.open_wip", lang), t("summary.median_ct", lang),
+            t("summary.p85_ct", lang), t("summary.p95_ct", lang),
+            t("summary.target_ct", lang, days=target_ct),
+            t("summary.median_lt", lang), t("summary.p85_lt", lang)]
 
 
 def _summary_cells(s: Summary) -> list[str]:
@@ -383,7 +468,8 @@ def _summary_cells(s: Summary) -> list[str]:
 
 
 def render_summary_html(
-    summaries: list[Summary], title: str = "Management Summary", target_ct: int = 90
+    summaries: list[Summary], title: str | None = None, target_ct: int = 90,
+    lang: str = DEFAULT_LANG,
 ) -> str:
     """
     Render the management summary as a self-contained HTML table block.
@@ -402,7 +488,9 @@ def render_summary_html(
     if not summaries:
         return ""
 
-    head_html = "".join(f"<th>{_html.escape(h)}</th>" for h in _summary_headers(target_ct))
+    title = title or t("summary.heading", lang)
+    head_html = "".join(f"<th>{_html.escape(h)}</th>"
+                        for h in _summary_headers(target_ct, lang))
 
     outliers = _outlier_cells(summaries)
     rows_html = ""
@@ -425,8 +513,8 @@ def render_summary_html(
     )
     # The legend only earns its place when something is actually shaded.
     legend = _legend_line(_legend_flag(
-        "Outlier", _OUTLIER_COLOR,
-        f"more than {_OUTLIER_FACTOR:g}x the median of that column")
+        t("legend.outlier", lang), _OUTLIER_COLOR,
+        t("legend.outlier.text", lang, factor=f"{_OUTLIER_FACTOR:g}"))
     ) if outliers else ""
 
     return (
@@ -478,20 +566,25 @@ _CONF_COLORS = {
 }
 
 
-def _quality_headers() -> list[str]:
+def _quality_headers(lang: str = DEFAULT_LANG) -> list[str]:
     """Column headers for the data-quality table (shared by HTML and PDF)."""
-    return ["Source", "Records", "Share", "No First Date", "Open share", "CFD",
-            "Data as of", "Confidence"]
+    return [t("quality.col.source", lang), t("quality.col.records", lang),
+            t("quality.col.share", lang), t("quality.col.no_first", lang),
+            t("quality.col.open_share", lang), t("quality.col.cfd", lang),
+            t("quality.col.as_of", lang), t("quality.col.confidence", lang)]
 
 
-def _quality_cells(q: SourceQuality, total_records: int) -> list[str]:
-    """Row values for one SourceQuality, in the _quality_headers() order.
+def _quality_cells(q: SourceQuality, total_records: int,
+                   lang: str = DEFAULT_LANG) -> list[str]:
+    """Row values for one SourceQuality, in the _quality_headers(lang) order.
 
     Args:
         q:             The quality record to format.
         total_records: Sum of records across all sources (for the member share).
     """
-    as_of = (f"{q.data_as_of.strftime('%d.%m.%Y')} ({q.age_days}d)"
+    as_of = (t("quality.age", lang,
+               date=q.data_as_of.strftime(t("fmt.date", lang)),
+               days=q.age_days)
              if q.data_as_of else "–")
     share = (q.records / total_records * 100) if total_records else None
     return [
@@ -500,20 +593,23 @@ def _quality_cells(q: SourceQuality, total_records: int) -> list[str]:
         _fmt_pct(share),
         _fmt_pct(q.pct_missing_first),
         _fmt_pct(q.pct_open),
-        "yes" if q.has_cfd else "no",
+        t("cell.yes", lang) if q.has_cfd else t("cell.no", lang),
         as_of,
-        q.confidence,
+        t(_CONF_TEXT_KEYS[q.confidence], lang),
     ]
 
 
-def _coverage_title(qualities: list[SourceQuality], title: str) -> str:
+def _coverage_title(qualities: list[SourceQuality], title: str,
+                    lang: str = DEFAULT_LANG) -> str:
     """Append the coverage ratio (sources that delivered data) to the title."""
     delivered = sum(1 for q in qualities if q.records > 0)
-    return f"{title} — {delivered}/{len(qualities)} sources delivered data"
+    return t("quality.coverage", lang, title=title, delivered=delivered,
+             total=len(qualities))
 
 
 def render_quality_html(
-    qualities: list[SourceQuality], title: str = "Data Quality per Source"
+    qualities: list[SourceQuality], title: str | None = None,
+    lang: str = DEFAULT_LANG,
 ) -> str:
     """
     Render the per-source data-quality table as an HTML fragment.
@@ -532,17 +628,20 @@ def render_quality_html(
         return ""
 
     total_records = sum(q.records for q in qualities)
-    title = _coverage_title(qualities, title)
-    head_html = "".join(f"<th>{_html.escape(h)}</th>" for h in _quality_headers())
+    title = _coverage_title(qualities, title or t("quality.heading", lang), lang)
+    head_html = "".join(f"<th>{_html.escape(h)}</th>"
+                        for h in _quality_headers(lang))
     rows_html = ""
     for q in qualities:
-        cells = [_html.escape(c) for c in _quality_cells(q, total_records)]
+        cells = [_html.escape(c)
+                 for c in _quality_cells(q, total_records, lang)]
         color = _CONF_COLORS.get(q.confidence, "#ffffff")
         body = "".join(f"<td>{c}</td>" for c in cells[:-1])
         rows_html += (f"<tr>{body}"
                       f"<td style='background:{color};font-weight:600'>{cells[-1]}</td></tr>")
 
-    legend = _legend_line(_legend_group("Confidence", _CONF_COLORS))
+    legend = _legend_line(_legend_group(
+        t("quality.col.confidence", lang), _CONF_COLORS, _CONF_TEXT_KEYS, lang))
 
     return (
         f"<h2 class='metric-heading'>{_html.escape(title)}</h2>"
@@ -552,7 +651,8 @@ def render_quality_html(
 
 
 def quality_figure(
-    qualities: list[SourceQuality], title: str = "Data Quality per Source"
+    qualities: list[SourceQuality], title: str | None = None,
+    lang: str = DEFAULT_LANG,
 ):
     """
     Render the data-quality table as a plotly Table figure (for the PDF export).
@@ -569,10 +669,10 @@ def quality_figure(
     """
     import plotly.graph_objects as go
 
-    headers = _quality_headers()
+    headers = _quality_headers(lang)
     total_records = sum(q.records for q in qualities)
-    title = _coverage_title(qualities, title)
-    rows = [_quality_cells(q, total_records) for q in qualities]
+    title = _coverage_title(qualities, title or t("quality.heading", lang), lang)
+    rows = [_quality_cells(q, total_records, lang) for q in qualities]
     columns = [[row[c] for row in rows] for c in range(len(headers))]
     conf_fill = [_CONF_COLORS.get(q.confidence, "#ffffff") for q in qualities]
     fill_colors = [["white"] * len(rows)] * (len(headers) - 1) + [conf_fill]
@@ -585,7 +685,8 @@ def quality_figure(
 
 
 def summary_figure(
-    summaries: list[Summary], title: str = "Management Summary", target_ct: int = 90
+    summaries: list[Summary], title: str | None = None,
+    target_ct: int = 90, lang: str = DEFAULT_LANG,
 ):
     """
     Render the management summary as a plotly Table figure (for the PDF export).
@@ -602,7 +703,7 @@ def summary_figure(
     """
     import plotly.graph_objects as go
 
-    headers = _summary_headers(target_ct)
+    headers = _summary_headers(target_ct, lang)
     rows = [_summary_cells(s) for s in summaries]
     columns = [[row[c] for row in rows] for c in range(len(headers))]
     outliers = _outlier_cells(summaries)
@@ -661,34 +762,39 @@ def _sorted_roam(entries: list[tuple[str, Risk]]) -> list[tuple[str, Risk]]:
         ROAM_ORDER.index(e[1].roam), IMPACT_ORDER.index(e[1].impact), e[0]))
 
 
-def _roam_headers(include_source: bool) -> list[str]:
+def _roam_headers(include_source: bool, lang: str = DEFAULT_LANG) -> list[str]:
     """Column headers for the ROAM board (shared by HTML and PDF)."""
-    head = ["ROAM", "Risk", "Impact", "Owner (team)", "Since"]
-    return (["Solution"] + head) if include_source else head
+    head = [t("roam.col.roam", lang), t("roam.col.risk", lang),
+            t("roam.col.impact", lang), t("col.owner", lang), t("col.since", lang)]
+    return ([t("col.solution", lang)] + head) if include_source else head
 
 
 def _roam_cells(
-    source: str, risk: Risk, include_source: bool, reference: date | None = None
+    source: str, risk: Risk, include_source: bool, reference: date | None = None,
+    lang: str = DEFAULT_LANG,
 ) -> list[str]:
     """Row values for one risk, in the _roam_headers() order."""
     age = _risk_age_days(risk, reference)
-    since = (f"{risk.status_since.strftime('%d.%m.%Y')} ({age}d)"
+    since = (t("quality.age", lang,
+               date=risk.status_since.strftime(t("fmt.date", lang)), days=age)
              if risk.status_since else "–")
-    row = [risk.roam.capitalize(), f"{risk.risk_id}: {risk.title}",
-           risk.impact, risk.owner or "–", since]
+    row = [t(_ROAM_TEXT_KEYS[risk.roam], lang).capitalize(),
+           f"{risk.risk_id}: {risk.title}",
+           t(_IMPACT_TEXT_KEYS[risk.impact], lang), risk.owner or "–", since]
     return ([source] + row) if include_source else row
 
 
 def _roam_title(
-    entries: list[tuple[str, Risk]], title: str, reference: date | None = None
+    entries: list[tuple[str, Risk]], title: str, reference: date | None = None,
+    lang: str = DEFAULT_LANG,
 ) -> str:
     """Append risk counts (total, owned, aging) to the board title."""
     owned = sum(1 for _, r in entries if r.roam == ROAM_OWNED)
     aging = sum(1 for _, r in entries if _risk_is_aging(r, reference))
-    suffix = f"{len(entries)} risks, {owned} owned"
+    out = t("roam.title", lang, title=title, total=len(entries), owned=owned)
     if aging:
-        suffix += f", {aging} owned > {_RISK_AGING_DAYS}d"
-    return f"{title} — {suffix}"
+        out += t("roam.title.aging", lang, aging=aging, days=_RISK_AGING_DAYS)
+    return out
 
 
 def _roam_include_source(entries: list[tuple[str, Risk]]) -> bool:
@@ -698,7 +804,8 @@ def _roam_include_source(entries: list[tuple[str, Risk]]) -> bool:
 
 def render_roam_html(
     entries: list[tuple[str, Risk]],
-    title: str = "ROAM Risk Board",
+    title: str | None = None,
+    lang: str = DEFAULT_LANG,
     reference: date | None = None,
 ) -> str:
     """
@@ -721,16 +828,16 @@ def render_roam_html(
 
     include_source = _roam_include_source(entries)
     ordered = _sorted_roam(entries)
-    title = _roam_title(entries, title, reference)
+    title = _roam_title(entries, title or t("roam.heading", lang), reference, lang)
     aging_seen = False
     head_html = "".join(
-        f"<th>{_html.escape(h)}</th>" for h in _roam_headers(include_source))
+        f"<th>{_html.escape(h)}</th>" for h in _roam_headers(include_source, lang))
 
     offset = 1 if include_source else 0
     rows_html = ""
     for source, risk in ordered:
         cells = [_html.escape(c)
-                 for c in _roam_cells(source, risk, include_source, reference)]
+                 for c in _roam_cells(source, risk, include_source, reference, lang)]
         tds = []
         for col, c in enumerate(cells):
             if col == offset:  # ROAM category
@@ -747,9 +854,11 @@ def render_roam_html(
         rows_html += f"<tr>{''.join(tds)}</tr>"
 
     legend = _legend_line(
-        _legend_group("ROAM", _ROAM_COLORS),
-        _legend_group("Impact", _IMPACT_COLORS),
-        _legend_flag("Since", _AGING_COLOR, "aging — open beyond the review age")
+        _legend_group(t("roam.col.roam", lang), _ROAM_COLORS,
+                      _ROAM_TEXT_KEYS, lang),
+        _legend_group(t("roam.col.impact", lang), _IMPACT_COLORS,
+                      _IMPACT_TEXT_KEYS, lang),
+        _legend_flag(t("col.since", lang), _AGING_COLOR, t("legend.aging", lang))
         if aging_seen else "",
     )
 
@@ -762,7 +871,8 @@ def render_roam_html(
 
 def roam_figure(
     entries: list[tuple[str, Risk]],
-    title: str = "ROAM Risk Board",
+    title: str | None = None,
+    lang: str = DEFAULT_LANG,
     reference: date | None = None,
 ):
     """
@@ -783,9 +893,9 @@ def roam_figure(
 
     include_source = _roam_include_source(entries)
     ordered = _sorted_roam(entries)
-    headers = _roam_headers(include_source)
-    title = _roam_title(entries, title, reference)
-    rows = [_roam_cells(source, risk, include_source, reference)
+    headers = _roam_headers(include_source, lang)
+    title = _roam_title(entries, title or t("roam.heading", lang), reference, lang)
+    rows = [_roam_cells(source, risk, include_source, reference, lang)
             for source, risk in ordered]
     columns = [[row[c] for row in rows] for c in range(len(headers))]
 
@@ -859,34 +969,38 @@ def _sorted_runway(
         RUNWAY_STATUS_ORDER.index(e[1].status), e[0], e[1].item_id))
 
 
-def _nfr_headers(include_source: bool) -> list[str]:
+def _nfr_headers(include_source: bool, lang: str = DEFAULT_LANG) -> list[str]:
     """Column headers for the NFR table (shared by HTML and PDF)."""
-    head = ["NFR", "Target", "Actual", "Status", "Owner (team)"]
-    return (["Solution"] + head) if include_source else head
+    head = [t("nfr.col.nfr", lang), t("nfr.col.target", lang),
+            t("nfr.col.actual", lang), t("col.status", lang), t("col.owner", lang)]
+    return ([t("col.solution", lang)] + head) if include_source else head
 
 
-def _nfr_cells(source: str, nfr: Nfr, include_source: bool) -> list[str]:
+def _nfr_cells(source: str, nfr: Nfr, include_source: bool,
+               lang: str = DEFAULT_LANG) -> list[str]:
     """Row values for one NFR, in the _nfr_headers() order."""
     row = [f"{nfr.nfr_id}: {nfr.title}", nfr.target, nfr.actual or "–",
-           _STATUS_LABELS[nfr.status], nfr.owner or "–"]
+           t(_NFR_TEXT_KEYS[nfr.status], lang), nfr.owner or "–"]
     return ([source] + row) if include_source else row
 
 
-def _runway_headers(include_source: bool) -> list[str]:
+def _runway_headers(include_source: bool, lang: str = DEFAULT_LANG) -> list[str]:
     """Column headers for the runway table (shared by HTML and PDF)."""
-    head = ["Runway element", "Status", "Needed by", "Owner (team)"]
-    return (["Solution"] + head) if include_source else head
+    head = [t("runway.col.element", lang), t("col.status", lang),
+            t("runway.col.needed_by", lang), t("col.owner", lang)]
+    return ([t("col.solution", lang)] + head) if include_source else head
 
 
 def _runway_cells(
     source: str, item: RunwayItem, include_source: bool,
-    reference: date | None = None,
+    reference: date | None = None, lang: str = DEFAULT_LANG,
 ) -> list[str]:
     """Row values for one runway element, in the _runway_headers() order."""
-    needed = item.needed_by.strftime("%d.%m.%Y") if item.needed_by else "–"
+    needed = (item.needed_by.strftime(t("fmt.date", lang))
+              if item.needed_by else "–")
     if _runway_is_overdue(item, reference):
-        needed += " (overdue)"
-    row = [f"{item.item_id}: {item.title}", _STATUS_LABELS[item.status],
+        needed += t("cell.overdue", lang)
+    row = [f"{item.item_id}: {item.title}", t(_RUNWAY_TEXT_KEYS[item.status], lang),
            needed, item.owner or "–"]
     return ([source] + row) if include_source else row
 
@@ -896,18 +1010,21 @@ def _nfr_title(
     runway: list[tuple[str, RunwayItem]],
     title: str,
     reference: date | None = None,
+    lang: str = DEFAULT_LANG,
 ) -> str:
     """Append NFR/runway counts (violated, at risk, gaps, overdue) to the title."""
     parts = []
     if nfrs:
         violated = sum(1 for _, n in nfrs if n.status == "violated")
         at_risk = sum(1 for _, n in nfrs if n.status == "at_risk")
-        parts.append(f"{len(nfrs)} NFRs ({violated} violated, {at_risk} at risk)")
+        parts.append(t("nfr.seg", lang, total=len(nfrs), violated=violated,
+                       at_risk=at_risk))
     if runway:
         gaps = sum(1 for _, r in runway if r.status == "gap")
         overdue = sum(1 for _, r in runway if _runway_is_overdue(r, reference))
-        seg = f"{len(runway)} runway elements ({gaps} gaps"
-        seg += f", {overdue} overdue)" if overdue else ")"
+        seg = t("runway.seg", lang, total=len(runway), gaps=gaps)
+        seg += (t("runway.seg.overdue", lang, overdue=overdue)
+                if overdue else ")")
         parts.append(seg)
     return f"{title} — " + " · ".join(parts)
 
@@ -922,7 +1039,8 @@ def _nfr_include_source(
 def render_nfr_html(
     nfrs: list[tuple[str, Nfr]],
     runway: list[tuple[str, RunwayItem]],
-    title: str = "NFR & Architecture Runway",
+    title: str | None = None,
+    lang: str = DEFAULT_LANG,
     reference: date | None = None,
 ) -> str:
     """
@@ -947,16 +1065,16 @@ def render_nfr_html(
 
     include_source = _nfr_include_source(nfrs, runway)
     offset = 1 if include_source else 0
-    heading = _nfr_title(nfrs, runway, title, reference)
+    heading = _nfr_title(nfrs, runway, title or t("nfr.heading", lang), reference, lang)
     html = f"<h2 class='metric-heading'>{_html.escape(heading)}</h2>"
 
     if nfrs:
         head = "".join(f"<th>{_html.escape(h)}</th>"
-                       for h in _nfr_headers(include_source))
+                       for h in _nfr_headers(include_source, lang))
         rows = ""
         for source, nfr in _sorted_nfrs(nfrs):
             cells = [_html.escape(c)
-                     for c in _nfr_cells(source, nfr, include_source)]
+                     for c in _nfr_cells(source, nfr, include_source, lang)]
             tds = []
             for col, c in enumerate(cells):
                 if col == offset + 3:  # status
@@ -966,17 +1084,18 @@ def render_nfr_html(
                     tds.append(f"<td>{c}</td>")
             rows += f"<tr>{''.join(tds)}</tr>"
         html += (f"<table class='sr-summary'><tr>{head}</tr>{rows}</table>"
-                 + _legend_line(_legend_group("Status", _NFR_STATUS_COLORS,
-                                              _STATUS_LABELS)))
+                 + _legend_line(_legend_group(
+                     t("col.status", lang), _NFR_STATUS_COLORS,
+                     _NFR_TEXT_KEYS, lang)))
 
     if runway:
         runway_overdue = False
         head = "".join(f"<th>{_html.escape(h)}</th>"
-                       for h in _runway_headers(include_source))
+                       for h in _runway_headers(include_source, lang))
         rows = ""
         for source, item in _sorted_runway(runway):
             cells = [_html.escape(c)
-                     for c in _runway_cells(source, item, include_source, reference)]
+                     for c in _runway_cells(source, item, include_source, reference, lang)]
             tds = []
             for col, c in enumerate(cells):
                 if col == offset + 1:  # status
@@ -990,9 +1109,10 @@ def render_nfr_html(
             rows += f"<tr>{''.join(tds)}</tr>"
         html += (f"<table class='sr-summary'><tr>{head}</tr>{rows}</table>"
                  + _legend_line(
-                     _legend_group("Status", _RUNWAY_COLORS, _STATUS_LABELS),
-                     _legend_flag("Needed by", _OVERDUE_COLOR,
-                                  "overdue — the date has passed")
+                     _legend_group(t("col.status", lang), _RUNWAY_COLORS,
+                                   _RUNWAY_TEXT_KEYS, lang),
+                     _legend_flag(t("runway.col.needed_by", lang),
+                                  _OVERDUE_COLOR, t("legend.overdue", lang))
                      if runway_overdue else ""))
 
     return html
@@ -1001,7 +1121,8 @@ def render_nfr_html(
 def nfr_figure(
     nfrs: list[tuple[str, Nfr]],
     runway: list[tuple[str, RunwayItem]],
-    title: str = "NFR & Architecture Runway",
+    title: str | None = None,
+    lang: str = DEFAULT_LANG,
     reference: date | None = None,
 ):
     """
@@ -1028,8 +1149,8 @@ def nfr_figure(
 
     if nfrs:
         ordered_n = _sorted_nfrs(nfrs)
-        headers = _nfr_headers(include_source)
-        rows = [_nfr_cells(source, nfr, include_source)
+        headers = _nfr_headers(include_source, lang)
+        rows = [_nfr_cells(source, nfr, include_source, lang)
                 for source, nfr in ordered_n]
         fills = [["white"] * len(rows) for _ in headers]
         fills[offset + 3] = [_NFR_STATUS_COLORS.get(n.status, "#ffffff")
@@ -1038,8 +1159,8 @@ def nfr_figure(
 
     if runway:
         ordered_r = _sorted_runway(runway)
-        headers = _runway_headers(include_source)
-        rows = [_runway_cells(source, item, include_source, reference)
+        headers = _runway_headers(include_source, lang)
+        rows = [_runway_cells(source, item, include_source, reference, lang)
                 for source, item in ordered_r]
         fills = [["white"] * len(rows) for _ in headers]
         fills[offset + 1] = [_RUNWAY_COLORS.get(r.status, "#ffffff")
@@ -1057,7 +1178,7 @@ def nfr_figure(
             header=dict(values=headers, fill_color="#f2f2f2", align="left"),
             cells=dict(values=columns, align="left", fill_color=fills),
         ), row=i, col=1)
-    fig.update_layout(title=_nfr_title(nfrs, runway, title, reference),
+    fig.update_layout(title=_nfr_title(nfrs, runway, title or t("nfr.heading", lang), reference, lang),
                       title_font_size=14, margin=dict(t=40, b=10))
     return fig
 
@@ -1093,40 +1214,47 @@ def _sorted_capabilities(
         HEALTH_ORDER.index(e[1].health), e[0], e[1].cap_id))
 
 
-def _capability_headers(include_source: bool) -> list[str]:
+def _capability_headers(include_source: bool,
+                        lang: str = DEFAULT_LANG) -> list[str]:
     """Column headers for the capability table (shared by HTML and PDF)."""
-    head = ["Capability", "Health", "Contributing ARTs", "Owner (team)",
-            "Assessed"]
-    return (["Solution"] + head) if include_source else head
+    head = [t("cap.col.capability", lang), t("cap.col.health", lang),
+            t("cap.col.arts", lang), t("col.owner", lang),
+            t("cap.col.assessed", lang)]
+    return ([t("col.solution", lang)] + head) if include_source else head
 
 
 def _capability_cells(
-    source: str, cap: Capability, include_source: bool
+    source: str, cap: Capability, include_source: bool,
+    lang: str = DEFAULT_LANG,
 ) -> list[str]:
     """Row values for one capability, in the _capability_headers() order."""
-    assessed = cap.assessed_on.strftime("%d.%m.%Y") if cap.assessed_on else "–"
-    row = [f"{cap.cap_id}: {cap.title}", _HEALTH_LABELS[cap.health],
+    assessed = (cap.assessed_on.strftime(t("fmt.date", lang))
+                if cap.assessed_on else "–")
+    row = [f"{cap.cap_id}: {cap.title}", t(_HEALTH_TEXT_KEYS[cap.health], lang),
            ", ".join(cap.arts) if cap.arts else "–",
            cap.owner or "–", assessed]
     return ([source] + row) if include_source else row
 
 
 def _capability_title(
-    entries: list[tuple[str, Capability]], title: str
+    entries: list[tuple[str, Capability]], title: str,
+    lang: str = DEFAULT_LANG,
 ) -> str:
     """Append capability counts (critical, at risk, uncovered) to the title."""
     critical = sum(1 for _, c in entries if c.health == "critical")
     at_risk = sum(1 for _, c in entries if c.health == "at_risk")
-    suffix = f"{len(entries)} capabilities ({critical} critical, {at_risk} at risk)"
+    out = t("cap.title", lang, title=title, total=len(entries),
+            critical=critical, at_risk=at_risk)
     uncovered = sum(1 for _, c in entries if not c.arts)
     if uncovered:
-        suffix += f", {uncovered} uncovered"
-    return f"{title} — {suffix}"
+        out += t("cap.title.uncovered", lang, uncovered=uncovered)
+    return out
 
 
 def render_capabilities_html(
     entries: list[tuple[str, Capability]],
-    title: str = "Capability Map & Health",
+    title: str | None = None,
+    lang: str = DEFAULT_LANG,
 ) -> str:
     """
     Render the capability map as an HTML fragment.
@@ -1148,16 +1276,16 @@ def render_capabilities_html(
 
     include_source = _capability_include_source(entries)
     offset = 1 if include_source else 0
-    heading = _capability_title(entries, title)
+    heading = _capability_title(entries, title or t("cap.heading", lang), lang)
     uncovered_seen = False
     head_html = "".join(
         f"<th>{_html.escape(h)}</th>"
-        for h in _capability_headers(include_source))
+        for h in _capability_headers(include_source, lang))
 
     rows_html = ""
     for source, cap in _sorted_capabilities(entries):
         cells = [_html.escape(c)
-                 for c in _capability_cells(source, cap, include_source)]
+                 for c in _capability_cells(source, cap, include_source, lang)]
         tds = []
         for col, c in enumerate(cells):
             if col == offset + 1:  # health
@@ -1171,8 +1299,10 @@ def render_capabilities_html(
         rows_html += f"<tr>{''.join(tds)}</tr>"
 
     legend = _legend_line(
-        _legend_group("Health", _HEALTH_COLORS, _HEALTH_LABELS),
-        _legend_flag("ARTs", _UNCOVERED_COLOR, "uncovered — no ART delivers it")
+        _legend_group(t("cap.col.health", lang), _HEALTH_COLORS,
+                      _HEALTH_TEXT_KEYS, lang),
+        _legend_flag(t("cap.col.arts", lang), _UNCOVERED_COLOR,
+                     t("legend.uncovered", lang))
         if uncovered_seen else "",
     )
 
@@ -1190,7 +1320,8 @@ def _capability_include_source(entries: list[tuple[str, Capability]]) -> bool:
 
 def capability_figure(
     entries: list[tuple[str, Capability]],
-    title: str = "Capability Map & Health",
+    title: str | None = None,
+    lang: str = DEFAULT_LANG,
 ):
     """
     Render the capability map as a plotly Table figure (for the PDF export).
@@ -1210,8 +1341,8 @@ def capability_figure(
     include_source = _capability_include_source(entries)
     offset = 1 if include_source else 0
     ordered = _sorted_capabilities(entries)
-    headers = _capability_headers(include_source)
-    rows = [_capability_cells(source, cap, include_source)
+    headers = _capability_headers(include_source, lang)
+    rows = [_capability_cells(source, cap, include_source, lang)
             for source, cap in ordered]
     columns = [[row[c] for row in rows] for c in range(len(headers))]
 
@@ -1224,7 +1355,7 @@ def capability_figure(
         header=dict(values=headers, fill_color="#f2f2f2", align="left"),
         cells=dict(values=columns, align="left", fill_color=fill_colors),
     ))
-    fig.update_layout(title=_capability_title(entries, title),
+    fig.update_layout(title=_capability_title(entries, title or t("cap.heading", lang), lang),
                       title_font_size=14, margin=dict(t=40, b=10))
     return fig
 
@@ -1265,36 +1396,41 @@ def _sorted_dependencies(
         DEP_STATUS_ORDER.index(e[1].status), e[0], e[1].dep_id))
 
 
-def _dep_headers(include_source: bool) -> list[str]:
+def _dep_headers(include_source: bool, lang: str = DEFAULT_LANG) -> list[str]:
     """Column headers for the dependency table (shared by HTML and PDF)."""
-    head = ["Dependency", "From (needs)", "To (delivers)", "Status", "Due"]
-    return (["Solution"] + head) if include_source else head
+    head = [t("dep.col.dependency", lang), t("dep.col.from", lang),
+            t("dep.col.to", lang), t("col.status", lang), t("dep.col.due", lang)]
+    return ([t("col.solution", lang)] + head) if include_source else head
 
 
 def _dep_cells(
     source: str, dep: Dependency, include_source: bool,
-    reference: date | None = None,
+    reference: date | None = None, lang: str = DEFAULT_LANG,
 ) -> list[str]:
     """Row values for one dependency, in the _dep_headers() order."""
-    due = dep.due.strftime("%d.%m.%Y") if dep.due else "–"
+    due = dep.due.strftime(t("fmt.date", lang)) if dep.due else "–"
     if _dep_is_overdue(dep, reference):
-        due += " (overdue)"
+        due += t("cell.overdue", lang)
     row = [f"{dep.dep_id}: {dep.title}", dep.from_art, dep.to_art,
-           _DEP_STATUS_LABELS[dep.status], due]
+           t("dep." + dep.status if dep.status in ("blocked", "on_track",
+                                                    "done")
+             else "status.at_risk", lang), due]
     return ([source] + row) if include_source else row
 
 
 def _dep_title(
     entries: list[tuple[str, Dependency]], title: str,
     reference: date | None = None,
+    lang: str = DEFAULT_LANG,
 ) -> str:
     """Append dependency counts (blocked, at risk, overdue) to the title."""
     blocked = sum(1 for _, d in entries if d.status == DEP_BLOCKED)
     at_risk = sum(1 for _, d in entries if d.status == "at_risk")
-    suffix = f"{len(entries)} dependencies ({blocked} blocked, {at_risk} at risk"
+    out = t("dep.title", lang, title=title, total=len(entries),
+            blocked=blocked, at_risk=at_risk)
     overdue = sum(1 for _, d in entries if _dep_is_overdue(d, reference))
-    suffix += f", {overdue} overdue)" if overdue else ")"
-    return f"{title} — {suffix}"
+    out += t("dep.title.overdue", lang, overdue=overdue) if overdue else ")"
+    return out
 
 
 def _dep_include_source(entries: list[tuple[str, Dependency]]) -> bool:
@@ -1330,7 +1466,8 @@ def _heatmap_cell_color(deps: list[Dependency]) -> str:
 
 def render_dependencies_html(
     entries: list[tuple[str, Dependency]],
-    title: str = "Dependency & Integration Heatmap",
+    title: str | None = None,
+    lang: str = DEFAULT_LANG,
     reference: date | None = None,
 ) -> str:
     """
@@ -1355,18 +1492,18 @@ def render_dependencies_html(
 
     include_source = _dep_include_source(entries)
     offset = 1 if include_source else 0
-    heading = _dep_title(entries, title, reference)
+    heading = _dep_title(entries, title or t("dep.heading", lang), reference, lang)
     html = f"<h2 class='metric-heading'>{_html.escape(heading)}</h2>"
 
     froms, tos, cells = _heatmap_grid(entries)
     if cells:
-        head = "<th>needs \\ delivers</th>" + "".join(
-            f"<th>{_html.escape(t)}</th>" for t in tos)
+        head = f"<th>{_html.escape(t('dep.grid.header', lang))}</th>" + "".join(
+            f"<th>{_html.escape(to)}</th>" for to in tos)
         rows = ""
         for f in froms:
             grid_tds = f"<td style='font-weight:600'>{_html.escape(f)}</td>"
-            for t in tos:
-                deps = cells.get((f, t))
+            for to in tos:
+                deps = cells.get((f, to))
                 if deps:
                     color = _heatmap_cell_color(deps)
                     grid_tds += (f"<td style='background:{color};text-align:center;"
@@ -1376,16 +1513,16 @@ def render_dependencies_html(
             rows += f"<tr>{grid_tds}</tr>"
         html += (f"<table class='sr-summary'><tr>{head}</tr>{rows}</table>"
                  + _legend_line(_legend_group(
-                     "Cell colour = worst status of that pair",
-                     _DEP_STATUS_COLORS, _DEP_STATUS_LABELS)))
+                     t("legend.worst_pair", lang),
+                     _DEP_STATUS_COLORS, _DEP_TEXT_KEYS, lang)))
 
     dep_overdue = False
     head = "".join(f"<th>{_html.escape(h)}</th>"
-                   for h in _dep_headers(include_source))
+                   for h in _dep_headers(include_source, lang))
     rows = ""
     for source, dep in _sorted_dependencies(entries):
         cells_row = [_html.escape(c)
-                     for c in _dep_cells(source, dep, include_source, reference)]
+                     for c in _dep_cells(source, dep, include_source, reference, lang)]
         tds = []
         for col, c in enumerate(cells_row):
             if col == offset + 3:  # status
@@ -1399,9 +1536,10 @@ def render_dependencies_html(
         rows += f"<tr>{''.join(tds)}</tr>"
     html += (f"<table class='sr-summary'><tr>{head}</tr>{rows}</table>"
              + _legend_line(
-                 _legend_group("Status", _DEP_STATUS_COLORS, _DEP_STATUS_LABELS),
-                 _legend_flag("Needed by", _OVERDUE_COLOR,
-                              "overdue — the date has passed")
+                 _legend_group(t("col.status", lang), _DEP_STATUS_COLORS,
+                               _DEP_TEXT_KEYS, lang),
+                 _legend_flag(t("dep.col.due", lang), _OVERDUE_COLOR,
+                              t("legend.overdue", lang))
                  if dep_overdue else ""))
 
     return html
@@ -1409,7 +1547,8 @@ def render_dependencies_html(
 
 def dependency_figure(
     entries: list[tuple[str, Dependency]],
-    title: str = "Dependency & Integration Heatmap",
+    title: str | None = None,
+    lang: str = DEFAULT_LANG,
     reference: date | None = None,
 ):
     """
@@ -1435,13 +1574,13 @@ def dependency_figure(
 
     froms, tos, cells = _heatmap_grid(entries)
     if cells:
-        headers = ["needs \\ delivers"] + tos
+        headers = [t("dep.grid.header", lang)] + tos
         rows = []
         fills: list[list[str]] = [["white"] * len(froms) for _ in headers]
         for r, f in enumerate(froms):
             row = [f]
-            for c, t in enumerate(tos, start=1):
-                deps = cells.get((f, t))
+            for c, to in enumerate(tos, start=1):
+                deps = cells.get((f, to))
                 row.append(str(len(deps)) if deps else "–")
                 if deps:
                     fills[c][r] = _heatmap_cell_color(deps)
@@ -1449,8 +1588,8 @@ def dependency_figure(
         blocks.append((headers, rows, fills))
 
     ordered = _sorted_dependencies(entries)
-    headers = _dep_headers(include_source)
-    rows = [_dep_cells(source, dep, include_source, reference)
+    headers = _dep_headers(include_source, lang)
+    rows = [_dep_cells(source, dep, include_source, reference, lang)
             for source, dep in ordered]
     fills = [["white"] * len(rows) for _ in headers]
     fills[offset + 3] = [_DEP_STATUS_COLORS.get(d.status, "#ffffff")
@@ -1468,7 +1607,7 @@ def dependency_figure(
             header=dict(values=headers, fill_color="#f2f2f2", align="left"),
             cells=dict(values=columns, align="left", fill_color=fills),
         ), row=i, col=1)
-    fig.update_layout(title=_dep_title(entries, title, reference),
+    fig.update_layout(title=_dep_title(entries, title or t("dep.heading", lang), reference, lang),
                       title_font_size=14, margin=dict(t=40, b=10))
     return fig
 
@@ -1516,40 +1655,46 @@ def _sorted_log_entries(
         _LOG_STATUS_RANK.get(e[1].status, 9), e[0], e[1].entry_id))
 
 
-def _log_headers(include_source: bool) -> list[str]:
+def _log_headers(include_source: bool, lang: str = DEFAULT_LANG) -> list[str]:
     """Column headers for the decision-log table (shared by HTML and PDF)."""
-    head = ["Type", "Entry", "Status", "Owner (team)", "Logged", "Review by"]
-    return (["Solution"] + head) if include_source else head
+    head = [t("log.col.type", lang), t("log.col.entry", lang),
+            t("col.status", lang), t("col.owner", lang),
+            t("log.col.logged", lang), t("log.col.review_by", lang)]
+    return ([t("col.solution", lang)] + head) if include_source else head
 
 
 def _log_cells(
     source: str, entry: LogEntry, include_source: bool,
-    reference: date | None = None,
+    reference: date | None = None, lang: str = DEFAULT_LANG,
 ) -> list[str]:
     """Row values for one log entry, in the _log_headers() order."""
     text = f"{entry.entry_id}: {entry.title}"
     if entry.supersedes:
-        text += f" (supersedes {entry.supersedes})"
-    logged = entry.logged_on.strftime("%d.%m.%Y") if entry.logged_on else "–"
-    review = entry.review_by.strftime("%d.%m.%Y") if entry.review_by else "–"
+        text += t("cell.supersedes", lang, id=entry.supersedes)
+    fmt = t("fmt.date", lang)
+    logged = entry.logged_on.strftime(fmt) if entry.logged_on else "–"
+    review = entry.review_by.strftime(fmt) if entry.review_by else "–"
     if _entry_review_due(entry, reference):
-        review += " (review due)"
-    row = [entry.kind, text, entry.status, entry.owner or "–", logged, review]
+        review += t("cell.review_due", lang)
+    row = [t(_KIND_TEXT_KEYS[entry.kind], lang), text, t(_LOG_TEXT_KEYS[entry.status], lang),
+           entry.owner or "–", logged, review]
     return ([source] + row) if include_source else row
 
 
 def _log_title(
     entries: list[tuple[str, LogEntry]], title: str,
     reference: date | None = None,
+    lang: str = DEFAULT_LANG,
 ) -> str:
     """Append entry counts (decisions, assumptions, due for review)."""
     decisions = sum(1 for _, e in entries if e.kind == KIND_DECISION)
     assumptions = sum(1 for _, e in entries if e.kind == KIND_ASSUMPTION)
-    suffix = f"{decisions} decisions, {assumptions} assumptions"
+    out = t("log.title", lang, title=title, decisions=decisions,
+            assumptions=assumptions)
     due = sum(1 for _, e in entries if _entry_review_due(e, reference))
     if due:
-        suffix += f" ({due} due for review)"
-    return f"{title} — {suffix}"
+        out += t("log.title.due", lang, due=due)
+    return out
 
 
 def _log_include_source(entries: list[tuple[str, LogEntry]]) -> bool:
@@ -1559,7 +1704,8 @@ def _log_include_source(entries: list[tuple[str, LogEntry]]) -> bool:
 
 def render_decisions_html(
     entries: list[tuple[str, LogEntry]],
-    title: str = "Decision & Assumption Log",
+    title: str | None = None,
+    lang: str = DEFAULT_LANG,
     reference: date | None = None,
 ) -> str:
     """
@@ -1584,15 +1730,15 @@ def render_decisions_html(
 
     include_source = _log_include_source(entries)
     offset = 1 if include_source else 0
-    heading = _log_title(entries, title, reference)
+    heading = _log_title(entries, title or t("log.heading", lang), reference, lang)
     review_due = False
     head_html = "".join(f"<th>{_html.escape(h)}</th>"
-                        for h in _log_headers(include_source))
+                        for h in _log_headers(include_source, lang))
 
     rows_html = ""
     for source, entry in _sorted_log_entries(entries, reference):
         cells = [_html.escape(c)
-                 for c in _log_cells(source, entry, include_source, reference)]
+                 for c in _log_cells(source, entry, include_source, reference, lang)]
         tds = []
         for col, c in enumerate(cells):
             if col == offset + 2:  # status
@@ -1606,8 +1752,10 @@ def render_decisions_html(
         rows_html += f"<tr>{''.join(tds)}</tr>"
 
     legend = _legend_line(
-        _legend_group("Status", _LOG_STATUS_COLORS),
-        _legend_flag("Review by", _OVERDUE_COLOR, "review is due")
+        _legend_group(t("col.status", lang), _LOG_STATUS_COLORS,
+                      _LOG_TEXT_KEYS, lang),
+        _legend_flag(t("log.col.review_by", lang), _OVERDUE_COLOR,
+                     t("legend.review_due", lang))
         if review_due else "",
     )
 
@@ -1620,7 +1768,8 @@ def render_decisions_html(
 
 def decisions_figure(
     entries: list[tuple[str, LogEntry]],
-    title: str = "Decision & Assumption Log",
+    title: str | None = None,
+    lang: str = DEFAULT_LANG,
     reference: date | None = None,
 ):
     """
@@ -1642,8 +1791,8 @@ def decisions_figure(
     include_source = _log_include_source(entries)
     offset = 1 if include_source else 0
     ordered = _sorted_log_entries(entries, reference)
-    headers = _log_headers(include_source)
-    rows = [_log_cells(source, entry, include_source, reference)
+    headers = _log_headers(include_source, lang)
+    rows = [_log_cells(source, entry, include_source, reference, lang)
             for source, entry in ordered]
     columns = [[row[c] for row in rows] for c in range(len(headers))]
 
@@ -1656,7 +1805,7 @@ def decisions_figure(
         header=dict(values=headers, fill_color="#f2f2f2", align="left"),
         cells=dict(values=columns, align="left", fill_color=fill_colors),
     ))
-    fig.update_layout(title=_log_title(entries, title, reference),
+    fig.update_layout(title=_log_title(entries, title or t("log.heading", lang), reference, lang),
                       title_font_size=14, margin=dict(t=40, b=10))
     return fig
 
@@ -1695,18 +1844,21 @@ def _slo_sorted(entries: list[tuple[str, SloRecord]]) -> list[tuple[str, SloReco
         SLO_STATUS_ORDER.index(slo_status(e[1])), e[0], e[1].service))
 
 
-def _slo_title(entries: list[tuple[str, SloRecord]], title: str) -> str:
+def _slo_title(entries: list[tuple[str, SloRecord]], title: str,
+               lang: str = DEFAULT_LANG) -> str:
     statuses = [slo_status(r) for _, r in entries]
     breached = statuses.count("breached")
     at_risk = statuses.count("at_risk")
-    return (f"{title} — {len(entries)} SLOs "
-            f"({breached} breached, {at_risk} at risk)")
+    return t("slo.title", lang, title=title, total=len(entries),
+             breached=breached, at_risk=at_risk)
 
 
-def _slo_headers(include_source: bool) -> list[str]:
-    head = ["Service", "SLO", "Target %", "SLI %", "Error budget %",
-            "Window", "Data source", "Status"]
-    return (["Solution"] + head) if include_source else head
+def _slo_headers(include_source: bool, lang: str = DEFAULT_LANG) -> list[str]:
+    head = [t("slo.col.service", lang), t("slo.col.slo", lang),
+            t("slo.col.target", lang), t("slo.col.sli", lang),
+            t("slo.col.budget", lang), t("col.window", lang),
+            t("col.source", lang), t("col.status", lang)]
+    return ([t("col.solution", lang)] + head) if include_source else head
 
 
 def _slo_cells(source: str, r: SloRecord, include_source: bool) -> list[str]:
@@ -1718,7 +1870,8 @@ def _slo_cells(source: str, r: SloRecord, include_source: bool) -> list[str]:
 
 def render_slo_html(
     entries: list[tuple[str, SloRecord]],
-    title: str = "Service Levels & Error Budgets",
+    title: str | None = None,
+    lang: str = DEFAULT_LANG,
 ) -> str:
     """
     Render the SLO register as an HTML fragment (C1).
@@ -1732,7 +1885,7 @@ def render_slo_html(
     include_source = _log_include_source(entries)  # type: ignore[arg-type]
     offset = 1 if include_source else 0
     head = "".join(f"<th>{_html.escape(h)}</th>"
-                   for h in _slo_headers(include_source))
+                   for h in _slo_headers(include_source, lang))
     rows = ""
     for source, record in _slo_sorted(entries):
         status = slo_status(record)
@@ -1747,7 +1900,7 @@ def render_slo_html(
             else:
                 tds.append(f"<td>{c}</td>")
         rows += f"<tr>{''.join(tds)}</tr>"
-    heading = _slo_title(entries, title)
+    heading = _slo_title(entries, title or t("slo.heading", lang), lang)
     legend = _legend_line(_legend_group("Status", _SLO_STATUS_COLORS))
     return (f"<h2 class='metric-heading'>{_html.escape(heading)}</h2>"
             f"<table class='sr-summary'><tr>{head}</tr>{rows}</table>"
@@ -1756,7 +1909,8 @@ def render_slo_html(
 
 def slo_figure(
     entries: list[tuple[str, SloRecord]],
-    title: str = "Service Levels & Error Budgets",
+    title: str | None = None,
+    lang: str = DEFAULT_LANG,
 ):
     """Render the SLO register as a plotly Table figure (PDF export)."""
     import plotly.graph_objects as go
@@ -1764,7 +1918,7 @@ def slo_figure(
     include_source = _log_include_source(entries)  # type: ignore[arg-type]
     offset = 1 if include_source else 0
     ordered = _slo_sorted(entries)
-    headers = _slo_headers(include_source)
+    headers = _slo_headers(include_source, lang)
     rows = [_slo_cells(source, r, include_source) for source, r in ordered]
     columns = [[row[c] for row in rows] for c in range(len(headers))]
     fills: list[list[str]] = [["white"] * len(rows) for _ in headers]
@@ -1774,22 +1928,26 @@ def slo_figure(
         header=dict(values=headers, fill_color="#f2f2f2", align="left"),
         cells=dict(values=columns, align="left", fill_color=fills),
     ))
-    fig.update_layout(title=_slo_title(entries, title),
+    fig.update_layout(title=_slo_title(entries, title or t("slo.heading", lang), lang),
                       title_font_size=14, margin=dict(t=40, b=10))
     return fig
 
 
-def _dora_title(entries: list[tuple[str, DoraRecord]], title: str) -> str:
+def _dora_title(entries: list[tuple[str, DoraRecord]], title: str,
+                lang: str = DEFAULT_LANG) -> str:
     tiers = [unit_tier(r) for _, r in entries]
     known = [t for t in tiers if t != TIER_UNKNOWN]
     worst = min(known, key=TIER_ORDER.index) if known else TIER_UNKNOWN
-    return f"{title} — {len(entries)} units (worst tier: {worst})"
+    return t("dora.title", lang, title=title, total=len(entries),
+             worst=t(_TIER_TEXT_KEYS[worst], lang))
 
 
-def _dora_headers(include_source: bool) -> list[str]:
-    head = ["Unit"] + [label for label, _f in DORA_TIER_FUNCS] + [
-        "Overall", "Window", "Data source"]
-    return (["Solution"] + head) if include_source else head
+def _dora_headers(include_source: bool, lang: str = DEFAULT_LANG) -> list[str]:
+    # Die vier DORA-Kennzahlnamen sind stehende Fachbegriffe und bleiben,
+    # wie build_reports sie fuehrt — uebersetzt werden die Spalten drumherum.
+    head = [t("col.unit", lang)] + [label for label, _f in DORA_TIER_FUNCS] + [
+        t("dora.col.overall", lang), t("col.window", lang), t("col.source", lang)]
+    return ([t("col.solution", lang)] + head) if include_source else head
 
 
 def _dora_values(r: DoraRecord) -> list[str]:
@@ -1806,7 +1964,8 @@ def _dora_sorted(entries: list[tuple[str, DoraRecord]]) -> list[tuple[str, DoraR
 def render_dora_html(
     dora_entries: list[tuple[str, DoraRecord]],
     quality_entries: list[tuple[str, QualityRecord]],
-    title: str = "Delivery Performance (DORA) & Code Quality",
+    title: str | None = None,
+    lang: str = DEFAULT_LANG,
 ) -> str:
     """
     Render DORA and quality registers as an HTML fragment (C2).
@@ -1821,7 +1980,7 @@ def render_dora_html(
     if dora_entries:
         include_source = _log_include_source(dora_entries)  # type: ignore[arg-type]
         head = "".join(f"<th>{_html.escape(h)}</th>"
-                       for h in _dora_headers(include_source))
+                       for h in _dora_headers(include_source, lang))
         rows = ""
         for source, r in _dora_sorted(dora_entries):
             tiers = [func(r) for _label, func in DORA_TIER_FUNCS]
@@ -1838,10 +1997,12 @@ def render_dora_html(
             tds.append(f"<td>{_html.escape(r.window)}</td>")
             tds.append(f"<td>{_html.escape(r.source or '–')}</td>")
             rows += f"<tr>{''.join(tds)}</tr>"
-        heading = _dora_title(dora_entries, title)
+        heading = _dora_title(dora_entries, title or t("dora.heading", lang), lang)
         html += (f"<h2 class='metric-heading'>{_html.escape(heading)}</h2>"
                  f"<table class='sr-summary'><tr>{head}</tr>{rows}</table>"
-                 + _legend_line(_legend_group("Tier", _TIER_COLORS)))
+                 + _legend_line(_legend_group(
+                     t("legend.tier", lang), _TIER_COLORS,
+                     _TIER_TEXT_KEYS, lang)))
 
     if quality_entries:
         include_source = _log_include_source(quality_entries)  # type: ignore[arg-type]
@@ -1871,10 +2032,10 @@ def render_dora_html(
         html += (f"<h3 class='metric-heading'>Code quality</h3>"
                  f"<table class='sr-summary'><tr>{head}</tr>{rows}</table>"
                  + _legend_line(
-                     _legend_group("Rating", _RATING_COLORS),
-                     _legend_flag("Critical issues",
+                     _legend_group(t("legend.rating", lang), _RATING_COLORS),
+                     _legend_flag(t("quality.col.critical", lang),
                                   _SLO_STATUS_COLORS["breached"],
-                                  "at least one critical issue")
+                                  t("legend.crit_issue", lang))
                      if crit_seen else ""))
     return html
 
@@ -1882,7 +2043,8 @@ def render_dora_html(
 def dora_figure(
     dora_entries: list[tuple[str, DoraRecord]],
     quality_entries: list[tuple[str, QualityRecord]],
-    title: str = "Delivery Performance (DORA) & Code Quality",
+    title: str | None = None,
+    lang: str = DEFAULT_LANG,
 ):
     """Render DORA + quality as a plotly figure (PDF export)."""
     import plotly.graph_objects as go
@@ -1892,7 +2054,7 @@ def dora_figure(
     if dora_entries:
         include_source = _log_include_source(dora_entries)  # type: ignore[arg-type]
         ordered = _dora_sorted(dora_entries)
-        headers = _dora_headers(include_source)
+        headers = _dora_headers(include_source, lang)
         rows = []
         fills: list[list[str]] = []
         for source, r in ordered:
@@ -1936,7 +2098,7 @@ def dora_figure(
             cells=dict(values=columns, align="left", fill_color=fills),
         ), row=i, col=1)
     fig.update_layout(
-        title=_dora_title(dora_entries, title) if dora_entries else title,
+        title=_dora_title(dora_entries, title or t("dora.heading", lang), lang) if dora_entries else title,
         title_font_size=14, margin=dict(t=40, b=10))
     return fig
 
@@ -1962,43 +2124,48 @@ def _flow_sorted(
         FLOW_STATUS_ORDER.index(e[1].status), e[0], e[1].problem_id))
 
 
-def _flow_title(entries: list[tuple[str, FlowProblem]], title: str) -> str:
+def _flow_title(entries: list[tuple[str, FlowProblem]], title: str,
+                lang: str = DEFAULT_LANG) -> str:
     problems = [p for _, p in entries]
     open_count = sum(1 for p in problems
                      if p.status in (FLOW_OPEN, "committed"))
     cross = sum(1 for p in problems if p.cross_vs)
     survived = sum(1 for p in problems if p.survived)
-    return (f"{title} — {len(problems)} problems ({open_count} unresolved, "
-            f"{cross} cross-VS, {survived} survived "
-            f"≥{SURVIVED_CONFERENCES_THRESHOLD} conferences)")
+    return t("flow.title", lang, title=title, total=len(problems),
+             unresolved=open_count, cross=cross, survived=survived,
+             threshold=SURVIVED_CONFERENCES_THRESHOLD)
 
 
-def _flow_headers(include_source: bool) -> list[str]:
-    head = ["Problem", "Raised by", "Value streams", "Status",
-            "Commitment", "Follow-up PI", "Conf.", "Since"]
-    return (["Solution"] + head) if include_source else head
+def _flow_headers(include_source: bool, lang: str = DEFAULT_LANG) -> list[str]:
+    head = [t("flow.col.problem", lang), t("flow.col.raised_by", lang),
+            t("flow.col.streams", lang), t("col.status", lang),
+            t("flow.col.commitment", lang), t("flow.col.follow_up", lang),
+            t("flow.col.conferences", lang), t("col.since", lang)]
+    return ([t("col.solution", lang)] + head) if include_source else head
 
 
 def _flow_cells(
     source: str, p: FlowProblem, include_source: bool,
-    reference: date | None = None,
+    reference: date | None = None, lang: str = DEFAULT_LANG,
 ) -> list[str]:
     streams = ", ".join(p.value_streams)
     if p.cross_vs:
-        streams = f"CROSS: {streams}"
+        streams = t("cell.cross", lang) + streams
     since = "–"
     if p.raised_on:
         days = ((reference or date.today()) - p.raised_on).days
-        since = f"{p.raised_on.strftime('%d.%m.%Y')} ({days}d)"
+        since = t("quality.age", lang,
+                  date=p.raised_on.strftime(t("fmt.date", lang)), days=days)
     row = [f"{p.problem_id}: {p.title}", p.source or "–", streams,
-           p.status, p.resolution_commitment or "–",
+           t(_FLOW_TEXT_KEYS[p.status], lang), p.resolution_commitment or "–",
            p.follow_up_pi or "–", str(p.conferences), since]
     return ([source] + row) if include_source else row
 
 
 def render_flow_problems_html(
     entries: list[tuple[str, FlowProblem]],
-    title: str = "Flow-Problem Backlog (Value-Stream Conference)",
+    title: str | None = None,
+    lang: str = DEFAULT_LANG,
     reference: date | None = None,
 ) -> str:
     """
@@ -2015,11 +2182,11 @@ def render_flow_problems_html(
     offset = 1 if include_source else 0
     survivor_seen = False
     head = "".join(f"<th>{_html.escape(h)}</th>"
-                   for h in _flow_headers(include_source))
+                   for h in _flow_headers(include_source, lang))
     rows = ""
     for source, p in _flow_sorted(entries):
         cells = [_html.escape(c)
-                 for c in _flow_cells(source, p, include_source, reference)]
+                 for c in _flow_cells(source, p, include_source, reference, lang)]
         tds = []
         for col, c in enumerate(cells):
             if col == offset + 3:  # status
@@ -2035,11 +2202,12 @@ def render_flow_problems_html(
             else:
                 tds.append(f"<td>{c}</td>")
         rows += f"<tr>{''.join(tds)}</tr>"
-    heading = _flow_title(entries, title)
+    heading = _flow_title(entries, title or t("flow.heading", lang), lang)
     legend = _legend_line(
-        _legend_group("Status", _FLOW_STATUS_COLORS),
-        _legend_flag("Conferences", _OVERDUE_COLOR,
-                     "survivor — still open after three conferences")
+        _legend_group(t("col.status", lang), _FLOW_STATUS_COLORS,
+                      _FLOW_TEXT_KEYS, lang),
+        _legend_flag(t("flow.col.conferences", lang), _OVERDUE_COLOR,
+                     t("legend.survivor", lang))
         if survivor_seen else "",
     )
     return (f"<h2 class='metric-heading'>{_html.escape(heading)}</h2>"
@@ -2049,7 +2217,8 @@ def render_flow_problems_html(
 
 def flow_problems_figure(
     entries: list[tuple[str, FlowProblem]],
-    title: str = "Flow-Problem Backlog (Value-Stream Conference)",
+    title: str | None = None,
+    lang: str = DEFAULT_LANG,
     reference: date | None = None,
 ):
     """Render the flow-problem backlog as a plotly Table figure (PDF)."""
@@ -2058,8 +2227,8 @@ def flow_problems_figure(
     include_source = _log_include_source(entries)  # type: ignore[arg-type]
     offset = 1 if include_source else 0
     ordered = _flow_sorted(entries)
-    headers = _flow_headers(include_source)
-    rows = [_flow_cells(source, p, include_source, reference)
+    headers = _flow_headers(include_source, lang)
+    rows = [_flow_cells(source, p, include_source, reference, lang)
             for source, p in ordered]
     columns = [[row[c] for row in rows] for c in range(len(headers))]
     fills: list[list[str]] = [["white"] * len(rows) for _ in headers]
@@ -2071,7 +2240,7 @@ def flow_problems_figure(
         header=dict(values=headers, fill_color="#f2f2f2", align="left"),
         cells=dict(values=columns, align="left", fill_color=fills),
     ))
-    fig.update_layout(title=_flow_title(entries, title),
+    fig.update_layout(title=_flow_title(entries, title or t("flow.heading", lang), lang),
                       title_font_size=14, margin=dict(t=40, b=10))
     return fig
 
@@ -2087,18 +2256,20 @@ def _themes_title(
     theme_entries: list[tuple[str, StrategicTheme]],
     epic_entries: list[tuple[str, Epic]],
     title: str,
+    lang: str = DEFAULT_LANG,
 ) -> str:
     used = {e.theme for _, e in epic_entries if e.theme}
-    orphans = sum(1 for _, t in theme_entries if t.theme_id not in used)
+    orphans = sum(1 for _, th in theme_entries if th.theme_id not in used)
     zombies = sum(1 for _, e in epic_entries if not e.theme)
-    return (f"{title} — {len(theme_entries)} themes, {len(epic_entries)} "
-            f"epics ({orphans} orphan themes, {zombies} zombie epics)")
+    return t("themes.title", lang, title=title, themes=len(theme_entries),
+             epics=len(epic_entries), orphans=orphans, zombies=zombies)
 
 
 def render_themes_html(
     theme_entries: list[tuple[str, StrategicTheme]],
     epic_entries: list[tuple[str, Epic]],
-    title: str = "Strategic Themes & Integrated Roadmap",
+    title: str | None = None,
+    lang: str = DEFAULT_LANG,
 ) -> str:
     """
     Render strategic themes and the integrated roadmap (B7).
@@ -2118,44 +2289,47 @@ def render_themes_html(
         if e.theme:
             epic_count[e.theme] = epic_count.get(e.theme, 0) + 1
 
-    heading = _themes_title(theme_entries, epic_entries, title)
+    heading = _themes_title(theme_entries, epic_entries,
+                            title or t("themes.heading", lang), lang)
     html = f"<h2 class='metric-heading'>{_html.escape(heading)}</h2>"
 
     if theme_entries:
         include_source = _log_include_source(theme_entries)  # type: ignore[arg-type]
-        head_cols = ["Theme", "Description", "Epics"]
+        head_cols = [t("themes.col.theme", lang),
+                     t("themes.col.description", lang),
+                     t("themes.col.epics", lang)]
         if include_source:
-            head_cols = ["Solution"] + head_cols
+            head_cols = [t("col.solution", lang)] + head_cols
         head = "".join(f"<th>{_html.escape(h)}</th>" for h in head_cols)
         rows = ""
         forgotten_seen = False
         ordered = sorted(theme_entries,
                          key=lambda t: (t[1].theme_id in used, t[0],
                                         t[1].theme_id))
-        for source, t in ordered:
-            count = epic_count.get(t.theme_id, 0)
+        for source, th in ordered:
+            count = epic_count.get(th.theme_id, 0)
             tds = ([f"<td>{_html.escape(source)}</td>"]
                    if include_source else [])
-            tds.append(f"<td>{_html.escape(t.theme_id)}: "
-                       f"{_html.escape(t.title)}</td>")
-            tds.append(f"<td>{_html.escape(t.description or '–')}</td>")
+            tds.append(f"<td>{_html.escape(th.theme_id)}: "
+                       f"{_html.escape(th.title)}</td>")
+            tds.append(f"<td>{_html.escape(th.description or '–')}</td>")
             if count:
                 tds.append(f"<td>{count}</td>")
             else:
                 forgotten_seen = True
                 tds.append(f"<td style='background:{_OVERDUE_COLOR};"
-                           f"font-weight:600'>0 — declared &amp; "
-                           f"forgotten</td>")
+                           f"font-weight:600'>"
+                           f"{t('themes.forgotten', lang)}</td>")
             rows += f"<tr>{''.join(tds)}</tr>"
         html += (f"<table class='sr-summary'><tr>{head}</tr>{rows}</table>"
                  + (_legend_line(_legend_flag(
-                     "Epics", _OVERDUE_COLOR,
-                     "theme declared but no epic carries it"))
+                     t("themes.col.epics", lang), _OVERDUE_COLOR,
+                     t("legend.theme_forgotten", lang)))
                     if forgotten_seen else ""))
 
     if epic_entries:
         trains = sorted({e.train for _, e in epic_entries})
-        head = "<th>Train \\ Horizon</th>" + "".join(
+        head = f"<th>{_html.escape(t('roadmap.grid.header', lang))}</th>" + "".join(
             f"<th>{h}</th>" for h in HORIZONS)
         rows = ""
         for train in trains:
@@ -2181,16 +2355,18 @@ def render_themes_html(
                 row_tds += f"<td>{'<br/>'.join(parts)}</td>"
             rows += f"<tr>{row_tds}</tr>"
         marks = " · ".join(
-            f"{mark.strip()} = {_legend_label(status)}"
+            f"{mark.strip()} = {t('epic.' + status, lang)}"
             for status, mark in _EPIC_STATUS_MARK.items() if mark)
-        html += (f"<h3 class='metric-heading'>Integrated roadmap "
-                 f"(near-term granular, far-term coarse)</h3>"
+        html += (f"<h3 class='metric-heading'>"
+                 f"{_html.escape(t('roadmap.heading', lang))}</h3>"
                  f"<table class='sr-summary'><tr>{head}</tr>{rows}</table>"
                  + _legend_line(
-                     f"<span class='sr-legend-group'><b>Marks:</b> "
-                     f"{_html.escape(marks)} (no mark = planned)</span>",
-                     _legend_flag("Epic", _OVERDUE_COLOR,
-                                  "zombie — no strategic theme")))
+                     f"<span class='sr-legend-group'>"
+                     f"<b>{_html.escape(t('legend.marks', lang))}:</b> "
+                     f"{_html.escape(marks)} "
+                     f"{_html.escape(t('legend.marks.none', lang))}</span>",
+                     _legend_flag(t("themes.col.epics", lang), _OVERDUE_COLOR,
+                                  t("legend.zombie", lang))))
 
     zombies = [(s, e) for s, e in epic_entries if not e.theme]
     if zombies:
@@ -2201,15 +2377,17 @@ def render_themes_html(
             f"{e.horizon})</li>" for s, e in zombies)
         # Keine Legende: die Ueberschrift sagt bereits, was jeder Eintrag
         # dieser Liste ist — eine Farberklaerung waere hier Doppelung.
-        html += (f"<h3 class='metric-heading'>Zombie initiatives "
-                 f"(no strategic home)</h3><ul class='delta'>{items}</ul>")
+        html += (f"<h3 class='metric-heading'>"
+                 f"{_html.escape(t('zombies.heading', lang))}</h3>"
+                 f"<ul class='delta'>{items}</ul>")
     return html
 
 
 def themes_figure(
     theme_entries: list[tuple[str, StrategicTheme]],
     epic_entries: list[tuple[str, Epic]],
-    title: str = "Strategic Themes & Integrated Roadmap",
+    title: str | None = None,
+    lang: str = DEFAULT_LANG,
 ):
     """Render themes + roadmap matrix as a plotly figure (PDF export)."""
     import plotly.graph_objects as go
@@ -2230,14 +2408,14 @@ def themes_figure(
                          key=lambda t: (t[1].theme_id in used, t[0],
                                         t[1].theme_id))
         rows = []
-        for source, t in ordered:
-            count = epic_count.get(t.theme_id, 0)
+        for source, th in ordered:
+            count = epic_count.get(th.theme_id, 0)
             rows.append(([source] if include_source else [])
-                        + [f"{t.theme_id}: {t.title}", t.description or "–",
+                        + [f"{th.theme_id}: {th.title}", th.description or "–",
                            str(count) if count
                            else "0 — declared & forgotten"])
         fills = [["white"] * len(rows) for _ in headers]
-        fills[-1] = [_OVERDUE_COLOR if not epic_count.get(t.theme_id) else
+        fills[-1] = [_OVERDUE_COLOR if not epic_count.get(th.theme_id) else
                      "white" for _, t in ordered]
         blocks.append((headers, rows, fills))
 
@@ -2272,6 +2450,7 @@ def themes_figure(
             cells=dict(values=columns, align="left", fill_color=fills),
         ), row=i, col=1)
     fig.update_layout(
-        title=_themes_title(theme_entries, epic_entries, title),
+        title=_themes_title(theme_entries, epic_entries,
+                            title or t("themes.heading", lang), lang),
         title_font_size=14, margin=dict(t=40, b=10))
     return fig

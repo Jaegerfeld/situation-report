@@ -5,6 +5,53 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [0.32.0] – 2026-09-19
+
+### Added
+- **Die Reports sprechen jetzt die Sprache der Oberfläche.** Bis 0.31.0 waren
+  die Beschriftungen fest **englisch**, während der Kopf der Konferenzmappe und
+  ihre vier Input-Überschriften **deutsch** waren — eine Seite, zwei Sprachen,
+  und die Oberfläche konnte fünf. Gemeldet am 19.09.2026.
+
+  Neu ist der Sprachkatalog `portfolio/report_texts.py`: **218 Schlüssel in
+  allen fünf Sprachen** (de · en · ro · pt · fr), gebaut wie
+  `build_reports/terminology.py` — ein Dict, eine Funktion, kein Framework.
+  Zusammengesetzte Sätze stehen als **ganze Vorlage mit Platzhaltern**, nicht
+  als aneinandergehängte Bruchstücke; anders lässt sich die Wortstellung
+  anderer Sprachen nicht abbilden.
+
+  **Welche Sprache gilt:** `--lang` (Kommandozeile) sticht
+  `report.language` (Konfiguration) sticht die **Sprache des Fensters**;
+  ohne alles drei Englisch. In der GUI steht dazu das neue Feld
+  **Reportsprache** mit der Vorgabe „—" (= wie Oberfläche). Wer nichts
+  einstellt, bekommt den Report in der Sprache, in der er gerade arbeitet.
+
+  **Das Datumsformat folgt mit:** de/ro `19.09.2026`, pt/fr `19/09/2026`,
+  en `2026-09-19`. Bisher stand in *jedem* Report das deutsche Format, auch im
+  englischen. Die Formate sind rein numerisch, weil `%b`/`%B` die Monatsnamen
+  der C-Locale liefern würden — also englische Namen in einem französischen
+  Report.
+
+  **Unberührt bleiben** die Metriknamen (die regelt weiter die
+  SAFe/Global-Umschaltung), die Achsenbeschriftungen **innerhalb der
+  eingebetteten Diagramme** (die kommen aus `build_reports`) und die
+  Markdown-Fassung des Delta-Briefings (sie ist der Eingabe-Contract der
+  LLM-Narration, deren Sprache `--llm-lang` regelt).
+
+### Fixed
+- **Die Abhängigkeits-Legende beschriftete die falsche Spalte.** Sie erklärte
+  die Überfälligkeits-Markierung mit „Needed by" — so heißt die Spalte im
+  *Runway*-Register; in der Abhängigkeitstabelle heißt sie „Due".
+- **Im Entscheidungspunkt stand der rohe Statusschlüssel** `at_risk` statt
+  „at risk", und seine Spalten hießen „Needs (from)"/„Delivers (to)", während
+  dieselben Spalten in der Abhängigkeitstabelle „From (needs)"/„To (delivers)"
+  heißen. Beides ist jetzt einheitlich.
+- Drei weitere Legenden-Beschriftungen benennen jetzt **die Spalte, die sie
+  erklären** („Contributing ARTs" statt „ARTs", „Conf." statt „Conferences",
+  „Epics" statt „Epic").
+
+---
+
 ## [0.31.0] – 2026-09-19
 
 ### Added

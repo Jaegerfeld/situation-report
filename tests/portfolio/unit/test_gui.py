@@ -110,6 +110,30 @@ class TestBuildConfigFromFields:
             "Payments", "SAFe", "", "", [("ART A", "a.json")], MODE_POOLED)
         assert cfg.conference_date is None
 
+    def test_report_language_reaches_the_config(self) -> None:
+        cfg = build_config_from_fields(
+            "Payments", "SAFe", "", "", [("ART A", "a.json")], MODE_POOLED,
+            report_lang="fr")
+        assert cfg.language == "fr"
+
+    def test_report_language_can_be_cleared_again(self) -> None:
+        """Feld zurueck auf „wie Oberflaeche": der gepinnte Wert muss
+        verschwinden. Bliebe er stehen, haette die Oberflaeche eine
+        Einstellung, die sie nicht mehr aufheben kann — genau die Falle,
+        die der Konferenztermin am 19.09.2026 gezeigt hat."""
+        geladen = build_config_from_fields(
+            "Payments", "SAFe", "", "", [("ART A", "a.json")], MODE_POOLED,
+            report_lang="en")
+        from portfolio.gui import merge_preserved_fields
+        from portfolio.solution_config import to_dict
+        neu = merge_preserved_fields(
+            build_config_from_fields(
+                "Payments", "SAFe", "", "", [("ART A", "a.json")],
+                MODE_POOLED, report_lang=""),
+            geladen)
+        assert neu.language is None
+        assert "language" not in to_dict(neu)["report"]
+
     def test_ignores_empty_member_rows(self) -> None:
         cfg = build_config_from_fields(
             "Payments", "SAFe", "", "",

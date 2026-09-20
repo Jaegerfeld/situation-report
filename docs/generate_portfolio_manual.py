@@ -651,6 +651,21 @@ def content_de(st: dict) -> list:
            "etwas anderes heisst: Grau ist bei einer Abhaengigkeit "
            "&bdquo;done&ldquo;, bei einem ROAM-Risiko &bdquo;accepted&ldquo;. "
            "Das gilt ebenso fuer den vollen Report und das Delta-Briefing.", st),
+        _SP(4),
+        _P("<b>Die Reportsprache</b> (0.32.0): Beschriftungen und Texte der "
+           "Reports folgen der <b>Sprache des Fensters</b> &mdash; wer die "
+           "Oberflaeche auf Franzoesisch stellt, bekommt den Report auf "
+           "Franzoesisch. Wer eine Sprache festnageln will, waehlt sie im Feld "
+           "<b>Reportsprache</b>; die Vorgabe &bdquo;&mdash;&ldquo; heisst "
+           "&bdquo;wie Oberflaeche&ldquo; und speichert nichts. Rangfolge: "
+           "<font name='Courier'>--lang</font> sticht "
+           "<font name='Courier'>report.language</font> sticht die "
+           "Fenstersprache; ohne alles drei Englisch. Das <b>Datumsformat "
+           "folgt mit</b> &mdash; bis 0.31.0 stand in jedem Report das "
+           "deutsche Format, auch im englischen. <b>Nicht uebersetzt</b> "
+           "werden die Metriknamen (die regelt weiter die SAFe/Global-"
+           "Umschaltung), die Achsenbeschriftungen innerhalb der eingebetteten "
+           "Diagramme und die Markdown-Fassung des Delta-Briefings.", st),
         _SP(6),
 
         _H2("5.15  Strategic Themes & integrierte Roadmap (B7, VSC)", st),
@@ -1146,6 +1161,21 @@ def content_en(st: dict) -> list:
            "because the same colour means different things per register: "
            "grey is 'done' for a dependency and 'accepted' for a ROAM risk. "
            "The same holds for the full report and the delta briefing.", st),
+        _SP(4),
+        _P("<b>The report language</b> (0.32.0): report labels and texts "
+           "follow the <b>language of the window</b> &mdash; set the interface "
+           "to French and the report comes out in French. To pin a report to "
+           "one language, pick it in the <b>Report language</b> field; the "
+           "default &lsquo;&mdash;&rsquo; means &lsquo;follow the "
+           "interface&rsquo; and stores nothing. Precedence: "
+           "<font name='Courier'>--lang</font> beats "
+           "<font name='Courier'>report.language</font> beats the window "
+           "language; without any of the three, English. The <b>date format "
+           "follows</b> &mdash; up to 0.31.0 every report carried the German "
+           "format, including the English one. <b>Not translated:</b> the "
+           "metric names (still governed by the SAFe/Global switch), the axis "
+           "labels inside the embedded charts, and the Markdown form of the "
+           "delta briefing.", st),
         _SP(6),
 
         _H2("5.15  Strategic themes & integrated roadmap (B7, VSC)", st),
@@ -1628,6 +1658,16 @@ def content_ro(st: dict) -> list:
            "cheie a culorilor, iar sub fiecare tabel colorat apare un rand "
            "cu cuvintele <i>lui</i> de stare &mdash; necesar, fiindca "
            "aceeasi culoare inseamna altceva in fiecare registru.", st),
+        _SP(4),
+        _P("<b>Limba raportului</b> (0.32.0): etichetele si textele "
+           "rapoartelor urmeaza <b>limba ferestrei</b>. Pentru a fixa o "
+           "limba, alege-o in campul <b>Limba raportului</b>; valoarea "
+           "implicita &bdquo;&mdash;&ldquo; inseamna &bdquo;ca "
+           "interfata&ldquo; si nu salveaza nimic. Ordine: "
+           "<font name='Courier'>--lang</font> inaintea "
+           "<font name='Courier'>report.language</font> inaintea limbii "
+           "ferestrei; fara niciuna dintre ele, engleza. Formatul datei "
+           "urmeaza si el.", st),
         _SP(6),
 
         _H2("5.15  Strategic themes & roadmap integrat (B7, VSC)", st),
@@ -2096,6 +2136,16 @@ def content_pt(st: dict) -> list:
            "cores e cada tabela colorida tem por baixo uma linha com as "
            "<i>suas</i> palavras de estado &mdash; necessario, porque a "
            "mesma cor significa coisas diferentes em cada registo.", st),
+        _SP(4),
+        _P("<b>O idioma do relatorio</b> (0.32.0): as etiquetas e os textos "
+           "dos relatorios seguem o <b>idioma da janela</b>. Para fixar um "
+           "idioma, escolha-o no campo <b>Idioma do relatorio</b>; o valor "
+           "por omissao &bdquo;&mdash;&ldquo; significa &bdquo;como a "
+           "interface&ldquo; e nao guarda nada. Ordem: "
+           "<font name='Courier'>--lang</font> antes de "
+           "<font name='Courier'>report.language</font> antes do idioma da "
+           "janela; sem nenhum dos tres, ingles. O formato da data segue "
+           "tambem.", st),
         _SP(6),
 
         _H2("5.15  Strategic themes & roadmap integrado (B7, VSC)", st),
@@ -2578,6 +2628,16 @@ def content_fr(st: dict) -> list:
            "en dessous une ligne avec <i>ses propres</i> mots d'etat "
            "&mdash; necessaire, car la meme couleur signifie autre chose "
            "selon le registre.", st),
+        _SP(4),
+        _P("<b>La langue du rapport</b> (0.32.0) : les libelles et les textes "
+           "des rapports suivent la <b>langue de la fenetre</b>. Pour fixer "
+           "une langue, choisissez-la dans le champ <b>Langue du rapport</b> ; "
+           "la valeur par defaut &laquo;&nbsp;&mdash;&nbsp;&raquo; signifie "
+           "&laquo;&nbsp;comme l'interface&nbsp;&raquo; et n'enregistre rien. "
+           "Ordre : <font name='Courier'>--lang</font> avant "
+           "<font name='Courier'>report.language</font> avant la langue de la "
+           "fenetre ; sans aucun des trois, l'anglais. Le format de date suit "
+           "egalement.", st),
         _SP(6),
 
         _H2("5.15  Strategic themes & roadmap integree (B7, VSC)", st),

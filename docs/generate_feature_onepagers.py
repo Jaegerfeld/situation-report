@@ -59,6 +59,108 @@ _FOOT = ParagraphStyle("foot", fontName="Helvetica", fontSize=8, leading=10,
 #: Onepager je Feature: slug -> {lang -> {title, tagline, sections, footer_note}}
 #: sections: Liste aus ("h", Text) | ("p", Text) | ("code", Text) | ("li", Text)
 ONEPAGERS: dict[str, dict[str, dict]] = {
+    "report_language": {
+        "de": {
+            "title": "Reportsprache",
+            "tagline": "Feldmeldung 19.09.2026 \u00b7 Eine Seite, zwei Sprachen \u2014 "
+                       "und die Oberfl\u00e4che konnte f\u00fcnf.",
+            "sections": [
+                ("h", "Worum geht es?"),
+                ("p", "Die Reportbeschriftungen waren fest englisch, der Kopf "
+                      "der Konferenzmappe und ihre vier Input-\u00dcberschriften "
+                      "dagegen deutsch. Die Oberfl\u00e4che spricht f\u00fcnf "
+                      "Sprachen, der Report sprach zwei \u2014 keine davon "
+                      "unbedingt die des Lesers."),
+                ("h", "So benutzt du es"),
+                ("code", "// nichts tun: der Report folgt der Fenstersprache\n\n"
+                         "// oder eine Sprache festnageln:\n"
+                         "\"report\": {\"language\": \"fr\", ...}\n\n"
+                         "// oder f\u00fcr einen einzelnen Lauf:\n"
+                         "python -m portfolio portfolio.json \\\n"
+                         "    --output report.html --lang fr"),
+                ("p", "In der GUI: das Feld <b>Reportsprache</b>. Die Vorgabe "
+                      "\u201e\u2014\u201c hei\u00dft \u201ewie Oberfl\u00e4che\u201c und speichert nichts; "
+                      "wer sie stehen l\u00e4sst, bekommt den Report in der "
+                      "Sprache, in der er gerade arbeitet."),
+                ("h", "Was dazugeh\u00f6rt"),
+                ("li", "218 Schl\u00fcssel in de \u00b7 en \u00b7 ro \u00b7 pt \u00b7 fr, in "
+                       "portfolio/report_texts.py \u2014 gebaut wie "
+                       "build_reports/terminology.py: ein Dict, eine Funktion, "
+                       "kein Framework"),
+                ("li", "Zusammengesetzte S\u00e4tze als ganze Vorlage mit "
+                       "Platzhaltern, nicht als aneinandergeh\u00e4ngte "
+                       "Bruchst\u00fccke \u2014 sonst l\u00e4sst sich die Wortstellung "
+                       "anderer Sprachen nicht abbilden"),
+                ("li", "Rangfolge: --lang sticht report.language sticht die "
+                       "Fenstersprache; ohne alles drei Englisch"),
+                ("li", "Das Datumsformat folgt mit: de/ro 19.09.2026, pt/fr "
+                       "19/09/2026, en 2026-09-19 \u2014 bis 0.31.0 stand in "
+                       "JEDEM Report das deutsche Format"),
+                ("li", "Je Sprache ein Test, der pr\u00fcft, dass sich die "
+                       "Ausgabe vom Englischen unterscheidet: ein "
+                       "Katalogeintrag, der nie verdrahtet wurde, f\u00e4llt "
+                       "sonst nicht auf"),
+                ("h", "Was englisch bleibt \u2014 und warum"),
+                ("p", "Die <b>Metriknamen</b> regelt weiter die SAFe/Global-"
+                      "Umschaltung; es sind stehende Fachbegriffe. Die "
+                      "<b>Achsenbeschriftungen innerhalb der eingebetteten "
+                      "Diagramme</b> kommen aus build_reports und sind ein "
+                      "eigenes Paket \u2014 ein deutscher Report tr\u00e4gt vorerst "
+                      "englische Achsen. Die <b>Markdown-Fassung des "
+                      "Delta-Briefings</b> ist der Eingabe-Contract der "
+                      "KI-Narration; deren Sprache regelt --llm-lang."),
+            ],
+        },
+        "en": {
+            "title": "Report language",
+            "tagline": "Field report 19.09.2026 \u00b7 One page, two languages \u2014 "
+                       "and the interface could do five.",
+            "sections": [
+                ("h", "What is it?"),
+                ("p", "Report labels were fixed English, while the conference "
+                      "pre-read's header and its four input headings were "
+                      "German. The interface speaks five languages; the "
+                      "report spoke two \u2014 neither necessarily the reader's."),
+                ("h", "How to use it"),
+                ("code", "// do nothing: the report follows the window\n\n"
+                         "// or pin a language:\n"
+                         "\"report\": {\"language\": \"fr\", ...}\n\n"
+                         "// or for a single run:\n"
+                         "python -m portfolio portfolio.json \\\n"
+                         "    --output report.html --lang fr"),
+                ("p", "In the GUI: the <b>Report language</b> field. The "
+                      "default '\u2014' means 'follow the interface' and stores "
+                      "nothing; leave it alone and the report comes out in "
+                      "the language you are working in."),
+                ("h", "What comes with it"),
+                ("li", "218 keys across de \u00b7 en \u00b7 ro \u00b7 pt \u00b7 fr in "
+                       "portfolio/report_texts.py \u2014 built like "
+                       "build_reports/terminology.py: one dict, one function, "
+                       "no framework"),
+                ("li", "Composed sentences as whole templates with "
+                       "placeholders rather than concatenated fragments \u2014 "
+                       "otherwise other languages' word order cannot be "
+                       "expressed"),
+                ("li", "Precedence: --lang beats report.language beats the "
+                       "window language; without any of the three, English"),
+                ("li", "The date format follows: de/ro 19.09.2026, pt/fr "
+                       "19/09/2026, en 2026-09-19 \u2014 up to 0.31.0 EVERY "
+                       "report carried the German format"),
+                ("li", "One test per language asserting the output differs "
+                       "from English: a catalogue entry that was never wired "
+                       "up would otherwise go unnoticed"),
+                ("h", "What stays English \u2014 and why"),
+                ("p", "The <b>metric names</b> remain governed by the "
+                      "SAFe/Global switch; they are established terms. The "
+                      "<b>axis labels inside the embedded charts</b> come "
+                      "from build_reports and are a package of their own \u2014 "
+                      "a German report carries English axes for now. The "
+                      "<b>Markdown form of the delta briefing</b> is the "
+                      "input contract of the AI narration, whose language "
+                      "--llm-lang governs."),
+            ],
+        },
+    },
     "conference_legend_date": {
         "de": {
             "title": "Farblegende & Konferenztermin",

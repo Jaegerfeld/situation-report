@@ -25,6 +25,8 @@ from datetime import date
 from pathlib import Path
 from typing import Any
 
+from portfolio.report_texts import LANGUAGES
+
 # v2 (02.09.2026): optionaler "stage_map"-Block (A4). v1-Dateien ohne den
 # Block laden unveraendert; der Parser prueft das Schemafeld bewusst nicht.
 # Seit B3 zusaetzlich das optionale "risks"-Feld (Pfad zur ROAM-risks.json),
@@ -36,8 +38,8 @@ from typing import Any
 # (Delivery-Register), seit B6 das optionale "flow_problems"-Feld
 # (Flussproblem-Backlog der VSC), seit B7 das optionale "themes"-Feld
 # (Strategic Themes + Roadmap), seit 19.09.2026 das optionale
-# report."conference_date" (geplanter VSC-Termin) — alles additiv, daher
-# kein Schema-Bump.
+# report."conference_date" (geplanter VSC-Termin) und report."language"
+# (Reportsprache) — alles additiv, daher kein Schema-Bump.
 SCHEMA_VERSION = 2
 APP_NAME = "situation_report"
 
@@ -186,6 +188,10 @@ class SolutionConfig:
                     "" means no backlog.
         themes:     Optional path to a strategic-themes/roadmap JSON (B7);
                     "" means no themes register.
+        language:   Report language ("de"/"en"/"ro"/"pt"/"fr"), or None to
+                    follow whoever calls: the GUI passes its own language, the
+                    CLI falls back to English. Set it only to pin a report to
+                    one language regardless of the interface language.
         conference_date: Date of the *planned* Value-Stream Conference. The
                     pre-read is written for that date, not for the day it is
                     produced; None means no date has been set and the pre-read
@@ -213,6 +219,7 @@ class SolutionConfig:
     flow_problems: str = ""
     themes: str = ""
     conference_date: date | None = None
+    language: str | None = None
     #: Folder of the file this config was loaded from (set by
     #: load_solution_config, never serialised). Relative paths inside the
     #: config resolve against it — the Datenraum rule that makes a
@@ -260,6 +267,18 @@ def resolve_config_path(
                 f"to the config file to make the folder portable.")
         return raw
     return candidate
+
+
+def _parse_language(value: Any) -> str | None:
+    """
+    Parse the optional report language.
+
+    An unknown value is dropped rather than raising: it comes from a settings
+    file, and a typo there should not stop a report — it falls back to the
+    caller's language, which is visible on the page.
+    """
+    text = str(value or "").strip().lower()
+    return text if text in LANGUAGES else None
 
 
 def _parse_date(value: Any) -> date | None:
@@ -362,6 +381,7 @@ def parse_solution_config(data: dict[str, Any]) -> SolutionConfig:
         cross_vs_threshold=_parse_threshold(report.get("cross_vs_threshold")),
         stage_map=parse_stage_map(data.get("stage_map")),
         conference_date=_parse_date(report.get("conference_date")),
+        language=_parse_language(report.get("language")),
         risks=str(data.get("risks", "")).strip(),
         nfr=str(data.get("nfr", "")).strip(),
         capabilities=str(data.get("capabilities", "")).strip(),
@@ -428,6 +448,8 @@ def to_dict(config: SolutionConfig) -> dict[str, Any]:
         report["to_date"] = config.to_date.isoformat()
     if config.conference_date is not None:
         report["conference_date"] = config.conference_date.isoformat()
+    if config.language:
+        report["language"] = config.language
 
     out: dict[str, Any] = {
         "schema": SCHEMA_VERSION,

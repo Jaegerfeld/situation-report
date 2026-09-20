@@ -76,6 +76,7 @@ from .dependency_config import Dependency, load_dependencies
 from .dora_config import load_delivery
 from .flow_problems_config import FlowProblem, load_flow_problems
 from .nfr_config import Nfr, RunwayItem, load_nfr
+from .report_texts import DEFAULT_LANG, t
 from .risks_config import Risk, load_risks
 from .slo_config import load_slo
 from .solution_config import (
@@ -589,6 +590,7 @@ def _art_detail_html(
     unit_labels: list[str],
     target_ct: int,
     log: Callable[[str], None] = print,
+    lang: str = DEFAULT_LANG,
 ) -> str:
     """
     Build the optional ART drill-down block (summary + quality table per ART).
@@ -611,10 +613,10 @@ def _art_detail_html(
         return ""
     summary = render_summary_html(
         [compute_summary(u, u.source_prefix, target_ct) for u in art_units],
-        title="ART Detail — Management Summary per ART", target_ct=target_ct)
+        title=t("art.detail", lang), target_ct=target_ct, lang=lang)
     quality = render_quality_html(
         [assess_quality(u, u.source_prefix) for u in art_units],
-        title="ART Detail — Data Quality per ART")
+        title=t("art.detail.quality", lang), lang=lang)
     return summary + quality
 
 
@@ -1022,6 +1024,7 @@ def render_html(
     pi_config: Path | None = None,
     log: Callable[[str], None] = print,
     art_depth: bool = False,
+    lang: str = DEFAULT_LANG,
 ) -> str:
     """
     Render a solution/portfolio report as a single self-contained HTML document.
@@ -1048,29 +1051,34 @@ def render_html(
     html = _build_combined_html(figures, section_breaks)
     summary = render_summary_html(
         [compute_summary(u, u.source_prefix, target_ct) for u in units],
-        target_ct=target_ct)
-    quality = render_quality_html(qualities)
+        target_ct=target_ct, lang=lang)
+    quality = render_quality_html(qualities, lang=lang)
     if art_depth:
         quality += _art_detail_html(
-            config, [u.source_prefix for u in units], target_ct, log=log)
-    caps = render_capabilities_html(_collect_capabilities(config, log=log))
-    roam = render_roam_html(_collect_risks(config, log=log))
-    nfr = render_nfr_html(*_collect_nfr(config, log=log))
-    deps = render_dependencies_html(_collect_dependencies(config, log=log))
+            config, [u.source_prefix for u in units], target_ct, log=log,
+            lang=lang)
+    caps = render_capabilities_html(_collect_capabilities(config, log=log),
+                                    lang=lang)
+    roam = render_roam_html(_collect_risks(config, log=log), lang=lang)
+    nfr = render_nfr_html(*_collect_nfr(config, log=log), lang=lang)
+    deps = render_dependencies_html(_collect_dependencies(config, log=log),
+                                    lang=lang)
     pressure = _collect_dependency_pressure(config, log=log)
-    decision_point = render_decision_point_html(pressure)
-    decisions = render_decisions_html(_collect_decisions(config, log=log))
-    flow = render_flow_problems_html(_collect_flow_problems(config, log=log))
+    decision_point = render_decision_point_html(pressure, lang=lang)
+    decisions = render_decisions_html(_collect_decisions(config, log=log),
+                                      lang=lang)
+    flow = render_flow_problems_html(_collect_flow_problems(config, log=log),
+                                     lang=lang)
     theme_entries, epic_entries = _collect_themes(config, log=log)
-    themes = render_themes_html(theme_entries, epic_entries)
-    slo = render_slo_html(_collect_slo(config, log=log))
+    themes = render_themes_html(theme_entries, epic_entries, lang=lang)
+    slo = render_slo_html(_collect_slo(config, log=log), lang=lang)
     dora_entries, quality_entries = _collect_delivery(config, log=log)
-    dora = render_dora_html(dora_entries, quality_entries)
+    dora = render_dora_html(dora_entries, quality_entries, lang=lang)
     # The key goes above the first shaded table, not at the end: a reader who
     # meets a coloured cell should already have seen what the colour means.
     tables = (summary + quality + caps + roam + nfr + deps
               + decision_point + decisions + flow + themes + slo + dora)
-    key = render_legend_key_html() if tables else ""
+    key = render_legend_key_html(lang) if tables else ""
     return html.replace("<body>", "<body>" + key + tables, 1)
 
 
@@ -1085,6 +1093,7 @@ def render_pdf(
     pi_config: Path | None = None,
     log: Callable[[str], None] = print,
     art_depth: bool = False,
+    lang: str = DEFAULT_LANG,
 ) -> bool:
     """
     Render a solution/portfolio report to a multi-page PDF (kaleido).
@@ -1104,10 +1113,10 @@ def render_pdf(
         log("No figures produced — nothing to export.")
         return False
     summaries = [compute_summary(u, u.source_prefix, target_ct) for u in units]
-    pages = [summary_figure(summaries, target_ct=target_ct)] + figures
+    pages = [summary_figure(summaries, target_ct=target_ct, lang=lang)] + figures
     extra = []
     if qualities:
-        extra.append(quality_figure(qualities))
+        extra.append(quality_figure(qualities, lang=lang))
     if art_depth:
         art_units = _art_detail_units(
             config, [u.source_prefix for u in units], log=log)
@@ -1115,38 +1124,38 @@ def render_pdf(
             extra.append(summary_figure(
                 [compute_summary(u, u.source_prefix, target_ct)
                  for u in art_units],
-                title="ART Detail — Management Summary per ART",
-                target_ct=target_ct))
+                title=t("art.detail", lang),
+                target_ct=target_ct, lang=lang))
     cap_entries = _collect_capabilities(config, log=log)
     if cap_entries:
-        extra.append(capability_figure(cap_entries))
+        extra.append(capability_figure(cap_entries, lang=lang))
     risk_entries = _collect_risks(config, log=log)
     if risk_entries:
-        extra.append(roam_figure(risk_entries))
+        extra.append(roam_figure(risk_entries, lang=lang))
     nfrs, runway = _collect_nfr(config, log=log)
     if nfrs or runway:
-        extra.append(nfr_figure(nfrs, runway))
+        extra.append(nfr_figure(nfrs, runway, lang=lang))
     dep_entries = _collect_dependencies(config, log=log)
     if dep_entries:
-        extra.append(dependency_figure(dep_entries))
+        extra.append(dependency_figure(dep_entries, lang=lang))
     pressure = _collect_dependency_pressure(config, log=log)
     if pressure.applicable:
-        extra.append(decision_point_figure(pressure))
+        extra.append(decision_point_figure(pressure, lang=lang))
     log_entries = _collect_decisions(config, log=log)
     if log_entries:
-        extra.append(decisions_figure(log_entries))
+        extra.append(decisions_figure(log_entries, lang=lang))
     flow_entries = _collect_flow_problems(config, log=log)
     if flow_entries:
-        extra.append(flow_problems_figure(flow_entries))
+        extra.append(flow_problems_figure(flow_entries, lang=lang))
     theme_entries, epic_entries = _collect_themes(config, log=log)
     if theme_entries or epic_entries:
-        extra.append(themes_figure(theme_entries, epic_entries))
+        extra.append(themes_figure(theme_entries, epic_entries, lang=lang))
     slo_entries = _collect_slo(config, log=log)
     if slo_entries:
-        extra.append(slo_figure(slo_entries))
+        extra.append(slo_figure(slo_entries, lang=lang))
     dora_entries, quality_entries = _collect_delivery(config, log=log)
     if dora_entries or quality_entries:
-        extra.append(dora_figure(dora_entries, quality_entries))
+        extra.append(dora_figure(dora_entries, quality_entries, lang=lang))
     pages[1:1] = extra
     export_pdf(pages, Path(output_path))
     log(f"PDF written to: {output_path}")
@@ -1162,10 +1171,11 @@ def render_pooled_html(
     pi_config: Path | None = None,
     log: Callable[[str], None] = print,
     art_depth: bool = False,
+    lang: str = DEFAULT_LANG,
 ) -> str:
     """Render the pooled report as HTML (thin wrapper over render_html)."""
     return render_html(config, MODE_POOLED, metrics, terminology,
-                       ct_method, target_ct, pi_config, log, art_depth)
+                       ct_method, target_ct, pi_config, log, art_depth, lang)
 
 
 def render_comparison_html(
@@ -1177,13 +1187,15 @@ def render_comparison_html(
     pi_config: Path | None = None,
     log: Callable[[str], None] = print,
     art_depth: bool = False,
+    lang: str = DEFAULT_LANG,
 ) -> str:
     """Render the per-unit comparison report as HTML (thin wrapper over render_html)."""
     return render_html(config, MODE_COMPARISON, metrics, terminology,
-                       ct_method, target_ct, pi_config, log, art_depth)
+                       ct_method, target_ct, pi_config, log, art_depth, lang)
 
 
-def _conference_slot(conference_date: date | None) -> str:
+def _conference_slot(conference_date: date | None,
+                     lang: str = DEFAULT_LANG) -> str:
     """
     The conference-date line of the pre-read header.
 
@@ -1194,19 +1206,20 @@ def _conference_slot(conference_date: date | None) -> str:
     pre-read is about, and what a forecast to the conference would run over.
     """
     if conference_date is None:
-        return "Konferenztermin nicht gesetzt"
+        return t("vsc.no_date", lang)
     days = (conference_date - date.today()).days
     if days > 1:
-        lead = f"noch {days} Tage"
+        lead = t("vsc.lead.days", lang, days=days)
     elif days == 1:
-        lead = "morgen"
+        lead = t("vsc.lead.tomorrow", lang)
     elif days == 0:
-        lead = "heute"
+        lead = t("vsc.lead.today", lang)
     elif days == -1:
-        lead = "gestern"
+        lead = t("vsc.lead.yesterday", lang)
     else:
-        lead = f"vor {abs(days)} Tagen"
-    return f"Konferenz {conference_date.strftime('%d.%m.%Y')} ({lead})"
+        lead = t("vsc.lead.past", lang, days=abs(days))
+    return t("vsc.date", lang,
+             date=conference_date.strftime(t("fmt.date", lang)), lead=lead)
 
 
 def render_conference_html(
@@ -1214,6 +1227,7 @@ def render_conference_html(
     conference_date: date | None = None,
     log: Callable[[str], None] = print,
     art_depth: bool = False,
+    lang: str = DEFAULT_LANG,
 ) -> str:
     """
     Render the Value-Stream-Conference pre-read ("Konferenzmappe", B6).
@@ -1247,18 +1261,21 @@ def render_conference_html(
     build_pooled_report_data(config, log=log, quality_sink=qualities)
     units = load_comparison_units(config, log=log)
     summary = render_summary_html(
-        [compute_summary(u, u.source_prefix, 90) for u in units])
-    quality = render_quality_html(qualities)
+        [compute_summary(u, u.source_prefix, 90) for u in units], lang=lang)
+    quality = render_quality_html(qualities, lang=lang)
     if art_depth:
         quality += _art_detail_html(
-            config, [u.source_prefix for u in units], 90, log=log)
-    flow = render_flow_problems_html(_collect_flow_problems(config, log=log))
-    roam = render_roam_html(_collect_risks(config, log=log))
-    deps = render_dependencies_html(_collect_dependencies(config, log=log))
-    caps = render_capabilities_html(_collect_capabilities(config, log=log))
-    slo = render_slo_html(_collect_slo(config, log=log))
+            config, [u.source_prefix for u in units], 90, log=log, lang=lang)
+    flow = render_flow_problems_html(_collect_flow_problems(config, log=log),
+                                     lang=lang)
+    roam = render_roam_html(_collect_risks(config, log=log), lang=lang)
+    deps = render_dependencies_html(_collect_dependencies(config, log=log),
+                                    lang=lang)
+    caps = render_capabilities_html(_collect_capabilities(config, log=log),
+                                    lang=lang)
+    slo = render_slo_html(_collect_slo(config, log=log), lang=lang)
     theme_entries, epic_entries = _collect_themes(config, log=log)
-    themes = render_themes_html(theme_entries, epic_entries)
+    themes = render_themes_html(theme_entries, epic_entries, lang=lang)
 
     def block(label: str, *fragments: str) -> str:
         body = "".join(f for f in fragments if f)
@@ -1270,22 +1287,19 @@ def render_conference_html(
 
     head = (
         "<!DOCTYPE html><html><head><meta charset='utf-8'>"
-        f"<title>VSC Pre-Read — {config.name}</title>"
+        f"<title>{t('vsc.title', lang)} — {config.name}</title>"
         "<style>body{font-family:'Segoe UI',Arial,sans-serif;margin:24px;"
         "color:#222;} p.meta{color:#555;}</style></head><body>"
-        f"<h1 style='font-size:1.5rem'>Value-Stream Conference — Pre-Read</h1>"
-        f"<p class='meta'>{config.name} · {_conference_slot(conference_date)}"
-        f" · Stand {date.today().strftime('%d.%m.%Y')} — Inputs in "
-        f"Sitzungsreihenfolge; der vollständige interaktive Report bleibt "
-        f"die Detailquelle.</p>"
-        f"{render_legend_key_html()}"
+        f"<h1 style='font-size:1.5rem'>{t('vsc.title', lang)}</h1>"
+        f"<p class='meta'>"
+        f"{t('vsc.meta', lang, name=config.name, slot=_conference_slot(conference_date, lang), today=date.today().strftime(t('fmt.date', lang)))}"
+        f"</p>"
+        f"{render_legend_key_html(lang)}"
     )
     body = (
-        block("Input 1 · Aktuelle Daten", summary, quality)
-        + block("Input 2 · Impediment-Backlog & Governance",
-                flow, roam, deps)
-        + block("Input 3 · Business Objectives (Capability-Map & SLOs)",
-                caps, slo)
-        + block("Input 4 · Integrierte Roadmap & Strategic Themes", themes)
+        block(t("vsc.input1", lang), summary, quality)
+        + block(t("vsc.input2", lang), flow, roam, deps)
+        + block(t("vsc.input3", lang), caps, slo)
+        + block(t("vsc.input4", lang), themes)
     )
     return head + body + "</body></html>"

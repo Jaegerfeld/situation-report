@@ -37,6 +37,7 @@ class _FakeConfig:
     framework: str = "SAFe"
     terminology: str = SAFE
     art_depth: bool = False
+    language: str | None = None
     members: list = field(default_factory=lambda: [object(), object()])
 
 

@@ -24,6 +24,7 @@ from dataclasses import dataclass, field
 from datetime import date
 from typing import Any
 
+from .report_texts import DEFAULT_LANG, t
 from .snapshot import Snapshot
 from .summary import _legend_flag, _legend_line
 
@@ -285,6 +286,20 @@ def compute_delta(prev: Snapshot, now: Snapshot) -> DeltaReport:
 # Rendering
 # ---------------------------------------------------------------------------
 
+#: Katalogschluessel je Governance-Register (Ueberschrift im Briefing).
+_SECTION_KEYS = {
+    "risks": "section.risks",
+    "dependencies": "section.dependencies",
+    "nfr": "section.nfr",
+    "runway": "section.runway",
+    "capabilities": "section.capabilities",
+    "decisions": "section.decisions",
+    "epics": "section.epics",
+}
+
+#: Die Markdown-Fassung bleibt englisch: sie ist der Eingabe-Contract der
+#: optionalen LLM-Narration (deren Sprache --llm-lang regelt), nicht die
+#: Leseform des Briefings. Die HTML-Seite folgt der Reportsprache.
 _SECTION_TITLES = {
     "risks": "ROAM risks",
     "dependencies": "Dependencies",
@@ -359,7 +374,7 @@ def _entry_line(entry: dict) -> str:
     return f"{prefix}{entry.get('id', '')}: {entry.get('title', '')}"
 
 
-def render_delta_html(delta: DeltaReport) -> str:
+def render_delta_html(delta: DeltaReport, lang: str = DEFAULT_LANG) -> str:
     """
     Render the delta briefing as a self-contained HTML page.
 
@@ -369,7 +384,8 @@ def render_delta_html(delta: DeltaReport) -> str:
     """
     head = (
         "<!DOCTYPE html><html><head><meta charset='utf-8'>"
-        f"<title>Delta Briefing — {_html.escape(delta.name)}</title>"
+        f"<title>{_html.escape(t('delta.heading', lang, name=delta.name))}"
+        f"</title>"
         "<style>"
         "body{font-family:'Segoe UI',Arial,sans-serif;margin:24px;color:#222;}"
         "h1{font-size:1.4rem;} h2{font-size:1.1rem;margin-top:24px;}"
@@ -382,37 +398,43 @@ def render_delta_html(delta: DeltaReport) -> str:
         "ul.delta li{margin:2px 0;padding:2px 6px;}"
         "</style></head><body>"
     )
-    title = (f"<h1>Delta Briefing — {_html.escape(delta.name)}</h1>"
-             f"<p class='meta'>{delta.as_of_prev.isoformat()} → "
-             f"{delta.as_of_now.isoformat()} ({delta.period_days} days); "
-             f"{delta.completed_delta:+d} items completed in the period.</p>"
+    title = (f"<h1>{_html.escape(t('delta.heading', lang, name=delta.name))}"
+             f"</h1>"
+             f"<p class='meta'>{_html.escape(t('delta.meta', lang, prev=delta.as_of_prev.isoformat(), now=delta.as_of_now.isoformat(), days=delta.period_days, completed=delta.completed_delta))}</p>"
              + _legend_line(
-                 _legend_flag("Improved", _GREEN, "moved in the good direction"),
-                 _legend_flag("Worsened", _RED, "moved in the bad direction"),
-                 "<span class='sr-legend-group'>Volume changes (items, "
-                 "completed) stay unshaded — they are neither.</span>"))
+                 _legend_flag(t("delta.improved", lang), _GREEN,
+                              t("delta.legend.better", lang)),
+                 _legend_flag(t("delta.worsened", lang), _RED,
+                              t("delta.legend.worse", lang)),
+                 f"<span class='sr-legend-group'>"
+                 f"{_html.escape(t('delta.legend.volume', lang))}</span>"))
 
     if delta.quiet:
         return (head + title
-                + "<p><b>No changes</b> between the two snapshots.</p>"
+                + f"<p>{t('delta.quiet', lang)}</p>"
                 + "</body></html>")
 
     body = ""
     metric_deltas = ([delta.total] if delta.total else []) + delta.units
     if metric_deltas:
-        body += ("<h2>Metrics</h2><table class='sr-summary'>"
-                 "<tr><th>Unit</th><th>Metric</th><th>Before</th><th>Now</th></tr>"
-                 + _unit_rows_html(metric_deltas) + "</table>")
+        cols = [t("col.unit", lang), t("delta.col.metric", lang),
+                t("delta.col.before", lang), t("delta.col.now", lang)]
+        body += (f"<h2>{_html.escape(t('delta.metrics', lang))}</h2>"
+                 f"<table class='sr-summary'><tr>"
+                 + "".join(f"<th>{_html.escape(c)}</th>" for c in cols)
+                 + "</tr>" + _unit_rows_html(metric_deltas) + "</table>")
     if delta.new_units or delta.removed_units:
-        body += "<h2>Units</h2><ul class='delta'>"
-        body += "".join(f"<li>new: {_html.escape(u)}</li>"
+        body += (f"<h2>{_html.escape(t('delta.units', lang))}</h2>"
+                 f"<ul class='delta'>")
+        body += "".join(f"<li>{t('delta.new', lang)}: {_html.escape(u)}</li>"
                         for u in delta.new_units)
-        body += "".join(f"<li>removed: {_html.escape(u)}</li>"
+        body += "".join(f"<li>{t('delta.removed', lang)}: {_html.escape(u)}</li>"
                         for u in delta.removed_units)
         body += "</ul>"
 
     if delta.confidence_changes:
-        body += "<h2>Data confidence</h2><ul class='delta'>"
+        body += (f"<h2>{_html.escape(t('delta.confidence', lang))}</h2>"
+                 f"<ul class='delta'>")
         for c in delta.confidence_changes:
             old, new = c.fields["confidence"]
             cls = "worse" if c.worsened else "better"
@@ -423,7 +445,8 @@ def render_delta_html(delta: DeltaReport) -> str:
     for section, sd in delta.governance.items():
         if sd.empty:
             continue
-        body += f"<h2>{_SECTION_TITLES[section]}</h2><ul class='delta'>"
+        body += (f"<h2>{_html.escape(t(_SECTION_KEYS[section], lang))}</h2>"
+                 f"<ul class='delta'>")
         for c in sd.changed:
             cls = "worse" if c.worsened else "better"
             label = _entry_line({"solution": c.solution, "id": c.entry_id,
@@ -431,12 +454,14 @@ def render_delta_html(delta: DeltaReport) -> str:
             body += (f"<li class='{cls}'>{_html.escape(label)} — "
                      f"<b>{_html.escape(_change_text(c))}</b></li>")
         for e in sd.newly_overdue:
-            body += (f"<li class='worse'>newly overdue: "
+            body += (f"<li class='worse'>{t('delta.newly_overdue', lang)}: "
                      f"{_html.escape(_entry_line(e))}</li>")
         for e in sd.added:
-            body += f"<li>new: {_html.escape(_entry_line(e))}</li>"
+            body += (f"<li>{t('delta.new', lang)}: "
+                     f"{_html.escape(_entry_line(e))}</li>")
         for e in sd.removed:
-            body += f"<li>removed: {_html.escape(_entry_line(e))}</li>"
+            body += (f"<li>{t('delta.removed', lang)}: "
+                     f"{_html.escape(_entry_line(e))}</li>")
         body += "</ul>"
 
     return head + title + body + "</body></html>"
