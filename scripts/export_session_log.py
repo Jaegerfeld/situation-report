@@ -3,7 +3,7 @@
 # Repository:     https://github.com/Jaegerfeld/situation-report
 # KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
 # Erstellt:       03.05.2026
-# Geändert:       03.05.2026
+# Geändert:       22.09.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
@@ -16,6 +16,7 @@
 from __future__ import annotations
 
 import json
+import os
 import re
 from datetime import UTC, datetime, timedelta, timezone
 from pathlib import Path
@@ -24,9 +25,14 @@ from pathlib import Path
 # Configuration
 # ---------------------------------------------------------------------------
 
-JSONL_DIR = Path(r"C:\Users\rober\.claude\projects"
-                 r"\C--Users-rober-OneDrive-Documents-ClaudeProjects-SituationReport")
-OUTPUT_FILE = Path(__file__).parent.parent / "session_log_2026-05-03.txt"
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+
+# Claude Code keeps its data under CLAUDE_CONFIG_DIR (default: ~/.claude) and
+# names each project folder after the project path, with every character
+# other than a letter or digit replaced by "-".
+CLAUDE_DIR = Path(os.environ.get("CLAUDE_CONFIG_DIR", Path.home() / ".claude"))
+JSONL_DIR = CLAUDE_DIR / "projects" / re.sub(r"[^A-Za-z0-9]", "-", str(PROJECT_ROOT))
+OUTPUT_FILE = PROJECT_ROOT / "session_log_2026-05-03.txt"
 
 # Only include sessions that started on or after this date (UTC)
 CUTOFF_DATE = datetime(2026, 4, 12, tzinfo=UTC)
