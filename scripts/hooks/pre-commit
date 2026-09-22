@@ -9,9 +9,19 @@
 # Only runs the gate when Python files are staged. Bypass in an emergency with
 # `git commit --no-verify`.
 
+# Prefer the project venv, where the pinned ruff/mypy live, over whatever
+# `python` the PATH yields (a global install or the Windows Store stub).
+if [ -x .venv/Scripts/python.exe ]; then
+    PY=.venv/Scripts/python.exe
+elif [ -x .venv/bin/python ]; then
+    PY=.venv/bin/python
+else
+    PY=python
+fi
+
 # 1. README version badge -----------------------------------------------------
 if git diff --cached --name-only | grep -q "^version\.py$"; then
-    python scripts/update_readme_version.py
+    "$PY" scripts/update_readme_version.py
     git add README.md
 fi
 
@@ -19,13 +29,13 @@ fi
 if git diff --cached --name-only --diff-filter=ACM | grep -q "\.py$"; then
     echo "pre-commit: running ruff + mypy ..."
 
-    if ! python -m ruff check .; then
+    if ! "$PY" -m ruff check .; then
         echo "pre-commit: ruff found problems. Fix them (or run 'ruff check . --fix'), then re-commit." >&2
         echo "            Bypass with 'git commit --no-verify' if you must." >&2
         exit 1
     fi
 
-    if ! python -m mypy; then
+    if ! "$PY" -m mypy; then
         echo "pre-commit: mypy found type errors. Fix them, then re-commit." >&2
         echo "            Bypass with 'git commit --no-verify' if you must." >&2
         exit 1
