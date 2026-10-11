@@ -106,7 +106,8 @@ class ClaudeProvider:
         return LlmResult(text=text, provider_id=self.provider_id,
                          model=str(data.get("model", model)),
                          deployment_class=self.deployment_class,
-                         duration_s=time.monotonic() - started)
+                         duration_s=time.monotonic() - started,
+                         endpoint=_API_URL)
 
 
 PROVIDER = ClaudeProvider()

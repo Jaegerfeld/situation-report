@@ -73,7 +73,7 @@ class MockProvider:
         return LlmResult(text=text, provider_id=self.provider_id,
                          model=self.default_model,
                          deployment_class=self.deployment_class,
-                         duration_s=0.0)
+                         duration_s=0.0, endpoint="mock://in-process")
 
 
 PROVIDER = MockProvider()

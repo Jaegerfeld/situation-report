@@ -3,15 +3,18 @@
 # Repository:     https://github.com/Jaegerfeld/situation-report
 # KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
 # Erstellt:       03.09.2026
-# Geändert:       03.09.2026
+# Geändert:       11.10.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
 #   Betreiber-Nachweis der KI-Schicht (Rechts-Leitplanke c): Jede
 #   Anfrage wird als JSON-Zeile protokolliert — Provider, Modell,
 #   Deployment-Klasse, Prompt-Version, Dauer und SHA-256-Hashes von
-#   Eingabe und Ausgabe. NUR Hashes, keine Volltexte (Entscheidung
-#   Robert 03.09.2026); Tokens/Schlüssel erscheinen nie.
+#   Eingabe, Ausgabe und (seit D9) der Zieladresse. NUR Hashes, keine
+#   Volltexte (Entscheidung Robert 03.09.2026) und keine Adresse im
+#   Klartext (Entscheidung Robert 11.10.2026): Der Betreiber kann jede
+#   behauptete Adresse prüfen, die Datei verrät die Infrastruktur nicht.
+#   Tokens/Schlüssel erscheinen nie.
 # =============================================================================
 
 from __future__ import annotations
@@ -55,6 +58,13 @@ def append_audit(path: Path, result: LlmResult, source_text: str,
         "duration_s": round(result.duration_s, 2),
         "guard_passed": guard_passed,
     }
+    if result.endpoint:
+        # Normalised the way resolve_base_url does, so "box:11434/" and
+        # "http://box:11434" hash alike and a check by the operator succeeds.
+        endpoint = result.endpoint.strip().rstrip("/")
+        if "://" not in endpoint:
+            endpoint = f"http://{endpoint}"
+        record["endpoint_sha256"] = _sha256(endpoint)
     target = Path(path)
     target.parent.mkdir(parents=True, exist_ok=True)
     with target.open("a", encoding="utf-8") as f:

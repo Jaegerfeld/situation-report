@@ -3,17 +3,19 @@
 # Repository:     https://github.com/Jaegerfeld/situation-report
 # KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
 # Erstellt:       03.09.2026
-# Geändert:       03.09.2026
+# Geändert:       11.10.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
-#   Ollama-Provider — der LOKALE Weg (PoC-Priorität 1, Mistral): Ollama
-#   betreibt Modelle wie mistral-nemo vollständig auf dem eigenen
-#   Rechner (deployment_class "local" — keine Daten verlassen das
-#   System, kein Token nötig). Native API: POST /api/chat auf
-#   localhost:11434, nur Standardbibliothek. Installationsanleitung:
-#   docs/ollama_Installationsanleitung_DE.pdf bzw. Doku-Site →
-#   Tutorials.
+#   Ollama-Provider — der SELBST BETRIEBENE Weg (PoC-Priorität 1,
+#   Mistral): Ollama betreibt Modelle wie mistral-nemo ohne Token und
+#   ohne Anbietervertrag. Native API: POST /api/chat, nur
+#   Standardbibliothek. Die deployment_class folgt seit D9 der
+#   tatsächlichen Adresse: Loopback → "local" (keine Daten verlassen den
+#   Rechner), jede andere Adresse → "remote" (sie verlassen ihn — ob ins
+#   eigene Netz oder weiter, weiß das Werkzeug nicht und behauptet es
+#   deshalb nicht). Installationsanleitung:
+#   docs/ollama_Installationsanleitung_DE.pdf bzw. Doku-Site → Tutorials.
 # =============================================================================
 
 from __future__ import annotations
@@ -25,7 +27,7 @@ import urllib.error
 import urllib.request
 from typing import Any
 
-from llm.base import DEPLOYMENT_LOCAL, LlmResult
+from llm.base import DEPLOYMENT_LOCAL, LlmResult, classify_endpoint
 
 _DEFAULT_BASE_URL = "http://localhost:11434"
 _TIMEOUT_SECONDS = 300  # lokale CPU-Inferenz darf dauern
@@ -87,6 +89,8 @@ class OllamaProvider:
     """Local models via Ollama's native chat API."""
 
     provider_id = "ollama"
+    #: Class of the DEFAULT address (localhost). The class that is labelled
+    #: and logged is decided per call in complete() — see classify_endpoint.
     deployment_class = DEPLOYMENT_LOCAL
     default_model = "mistral-nemo"  # Entscheidung Robert 03.09.2026
 
@@ -175,9 +179,13 @@ class OllamaProvider:
         text = str(data.get("message", {}).get("content", "")).strip()
         if not text:
             raise RuntimeError("Ollama returned an empty completion.")
+        # The label follows the address the request actually went to — a
+        # banner saying "local" while the data went to another host would
+        # reassure falsely (D9, decision 11.10.2026).
         return LlmResult(text=text, provider_id=self.provider_id,
-                         model=model, deployment_class=self.deployment_class,
-                         duration_s=time.monotonic() - started)
+                         model=model, deployment_class=classify_endpoint(base_url),
+                         duration_s=time.monotonic() - started,
+                         endpoint=base_url)
 
 
 PROVIDER = OllamaProvider()

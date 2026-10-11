@@ -209,6 +209,8 @@ _T: dict[str, dict[str, str]] = {
         "chk_narrate": "KI-Narration (Entwurf)",
         "lbl_llm_model": "Modell",
         "lbl_llm_url": "Adresse",
+        "hint_llm_remote": "Die Adresse zeigt auf einen anderen Rechner – Briefing "
+                           "und Entwurf verlassen diesen Rechner. Kennzeichnung: remote.",
 
         "chk_art_depth": "Bis auf ART-Ebene auswerten",
         "lbl_vsc_threshold": "VSC-Schwelle",
@@ -312,6 +314,8 @@ _T: dict[str, dict[str, str]] = {
         "chk_narrate": "AI narration (draft)",
         "lbl_llm_model": "Model",
         "lbl_llm_url": "Address",
+        "hint_llm_remote": "The address points to another machine – briefing and "
+                           "draft leave this machine. Label: remote.",
 
         "chk_art_depth": "Evaluate down to ART level",
         "lbl_vsc_threshold": "VSC threshold",
@@ -415,6 +419,8 @@ _T: dict[str, dict[str, str]] = {
         "chk_narrate": "Narațiune AI (schiță)",
         "lbl_llm_model": "Model",
         "lbl_llm_url": "Adresă",
+        "hint_llm_remote": "Adresa indică alt calculator – briefingul și schița "
+                           "părăsesc acest calculator. Marcaj: remote.",
 
         "chk_art_depth": "Evaluare până la nivel de ART",
         "lbl_vsc_threshold": "Prag VSC",
@@ -518,6 +524,8 @@ _T: dict[str, dict[str, str]] = {
         "chk_narrate": "Narração por IA (rascunho)",
         "lbl_llm_model": "Modelo",
         "lbl_llm_url": "Endereço",
+        "hint_llm_remote": "O endereço aponta para outra máquina – briefing e "
+                           "rascunho saem desta máquina. Marcação: remote.",
 
         "chk_art_depth": "Avaliar até ao nível de ART",
         "lbl_vsc_threshold": "Limiar VSC",
@@ -621,6 +629,8 @@ _T: dict[str, dict[str, str]] = {
         "chk_narrate": "Narration IA (brouillon)",
         "lbl_llm_model": "Modèle",
         "lbl_llm_url": "Adresse",
+        "hint_llm_remote": "L'adresse pointe vers une autre machine – le briefing "
+                           "et le brouillon quittent cette machine. Marquage : remote.",
 
         "chk_art_depth": "Analyser jusqu'au niveau ART",
         "lbl_vsc_threshold": "Seuil VSC",
@@ -662,6 +672,26 @@ def _llm_provider_ids() -> list[str]:
         return list(discover_providers())
     except Exception:
         return ["ollama", "claude", "mock"]
+
+
+def _address_leaves_machine(provider_id: str, base_url: str = "") -> bool:
+    """
+    True when an Ollama address points away from this machine (D9).
+
+    The banner says so after the call; this tells the user before it. Only
+    Ollama has a configurable address — Claude is always external and says
+    so by itself, the mock never leaves the process.
+
+    Args:
+        provider_id: The selected provider.
+        base_url:    The address field, possibly empty (= provider default).
+    """
+    if provider_id != "ollama":
+        return False
+    from llm.base import DEPLOYMENT_REMOTE, classify_endpoint, provider_config
+    from llm.providers.ollama import resolve_base_url
+    resolved = resolve_base_url(provider_config(base_url=base_url))
+    return classify_endpoint(resolved) == DEPLOYMENT_REMOTE
 
 
 def _llm_models(provider_id: str, base_url: str = "") -> list[str]:
@@ -1073,6 +1103,7 @@ class SolutionManagerApp(tk.Tk):
             value=_load_pref("llm_provider", "ollama") or "ollama")
         self._llm_model = tk.StringVar(value=_load_pref("llm_model"))
         self._llm_base_url = tk.StringVar(value=_load_pref("llm_base_url"))
+        self._llm_hint = tk.StringVar(value="")
         self._llm_model_box: ttk.Combobox | None = None
         self._member_rows: list[dict] = []
         self._col_source_lbl: tk.Label | None = None
@@ -1279,6 +1310,11 @@ class SolutionManagerApp(tk.Tk):
                    command=self._red_team).pack(side="left", padx=(12, 0))
         ttk.Button(ki_frame, text=self._tr("btn_translate"),
                    command=self._translate).pack(side="left", padx=(6, 0))
+        # D9: the user learns BEFORE the call that the address leaves the
+        # machine — the banner on the draft would only say so afterwards.
+        tk.Label(self, textvariable=self._llm_hint, fg="#9a3412", anchor="w",
+                 justify="left", wraplength=900).pack(fill="x")
+        self._update_llm_hint()
 
         btns = tk.Frame(self)
         btns.pack(fill="x", pady=(12, 0))
@@ -1304,7 +1340,14 @@ class SolutionManagerApp(tk.Tk):
 
     def _on_llm_provider_change(self, _event: object = None) -> None:
         """Re-fetch the model list for the provider and address now selected."""
+        self._update_llm_hint()
         self._refresh_llm_models()
+
+    def _update_llm_hint(self) -> None:
+        """Show or clear the 'data leaves this machine' line (D9)."""
+        leaves = _address_leaves_machine(self._llm_provider.get() or "ollama",
+                                         self._llm_base_url.get().strip())
+        self._llm_hint.set(self._tr("hint_llm_remote") if leaves else "")
 
     def _refresh_llm_models(self, preselect: bool = False) -> None:
         """

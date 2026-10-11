@@ -292,8 +292,10 @@ def _chapter2() -> list:
             "Zeichen Ihren Rechner — kein Konto, kein Schlüssel, keine "
             "Konzern-Freigabe nötig. Mit <b>claude</b> geht der Text an die "
             "Anthropic-API; das steht sichtbar im Banner und im Nachweis "
-            "(deployment_class „external_api“). Die Wahl ist Konfiguration, "
-            "nicht Zufall."),
+            "(deployment_class „external_api“). Zeigt die Ollama-Adresse auf "
+            "einen anderen Rechner, steht dort „remote“ statt „local“ — die "
+            "Klasse folgt der Adresse, nicht dem Anbieternamen. Die Wahl ist "
+            "Konfiguration, nicht Zufall."),
         PageBreak(),
     ]
 

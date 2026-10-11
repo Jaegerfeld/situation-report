@@ -27,6 +27,7 @@ from portfolio.gui import (
     LANG_FR,
     LANG_PT,
     LANG_RO,
+    _address_leaves_machine,
     _build_delta_html_file,
     _llm_models,
     _load_pref,
@@ -575,6 +576,30 @@ class TestLlmModelChooser:
             "llm.providers.ollama.OllamaProvider.list_models", spy)
         _llm_models("ollama", "http://gpu-box:11434")
         assert seen == [{"base_url": "http://gpu-box:11434"}]
+
+
+class TestAddressLeavesMachine:
+    """D9 hint: said before the call, not only in the banner afterwards."""
+
+    def test_default_and_loopback_do_not_warn(self, monkeypatch) -> None:
+        monkeypatch.delenv("OLLAMA_HOST", raising=False)
+        assert _address_leaves_machine("ollama", "") is False
+        assert _address_leaves_machine("ollama", "http://127.0.0.1:11434") is False
+
+    def test_another_host_warns(self, monkeypatch) -> None:
+        monkeypatch.delenv("OLLAMA_HOST", raising=False)
+        assert _address_leaves_machine("ollama", "http://gpu-box:11434") is True
+        assert _address_leaves_machine("ollama", "10.0.0.5:11434") is True
+
+    def test_environment_counts_when_the_field_is_empty(self, monkeypatch) -> None:
+        """An inherited OLLAMA_HOST sends the data away just as silently."""
+        monkeypatch.setenv("OLLAMA_HOST", "gpu-box:11434")
+        assert _address_leaves_machine("ollama", "") is True
+
+    def test_only_ollama_has_an_address_to_judge(self) -> None:
+        """Claude says 'external_api' itself; the mock never leaves the process."""
+        assert _address_leaves_machine("claude", "http://gpu-box:11434") is False
+        assert _address_leaves_machine("mock", "http://gpu-box:11434") is False
 
 
 class TestPreselectModel:
