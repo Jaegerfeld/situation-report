@@ -5,6 +5,50 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [0.34.0] – 2026-10-11
+
+### Fixed
+- **Die KI-Kennzeichnung folgt jetzt der Adresse, nicht dem Anbieternamen (D9).**
+  Seit 0.30.0 lässt sich die Ollama-Adresse setzen — GUI-Feld, `--base-url`,
+  `OLLAMA_HOST`. Zeigte sie auf einen anderen Rechner, verließen Briefing und
+  Entwurf diesen Rechner, aber der Art.-50-Banner schrieb weiter
+  `… @ local`, und der Betreiber-Nachweis protokollierte `local` — die
+  Adresse stand dort überhaupt nicht. Eine Kennzeichnung, die „lokal“
+  behauptet, während die Anfrage woandershin geht, beruhigt falsch; aufgefallen
+  am 10.09.2026, entschieden am 11.10.2026.
+
+  Neu: Die Deployment-Klasse wird **je Aufruf aus der tatsächlich benutzten
+  Adresse** bestimmt. Eine Loopback-Adresse (`localhost`, `127.0.0.0/8`, `::1`)
+  bleibt **`local`**; jede andere heißt **`remote`** — ein anderer Rechner,
+  vom Nutzer angegeben. Bewusst keine dritte Klasse für „eigenes Netz“: Ob
+  hinter `10.0.0.5` ein Rechner im Keller oder ein VPN-Endpunkt in fremder
+  Cloud steht, kann das Werkzeug nicht wissen, und es behauptet deshalb nur,
+  was es weiß: *Die Daten verlassen diesen Rechner.* Keine DNS-Auflösung —
+  die Klasse folgt aus der Konfiguration allein und bleibt ohne Netz
+  nachvollziehbar. `external_api` bleibt, was es war: ein Anbieter mit
+  Vertrag und Schlüssel (Claude).
+
+  Der **Betreiber-Nachweis** hält die Adresse ab jetzt als
+  **`endpoint_sha256`** fest, für alle Provider — nicht im Klartext. Der
+  Betreiber kann jede behauptete Adresse prüfen (hashen, vergleichen), die
+  Datei verrät die Infrastruktur nicht; dieselbe Regel, die seit dem ersten
+  Nachweis (03.09.2026) für Ein- und Ausgabe gilt. Ältere Einträge ohne das
+  Feld bleiben gültig.
+
+  Und die **Oberfläche sagt es vorher**, nicht erst der Banner hinterher:
+  Sobald die Adresse nicht auf diesen Rechner zeigt, steht unter dem
+  KI-Rahmen in allen fünf Sprachen „Die Adresse zeigt auf einen anderen
+  Rechner – Briefing und Entwurf verlassen diesen Rechner. Kennzeichnung:
+  remote.“ Das gilt auch, wenn das Feld leer ist und `OLLAMA_HOST` die
+  Adresse liefert.
+
+  Für Provider-Autoren: `LlmResult` trägt ein neues optionales Feld
+  `endpoint`; `deployment_class` am Provider beschreibt nur noch die
+  Standardadresse (für `python -m llm providers`), die Klasse, die zählt,
+  steht am Ergebnis. Bestandsaufrufe laufen unverändert.
+
+---
+
 ## [0.33.0] – 2026-09-19
 
 ### Added

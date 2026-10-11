@@ -3,7 +3,7 @@
 # Repository:     https://github.com/Jaegerfeld/situation-report
 # KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
 # Erstellt:       03.09.2026
-# Geändert:       03.09.2026
+# Geändert:       11.10.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
@@ -13,21 +13,56 @@
 #   Provider sind austauschbar (lokal wie extern), und eine neue
 #   Anbindung ist EINE Datei in llm/providers/ mit PROVIDER-Objekt —
 #   Auto-Discovery, kein Register. Jedes Ergebnis trägt seine
-#   deployment_class (local / external_api) für Kennzeichnung und
-#   Betreiber-Nachweis. Grundsatz bleibt: Das LLM textet, es rechnet
-#   nicht — durchgesetzt in llm/guard.py, nicht hier behauptet.
+#   deployment_class (local / remote / external_api) für Kennzeichnung
+#   und Betreiber-Nachweis — seit D9 (11.10.2026) je Aufruf nach der
+#   tatsächlichen Adresse bestimmt, nicht nach dem Anbieternamen.
+#   Grundsatz bleibt: Das LLM textet, es rechnet nicht — durchgesetzt in
+#   llm/guard.py, nicht hier behauptet.
 # =============================================================================
 
 from __future__ import annotations
 
 import importlib
+import ipaddress
 import pkgutil
+import urllib.parse
 from dataclasses import dataclass
 from typing import Any, Protocol, runtime_checkable
 
 DEPLOYMENT_LOCAL = "local"
+DEPLOYMENT_REMOTE = "remote"
 DEPLOYMENT_EXTERNAL = "external_api"
 DEPLOYMENT_MOCK = "mock"
+
+
+def classify_endpoint(url: str) -> str:
+    """
+    Say where a self-operated backend address leads: this machine or another.
+
+    Only a loopback host counts as ``local`` — ``localhost``, ``127.0.0.0/8``,
+    ``::1``. Everything else is ``remote``: a box in the same building, a
+    VPN endpoint, a cloud VM — from here they are indistinguishable, and the
+    label must not claim more than the tool can know. Deliberately no DNS
+    lookup: the class has to follow from the configuration alone so the
+    operator-evidence log stays reproducible without a network.
+
+    Args:
+        url: A base URL; a bare ``host:port`` without a scheme is accepted.
+
+    Returns:
+        DEPLOYMENT_LOCAL or DEPLOYMENT_REMOTE.
+    """
+    raw = url.strip()
+    if "://" not in raw:
+        raw = f"http://{raw}"
+    host = (urllib.parse.urlsplit(raw).hostname or "").strip("[]").lower()
+    if host == "localhost":
+        return DEPLOYMENT_LOCAL
+    try:
+        is_loopback = ipaddress.ip_address(host).is_loopback
+    except ValueError:
+        return DEPLOYMENT_REMOTE
+    return DEPLOYMENT_LOCAL if is_loopback else DEPLOYMENT_REMOTE
 
 
 @dataclass
@@ -38,6 +73,9 @@ class LlmResult:
     model: str
     deployment_class: str
     duration_s: float = 0.0
+    #: Where the request went (base URL or API address). Hashed into the
+    #: audit log, never written there in clear. Empty = provider predates D9.
+    endpoint: str = ""
 
 
 @runtime_checkable
@@ -46,9 +84,10 @@ class LlmProvider(Protocol):
     Contract every LLM backend implements.
 
     ``provider_id`` names the backend in configs and CLI flags;
-    ``deployment_class`` states where the data goes (shown in the AI
-    banner and the audit log); ``default_model`` is used when the caller
-    does not override it. ``complete`` returns the generated text —
+    ``deployment_class`` is the class for the provider's *default*
+    address (what a listing shows); the class that counts is the one on
+    each ``LlmResult``, decided per call from the address actually used.
+    ``default_model`` is used when the caller does not override it. ``complete`` returns the generated text —
     providers never judge, never label, never log; that happens centrally.
     """
     provider_id: str

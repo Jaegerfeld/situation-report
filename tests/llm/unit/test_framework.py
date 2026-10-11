@@ -26,7 +26,9 @@ from llm.base import (
     DEPLOYMENT_EXTERNAL,
     DEPLOYMENT_LOCAL,
     DEPLOYMENT_MOCK,
+    DEPLOYMENT_REMOTE,
     LlmResult,
+    classify_endpoint,
     discover_providers,
 )
 from llm.guard import (
@@ -57,6 +59,33 @@ class TestDiscovery:
         assert providers["claude"].deployment_class == DEPLOYMENT_EXTERNAL
         assert providers["claude"].default_model == "claude-sonnet-5"
         assert providers["mock"].deployment_class == DEPLOYMENT_MOCK
+
+
+class TestClassifyEndpoint:
+    """D9: the label follows the address — and claims no more than it can know."""
+
+    @pytest.mark.parametrize("url", [
+        "http://localhost:11434", "http://LOCALHOST:11434", "localhost:11434",
+        "http://127.0.0.1:11434", "127.0.0.1:11434", "http://127.0.0.2:11434",
+        "http://[::1]:11434", "https://localhost/",
+    ])
+    def test_loopback_is_local(self, url: str) -> None:
+        assert classify_endpoint(url) == DEPLOYMENT_LOCAL
+
+    @pytest.mark.parametrize("url", [
+        "http://gpu-box:11434", "gpu-box:11434", "http://10.0.0.5:11434",
+        "http://192.168.1.20:11434", "https://ollama.example.com",
+        "http://[fd00::5]:11434", "http://0.0.0.0:11434",
+    ])
+    def test_anything_else_is_remote(self, url: str) -> None:
+        """A private address is NOT a third class: a VPN endpoint looks the same
+        from here as a box in the basement, and the label must not guess."""
+        assert classify_endpoint(url) == DEPLOYMENT_REMOTE
+
+    def test_no_dns_so_the_class_is_reproducible_offline(self) -> None:
+        """A hostname is classified by its spelling alone — no lookup."""
+        assert classify_endpoint("http://this-host-does-not-exist.invalid") == \
+            DEPLOYMENT_REMOTE
 
 
 class TestPrompts:
@@ -129,6 +158,38 @@ class TestAudit:
             b"GEHEIMES BRIEFING 42").hexdigest()
         assert record["output_sha256"] == hashlib.sha256(
             b"Beispieltext.").hexdigest()
+
+    def test_endpoint_is_hashed_never_written(self, tmp_path) -> None:
+        """D9: the address goes in as a hash — checkable, not readable."""
+        path = tmp_path / "llm_audit.jsonl"
+        result = LlmResult(text="t", provider_id="ollama", model="m",
+                           deployment_class=DEPLOYMENT_REMOTE,
+                           endpoint="http://gpu-box.intern:11434")
+        append_audit(path, result, "src", purpose="p", guard_passed=True)
+        raw = path.read_text(encoding="utf-8")
+        assert "gpu-box" not in raw
+        record = json.loads(raw)
+        assert record["deployment_class"] == DEPLOYMENT_REMOTE
+        assert record["endpoint_sha256"] == hashlib.sha256(
+            b"http://gpu-box.intern:11434").hexdigest()
+
+    def test_endpoint_hash_ignores_spelling_variants(self, tmp_path) -> None:
+        """'box:11434/' and 'http://box:11434' are one address, one hash."""
+        path = tmp_path / "llm_audit.jsonl"
+        for spelling in ("box:11434/", "http://box:11434", " http://box:11434 "):
+            result = LlmResult(text="t", provider_id="ollama", model="m",
+                               deployment_class=DEPLOYMENT_REMOTE,
+                               endpoint=spelling)
+            append_audit(path, result, "src", purpose="p", guard_passed=True)
+        hashes = {json.loads(line)["endpoint_sha256"]
+                  for line in path.read_text(encoding="utf-8").splitlines()}
+        assert len(hashes) == 1
+
+    def test_pre_d9_results_without_endpoint_still_log(self, tmp_path) -> None:
+        """An empty endpoint (older provider) must not break the record."""
+        path = tmp_path / "llm_audit.jsonl"
+        append_audit(path, _RESULT, "src", purpose="p", guard_passed=True)
+        assert "endpoint_sha256" not in json.loads(path.read_text(encoding="utf-8"))
 
     def test_appends_one_line_per_call(self, tmp_path) -> None:
         path = tmp_path / "llm_audit.jsonl"

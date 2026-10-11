@@ -100,7 +100,12 @@ _DE = [
           "Delta-Briefing verlässt nie das System, es braucht kein Konto, "
           "keinen API-Schlüssel und keine Konzern-Freigabe für externe "
           "Dienste. In Kennzeichnung und Betreiber-Nachweis erscheint "
-          "dieser Weg als deployment_class „local“."),
+          "dieser Weg als deployment_class „local“ — solange die Adresse "
+          "auf diesen Rechner zeigt (localhost, 127.0.0.1, ::1). Zeigt "
+          "sie auf einen anderen Rechner, heißt die Klasse „remote“: Die "
+          "Daten verlassen diesen Rechner, und ob das eigene Netz oder "
+          "das Internet dahinter liegt, kann das Werkzeug nicht wissen. "
+          "Der Nachweis hält die Adresse als SHA-256-Hash fest."),
     ("h1", "2  Voraussetzungen"),
     ("li", "Windows 11, 64-bit; keine Administratorrechte nötig (Ollama "
            "installiert sich ins Benutzerprofil)."),
@@ -201,7 +206,12 @@ _EN = [
           "briefing never leaves the system, and you need no account, no "
           "API key and no corporate approval for external services. This "
           "path shows up as deployment_class \"local\" in the AI banner "
-          "and the operator-evidence log."),
+          "and the operator-evidence log — as long as the address points "
+          "to this machine (localhost, 127.0.0.1, ::1). If it points to "
+          "another machine, the class reads \"remote\": the data leaves "
+          "this machine, and whether your own network or the internet is "
+          "behind it the tool cannot know. The log keeps the address as a "
+          "SHA-256 hash."),
     ("h1", "2  Prerequisites"),
     ("li", "Windows 11, 64-bit; no administrator rights needed (Ollama "
            "installs into the user profile)."),

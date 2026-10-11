@@ -90,6 +90,37 @@ class TestOllama:
         assert json.loads(calls[0].data)["model"] == "llama3.1"
         assert result.model == "llama3.1"
 
+    # D9 — Kennzeichnung folgt der Adresse, nicht dem Anbieternamen.
+
+    def test_remote_address_is_labelled_remote(self, monkeypatch) -> None:
+        """A banner saying 'local' while the data went elsewhere reassures
+        falsely — the class is decided per call from the address used."""
+        monkeypatch.delenv("OLLAMA_HOST", raising=False)
+        with _mock_urlopen("llm.providers.ollama._urlopen",
+                           {"message": {"content": "ok"}}):
+            result = OLLAMA.complete("s", "p", {"base_url": "http://gpu-box:11434/"})
+        assert result.deployment_class == "remote"
+        assert result.endpoint == "http://gpu-box:11434"
+        # The provider's own attribute still describes the DEFAULT address.
+        assert OLLAMA.deployment_class == "local"
+
+    def test_environment_address_is_classified_too(self, monkeypatch) -> None:
+        """OLLAMA_HOST pointing away from this machine counts the same."""
+        monkeypatch.setenv("OLLAMA_HOST", "10.0.0.5:11434")
+        with _mock_urlopen("llm.providers.ollama._urlopen",
+                           {"message": {"content": "ok"}}):
+            result = OLLAMA.complete("s", "p", {})
+        assert result.deployment_class == "remote"
+        assert result.endpoint == "http://10.0.0.5:11434"
+
+    def test_loopback_addresses_stay_local(self, monkeypatch) -> None:
+        monkeypatch.delenv("OLLAMA_HOST", raising=False)
+        for url in ("http://127.0.0.1:11434", "http://[::1]:11434", ""):
+            with _mock_urlopen("llm.providers.ollama._urlopen",
+                               {"message": {"content": "ok"}}):
+                result = OLLAMA.complete("s", "p", {"base_url": url})
+            assert result.deployment_class == "local", url
+
     def test_missing_model_hints_at_ollama_pull(self) -> None:
         with _mock_urlopen("llm.providers.ollama._urlopen",
                            error=_http_error(404, b"model not found")):
@@ -131,6 +162,7 @@ class TestClaude:
         # Das Audit sieht das tatsaechlich servierte Modell, nicht den Alias.
         assert result.model == "claude-sonnet-5-20260901"
         assert result.deployment_class == "external_api"
+        assert result.endpoint == "https://api.anthropic.com/v1/messages"
 
     def test_missing_env_key_fails_with_local_alternative(
             self, monkeypatch) -> None:
@@ -172,6 +204,7 @@ class TestMock:
         assert extract_numbers(de.text) == set()
         assert extract_numbers(en.text) == set()
         assert de.deployment_class == "mock"
+        assert de.endpoint == "mock://in-process"
 
 
 # ---------------------------------------------------------------------------

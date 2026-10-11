@@ -59,6 +59,98 @@ _FOOT = ParagraphStyle("foot", fontName="Helvetica", fontSize=8, leading=10,
 #: Onepager je Feature: slug -> {lang -> {title, tagline, sections, footer_note}}
 #: sections: Liste aus ("h", Text) | ("p", Text) | ("code", Text) | ("li", Text)
 ONEPAGERS: dict[str, dict[str, dict]] = {
+    "llm_deployment_label": {
+        "de": {
+            "title": "Die Kennzeichnung folgt der Adresse",
+            "tagline": "11.10.2026 · Ein Banner, der „lokal“ sagt, während "
+                       "die Daten woandershin gehen, beruhigt falsch.",
+            "sections": [
+                ("h", "Worum geht es?"),
+                ("p", "Seit 0.30.0 lässt sich die Ollama-Adresse setzen – "
+                      "GUI-Feld, --base-url, OLLAMA_HOST. Zeigte sie auf einen "
+                      "anderen Rechner, verließen Briefing und Entwurf diesen "
+                      "Rechner. Der Art.-50-Banner schrieb trotzdem „@ local“, "
+                      "und im Betreiber-Nachweis stand die Adresse überhaupt "
+                      "nicht. Die Klasse hing am Anbieternamen, nicht daran, "
+                      "wohin die Anfrage ging."),
+                ("h", "Was jetzt gilt"),
+                ("li", "Die Deployment-Klasse wird je Aufruf aus der benutzten "
+                       "Adresse bestimmt: Loopback (localhost, 127.0.0.0/8, ::1) "
+                       "bleibt local, jede andere Adresse heißt remote"),
+                ("li", "external_api bleibt, was es war: ein Anbieter mit Vertrag "
+                       "und Schlüssel (Claude)"),
+                ("li", "Der Betreiber-Nachweis hält die Adresse als SHA-256-Hash "
+                       "(endpoint_sha256) – prüfbar, nicht lesbar"),
+                ("li", "Die Oberfläche sagt es vor dem Aufruf: „Die Adresse zeigt "
+                       "auf einen anderen Rechner – Briefing und Entwurf verlassen "
+                       "diesen Rechner.“ In allen fünf Sprachen"),
+                ("h", "Drei Entscheidungen"),
+                ("p", "<b>Nur zwei Klassen für Ollama, keine dritte für „eigenes "
+                      "Netz“.</b> Ob hinter 10.0.0.5 ein Rechner im Keller oder "
+                      "ein VPN-Endpunkt in fremder Cloud steht, kann das Werkzeug "
+                      "nicht wissen. Es behauptet deshalb nur, was es weiß: Die "
+                      "Daten verlassen diesen Rechner. Und es löst keine Namen "
+                      "auf – die Klasse folgt aus der Konfiguration allein."),
+                ("p", "<b>Der Name ist remote.</b> Er sagt im Banner genau das "
+                      "Belegbare. self_hosted hätte einen Betrieb durch den Nutzer "
+                      "behauptet, den niemand prüfen kann."),
+                ("p", "<b>Die Adresse kommt als Hash in den Nachweis.</b> Der "
+                      "Betreiber kann jede behauptete Adresse prüfen, die Datei "
+                      "verrät die Infrastruktur nicht – dieselbe Regel wie für "
+                      "Ein- und Ausgabe."),
+                ("h", "So siehst du es"),
+                ("code", "python -m llm test --base-url http://gpu-box:11434\n"
+                         "# Banner: mistral-nemo @ remote, Prompt v1\n"
+                         "# Nachweis: \"deployment_class\": \"remote\", "
+                         "\"endpoint_sha256\": \"...\""),
+            ],
+        },
+        "en": {
+            "title": "The Label Follows the Address",
+            "tagline": "11 Oct 2026 · A banner saying “local” while the data "
+                       "goes elsewhere reassures falsely.",
+            "sections": [
+                ("h", "What is it?"),
+                ("p", "Since 0.30.0 the Ollama address is configurable – GUI "
+                      "field, --base-url, OLLAMA_HOST. Pointing it at another "
+                      "machine sent briefing and draft off this machine, yet the "
+                      "Art. 50 banner still read “@ local”, and the "
+                      "operator-evidence log did not hold the address at all. "
+                      "The class hung on the provider name, not on where the "
+                      "request went."),
+                ("h", "What holds now"),
+                ("li", "The deployment class is decided per call from the address "
+                       "used: loopback (localhost, 127.0.0.0/8, ::1) stays local, "
+                       "any other address reads remote"),
+                ("li", "external_api stays what it was: a provider with a contract "
+                       "and a key (Claude)"),
+                ("li", "The operator-evidence log keeps the address as a SHA-256 "
+                       "hash (endpoint_sha256) – checkable, not readable"),
+                ("li", "The GUI says it before the call: “The address points to "
+                       "another machine – briefing and draft leave this "
+                       "machine.” In all five languages"),
+                ("h", "Three decisions"),
+                ("p", "<b>Only two classes for Ollama, no third one for “own "
+                      "network”.</b> Whether 10.0.0.5 is a box in the basement "
+                      "or a VPN endpoint in someone else's cloud, the tool cannot "
+                      "know. So it claims only what it knows: the data leaves "
+                      "this machine. And it resolves no names – the class "
+                      "follows from the configuration alone."),
+                ("p", "<b>The name is remote.</b> It says in the banner exactly "
+                      "what can be shown. self_hosted would have claimed operation "
+                      "by the user, which nobody can verify."),
+                ("p", "<b>The address goes into the log as a hash.</b> The "
+                      "operator can verify any claimed address; the file reveals "
+                      "no infrastructure – the same rule as for input and "
+                      "output."),
+                ("h", "How to see it"),
+                ("code", "python -m llm test --base-url http://gpu-box:11434\n"
+                         "# banner: mistral-nemo @ remote, Prompt v1\n"
+                         "# log: \"deployment_class\": \"remote\", "
+                         "\"endpoint_sha256\": \"...\""),
+            ],
+        },
+    },
     "chart_language": {
         "de": {
             "title": "Sprache der Diagramme",
