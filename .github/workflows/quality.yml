@@ -50,7 +50,7 @@ jobs:
       - name: Bandit (security lint)
         run: >
           python -m bandit -r
-          build_reports transform_data portfolio simulate helper launcher
+          build_reports transform_data portfolio simulate helper launcher harmonisation
           testdata_generator get_data scripts project_template.py version.py
           --severity-level medium -q
 

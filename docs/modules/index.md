@@ -12,6 +12,7 @@
 | [sources](sources.md) | Pluggable external metric sources (SLO, DORA, quality) | available (Alpha) |
 | [llm](llm.md) | Pluggable AI narration (local Ollama, Claude API, mock) | available (Alpha) |
 | [simulate](simulate.md) | Simulations and prediction models | available (Alpha) |
+| [harmonisation](harmonisation.md) | Harmonisation score per end-to-end process — decision matrix for the board | available (Alpha) |
 
 ## Shared project template
 

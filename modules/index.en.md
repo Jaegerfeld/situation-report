@@ -10,7 +10,8 @@ situation-report/
 ├── build_reports/
 ├── testdata_generator/
 ├── helper/
-└── simulate/
+├── simulate/
+└── harmonisation/
 ```
 
 The modules are independently usable. The `launcher` serves as the central entry point. The typical data flow is:
