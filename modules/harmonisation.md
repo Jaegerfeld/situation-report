@@ -3,7 +3,7 @@
 Harmonisierungs-Score je End-to-End-Prozess: ein strukturiertes Assessment in drei
 Dimensionen (**Business Value · Transparenz · IT und Betrieb**), versioniert abgelegt,
 je Dimension ein Score mit Konfidenz, gerendert als **Entscheider-Matrix** fürs Board.
-Herkunft: Workshop Wolfsburg 08/2026, Priorität P3.
+Herkunft: Roadmap, Priorität P3.
 
 !!! info "Befund, kein Urteil"
     Das Modul empfiehlt nichts — weder *was* harmonisiert wird noch *in welcher Tiefe*.
@@ -45,7 +45,7 @@ Ein Ordner mit vier Dingen, alles JSON mit `schema_version`:
 ```
 
 **Der Katalog ist Daten, nicht Code.** Der mitgelieferte Beispielkatalog mit 3 × 8 Fragen
-ist eine Illustration der Workshop-Struktur; die eigenen Fragen kommen in dieselbe Datei.
+ist eine Illustration der Struktur; die eigenen Fragen kommen in dieselbe Datei.
 Jede Frage ist so formuliert, dass hohe Zustimmung *für* eine Harmonisierung spricht —
 nur so sind die Werte einer Dimension addierbar.
 

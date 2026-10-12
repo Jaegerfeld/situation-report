@@ -7,8 +7,8 @@
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
-#   Strategic Themes & integrierte Roadmap (Roadmap B7, VSC-2 aus dem
-#   Workshop Wolfsburg 08/2026). Schließt zwei konsolidierte SAFe-Lücken:
+#   Strategic Themes & integrierte Roadmap (Roadmap B7, VSC-2 aus einem
+#   Praxis-Workshop). Schließt zwei konsolidierte SAFe-Lücken:
 #   Strategic Themes bekommen ein strukturiertes Zuhause (Themes mit
 #   Epic-Verknüpfung), und die Solution-Ebene bekommt eine integrierte
 #   Roadmap mit Initiative-Swimlanes über Trains (Zeithorizont nah

@@ -7,7 +7,7 @@
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
-#   Entscheidungspunkt-Wecker (P4, Workshop Wolfsburg 08/2026; Muster M4 der
+#   Entscheidungspunkt-Wecker (P4 aus der Workshop-Analyse; Muster M4 der
 #   KI-Denkschrift): misst den Druck aus offenen Abhängigkeiten ZWISCHEN
 #   Value Streams und meldet, wenn eine im Ritual vereinbarte Schwelle
 #   überschritten ist — „Schwelle überschritten, Value-Stream-Conference

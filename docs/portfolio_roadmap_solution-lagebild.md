@@ -137,13 +137,13 @@ Nicht nach „Feature-Wunschliste", sondern nach **Datenherkunft** (das BGS-Prin
 - **Aufwand:** M.
 - **Ist-Stand:** `portfolio/dependency_config.py` (Schema v1: from/to/status blocked|at_risk|on_track|done + due), Heatmap (offene Abhängigkeiten je from/to-Paar, Zellfarbe = dringlichster Status) + Detail-Tabelle unter dem NFR-Dashboard (PDF: eigene Seite), blocked zuerst, Overdue-Hervorhebung (due verstrichen ∧ nicht done); `to` bewusst nicht gegen Member validiert — Cross-Solution-/Extern-Ziele erlaubt und im Portfolio-Report sichtbar; Szenario liefert je Solution ein Register mit (DoD erfüllt).
 
-### B6 · Flussproblem-Backlog & Konferenzmappe *(VSC-1; Workshop Wolfsburg 08/2026)* ✅ (umgesetzt 03.09.2026)
+### B6 · Flussproblem-Backlog & Konferenzmappe *(VSC-1; aus einem Praxis-Workshop)* ✅ (umgesetzt 03.09.2026)
 - **Was:** `flow_problems` als eigenes Input-Artefakt mit eigener `SCHEMA_VERSION` (Quelle, betroffene Value Streams/ARTs, Cross-VS-Flag, Alter, Status, Resolution-Commitment, Wiedervorlage-PI). Report-Profil **„Konferenzmappe"** bündelt die Inputs der Value-Stream-Konferenz zu einem Pre-Read. **Resolution-Tracking mit Aging** über PI-Grenzen: Impediments, die n Konferenzen überleben, eskalieren sichtbar (baut auf B3 und B5 auf).
 - **Warum:** Die VSC ist das im Workshop definierte Ritual der Solution-Ebene; der Impediment-Backlog ist laut Workshop ihr wichtigster Input. Das dort benannte Muster „Risiken werden geloggt, nie mitigiert, tauchen nächstes PI wieder auf" wird damit messbar statt anekdotisch. Herleitung: `Quellen/bilder workshop/Analyse_Workshop-Notizen_Denkschriften+Software.md` (dort P1).
 - **Aufwand:** M. **Voraussetzung:** B3/B5 (gemeinsame Datenobjekte).
 - **Ist-Stand:** `portfolio/flow_problems_config.py` (Schema v1; Status open|committed|resolved|dropped; **Cross-VS abgeleitet**, nicht behauptet: > 1 value_stream; `conferences`-Zähler von Menschen gepflegt), **Survivor-Regel** ungelöst ∧ ≥ 3 Konferenzen → sortiert zuerst, roter Zähler; Report-Sektion (HTML+PDF, Portfolio-aggregiert) + **Konferenzmappe** via `--conference FILE [--conference-date]` (leichte druckbare Seite: Input 1 Daten/Qualität · Input 2 Impediments/ROAM/Dependencies · Input 3 Capabilities/SLOs; Roadmap-Input folgt mit B7); Szenario liefert flow_problems_alpha/beta.json mit (FP-A1/FP-B1 als Survivors, DoD erfüllt).
 
-### B7 · Integrierte Roadmap-Sicht & Strategic Themes *(VSC-2; Workshop Wolfsburg 08/2026)* ✅ (umgesetzt 03.09.2026)
+### B7 · Integrierte Roadmap-Sicht & Strategic Themes *(VSC-2; aus einem Praxis-Workshop)* ✅ (umgesetzt 03.09.2026)
 - **Was:** Roadmap-Aggregation über Trains mit Initiative-Swimlanes (Zeithorizont nah granular, fern grob: P1 · P2 · Y1 · Y2 · Y3). `strategic_themes` als Entität mit Epic-Verknüpfung und **Orphan-Detection in beide Richtungen** (Theme ohne Epics = deklariert und vergessen; Epic ohne Theme = Zombie-Initiative). Der Report-Diff (D2) auf die integrierte Sicht dokumentiert die „updated roadmaps" je Konferenz automatisch.
 - **Warum:** Schließt die im Workshop konsolidierten SAFe-Lücken „no large-solution roadmap with initiative-level swim lanes" und „strategic themes haben kein strukturiertes Zuhause". Herleitung: Workshop-Analyse (dort P2).
 - **Aufwand:** M–L. **Voraussetzung:** B6; profitiert von D2, braucht es aber nicht.
@@ -241,13 +241,13 @@ Nicht nach „Feature-Wunschliste", sondern nach **Datenherkunft** (das BGS-Prin
 - **(d) Erst der Pilot D2** liefert die Erfahrung, wie viel Freigabe-Aufwand die Hinweise erzeugen — die Freigabe-Schwelle (Stichprobe vs. volle Prüfung) wird dort kalibriert (KI-Denkschrift C.5 „Verifizieren können").
 
 ### P3 · Harmonisierungs-Score-Modul · ✅ umgesetzt (12.10.2026, v0.35.0)
-*(Workshop Wolfsburg 08/2026, Priorität P3; eigenständiges Modul `harmonisation`)*
+*(Priorität P3 aus der Workshop-Analyse; eigenständiges Modul `harmonisation`)*
 - **Was:** Strukturiertes Assessment je End-to-End-Prozess in drei Dimensionen (Business Value · Transparenz · IT/Betrieb) — Fragenkatalog als Daten (eigene `SCHEMA_VERSION`), Antworten 0–4 **oder „unbekannt"** mit Beleggrad (belegt/geschätzt/Hörensagen), Bewertungen versioniert je Datei. Score je Dimension 0–100 mit Konfidenz (Anteil belegter Antworten, Ampel wie A1); mehrere Bewertungen → Median und Spannweite. Rendering als **Entscheider-Matrix** (HTML, fünf Sprachen) mit den Spalten, die das Board ausfüllt: Entscheidung (standardisieren / markenspezifisch / offen) und Tiefe im Wortlaut des Boards. GUI (tkinter) und CLI; Beispiel-Arbeitsbereich per `--example`.
-- **Bewusst nicht:** kein Harmonisierungs-Vorschlag, keine Rangliste, keine empfohlene Tiefe, kein Gesamtscore über die Dimensionen, kein LLM-Anteil. Die acht Fragen des Erstnutzers waren nicht bekannt (Entscheidung Robert 12.10.2026: generischer Beispielkatalog, Erstnutzer bringt seinen eigenen; keine Verbindung mehr zum Workshop-Erstnutzer).
+- **Bewusst nicht:** kein Harmonisierungs-Vorschlag, keine Rangliste, keine empfohlene Tiefe, kein Gesamtscore über die Dimensionen, kein LLM-Anteil. Die acht Fragen des Erstnutzers waren nicht bekannt (Entscheidung Robert 12.10.2026: generischer Beispielkatalog, Erstnutzer bringt seinen eigenen).
 - **Anschluss:** Matrix als Block in der Konferenzmappe und KI-Lesart (D1-Muster) sind ein eigener Vorgang, siehe `Ideen/Konzept_P3_Harmonisierungs-Score_2026-10-12.md`.
 
 ### P4 · Entscheidungspunkt-Wecker: Cross-VS-Abhängigkeitsdruck · ✅ umgesetzt (05.09.2026)
-*(Workshop Wolfsburg 08/2026, Priorität P4; erste konkrete Instanz von D4)*
+*(Priorität P4 aus der Workshop-Analyse; erste konkrete Instanz von D4)*
 - **Was:** Ein Indikator auf den **Nähten zwischen den Value Streams** eines Portfolios: Summe über alle offenen Abhängigkeiten, deren Ziel zu einer anderen Member-Solution gehört, gewichtet mit Statusgewicht (blocked 3 / at_risk 2 / on_track 1) × Überfälligkeitsfaktor (pünktlich 1 / überfällig 2 / > 30 Tage 3). Erreicht der Wert die vereinbarte Schwelle, stellt der Report die Frage: „Value-Stream-Conference einberufen?“
 - **Warum:** Der Workshop-Beleg lautet „Trigger it when there are significant cross-value-stream dependencies; skip it when there aren't." — genau das war nicht messbar, also entschied der Kalender. Damit wird die Doktrin „do it when you need it" operationalisierbar.
 - **Wo:** `portfolio/decision_point.py` (stdlib-only, deterministisch), Report- und PDF-Block unter der Dependency-Heatmap, `report.cross_vs_threshold`, CLI `--cross-vs-threshold N`, GUI-Feld „VSC-Schwelle" (fünf Sprachen).

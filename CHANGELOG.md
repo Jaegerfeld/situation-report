@@ -8,8 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [0.35.0] – 2026-10-12
 
 ### Added
-- **Neues Modul `harmonisation` — der Harmonisierungs-Score (Workshop Wolfsburg,
-  P3).** Ein strukturiertes Assessment je End-to-End-Prozess in drei Dimensionen
+- **Neues Modul `harmonisation` — der Harmonisierungs-Score (Roadmap P3).** Ein strukturiertes Assessment je End-to-End-Prozess in drei Dimensionen
   (Business Value · Transparenz · IT und Betrieb), gerendert als
   **Entscheider-Matrix** fürs Board: Zeilen Prozesse, Spalten Dimensionen, je
   Zelle Score, Zahl der Bewertungen, Konfidenz und Spanne — daneben die Spalten,
@@ -17,7 +16,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   offen) und Tiefe im Wortlaut des Boards.
 
   **Der Katalog ist Daten, nicht Code.** Mitgeliefert ist ein Beispielkatalog mit
-  3 × 8 Fragen als Illustration der Workshop-Struktur; die eigenen Fragen kommen
+  3 × 8 Fragen als Illustration der Struktur; die eigenen Fragen kommen
   in dieselbe JSON-Datei. Jede Frage ist so gestellt, dass hohe Zustimmung für
   eine Harmonisierung spricht — nur so lassen sich die Werte einer Dimension
   addieren.
@@ -320,7 +319,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   Die Bestandszeitreihe entsteht aus den vorhandenen CFD-Tagesdaten; neue
   Eingaben braucht es nicht.
 
-- **Entscheidungspunkt-Wecker (P4)** — im Wolfsburg-Workshop stand der Satz
+- **Entscheidungspunkt-Wecker (P4)** — in einem Praxis-Workshop stand der Satz
   „Trigger it when there are significant cross-value-stream dependencies;
   skip it when there aren't.“ Genau das war nicht messbar, also entschied der
   Kalender. Der neue Block misst den Druck auf den **Nähten zwischen den
@@ -710,7 +709,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 - Portfolio: **strategic themes & integrated roadmap** (roadmap B7,
-  VSC-2 from the Wolfsburg workshop) — `"themes": "themes.json"` (new
+  VSC-2 from a practitioner workshop) — `"themes": "themes.json"` (new
   module `portfolio/themes_config.py`, schema v1: themes; epics with
   train, horizon P1·P2·Y1·Y2·Y3 near-granular/far-coarse, status,
   theme link). **Orphan detection in both directions**: a theme no epic
@@ -728,7 +727,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   EP-B2 moves P2 → P1); manual section 5.15 in all five languages;
   one-pager (DE+EN).
 - Portfolio: **flow-problem backlog & conference pre-read** (roadmap B6,
-  VSC-1 from the Wolfsburg workshop) — a solution config can reference
+  VSC-1 from a practitioner workshop) — a solution config can reference
   the Value-Stream Conference's impediment backlog
   (`"flow_problems": "flow_problems.json"`; new module
   `portfolio/flow_problems_config.py`, schema v1: status
