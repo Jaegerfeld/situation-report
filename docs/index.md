@@ -23,6 +23,7 @@ Toolsuite for the situational picture at portfolio and solution level: flow metr
 | [`sources`](modules/sources.md) | Pluggable external metric sources (SLO, DORA, quality) | available (Alpha) |
 | [`llm`](modules/llm.md) | Pluggable AI narration (local Ollama, Claude API, mock) | available (Alpha) |
 | [`simulate`](modules/simulate.md) | Simulations and prediction models | available (Alpha) |
+| [`harmonisation`](modules/harmonisation.md) | Harmonisation score per end-to-end process — decision matrix for the board | available (Alpha) |
 
 ## Setup
 

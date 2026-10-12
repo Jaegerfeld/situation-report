@@ -70,10 +70,10 @@ class TestModuleRegistry:
         for entry in _MODULES:
             assert isinstance(entry.available, bool)
 
-    def test_exactly_seven_available_modules(self):
-        """Seven modules are available — since C3, get_data launches too."""
+    def test_exactly_eight_available_modules(self):
+        """Eight modules are available — since P3 (0.35.0), harmonisation launches too."""
         available = [e for e in _MODULES if e.available]
-        assert len(available) == 7
+        assert len(available) == 8
 
     def test_simulate_is_available(self):
         """simulate is available — launchable from the main GUI."""
@@ -100,9 +100,9 @@ class TestModuleRegistry:
         ids = {e.module_id for e in _MODULES if e.available}
         assert "transform_data" in ids
 
-    def test_seven_modules_total(self):
-        """The registry contains exactly seven module entries."""
-        assert len(_MODULES) == 7
+    def test_eight_modules_total(self):
+        """The registry contains exactly eight module entries."""
+        assert len(_MODULES) == 8
 
     def test_all_module_ids_unique(self):
         """All module_ids in the registry are unique."""
@@ -120,9 +120,9 @@ class TestModuleRegistry:
         assert entry.maturity == "alpha"
 
     def test_alpha_modules(self):
-        """helper, portfolio, simulate and the new get_data are Alpha-maturity."""
+        """helper, portfolio, simulate, get_data and harmonisation are Alpha-maturity."""
         alpha = {e.module_id for e in _MODULES if e.maturity == "alpha"}
-        assert alpha == {"helper", "portfolio", "simulate", "get_data"}
+        assert alpha == {"helper", "portfolio", "simulate", "get_data", "harmonisation"}
 
     def test_get_data_available_and_keeps_info_button(self):
         """get_data launches since C3 — and keeps the manual-export how-to."""
@@ -131,9 +131,9 @@ class TestModuleRegistry:
         assert entry.has_info
 
     def test_portfolio_on_solution_side(self):
-        """The portfolio module is the only one on the left (solution) side of the split UI."""
+        """Portfolio and harmonisation sit on the left (solution) side of the split UI."""
         solution = {e.module_id for e in _MODULES if e.section == "solution"}
-        assert solution == {"portfolio"}
+        assert solution == {"portfolio", "harmonisation"}
 
     def test_all_other_modules_on_art_side(self):
         """Every non-portfolio module belongs to the right (ART) side."""

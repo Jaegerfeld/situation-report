@@ -59,6 +59,86 @@ _FOOT = ParagraphStyle("foot", fontName="Helvetica", fontSize=8, leading=10,
 #: Onepager je Feature: slug -> {lang -> {title, tagline, sections, footer_note}}
 #: sections: Liste aus ("h", Text) | ("p", Text) | ("code", Text) | ("li", Text)
 ONEPAGERS: dict[str, dict[str, dict]] = {
+    "harmonisation_score": {
+        "de": {
+            "title": "Harmonisierungs-Score",
+            "tagline": "12.10.2026 \u00b7 Wo harmonisieren, in welcher Tiefe \u2013 der "
+                       "Befund kommt aus dem Werkzeug, das Urteil vom Board.",
+            "sections": [
+                ("h", "Worum geht es?"),
+                ("p", "Ein Konzern mit mehreren Marken hat denselben End-to-End-Prozess "
+                      "in mehreren Varianten. Harmonisieren, ja oder nein \u2013 und wie "
+                      "tief? Der Workshop in Wolfsburg (08/2026) beschrieb daf\u00fcr "
+                      "einen Harmonisierungs-Score: drei Dimensionen (Business Value, "
+                      "Transparenz, IT/Betrieb) \u00d7 acht Fragen je Prozess, Ausgabe f\u00fcr "
+                      "ein Lagebild auf Vorstandsebene. Das Modul harmonisation setzt "
+                      "diese Struktur um \u2013 als Werkzeug, nicht als Urteil."),
+                ("h", "Was es tut"),
+                ("li", "Fragenkatalog als Daten: 3 \u00d7 8 Beispielfragen mitgeliefert, "
+                       "eigene Fragen in derselben JSON-Datei"),
+                ("li", "Bewertung je Prozess: Wert 0\u20134 oder \u201eunbekannt\u201c, je Antwort "
+                       "ein Beleggrad (belegt, gesch\u00e4tzt, H\u00f6rensagen)"),
+                ("li", "Score je Dimension 0\u2013100 mit Konfidenz-Ampel; mehrere "
+                       "Bewertungen \u2192 Median und Spanne"),
+                ("li", "Entscheider-Matrix als HTML in f\u00fcnf Sprachen, mit den "
+                       "Spalten, die das Board ausf\u00fcllt: Entscheidung und Tiefe"),
+                ("li", "GUI und Kommandozeile, Beispiel-Arbeitsbereich per Knopfdruck"),
+                ("h", "Drei Entscheidungen"),
+                ("p", "<b>Kein Vorschlag.</b> Das Werkzeug empfiehlt weder, was "
+                      "harmonisiert wird, noch in welcher Tiefe. Es rechnet den Befund; "
+                      "was folgt, tr\u00e4gt das Board ein, und die Matrix h\u00e4lt es fest."),
+                ("p", "<b>\u201eUnbekannt\u201c ist eine Antwort.</b> Sie senkt die Konfidenz, "
+                      "nicht den Score. Ein Lagebild, das Unwissen nicht ausweisen "
+                      "kann, t\u00e4uscht Sicherheit vor."),
+                ("p", "<b>Kein Gesamtscore.</b> Business Value, Transparenz und "
+                      "IT/Betrieb sind drei verschiedene Dinge. Drei Zahlen "
+                      "nebeneinander sind ehrlicher als eine, die sie verrechnet."),
+                ("h", "So benutzt du es"),
+                ("code", "python -m harmonisation\n"
+                         "python -m harmonisation C:\\\\Lagebild\\\\harmo --example --browser\n"
+                         "python -m harmonisation C:\\\\Lagebild\\\\harmo --lang en"),
+            ],
+        },
+        "en": {
+            "title": "Harmonisation Score",
+            "tagline": "12 Oct 2026 \u00b7 Where to harmonise, and how deep \u2013 the finding "
+                       "comes from the tool, the judgement from the board.",
+            "sections": [
+                ("h", "What is it?"),
+                ("p", "A group with several brands runs the same end-to-end process in "
+                      "several variants. Harmonise or not \u2013 and how deep? The Wolfsburg "
+                      "workshop (08/2026) described a harmonisation score for this: three "
+                      "dimensions (business value, transparency, IT/operations) \u00d7 eight "
+                      "questions per process, feeding a board-level situational picture. "
+                      "The harmonisation module implements that structure \u2013 as a tool, "
+                      "not as a verdict."),
+                ("h", "What it does"),
+                ("li", "Question catalogue as data: 3 \u00d7 8 example questions shipped, "
+                       "your own questions go into the same JSON file"),
+                ("li", "Assessment per process: value 0\u20134 or \u201cunknown\u201d, each answer "
+                       "with an evidence level (documented, estimated, hearsay)"),
+                ("li", "Score per dimension 0\u2013100 with a confidence traffic light; "
+                       "several assessments \u2192 median and spread"),
+                ("li", "Decision matrix as HTML in five languages, with the columns the "
+                       "board fills in: decision and depth"),
+                ("li", "GUI and command line, example workspace at a click"),
+                ("h", "Three decisions"),
+                ("p", "<b>No proposal.</b> The tool recommends neither what to harmonise "
+                      "nor how deep. It computes the finding; what follows, the board "
+                      "enters, and the matrix records it."),
+                ("p", "<b>\u201cUnknown\u201d is an answer.</b> It lowers the confidence, not "
+                      "the score. A situational picture that cannot show ignorance fakes "
+                      "certainty."),
+                ("p", "<b>No overall score.</b> Business value, transparency and "
+                      "IT/operations are three different things. Three numbers side by "
+                      "side are more honest than one that nets them."),
+                ("h", "How to use it"),
+                ("code", "python -m harmonisation\n"
+                         "python -m harmonisation C:\\\\Lagebild\\\\harmo --example --browser\n"
+                         "python -m harmonisation C:\\\\Lagebild\\\\harmo --lang en"),
+            ],
+        },
+    },
     "llm_deployment_label": {
         "de": {
             "title": "Die Kennzeichnung folgt der Adresse",

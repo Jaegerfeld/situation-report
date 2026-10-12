@@ -76,6 +76,7 @@ nav:
     - sources: modules/sources.md
     - llm: modules/llm.md
     - simulate: modules/simulate.md
+    - harmonisation: modules/harmonisation.md
   - Tutorials:
     - Attach a data source: tutorials/attach-a-source.md
     - Install Ollama (Windows 11): tutorials/install-ollama.md

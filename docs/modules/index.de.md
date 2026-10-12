@@ -12,6 +12,7 @@
 | [sources](sources.md) | Steckbare externe Metrik-Quellen (SLO, DORA, Qualität) | verfügbar (Alpha) |
 | [llm](llm.md) | Steckbare KI-Narration (lokal Ollama, Claude-API, mock) | verfügbar (Alpha) |
 | [simulate](simulate.md) | Simulationen und Vorhersagemodelle | verfügbar (Alpha) |
+| [harmonisation](harmonisation.md) | Harmonisierungs-Score je End-to-End-Prozess — Entscheider-Matrix fürs Board | verfügbar (Alpha) |
 
 ## Gemeinsames Projekt-Template
 

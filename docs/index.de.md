@@ -23,6 +23,7 @@ Toolsuite für das Lagebild auf Portfolio- und Solution-Ebene: Flow-Metriken aus
 | [`sources`](modules/sources.md) | Steckbare externe Metrik-Quellen (SLO, DORA, Qualität) | verfügbar (Alpha) |
 | [`llm`](modules/llm.md) | Steckbare KI-Narration (lokal Ollama, Claude-API, mock) | verfügbar (Alpha) |
 | [`simulate`](modules/simulate.md) | Simulationen und Vorhersagemodelle | verfügbar (Alpha) |
+| [`harmonisation`](modules/harmonisation.md) | Harmonisierungs-Score je End-to-End-Prozess — Entscheider-Matrix fürs Board | verfügbar (Alpha) |
 
 ## Setup
 

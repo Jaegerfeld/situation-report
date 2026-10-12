@@ -5,6 +5,48 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [0.35.0] – 2026-10-12
+
+### Added
+- **Neues Modul `harmonisation` — der Harmonisierungs-Score (Workshop Wolfsburg,
+  P3).** Ein strukturiertes Assessment je End-to-End-Prozess in drei Dimensionen
+  (Business Value · Transparenz · IT und Betrieb), gerendert als
+  **Entscheider-Matrix** fürs Board: Zeilen Prozesse, Spalten Dimensionen, je
+  Zelle Score, Zahl der Bewertungen, Konfidenz und Spanne — daneben die Spalten,
+  die **das Board ausfüllt**: Entscheidung (standardisieren · markenspezifisch ·
+  offen) und Tiefe im Wortlaut des Boards.
+
+  **Der Katalog ist Daten, nicht Code.** Mitgeliefert ist ein Beispielkatalog mit
+  3 × 8 Fragen als Illustration der Workshop-Struktur; die eigenen Fragen kommen
+  in dieselbe JSON-Datei. Jede Frage ist so gestellt, dass hohe Zustimmung für
+  eine Harmonisierung spricht — nur so lassen sich die Werte einer Dimension
+  addieren.
+
+  **Antworten:** 0 „trifft nicht zu" bis 4 „trifft voll zu" — und **„unbekannt"
+  als zulässige Antwort**, dazu je Antwort ein Beleggrad (belegt, geschätzt,
+  Hörensagen). Der Score je Dimension ist das Mittel der beantworteten Fragen
+  (0–100); die **Konfidenz** ist der Anteil belegter Antworten an allen Fragen,
+  als Ampel wie beim Konfidenz-Flag der Portfolio-Reports. „Unbekannt" senkt die
+  Konfidenz, nicht den Score. Mehrere Bewertungen desselben Prozesses werden
+  zum **Median** gefaltet, die **Spanne** steht daneben: Zwei Befragte, die
+  denselben Prozess völlig verschieden sehen, sind ein Befund, kein Rauschen.
+  **Kein Gesamtscore** über die Dimensionen — drei Zahlen nebeneinander sind
+  ehrlicher als eine, die drei verschiedene Dinge verrechnet.
+
+  **Was das Modul bewusst nicht tut:** keinen Harmonisierungs-Vorschlag rechnen,
+  keine Rangliste, keine Tiefe empfehlen. Die Urteilszeile bleibt beim Menschen —
+  dieselbe Nicht-Funktion wie der fehlende Empfehlungs-Button der KI-Schicht.
+  Kein LLM-Anteil, nur Standardbibliothek, deterministisch.
+
+  Oberfläche (`python -m harmonisation`): Arbeitsbereich wählen oder **Beispiel
+  anlegen**, Prozesse pflegen, Bewertung erfassen (je Frage Wert und Beleggrad),
+  Entscheidung eintragen, Matrix erzeugen — in fünf Sprachen. Kommandozeile:
+  `python -m harmonisation <ordner> --lang de --browser`, `--example` schreibt den
+  Beispiel-Arbeitsbereich. Launcher-Karte auf der Solution-Seite, Status Alpha.
+  Benutzerhandbuch in fünf Sprachen, Onepager DE/EN.
+
+---
+
 ## [0.34.0] – 2026-10-11
 
 ### Fixed

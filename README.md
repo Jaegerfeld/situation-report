@@ -1,6 +1,6 @@
 # situation-report
 
-**Version 0.34.0** ![Coverage](docs/coverage.svg)
+**Version 0.35.0** ![Coverage](docs/coverage.svg)
 
 Toolsuite for the situational picture at portfolio and solution level: flow metrics from Jira, governance registers, Value-Stream-Conference preparation, forecasts and AI-drafted narration — running locally on your own machine.
 
@@ -49,6 +49,7 @@ The software is the tool; the **memoranda (Denkschriften)** are its conceptual f
 | [`sources`](https://jaegerfeld.github.io/situation-report/modules/sources/) | Pluggable external metric sources (SLO, DORA, quality) | available (Alpha) |
 | [`llm`](https://jaegerfeld.github.io/situation-report/modules/llm/) | Pluggable AI narration (local Ollama, Claude API, mock) | available (Alpha) |
 | [`simulate`](https://jaegerfeld.github.io/situation-report/modules/simulate/) | Simulations and forecasting models | available (Alpha) |
+| [`harmonisation`](https://jaegerfeld.github.io/situation-report/modules/harmonisation/) | Harmonisation score per end-to-end process — decision matrix for the board | available (Alpha) |
 
 ## Setup
 
