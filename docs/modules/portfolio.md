@@ -268,7 +268,8 @@ python -m portfolio --delta state_prev.json state_now.json --output delta.html
 ```
 
 `--snapshot` freezes the computed report state (metrics per unit and pooled,
-source quality incl. confidence, all five governance registers) into a small
+source quality incl. confidence, all seven governance registers — flow
+problems with their conference counter and SLOs since 0.37.1) into a small
 schema-v1 JSON; `--as-of YYYY-MM-DD` pins the observation date (default:
 today). Without `--output`/`--pdf`, only the snapshot is written.
 

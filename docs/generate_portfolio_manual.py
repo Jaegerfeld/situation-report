@@ -578,7 +578,8 @@ def content_de(st: dict) -> list:
         _H2("5.12  Delta-Briefing (Snapshots vergleichen)", st),
         _P("<font name='Courier'>--snapshot DATEI</font> friert den "
            "berechneten Report-Zustand (Kennzahlen je Einheit und gepoolt, "
-           "Quell-Konfidenz, alle fünf Governance-Register) als kleines JSON "
+           "Quell-Konfidenz, alle sieben Governance-Register samt Flussproblemen "
+           "und SLOs) als kleines JSON "
            "ein; <font name='Courier'>--as-of</font> setzt das "
            "Beobachtungsdatum. <font name='Courier'>--delta VORHER JETZT"
            "</font> vergleicht zwei Snapshots ohne Config und beantwortet "
@@ -1096,7 +1097,8 @@ def content_en(st: dict) -> list:
         _H2("5.12  Delta briefing (comparing snapshots)", st),
         _P("<font name='Courier'>--snapshot FILE</font> freezes the computed "
            "report state (metrics per unit and pooled, source confidence, "
-           "all five governance registers) into a small JSON; "
+           "all seven governance registers incl. flow problems and SLOs) into "
+           "a small JSON; "
            "<font name='Courier'>--as-of</font> pins the observation date. "
            "<font name='Courier'>--delta PREV NOW</font> compares two "
            "snapshots without a config and answers 'what changed?': metric "
@@ -1604,7 +1606,8 @@ def content_ro(st: dict) -> list:
         _H2("5.12  Delta briefing (compararea snapshot-urilor)", st),
         _P("<font name='Courier'>--snapshot FISIER</font> ingheata starea "
            "calculata a raportului (metrici per unitate si cumulat, "
-           "increderea surselor, cele cinci registre de governance) intr-un "
+           "increderea surselor, cele sapte registre de governance, inclusiv "
+           "problemele de flux si SLO-urile) intr-un "
            "JSON mic; <font name='Courier'>--as-of</font> fixeaza data "
            "observatiei. <font name='Courier'>--delta INAINTE ACUM</font> "
            "compara doua snapshot-uri fara config si raspunde la 'ce s-a "
@@ -2086,7 +2089,8 @@ def content_pt(st: dict) -> list:
         _H2("5.12  Delta briefing (comparar snapshots)", st),
         _P("<font name='Courier'>--snapshot FICHEIRO</font> congela o estado "
            "calculado do relatorio (metricas por unidade e agregadas, "
-           "confianca das fontes, os cinco registos de governance) num JSON "
+           "confianca das fontes, os sete registos de governance, incluindo "
+           "problemas de fluxo e SLOs) num JSON "
            "pequeno; <font name='Courier'>--as-of</font> fixa a data de "
            "observacao. <font name='Courier'>--delta ANTES AGORA</font> "
            "compara dois snapshots sem config e responde a 'o que mudou?': "
@@ -2578,7 +2582,8 @@ def content_fr(st: dict) -> list:
         _H2("5.12  Delta briefing (comparer des snapshots)", st),
         _P("<font name='Courier'>--snapshot FICHIER</font> fige l'etat "
            "calcule du rapport (metriques par unite et agregees, confiance "
-           "des sources, les cinq registres de gouvernance) dans un petit "
+           "des sources, les sept registres de gouvernance, y compris les "
+           "problemes de flux et les SLO) dans un petit "
            "JSON ; <font name='Courier'>--as-of</font> fixe la date "
            "d'observation. <font name='Courier'>--delta AVANT MAINTENANT"
            "</font> compare deux snapshots sans config et repond a 'qu'est-ce "

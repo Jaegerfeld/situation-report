@@ -3,14 +3,15 @@
 # Repository:     https://github.com/Jaegerfeld/situation-report
 # KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
 # Erstellt:       03.09.2026
-# Geändert:       19.09.2026
+# Geändert:       12.10.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
 #   Delta-Briefing (Roadmap D2, deterministischer Kern): vergleicht zwei
 #   Report-Snapshots und beantwortet „Was hat sich geändert?" — Kennzahl-
 #   Deltas je Einheit, Durchsatz im Zeitraum, Konfidenz-Wechsel je Quelle,
-#   Zustandsübergänge in den fünf Governance-Registern (neu/entfallen/
+#   Zustandsübergänge in den Governance-Registern (seit 12.10.2026 sieben:
+#   auch Flussprobleme mit Konferenzen-Zähler und SLOs; neu/entfallen/
 #   gewechselt, neu überfällig). Verschlechterungen zuerst. Ausgabe als
 #   eigenständige HTML-Seite und als Markdown — Letzteres ist zugleich der
 #   künftige Eingabe-Contract der optionalen LLM-Narration (die textet,
@@ -24,12 +25,14 @@ from dataclasses import dataclass, field
 from datetime import date
 from typing import Any
 
+from .flow_problems_config import SURVIVED_CONFERENCES_THRESHOLD
 from .report_texts import DEFAULT_LANG, t
 from .snapshot import Snapshot
 from .summary import _legend_flag, _legend_line
 
 #: Governance status values that count as a worsening when entered.
-_BAD_STATES = {"blocked", "violated", "critical", "invalidated", "owned"}
+_BAD_STATES = {"blocked", "violated", "critical", "invalidated", "owned",
+               "breached"}
 #: Governance status values that count as an improvement when entered.
 _GOOD_STATES = {"done", "met", "in_place", "resolved", "mitigated", "ok",
                 "confirmed", "accepted", "on_track"}
@@ -137,7 +140,25 @@ def _compare_fields(section: str) -> tuple[str, ...]:
         # 'Updated roadmaps' per conference: status, horizon shifts and a
         # lost strategic home (theme emptied -> zombie) all count.
         return ("status", "horizon", "theme")
+    if section == "flow_problems":
+        # The conference counter IS the workshop pattern ("logged, never
+        # mitigated, back next PI") — a problem that reaches the third
+        # conference unresolved is a worsening even without a status change.
+        return ("status", "conferences")
     return (_status_field(section),)
+
+
+def _became_survivor(section: str, fields: dict[str, tuple[Any, Any]],
+                     entry: dict) -> bool:
+    """Flow problem crossed the survived-conferences threshold while unresolved."""
+    if section != "flow_problems" or "conferences" not in fields:
+        return False
+    old, new = fields["conferences"]
+    try:
+        crossed = int(old or 0) < SURVIVED_CONFERENCES_THRESHOLD <= int(new or 0)
+    except (TypeError, ValueError):
+        return False
+    return crossed and str(entry.get("status", "")) in ("open", "committed")
 
 
 def _due_field(section: str) -> str | None:
@@ -201,7 +222,8 @@ def _diff_section(
                 solution=str(entry.get("solution", "")),
                 fields=fields,
                 worsened=(status_key in fields
-                          and new_status in _BAD_STATES) or became_zombie,
+                          and new_status in _BAD_STATES) or became_zombie
+                or _became_survivor(section, fields, entry),
             ))
         if (_is_overdue(section, entry, as_of_now)
                 and not _is_overdue(section, old, as_of_prev)):
@@ -262,7 +284,8 @@ def compute_delta(prev: Snapshot, now: Snapshot) -> DeltaReport:
             section, prev.governance.get(section, []),
             now.governance.get(section, []), prev.as_of, now.as_of)
         for section in ("risks", "dependencies", "nfr", "runway",
-                        "capabilities", "decisions", "epics")
+                        "capabilities", "decisions", "epics",
+                        "flow_problems", "slo")
     }
 
     completed_delta = (int(now.total.get("completed", 0))
@@ -308,6 +331,8 @@ _SECTION_TITLES = {
     "capabilities": "Capabilities",
     "decisions": "Decisions & assumptions",
     "epics": "Roadmap epics (updated roadmaps)",
+    "flow_problems": "Flow problems (impediment backlog)",
+    "slo": "SLOs",
 }
 
 

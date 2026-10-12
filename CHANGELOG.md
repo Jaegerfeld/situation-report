@@ -5,6 +5,31 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [0.37.1] – 2026-10-12
+
+### Fixed
+- **Snapshot trug weder Flussprobleme noch SLOs — der D1-Contract zählte sie deshalb nie.**
+  `summary_to_markdown` (Executive Summary, D1) liest die Governance-Kopfzahlen aus dem
+  Snapshot und kannte `flow_problems` und `slo` seit dem 04.09.2026 — `build_snapshot`
+  befüllte beide Register aber nicht. Die Executive Summary blieb damit still über den
+  wichtigsten Konferenz-Input und über SLO-Verletzungen, und das Delta-Briefing (D2)
+  verglich beide Register nicht. Nebenbefund aus D8 (12.10.2026).
+
+  Der Snapshot führt jetzt **sieben Register** (Schema bleibt v1, additiv): Flussprobleme
+  mit Status, Value Streams, Konferenzen-Zähler, Meldedatum und Wiedervorlage-PI — ohne
+  Owner und Melder, weil der Snapshot die KI-Contracts speist und die Teams, nie Personen
+  nennen; SLOs mit zentral abgeleitetem Status (`met`/`at_risk`/`breached`/`unknown`),
+  Ziel, Istwert und Fenster. Alte Snapshot-Dateien ohne die Register laden unverändert
+  und vergleichen weiter.
+
+  **Delta-Briefing:** Flussprobleme werden auf Status **und Konferenzen-Zähler** verglichen;
+  erreicht ein ungelöstes Problem die dritte Konferenz, gilt das als Verschlechterung —
+  das ist das Workshop-Muster „geloggt, nie mitigiert, taucht nächstes PI wieder auf“.
+  SLO-Status `breached` zählt als Verschlechterung, `met` als Verbesserung. Beide Register
+  erscheinen in HTML und Markdown des Briefings, also auch im Contract der KI-Narration.
+
+---
+
 ## [0.37.0] – 2026-10-12
 
 ### Added

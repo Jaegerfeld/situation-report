@@ -3,14 +3,16 @@
 # Repository:     https://github.com/Jaegerfeld/situation-report
 # KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
 # Erstellt:       03.09.2026
-# Geändert:       03.09.2026
+# Geändert:       12.10.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
 #   Report-Snapshot für das Delta-Briefing (Roadmap D2, deterministischer
 #   Kern). Ein Snapshot friert den Zustand eines Solution-/Portfolio-Reports
 #   als kleines JSON ein: Kennzahlen je Einheit (und gepoolt), Datenqualität
-#   je Quelle, Zustände der fünf Governance-Register. Zwei Snapshots sind die
+#   je Quelle, Zustände aller Governance-Register (seit 12.10.2026 auch
+#   Flussprobleme und SLOs — vorher las der D1-Contract diese beiden Register
+#   aus dem Snapshot, der sie nie befüllte). Zwei Snapshots sind die
 #   Voraussetzung des Delta-Briefings („Was hat sich geändert?" — Hohpes
 #   first derivative als Produkt, Muster M2). Alles hier ist deterministisch;
 #   Zahlen entstehen ausschließlich in der Pipeline, nie in einer KI-Schicht.
@@ -29,12 +31,15 @@ from .aggregator import (
     _collect_capabilities,
     _collect_decisions,
     _collect_dependencies,
+    _collect_flow_problems,
     _collect_nfr,
     _collect_risks,
+    _collect_slo,
     _collect_themes,
     build_pooled_report_data,
     load_comparison_units,
 )
+from .slo_config import slo_status
 from .solution_config import SolutionConfig, load_solution_config
 from .summary import SourceQuality, Summary, compute_summary
 
@@ -100,7 +105,14 @@ def _iso(d: date | None) -> str | None:
 def _governance_dict(
     config: SolutionConfig, log: Callable[[str], None]
 ) -> dict[str, list[dict[str, Any]]]:
-    """Collect the five governance registers into snapshot entries."""
+    """
+    Collect the governance registers into snapshot entries.
+
+    Seven since 12.10.2026: flow problems (B6) and SLOs (C1) joined the
+    original five. Flow problems carry no owner or raiser here — the
+    snapshot feeds the LLM contracts, and those name teams, never persons;
+    an SLO's status is derived centrally (slo_config), never stored.
+    """
     risks = [{"id": r.risk_id, "title": r.title, "roam": r.roam,
               "impact": r.impact, "owner": r.owner,
               "since": _iso(r.status_since), "solution": src}
@@ -128,9 +140,18 @@ def _governance_dict(
               "horizon": e.horizon, "theme": e.theme, "status": e.status,
               "solution": src}
              for src, e in epic_entries]
+    flow = [{"id": f.problem_id, "title": f.title, "status": f.status,
+             "value_streams": list(f.value_streams), "conferences": f.conferences,
+             "raised_on": _iso(f.raised_on), "follow_up_pi": f.follow_up_pi,
+             "solution": src}
+            for src, f in _collect_flow_problems(config, log=log)]
+    slos = [{"id": s.service, "service": s.service, "title": s.slo,
+             "status": slo_status(s), "target_pct": s.target_pct,
+             "sli_pct": s.sli_pct, "window": s.window, "solution": src}
+            for src, s in _collect_slo(config, log=log)]
     return {"risks": risks, "dependencies": deps, "nfr": nfrs,
             "runway": runway, "capabilities": caps, "decisions": decisions,
-            "epics": epics}
+            "epics": epics, "flow_problems": flow, "slo": slos}
 
 
 def build_snapshot(
