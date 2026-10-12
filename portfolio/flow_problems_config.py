@@ -7,8 +7,8 @@
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
-#   Flussproblem-Backlog (Roadmap B6, VSC-1 aus dem Workshop Wolfsburg
-#   08/2026): der wichtigste Input der Value-Stream-Konferenz. Jede Solution
+#   Flussproblem-Backlog (Roadmap B6, VSC-1 aus einem Praxis-Workshop):
+#   der wichtigste Input der Value-Stream-Konferenz. Jede Solution
 #   kann über das optionale "flow_problems"-Feld auf eine
 #   flow_problems.json verweisen. Das im Workshop benannte Muster „Risiken
 #   werden geloggt, nie mitigiert, tauchen nächstes PI wieder auf" wird
