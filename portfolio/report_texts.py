@@ -1247,6 +1247,27 @@ _TEXTS: dict[str, dict[str, str]] = {
         LANG_PT: "Anexo · Matriz de harmonização (visão do board)",
         LANG_FR: "Annexe · Matrice d'harmonisation (vue du board)",
     },
+    "vsc.draft.intro": {
+        LANG_DE: "KI-Entwurf · Einleitung", LANG_EN: "AI draft · Introduction",
+        LANG_RO: "Schiță AI · Introducere", LANG_PT: "Rascunho de IA · Introdução",
+        LANG_FR: "Brouillon IA · Introduction",
+    },
+    "vsc.draft.part": {
+        LANG_DE: "KI-Entwurf · {input}", LANG_EN: "AI draft · {input}",
+        LANG_RO: "Schiță AI · {input}", LANG_PT: "Rascunho de IA · {input}",
+        LANG_FR: "Brouillon IA · {input}",
+    },
+    "vsc.draft.file_title": {
+        LANG_DE: "Konferenzmappe — KI-Entwürfe zum Redigieren",
+        LANG_EN: "Conference pre-read — AI drafts for editing",
+        LANG_RO: "Mapa conferinței — schițe AI pentru redactare",
+        LANG_PT: "Dossier da conferência — rascunhos de IA para redigir",
+        LANG_FR: "Dossier de conférence — brouillons IA à réviser",
+    },
+    "vsc.draft.failed": {
+        LANG_DE: "kein Entwurf:", LANG_EN: "no draft:", LANG_RO: "fără schiță:",
+        LANG_PT: "sem rascunho:", LANG_FR: "pas de brouillon :",
+    },
     "art.detail.quality": {
         LANG_DE: "ART-Detail — Datenqualität je ART",
         LANG_EN: "ART Detail — Data Quality per ART",

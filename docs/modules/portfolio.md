@@ -321,7 +321,21 @@ integrated roadmap & strategic themes (B7). Since 0.36.0 a solution that
 names a harmonisation workspace **folder** in `"harmonisation"` adds the
 decision matrix of the `harmonisation` module as an **annex after
 input 4** — a board view, deliberately not a fifth conference input.
-The full interactive report stays the detail source. **In the GUI:** the manager window's
+The full interactive report stays the detail source.
+
+**AI drafts for the pre-read (D8, since 0.37.0).** `--conference` together
+with `--narrate [PROVIDER]` drafts five labeled parts — an introduction over
+all four inputs and one paragraph per input — into the editing file
+`<FILE>.narration.md`; the pre-read itself stays deterministic. With
+`--conference-draft inline` the drafts are also placed into the page
+(introduction before input 1, each paragraph under its heading). Every part
+has its own deterministic contract built from the same registers the
+pre-read shows, naming units, teams and registers but never persons; the
+numbers guard, the Art. 50 banner and the operator evidence (purpose
+`d8_conference`) apply unchanged. A part whose draft fails is named in the
+file and left out; the pre-read is written regardless. In the GUI the AI
+checkbox now applies to *Conference pre-read …* as well; the new box
+*Pre-read draft: file only | in the pre-read* chooses the placement. **In the GUI:** the manager window's
 *Conference pre-read …* button writes the same page for the currently
 configured solution and opens it in the browser — print to PDF from
 there; the test-data generator's demo section has *Open Conference

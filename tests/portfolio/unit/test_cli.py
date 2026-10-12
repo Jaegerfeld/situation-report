@@ -259,3 +259,52 @@ class TestArtDepthReachesTheRenderer:
             self, monkeypatch, tmp_path) -> None:
         seen = self._run(monkeypatch, tmp_path, False, True)
         assert seen["art_depth"] is True
+
+
+class TestConferenceDraft:
+    """D8: --conference with --narrate writes the editing file; 'inline' also
+    places the drafts into the page. Without --narrate: exactly the old page."""
+
+    def _run(self, monkeypatch, tmp_path, fake_config, extra: list[str]) -> tuple[str, str]:
+        import portfolio.aggregator as aggregator
+        import portfolio.conference_draft as cd
+        page = ("<html><body><h1 style='font-size:1.25rem'>Input 1 · Current data</h1>"
+                "<p>x</p></body></html>")
+        monkeypatch.setattr(aggregator, "render_conference_html",
+                            lambda cfg, **kw: page)
+        monkeypatch.setattr(cd, "conference_contracts",
+                            lambda cfg, **kw: {"intro": "# c\nitems 5\n",
+                                               "input1": "# c\nitems 5\n"})
+        out = tmp_path / "mappe.html"
+        monkeypatch.setattr(sys, "argv", ["portfolio", "cfg.json", "--conference", str(out),
+                                          "--lang", "en"] + extra)
+        cli.main()
+        md = out.with_suffix(".html.narration.md")
+        return out.read_text(encoding="utf-8"), (md.read_text(encoding="utf-8")
+                                                 if md.exists() else "")
+
+    def test_without_narrate_nothing_changes(self, monkeypatch, tmp_path, fake_config):
+        html, md = self._run(monkeypatch, tmp_path, fake_config, [])
+        assert "sr-draft" not in html and md == ""
+
+    def test_default_place_is_the_file_only(self, monkeypatch, tmp_path, fake_config):
+        html, md = self._run(monkeypatch, tmp_path, fake_config, ["--narrate", "mock",
+                                                                  "--llm-lang", "en"])
+        assert "sr-draft" not in html                       # Mappe bleibt deterministisch
+        assert md.startswith("# Conference pre-read — AI drafts for editing")
+        assert "## AI draft · Introduction" in md and "## AI draft · Input 1" in md
+        assert (tmp_path / "llm_audit.jsonl").exists()
+
+    def test_inline_places_the_drafts_into_the_page(self, monkeypatch, tmp_path, fake_config):
+        html, md = self._run(monkeypatch, tmp_path, fake_config,
+                             ["--narrate", "mock", "--llm-lang", "en",
+                              "--conference-draft", "inline"])
+        assert html.count("sr-draft") == 2
+        assert html.index("AI draft · Introduction") < html.index("Input 1 · Current data</h1>")
+        assert md                                            # die Datei gibt es trotzdem
+
+    def test_parser_default_and_choices(self):
+        args = build_parser().parse_args(["cfg.json", "--conference", "m.html"])
+        assert args.conference_draft == "file"
+        with pytest.raises(SystemExit):
+            build_parser().parse_args(["cfg.json", "--conference-draft", "page"])

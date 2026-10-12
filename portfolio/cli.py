@@ -337,6 +337,13 @@ def build_parser() -> argparse.ArgumentParser:
                         help="Write the Value-Stream-Conference pre-read "
                              "(Konferenzmappe, B6) to this HTML file: the "
                              "conference inputs in meeting order, printable.")
+    parser.add_argument("--conference-draft", choices=("file", "inline"),
+                        default="file", dest="conference_draft",
+                        help="With --conference and --narrate (D8): where the "
+                             "AI drafts go. 'file' (default) writes only the "
+                             "editing file <FILE>.narration.md and keeps the "
+                             "pre-read deterministic; 'inline' also places the "
+                             "labeled drafts into the pre-read itself.")
     parser.add_argument("--lang", choices=list(LANGUAGES), default=None,
                         help="Language of the report labels and texts "
                              "(default: the config's report.language, else "
@@ -440,11 +447,14 @@ def main() -> None:
     if args.conference:
         from .aggregator import render_conference_html
         conf_config = load_solution_config(args.config)
+        conf_lang = args.lang or conf_config.language or DEFAULT_LANG
         html_doc = render_conference_html(
             conf_config, conference_date=args.conference_date,
             art_depth=(conf_config.art_depth if args.art_depth is None
                        else args.art_depth),
-            lang=args.lang or conf_config.language or DEFAULT_LANG)
+            lang=conf_lang)
+        if args.narrate:
+            html_doc = _draft_conference_parts(args, conf_config, html_doc, conf_lang)
         args.conference.write_text(html_doc, encoding="utf-8")
         print(f"Conference pre-read written: {args.conference}")
         if args.browser:
@@ -473,13 +483,46 @@ def main() -> None:
     if not html and not args.pdf:
         print("ERROR: No report produced (no figures).", file=sys.stderr)
         sys.exit(1)
-    if args.narrate and not narrate_report:
+    if args.narrate and not narrate_report and not args.conference:
         print("Hint: --narrate on a report run needs an HTML --output; "
               "no executive summary was drafted.")
     if html and narrate_report:
         _attach_report_exec_summary(args, html)
     if not args.output and not args.pdf:
         print("Report rendered (no --output/--pdf given, so nothing was written).")
+
+
+def _draft_conference_parts(args: argparse.Namespace, config: Any,
+                            html_doc: str, lang: str) -> str:
+    """
+    D8 post-processing of a pre-read run: five guarded drafts (introduction
+    plus one per input), always written to <FILE>.narration.md for human
+    editing; with --conference-draft inline also placed into the page.
+    The drafts speak the narration language (de/en); the page keeps its own.
+    """
+    from llm.audit import AUDIT_FILENAME
+
+    from .conference_draft import (
+        PLACE_INLINE,
+        conference_contracts,
+        draft_conference,
+        draft_to_markdown,
+        insert_inline,
+    )
+
+    contracts = conference_contracts(config, conference_date=args.conference_date,
+                                     log=lambda m: None)
+    draft = draft_conference(
+        contracts, provider_id=args.narrate, lang=args.llm_lang,
+        llm_model=args.llm_model, llm_base_url=args.llm_base_url,
+        audit_path=args.conference.parent / AUDIT_FILENAME)
+    md = args.conference.with_suffix(args.conference.suffix + ".narration.md")
+    md.write_text(draft_to_markdown(draft, args.llm_lang), encoding="utf-8")
+    print(f"Conference drafts (for human editing): {md}"
+          + (f" - {len(draft.failures)} part(s) without draft" if draft.failures else ""))
+    if args.conference_draft == PLACE_INLINE and not draft.empty:
+        html_doc = insert_inline(html_doc, draft, args.llm_lang)
+    return html_doc
 
 
 def _attach_report_exec_summary(args: argparse.Namespace,

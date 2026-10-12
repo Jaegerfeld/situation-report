@@ -36,6 +36,7 @@ from .aggregator import (
     render_pdf,
     render_pooled_html,
 )
+from .conference_draft import PLACE_FILE, PLACE_INLINE
 from .report_texts import DEFAULT_LANG, LANGUAGES
 from .solution_config import (
     FRAMEWORK_SAFE,
@@ -234,7 +235,11 @@ _T: dict[str, dict[str, str]] = {
         "btn_conference": "Konferenzmappe …",
         "dlg_save_conference": "Konferenzmappe speichern",
         "msg_conference_building": "Konferenzmappe wird erzeugt …",
-        "msg_narrate_unused_conference": "der KI-Haken wirkt hier nicht: die Konferenzmappe ist bewusst deterministisch",
+        "lbl_draft_place": "Mappen-Entwurf",
+        "draft_place_file": "nur Datei",
+        "draft_place_inline": "in der Mappe",
+        "msg_conference_draft": "KI-Entwürfe: {path}",
+        "msg_conference_draft_failed": "{n} Teil(e) ohne Entwurf",
         "msg_narrate_unused_pdf": "der KI-Haken wirkt nicht auf PDF-Ausgabe — für den Entwurf HTML wählen",
         "msg_conference_done": "Konferenzmappe erzeugt: {path}",
         "msg_conference_error": "Konferenzmappe fehlgeschlagen: {error}",
@@ -340,7 +345,11 @@ _T: dict[str, dict[str, str]] = {
         "btn_conference": "Conference pre-read …",
         "dlg_save_conference": "Save conference pre-read",
         "msg_conference_building": "Building conference pre-read …",
-        "msg_narrate_unused_conference": "the AI checkbox has no effect here: the conference pre-read is deterministic by design",
+        "lbl_draft_place": "Pre-read draft",
+        "draft_place_file": "file only",
+        "draft_place_inline": "in the pre-read",
+        "msg_conference_draft": "AI drafts: {path}",
+        "msg_conference_draft_failed": "{n} part(s) without draft",
         "msg_narrate_unused_pdf": "the AI checkbox has no effect on PDF output — choose HTML for the draft",
         "msg_conference_done": "Conference pre-read written: {path}",
         "msg_conference_error": "Conference pre-read failed: {error}",
@@ -446,7 +455,11 @@ _T: dict[str, dict[str, str]] = {
         "btn_conference": "Mapa conferinței …",
         "dlg_save_conference": "Salvează mapa conferinței",
         "msg_conference_building": "Se creează mapa conferinței …",
-        "msg_narrate_unused_conference": "caseta AI nu are efect aici: mapa conferinței este intenționat deterministă",
+        "lbl_draft_place": "Schiță mapă",
+        "draft_place_file": "doar fișier",
+        "draft_place_inline": "în mapă",
+        "msg_conference_draft": "Schițe AI: {path}",
+        "msg_conference_draft_failed": "{n} parte/părți fără schiță",
         "msg_narrate_unused_pdf": "caseta AI nu are efect asupra ieșirii PDF — pentru schiță alegeți HTML",
         "msg_conference_done": "Mapa conferinței creată: {path}",
         "msg_conference_error": "Mapa conferinței a eșuat: {error}",
@@ -552,7 +565,11 @@ _T: dict[str, dict[str, str]] = {
         "btn_conference": "Dossier da conferência …",
         "dlg_save_conference": "Guardar o dossier da conferência",
         "msg_conference_building": "A criar o dossier da conferência …",
-        "msg_narrate_unused_conference": "a caixa de IA não tem efeito aqui: o dossier da conferência é determinista por concepção",
+        "lbl_draft_place": "Rascunho do dossier",
+        "draft_place_file": "só ficheiro",
+        "draft_place_inline": "no dossier",
+        "msg_conference_draft": "Rascunhos de IA: {path}",
+        "msg_conference_draft_failed": "{n} parte(s) sem rascunho",
         "msg_narrate_unused_pdf": "a caixa de IA não tem efeito na saída PDF — para o rascunho escolha HTML",
         "msg_conference_done": "Dossier da conferência criado: {path}",
         "msg_conference_error": "Dossier da conferência falhou: {error}",
@@ -658,7 +675,11 @@ _T: dict[str, dict[str, str]] = {
         "btn_conference": "Dossier de conférence …",
         "dlg_save_conference": "Enregistrer le dossier de conférence",
         "msg_conference_building": "Création du dossier de conférence …",
-        "msg_narrate_unused_conference": "la case IA est sans effet ici : le dossier de conférence est déterministe par conception",
+        "lbl_draft_place": "Brouillon du dossier",
+        "draft_place_file": "fichier seul",
+        "draft_place_inline": "dans le dossier",
+        "msg_conference_draft": "Brouillons IA : {path}",
+        "msg_conference_draft_failed": "{n} partie(s) sans brouillon",
         "msg_narrate_unused_pdf": "la case IA est sans effet sur la sortie PDF — choisir HTML pour le brouillon",
         "msg_conference_done": "Dossier de conférence créé : {path}",
         "msg_conference_error": "Échec du dossier de conférence : {error}",
@@ -765,8 +786,9 @@ def _preselect_model(stored: str, models: list[str], default: str) -> str:
 
 
 #: Actions that never use the AI, and the message key explaining why.
+#: The conference pre-read left this map on 12.10.2026 (D8): with the AI
+#: checkbox ticked it now drafts five labeled parts into an editing file.
 NARRATE_UNUSED = {
-    "conference": "msg_narrate_unused_conference",
     "pdf": "msg_narrate_unused_pdf",
 }
 
@@ -776,12 +798,12 @@ def narrate_unused_key(action: str, narrate_on: bool,
     """
     Say which message explains a ticked AI checkbox that will do nothing.
 
-    The Konferenzmappe is deterministic by design — the pre-read is the
-    paper for an already convened conference — and PDF output has nowhere
-    to put an editable draft. Both were simply ignoring the checkbox, which
-    sits three centimetres away and looks like it applies. A user who ticks
-    it and gets an instant document without AI text concludes the AI is
-    broken; that is exactly the bug report of 11.09.2026.
+    PDF output has nowhere to put an editable draft, so it ignores the
+    checkbox, which sits three centimetres away and looks like it applies.
+    A user who ticks it and gets an instant document without AI text
+    concludes the AI is broken; that is exactly the bug report of
+    11.09.2026 — which also covered the conference pre-read until D8
+    (12.10.2026) gave it its own drafts.
 
     Nothing about the behaviour changes here. What changes is that the
     ignoring is said out loud, in the status line, where the user is
@@ -797,8 +819,6 @@ def narrate_unused_key(action: str, narrate_on: bool,
     """
     if not narrate_on:
         return None
-    if action == "conference":
-        return NARRATE_UNUSED["conference"]
     if action == "report" and is_pdf:
         return NARRATE_UNUSED["pdf"]
     return None
@@ -1114,6 +1134,7 @@ class SolutionManagerApp(tk.Tk):
         self._art_depth = tk.BooleanVar(value=False)
         self._cross_vs_threshold = tk.StringVar(value="")
         self._narrate = tk.BooleanVar(value=False)
+        self._draft_place = tk.StringVar(value=PLACE_FILE)
         self._llm_provider = tk.StringVar(
             value=_load_pref("llm_provider", "ollama") or "ollama")
         self._llm_model = tk.StringVar(value=_load_pref("llm_model"))
@@ -1325,6 +1346,18 @@ class SolutionManagerApp(tk.Tk):
                    command=self._red_team).pack(side="left", padx=(12, 0))
         ttk.Button(ki_frame, text=self._tr("btn_translate"),
                    command=self._translate).pack(side="left", padx=(6, 0))
+        # D8: where the pre-read drafts go — file only (default) or inline.
+        tk.Label(ki_frame, text=self._tr("lbl_draft_place")).pack(
+            side="left", padx=(12, 0))
+        self._draft_place_box = ttk.Combobox(
+            ki_frame, width=14, state="readonly",
+            values=[self._tr("draft_place_file"), self._tr("draft_place_inline")])
+        self._draft_place_box.current(0 if self._draft_place.get() == PLACE_FILE else 1)
+        self._draft_place_box.bind(
+            "<<ComboboxSelected>>",
+            lambda _e: self._draft_place.set(
+                PLACE_INLINE if self._draft_place_box.current() == 1 else PLACE_FILE))
+        self._draft_place_box.pack(side="left", padx=(4, 0))
         # D9: the user learns BEFORE the call that the address leaves the
         # machine — the banner on the draft would only say so afterwards.
         tk.Label(self, textvariable=self._llm_hint, fg="#9a3412", anchor="w",
@@ -1671,7 +1704,15 @@ class SolutionManagerApp(tk.Tk):
         threading.Thread(target=worker, daemon=True).start()
 
     def _conference(self) -> None:
-        """Write the VSC conference pre-read for the current config (B6)."""
+        """
+        Write the VSC conference pre-read for the current config (B6).
+
+        With the AI checkbox ticked (D8, 12.10.2026) the five labeled drafts
+        — introduction plus one per input — go to <file>.narration.md for
+        human editing; the pre-read itself stays deterministic unless the
+        placement box says 'in the pre-read'. Drafts that fail are named,
+        the pre-read is written regardless.
+        """
         cfg = self._build_config()
         if cfg is None:
             return
@@ -1683,9 +1724,15 @@ class SolutionManagerApp(tk.Tk):
             filetypes=[("HTML", "*.html")])
         if not path:
             return
-        unused = narrate_unused_key("conference", self._narrate.get())
-        note = f" — {self._tr(unused)}" if unused else ""
-        self._status.set(self._tr("msg_conference_building") + note)
+        narrate_with = self._llm_provider.get() if self._narrate.get() else None
+        llm_model, llm_base_url = self._llm_config()
+        place = self._draft_place.get()
+        draft_lang = self._lang if self._lang in ("de", "en") else "en"
+        if narrate_with:
+            self._remember_llm_choice()
+            self._status.set(self._tr("msg_narrate_running"))
+        else:
+            self._status.set(self._tr("msg_conference_building"))
         self.update_idletasks()
 
         def worker() -> None:
@@ -1695,11 +1742,38 @@ class SolutionManagerApp(tk.Tk):
                 html = render_conference_html(
                     cfg, log=lambda *_: None, art_depth=cfg.art_depth,
                     lang=cfg.language or self._lang)
+                extra = ""
+                if narrate_with:
+                    try:
+                        from llm.audit import AUDIT_FILENAME
+
+                        from .conference_draft import (
+                            conference_contracts,
+                            draft_conference,
+                            draft_to_markdown,
+                            insert_inline,
+                        )
+                        contracts = conference_contracts(cfg, log=lambda *_: None)
+                        draft = draft_conference(
+                            contracts, provider_id=narrate_with, lang=draft_lang,
+                            llm_model=llm_model, llm_base_url=llm_base_url,
+                            audit_path=Path(path).parent / AUDIT_FILENAME,
+                            log=lambda *_: None)
+                        md = Path(path).with_suffix(Path(path).suffix + ".narration.md")
+                        md.write_text(draft_to_markdown(draft, draft_lang),
+                                      encoding="utf-8")
+                        if place == PLACE_INLINE and not draft.empty:
+                            html = insert_inline(html, draft, draft_lang)
+                        extra = " — " + self._tr("msg_conference_draft").format(path=md)
+                        if draft.failures:
+                            extra += " — " + self._tr(
+                                "msg_conference_draft_failed").format(
+                                n=len(draft.failures))
+                    except Exception as exc:
+                        extra = " — " + self._tr("msg_exec_error").format(error=exc)
                 Path(path).write_text(html, encoding="utf-8")
                 webbrowser.open(Path(path).resolve().as_uri())
-                # Der Hinweis muss die Erfolgsmeldung ueberleben: sonst ist
-                # er weg, sobald das Ergebnis da ist (Bugmeldung 11.09.2026).
-                msg = self._tr("msg_conference_done").format(path=path) + note
+                msg = self._tr("msg_conference_done").format(path=path) + extra
             except Exception as exc:
                 msg = self._tr("msg_conference_error").format(error=exc)
             self.after(0, lambda: self._status.set(msg))

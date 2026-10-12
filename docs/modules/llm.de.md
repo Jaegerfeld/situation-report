@@ -75,6 +75,7 @@ Premortem-/Angriffs-Fragen aus dem Decision-Log — ein **Fragen-Wächter**
 verwirft maschinell jede Nicht-Frage (Rohmaterial fürs Urteil, nie
 Urteile; Audit-Zweck `d5_red_team`).
 - **Harmonisierungs-Lesart (P3, 0.36.0):** `python -m harmonisation <ordner> --narrate` entwirft eine Lesart der Entscheider-Matrix oder der Veränderung zweier Stände; der Contract nennt Prozesse, Dimensionen und Marken, nie Personen, und der Prompt untersagt jede Empfehlung, was harmonisiert wird (Audit-Zweck `p3_reading`).
+- **Entwürfe für die Konferenzmappe (D8, 0.37.0):** `python -m portfolio cfg.json --conference mappe.html --narrate` entwirft eine Einleitung plus je Input einen Absatz in `mappe.html.narration.md` (`--conference-draft inline` auch in die Mappe); fünf Contracts ohne Personen, Audit-Zweck `d8_conference`.
 
 Ohne `--narrate` ist das Briefing exakt die deterministische D2-Ausgabe
 (saubere Degradation). Mit Flag bekommt es den gekennzeichneten

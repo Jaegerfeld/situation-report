@@ -673,10 +673,12 @@ class TestLlmLabelsInAllLanguages:
 class TestNarrateUnused:
     """Der KI-Haken wirkt nicht ueberall -- das muss gesagt werden."""
 
-    def test_conference_never_uses_the_ai(self):
-        """render_conference_html hat keinen Narrations-Parameter; der Haken
-        stand trotzdem daneben und sah so aus, als gelte er auch hier."""
-        assert narrate_unused_key("conference", True) ==             "msg_narrate_unused_conference"
+    def test_conference_uses_the_ai_since_d8(self):
+        """Bis D8 (12.10.2026) war der Haken hier wirkungslos und sagte es;
+        seit D8 schreibt er fuenf gekennzeichnete Entwuerfe in eine Datei."""
+        assert narrate_unused_key("conference", True) is None
+        from portfolio.gui import NARRATE_UNUSED
+        assert "conference" not in NARRATE_UNUSED
 
     def test_pdf_report_never_uses_the_ai(self):
         """PDF hat keinen Ort fuer den redigierbaren Entwurf."""
@@ -697,7 +699,9 @@ class TestNarrateUnused:
     @pytest.mark.parametrize("lang", [LANG_DE, LANG_EN, LANG_RO, LANG_PT,
                                       LANG_FR])
     def test_messages_exist_in_all_languages(self, lang):
-        for key in ("msg_narrate_unused_conference", "msg_narrate_unused_pdf"):
+        for key in ("msg_narrate_unused_pdf", "lbl_draft_place",
+                    "draft_place_file", "draft_place_inline",
+                    "msg_conference_draft", "msg_conference_draft_failed"):
             assert _T[lang][key].strip()
 
 
