@@ -1046,7 +1046,7 @@ ONEPAGERS: dict[str, dict[str, dict]] = {
                       "Testdaten-Generator öffnet „Delta-Briefing öffnen“ "
                       "das Demo-Briefing mit einem Klick."),
                 ("p", "--snapshot friert Kennzahlen, Quell-Konfidenz und alle "
-                      "fünf Governance-Register als kleines JSON ein "
+                      "sieben Governance-Register als kleines JSON ein "
                       "(--as-of setzt das Beobachtungsdatum). --delta braucht "
                       "keine Config; Ausgabe als HTML-Seite, Markdown-Datei "
                       "(--output *.md) oder Text auf der Konsole."),
@@ -1091,7 +1091,7 @@ ONEPAGERS: dict[str, dict[str, dict]] = {
                       "the test-data generator, 'Open Delta Briefing' opens "
                       "the demo briefing with one click."),
                 ("p", "--snapshot freezes metrics, source confidence and all "
-                      "five governance registers into a small JSON (--as-of "
+                      "seven governance registers into a small JSON (--as-of "
                       "pins the observation date). --delta needs no config; "
                       "output as an HTML page, a Markdown file (--output "
                       "*.md), or text on the console."),

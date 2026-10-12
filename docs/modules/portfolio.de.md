@@ -274,7 +274,8 @@ python -m portfolio --delta stand_vorher.json stand_jetzt.json --output delta.ht
 ```
 
 `--snapshot` friert den berechneten Report-Zustand (Kennzahlen je Einheit und
-gepoolt, Quell-Qualität inkl. Konfidenz, alle fünf Governance-Register) als
+gepoolt, Quell-Qualität inkl. Konfidenz, alle sieben Governance-Register — seit
+0.37.1 auch Flussprobleme mit Konferenzen-Zähler und SLOs) als
 kleines Schema-v1-JSON ein; `--as-of YYYY-MM-DD` setzt das Beobachtungsdatum
 (Standard: heute). Ohne `--output`/`--pdf` wird nur der Snapshot geschrieben.
 
