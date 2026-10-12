@@ -362,3 +362,21 @@ class TestCrossVsThresholdSetting:
         d = _valid_dict()
         d["report"]["cross_vs_threshold"] = "8"
         assert parse_solution_config(d).cross_vs_threshold == 8
+
+
+class TestHarmonisationField:
+    """P3 Schritt 2: der Harmonisierungs-Arbeitsbereich (ein ORDNER) als
+    zehntes optionales Registerfeld — additiv, kein Schema-Bump."""
+
+    def test_roundtrips(self) -> None:
+        data = _valid_dict()
+        data["harmonisation"] = "registers/harmonisation"
+        cfg = parse_solution_config(data)
+        assert cfg.harmonisation == "registers/harmonisation"
+        assert to_dict(cfg)["harmonisation"] == "registers/harmonisation"
+        assert parse_solution_config(to_dict(cfg)) == cfg
+
+    def test_is_optional_and_omitted_when_empty(self) -> None:
+        cfg = parse_solution_config(_valid_dict())
+        assert cfg.harmonisation == ""
+        assert "harmonisation" not in to_dict(cfg)

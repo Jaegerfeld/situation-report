@@ -245,7 +245,7 @@ T = {
         "s4_t": "4  Die Oberfläche",
         "s4_p": "Oben der Arbeitsbereich mit den Knöpfen Durchsuchen, Beispiel anlegen und Neu laden; "
                 "rechts die Flagge zum Sprachwechsel. Darunter drei Reiter, unten die Sprache der "
-                "Matrix und der Knopf, der sie erzeugt und im Browser öffnet.",
+                "Matrix und der Knopf, der sie erzeugt und im Browser öffnet. Rechts daneben das Feld „Stand seit“ mit dem Knopf für die Veränderung; in der Zeile darunter der Haken für die KI-Lesart und die Auswahl des Providers.",
         "s4_b1": "<b>Prozesse:</b> Liste der Prozesse; neue mit Kürzel, Name, Owner und Marken anlegen.",
         "s4_b2": "<b>Bewertung:</b> Prozess, Befragte(r) und Datum wählen; je Frage einen Wert 0–4 oder "
                  "„?“ (unbekannt) anklicken und den Beleggrad setzen; speichern legt die Datei im "
@@ -277,9 +277,19 @@ T = {
                  "Beleggrad. Wer eine Zahl in der Matrix anzweifelt, findet dort, woraus sie besteht.",
         "s7_t": "7  Bewusste Grenzen und Tipps",
         "s7_b1": "Kein Vorschlag, keine Rangliste, keine empfohlene Tiefe – das ist Absicht, kein Mangel.",
-        "s7_b2": "Keine KI: nur Standardbibliothek, deterministisch, reproduzierbar.",
+        "s7_b2": "Keine KI im Kern: Die Rechnung ist deterministisch und nur Standardbibliothek. Die optionale KI-Lesart formuliert nur, gekennzeichnet als Entwurf, und rechnet nichts.",
         "s7_b3": "Lassen Sie jeden Prozess von mehr als einer Person bewerten – erst die Spanne zeigt, wo das Bild geteilt ist und wo nicht.",
         "s7_b4": "Antworten Sie „unbekannt“, statt zu raten. Niedrige Konfidenz ist eine Aussage; ein geratener Wert ist eine Täuschung.",
+        "s8_t": '8  Veränderung, KI-Lesart, Konferenzmappe',
+        "s8_p": 'Seit Schritt 2 hat die Matrix drei Anschlüsse. Keiner ändert die Rechnung – sie zeigen sie anders oder an anderer Stelle.',
+        "s8_h": ['Baustein', 'Was er tut'],
+        "s8_rows": [
+            ['Veränderung zweier Stände', "„Was hat sich seit der letzten Bewertung geändert?“ Bewertungen sind datiert, darum rechnet <font face='Courier'>--since JJJJ-MM-TT</font> den Stand von damals aus den heutigen Dateien zurück; <font face='Courier'>--delta ORDNER</font> vergleicht mit einem zweiten Arbeitsbereich. Je Prozess und Dimension Score, Konfidenz, Spanne und Zahl der Bewertungen alt → neu; dazu neue Bewertungen (nur Datum), Entscheidungen des Boards, hinzugekommene oder entfallene Prozesse. „Keine Änderungen“ wird ausdrücklich gesagt. Ein gesunkener Score ist keine Verschlechterung, sondern ein anderer Befund."],
+            ['KI-Lesart (Entwurf)', "<font face='Courier'>--narrate</font> (Standard: ollama, lokal) oder der Haken in der Oberfläche. Das Modell sieht nur einen Contract mit allen Zahlen der Matrix oder der Veränderung – Prozesse, Dimensionen, Marken, nie Personen. Jede Zahl im Text muss im Contract stehen, sonst wird der Entwurf verworfen; der Prompt untersagt jede Empfehlung, was harmonisiert wird. Der Entwurf steht gekennzeichnet direkt unter der Tabelle und zusätzlich in <font face='Courier'>…reading.md</font> zum Redigieren; der Betreiber-Nachweis landet in llm_audit.jsonl."],
+            ['Konferenzmappe', "Im Portfolio-Modul trägt eine Solution das Feld <font face='Courier'>harmonisation</font> mit dem Ordner des Arbeitsbereichs (Datenquellen-Dialog, zehntes Feld). Die Konferenzmappe zeigt die Matrix dann als Anhang nach Input 4 – eine Board-Sicht, kein fünfter Konferenz-Input."],
+        ],
+        "s8_code": "python -m harmonisation C:\\Lagebild\\harmo --since 2026-09-20<br/>python -m harmonisation C:\\Lagebild\\harmo --since 2026-09-20 --narrate<br/>python -m harmonisation C:\\Lagebild\\harmo --narrate mock",
+        "s8_box": '<b>Scheitert die KI, steht die Seite trotzdem.</b> Die deterministische Matrix oder Veränderung wird immer geschrieben; fehlt der Entwurf, sagt es die Statuszeile bzw. der Rückgabewert 3 der Kommandozeile.',
     },
     LANG_EN: {
         "header": "User Manual", "page": "Page %d",
@@ -325,7 +335,7 @@ T = {
         "s4_t": "4  The GUI",
         "s4_p": "At the top the workspace with Browse, Create example and Reload; on the right the "
                 "flag to switch languages. Below, three tabs; at the bottom the matrix language and "
-                "the button that generates it and opens it in the browser.",
+                "the button that generates it and opens it in the browser. Next to it the “Since” field with the button for the change; in the row below the checkbox for the AI reading and the provider choice.",
         "s4_b1": "<b>Processes:</b> the list of processes; add new ones with id, name, owner and brands.",
         "s4_b2": "<b>Assessment:</b> choose process, assessor and date; per question click a value 0–4 "
                  "or “?” (unknown) and set the evidence level; saving writes the file into the "
@@ -357,9 +367,19 @@ T = {
                  "its evidence level. Whoever doubts a number in the matrix finds there what it is made of.",
         "s7_t": "7  Deliberate limits and tips",
         "s7_b1": "No proposal, no ranking, no recommended depth – by design, not by omission.",
-        "s7_b2": "No AI: standard library only, deterministic, reproducible.",
+        "s7_b2": "No AI in the core: the computation is deterministic, standard library only. The optional AI reading only phrases, labeled as a draft, and computes nothing.",
         "s7_b3": "Have every process assessed by more than one person – only the spread shows where the picture is shared and where it is not.",
         "s7_b4": "Answer “unknown” instead of guessing. Low confidence is a statement; a guessed value is a deception.",
+        "s8_t": '8  Change, AI reading, conference pre-read',
+        "s8_p": 'Since step 2 the matrix has three connections. None of them changes the arithmetic – they show it differently or somewhere else.',
+        "s8_h": ['Building block', 'What it does'],
+        "s8_rows": [
+            ['Change between two states', "“What has changed since the last assessment?” Assessments are dated, so <font face='Courier'>--since YYYY-MM-DD</font> recomputes the earlier state from today's files; <font face='Courier'>--delta FOLDER</font> compares against a second workspace. Per process and dimension score, confidence, spread and number of assessments old → new; plus new assessments (date only), board decisions, processes added or removed. “No changes” is said explicitly. A lower score is not a worsening but a different finding."],
+            ['AI reading (draft)', "<font face='Courier'>--narrate</font> (default: ollama, local) or the checkbox in the GUI. The model sees only a contract with every number of the matrix or the change – processes, dimensions, brands, never persons. Every number in the text must appear in the contract, otherwise the draft is discarded; the prompt forbids any recommendation on what to harmonise. The draft sits labeled directly below the table and additionally in <font face='Courier'>…reading.md</font> for editing; the operator evidence goes to llm_audit.jsonl."],
+            ['Conference pre-read', "In the portfolio module a solution carries the field <font face='Courier'>harmonisation</font> with the workspace folder (data-sources dialog, tenth field). The pre-read then shows the matrix as an annex after input 4 – a board view, not a fifth conference input."],
+        ],
+        "s8_code": "python -m harmonisation C:\\Lagebild\\harmo --since 2026-09-20<br/>python -m harmonisation C:\\Lagebild\\harmo --since 2026-09-20 --narrate<br/>python -m harmonisation C:\\Lagebild\\harmo --narrate mock",
+        "s8_box": "<b>If the AI fails, the page still stands.</b> The deterministic matrix or change is always written; a missing draft is reported in the status line or by the command line's exit code 3.",
     },
     LANG_RO: {
         "header": "Manual de utilizare", "page": "Pagina %d",
@@ -397,7 +417,7 @@ T = {
                   "Numai așa valorile unei dimensiuni pot fi adunate. Verificați acest lucru la întrebările proprii.",
         "s4_t": "4  Interfața",
         "s4_p": "Sus spațiul de lucru cu Răsfoire, Creează exemplul și Reîncarcă; în dreapta steagul pentru limbă. "
-                "Dedesubt trei file; jos limba matricei și butonul care o generează și o deschide în browser.",
+                "Dedesubt trei file; jos limba matricei și butonul care o generează și o deschide în browser. Alături câmpul „Stare din“ cu butonul pentru schimbare; în rândul de dedesubt bifa pentru lectura AI și alegerea furnizorului.",
         "s4_b1": "<b>Procese:</b> lista proceselor; adăugați altele cu id, nume, responsabil și mărci.",
         "s4_b2": "<b>Evaluare:</b> alegeți proces, evaluator și dată; per întrebare o valoare 0–4 sau „?“ (necunoscut) "
                  "și gradul de dovadă; salvarea scrie fișierul în dosarul assessments.",
@@ -425,9 +445,19 @@ T = {
         "s6_p2": "Sub matrice urmează a doua lectură: fiecare evaluare cu fiecare răspuns și gradul său de dovadă. Cine pune la îndoială un număr găsește acolo din ce este format.",
         "s7_t": "7  Limite intenționate și sfaturi",
         "s7_b1": "Nicio propunere, niciun clasament, nicio profunzime recomandată – prin design, nu din omisiune.",
-        "s7_b2": "Fără AI: doar biblioteca standard, determinist, reproductibil.",
+        "s7_b2": "Fără AI în nucleu: calculul este determinist, doar biblioteca standard. Lectura AI opțională doar formulează, marcată ca schiță, și nu calculează nimic.",
         "s7_b3": "Lăsați fiecare proces evaluat de mai mult de o persoană – doar intervalul arată unde imaginea este împărtășită și unde nu.",
         "s7_b4": "Răspundeți „necunoscut“ în loc să ghiciți. Încrederea scăzută este o afirmație; o valoare ghicită este o înșelăciune.",
+        "s8_t": '8  Schimbare, lectură AI, mapa conferinței',
+        "s8_p": 'De la pasul 2 matricea are trei conexiuni. Niciuna nu schimbă calculul – îl arată altfel sau în alt loc.',
+        "s8_h": ['Componentă', 'Ce face'],
+        "s8_rows": [
+            ['Schimbarea între două stări', "„Ce s-a schimbat de la ultima evaluare?“ Evaluările sunt datate, așa că <font face='Courier'>--since AAAA-LL-ZZ</font> recalculează starea de atunci din fișierele de azi; <font face='Courier'>--delta DOSAR</font> compară cu un al doilea spațiu de lucru. Per proces și dimensiune scor, încredere, interval și număr de evaluări vechi → nou; plus evaluări noi (doar data), deciziile board-ului, procese adăugate sau eliminate. „Nicio schimbare“ se spune explicit. Un scor mai mic nu este o înrăutățire, ci o altă constatare."],
+            ['Lectură AI (schiță)', "<font face='Courier'>--narrate</font> (implicit: ollama, local) sau bifa din interfață. Modelul vede doar un contract cu toate cifrele matricei sau ale schimbării – procese, dimensiuni, mărci, niciodată persoane. Fiecare cifră din text trebuie să apară în contract, altfel schița este respinsă; promptul interzice orice recomandare despre ce să se armonizeze. Schița stă marcată direct sub tabel și în plus în <font face='Courier'>…reading.md</font> pentru redactare; dovada operatorului ajunge în llm_audit.jsonl."],
+            ['Mapa conferinței', "În modulul portfolio o soluție poartă câmpul <font face='Courier'>harmonisation</font> cu dosarul spațiului de lucru (dialogul surselor de date, al zecelea câmp). Mapa arată apoi matricea ca anexă după input 4 – o imagine a board-ului, nu un al cincilea input al conferinței."],
+        ],
+        "s8_code": "python -m harmonisation C:\\Lagebild\\harmo --since 2026-09-20<br/>python -m harmonisation C:\\Lagebild\\harmo --since 2026-09-20 --narrate<br/>python -m harmonisation C:\\Lagebild\\harmo --narrate mock",
+        "s8_box": '<b>Dacă AI eșuează, pagina rămâne.</b> Matricea sau schimbarea deterministă se scrie întotdeauna; lipsa schiței este anunțată în linia de stare sau prin codul de ieșire 3 al liniei de comandă.',
     },
     LANG_PT: {
         "header": "Manual do utilizador", "page": "Página %d",
@@ -465,7 +495,7 @@ T = {
                   "Só assim os valores de uma dimensão podem ser somados. Verifique isto ao introduzir as suas perguntas.",
         "s4_t": "4  A interface",
         "s4_p": "Em cima a área de trabalho com Procurar, Criar exemplo e Recarregar; à direita a bandeira para mudar de idioma. "
-                "Por baixo três separadores; em baixo o idioma da matriz e o botão que a gera e abre no browser.",
+                "Por baixo três separadores; em baixo o idioma da matriz e o botão que a gera e abre no browser. Ao lado o campo «Desde» com o botão para a alteração; na linha abaixo a caixa para a leitura por IA e a escolha do fornecedor.",
         "s4_b1": "<b>Processos:</b> lista dos processos; adicionar novos com id, nome, responsável e marcas.",
         "s4_b2": "<b>Avaliação:</b> escolher processo, avaliador e data; por pergunta um valor 0–4 ou «?» (desconhecido) "
                  "e o nível de evidência; guardar escreve o ficheiro na pasta assessments.",
@@ -493,9 +523,19 @@ T = {
         "s6_p2": "Abaixo da matriz segue a segunda leitura: cada avaliação com cada resposta e o seu nível de evidência. Quem duvida de um número encontra ali de que é feito.",
         "s7_t": "7  Limites deliberados e dicas",
         "s7_b1": "Sem proposta, sem ranking, sem profundidade recomendada – por desenho, não por omissão.",
-        "s7_b2": "Sem IA: só biblioteca padrão, determinístico, reprodutível.",
+        "s7_b2": "Sem IA no núcleo: o cálculo é determinístico, só biblioteca padrão. A leitura por IA opcional apenas formula, marcada como rascunho, e não calcula nada.",
         "s7_b3": "Faça avaliar cada processo por mais de uma pessoa – só a amplitude mostra onde a imagem é partilhada e onde não é.",
         "s7_b4": "Responda «desconhecido» em vez de adivinhar. Confiança baixa é uma afirmação; um valor adivinhado é um engano.",
+        "s8_t": '8  Alteração, leitura por IA, dossier da conferência',
+        "s8_p": 'Desde o passo 2 a matriz tem três ligações. Nenhuma altera o cálculo – mostram-no de outra forma ou noutro lugar.',
+        "s8_h": ['Componente', 'O que faz'],
+        "s8_rows": [
+            ['Alteração entre dois estados', "«O que mudou desde a última avaliação?» As avaliações têm data, por isso <font face='Courier'>--since AAAA-MM-DD</font> recalcula o estado de então a partir dos ficheiros de hoje; <font face='Courier'>--delta PASTA</font> compara com uma segunda área de trabalho. Por processo e dimensão score, confiança, amplitude e número de avaliações antigo → novo; mais novas avaliações (só a data), decisões do board, processos adicionados ou removidos. «Sem alterações» é dito explicitamente. Um score mais baixo não é uma piora, mas um resultado diferente."],
+            ['Leitura por IA (rascunho)', "<font face='Courier'>--narrate</font> (padrão: ollama, local) ou a caixa na interface. O modelo vê apenas um contrato com todos os números da matriz ou da alteração – processos, dimensões, marcas, nunca pessoas. Cada número no texto tem de constar do contrato, senão o rascunho é rejeitado; o prompt proíbe qualquer recomendação sobre o que harmonizar. O rascunho fica marcado diretamente sob a tabela e ainda em <font face='Courier'>…reading.md</font> para redigir; a evidência do operador vai para llm_audit.jsonl."],
+            ['Dossier da conferência', "No módulo portfolio uma solução traz o campo <font face='Courier'>harmonisation</font> com a pasta da área de trabalho (diálogo das fontes de dados, décimo campo). O dossier mostra então a matriz como anexo após o input 4 – uma visão do board, não um quinto input da conferência."],
+        ],
+        "s8_code": "python -m harmonisation C:\\Lagebild\\harmo --since 2026-09-20<br/>python -m harmonisation C:\\Lagebild\\harmo --since 2026-09-20 --narrate<br/>python -m harmonisation C:\\Lagebild\\harmo --narrate mock",
+        "s8_box": '<b>Se a IA falhar, a página fica.</b> A matriz ou alteração determinística é sempre escrita; a falta do rascunho é indicada na linha de estado ou pelo código de saída 3 da linha de comandos.',
     },
     LANG_FR: {
         "header": "Manuel utilisateur", "page": "Page %d",
@@ -533,7 +573,7 @@ T = {
                   "C'est la seule façon d'additionner les valeurs d'une dimension. Vérifiez-le en saisissant vos propres questions.",
         "s4_t": "4  L'interface",
         "s4_p": "En haut l'espace de travail avec Parcourir, Créer l'exemple et Recharger ; à droite le drapeau pour changer de langue. "
-                "En dessous trois onglets ; en bas la langue de la matrice et le bouton qui la génère et l'ouvre dans le navigateur.",
+                "En dessous trois onglets ; en bas la langue de la matrice et le bouton qui la génère et l'ouvre dans le navigateur. À côté le champ « Depuis » avec le bouton de l'évolution ; sur la ligne du dessous la case pour la lecture IA et le choix du fournisseur.",
         "s4_b1": "<b>Processus :</b> la liste des processus ; en ajouter avec id, nom, responsable et marques.",
         "s4_b2": "<b>Évaluation :</b> choisir processus, évaluateur et date ; par question une valeur 0–4 ou « ? » (inconnu) "
                  "et le niveau de preuve ; l'enregistrement écrit le fichier dans le dossier assessments.",
@@ -561,9 +601,19 @@ T = {
         "s6_p2": "Sous la matrice suit la deuxième lecture : chaque évaluation avec chaque réponse et son niveau de preuve. Qui doute d'un chiffre y trouve de quoi il est fait.",
         "s7_t": "7  Limites voulues et conseils",
         "s7_b1": "Pas de proposition, pas de classement, pas de profondeur recommandée – par conception, non par oubli.",
-        "s7_b2": "Pas d'IA : bibliothèque standard uniquement, déterministe, reproductible.",
+        "s7_b2": "Pas d'IA dans le cœur : le calcul est déterministe, bibliothèque standard uniquement. La lecture IA optionnelle ne fait que formuler, marquée comme brouillon, et ne calcule rien.",
         "s7_b3": "Faites évaluer chaque processus par plus d'une personne – seul l'écart montre où l'image est partagée et où elle ne l'est pas.",
         "s7_b4": "Répondez « inconnu » plutôt que de deviner. Une confiance faible est une affirmation ; une valeur devinée est une tromperie.",
+        "s8_t": '8  Évolution, lecture IA, dossier de conférence',
+        "s8_p": "Depuis l'étape 2, la matrice a trois raccordements. Aucun ne change le calcul – ils le montrent autrement ou ailleurs.",
+        "s8_h": ['Brique', "Ce qu'elle fait"],
+        "s8_rows": [
+            ['Évolution entre deux états', "« Qu'est-ce qui a changé depuis la dernière évaluation ? » Les évaluations sont datées, donc <font face='Courier'>--since AAAA-MM-JJ</font> recalcule l'état d'alors à partir des fichiers d'aujourd'hui ; <font face='Courier'>--delta DOSSIER</font> compare avec un second espace de travail. Par processus et dimension score, confiance, écart et nombre d'évaluations ancien → nouveau ; plus les nouvelles évaluations (date seulement), les décisions du board, les processus ajoutés ou retirés. « Aucun changement » est dit explicitement. Un score plus bas n'est pas une dégradation mais un autre constat."],
+            ['Lecture IA (brouillon)', "<font face='Courier'>--narrate</font> (par défaut : ollama, local) ou la case dans l'interface. Le modèle ne voit qu'un contrat avec tous les chiffres de la matrice ou de l'évolution – processus, dimensions, marques, jamais de personnes. Chaque chiffre du texte doit figurer dans le contrat, sinon le brouillon est rejeté ; le prompt interdit toute recommandation sur ce qu'il faut harmoniser. Le brouillon se place, marqué, directement sous le tableau et en plus dans <font face='Courier'>…reading.md</font> pour la révision ; la preuve d'exploitation va dans llm_audit.jsonl."],
+            ['Dossier de conférence', "Dans le module portfolio, une solution porte le champ <font face='Courier'>harmonisation</font> avec le dossier de l'espace de travail (dialogue des sources de données, dixième champ). Le dossier de conférence montre alors la matrice en annexe après l'input 4 – une vue du board, pas un cinquième input de conférence."],
+        ],
+        "s8_code": "python -m harmonisation C:\\Lagebild\\harmo --since 2026-09-20<br/>python -m harmonisation C:\\Lagebild\\harmo --since 2026-09-20 --narrate<br/>python -m harmonisation C:\\Lagebild\\harmo --narrate mock",
+        "s8_box": "<b>Si l'IA échoue, la page reste.</b> La matrice ou l'évolution déterministe est toujours écrite ; l'absence de brouillon est signalée dans la ligne d'état ou par le code de retour 3 de la ligne de commande.",
     },
 }
 
@@ -623,6 +673,15 @@ def build_story(lang, st):
     story.append(H1(t["s7_t"], st))
     for k in ("s7_b1", "s7_b2", "s7_b3", "s7_b4"):
         story.append(BL(t[k], st))
+
+    story.append(PageBreak())
+    story.append(H1(t["s8_t"], st))
+    story.append(P(t["s8_p"], st))
+    story.append(tbl(t["s8_h"], t["s8_rows"], [4.0*cm, 12.0*cm]))
+    story.append(SP(6))
+    story.append(CD(t["s8_code"], st))
+    story.append(SP(6))
+    story.append(box(t["s8_box"], st, bg="#fdf3e7"))
     return story
 
 

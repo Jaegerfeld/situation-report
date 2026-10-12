@@ -5,6 +5,54 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [0.36.0] – 2026-10-12
+
+### Added
+- **Harmonisierungs-Score, Schritt 2 (Roadmap P3) — Veränderung, KI-Lesart, Konferenzmappe.**
+  Drei Anschlüsse an das Modul `harmonisation` aus 0.35.0. Keiner ändert die Rechnung;
+  sie zeigen den Befund anders oder an anderer Stelle.
+
+  **Veränderung zweier Stände** (`--since JJJJ-MM-TT` oder `--delta ORDNER`; in der
+  Oberfläche „Veränderung erzeugen …“), nach dem Muster des Delta-Briefings (D2):
+  Bewertungen sind datiert, darum lässt sich der Stand von damals aus den heutigen
+  Dateien zurückrechnen. Verglichen werden je Prozess und Dimension Score, Konfidenz,
+  Spanne und Zahl der Bewertungen, dazu neue Bewertungen (nur Datum, keine Namen),
+  Entscheidungen des Boards, hinzugekommene oder entfallene Prozesse; ein geänderter
+  Fragenkatalog wird als Warnung ausgewiesen, weil die Scores dann nicht vergleichbar
+  sind. „Keine Änderungen“ wird ausdrücklich gesagt. **Ein gesunkener Score ist keine
+  Verschlechterung, sondern ein anderer Befund** — die Tabelle ordnet nach Prozess,
+  nicht nach gut und schlecht. HTML in fünf Sprachen.
+
+  **KI-Lesart (Entwurf)** (`--narrate [PROVIDER]`, Standard ollama; Oberfläche: Haken
+  und Provider-Auswahl), nach dem D1-Muster: Das Modell sieht ausschließlich einen
+  Markdown-Contract mit allen Zahlen der Matrix bzw. der Veränderung — Prozesse,
+  Dimensionen, Marken, **nie Personen** (Owner und Befragte fehlen im Contract
+  strukturell). Der versionierte Prompt untersagt zusätzlich jede Empfehlung, was
+  harmonisiert wird oder in welcher Tiefe. Zahlen-Wächter, Art.-50-Banner und
+  Betreiber-Nachweis `llm_audit.jsonl` (Zweck `p3_reading`) kommen unumgehbar aus
+  `llm/narrate.py`. Der Entwurf steht gekennzeichnet direkt unter der Matrix bzw. der
+  Veränderungstabelle und zusätzlich in `<ausgabe>.reading.md` zum Redigieren.
+  Scheitert die KI, bleibt die deterministische Seite stehen; die Kommandozeile sagt
+  es mit Rückgabewert 3, die Oberfläche in der Statuszeile.
+
+  **Konferenzmappe:** neues optionales Config-Feld `harmonisation` — der ORDNER eines
+  Harmonisierungs-Arbeitsbereichs, zehntes Registerfeld im Datenquellen-Dialog mit
+  Ordner-Auswahl; „Aus Datenraum übernehmen“ erkennt `registers/harmonisation/` am
+  Katalog. Die Matrix erscheint in der Konferenzmappe als **Anhang nach Input 4** —
+  bewusst kein „Input 5“: Sie ist eine Board-Sicht, kein Konferenz-Input. Ein fehlender
+  oder inkonsistenter Arbeitsbereich wird mit Warnung übersprungen; die Mappe steht
+  trotzdem. Additiv, kein Schema-Bump.
+
+### Changed
+- Fußzeile der Matrix: statt „ohne KI-Anteil“ jetzt „Rechnung deterministisch, nur
+  Standardbibliothek; KI-Text steht nur in als Entwurf gekennzeichneten Abschnitten“ —
+  die alte Aussage wäre mit `--narrate` falsch gewesen.
+- Manual in fünf Sprachen (neuer Abschnitt 8, Grenzen neu formuliert), Onepager
+  „Harmonisierungs-Score: Schritt 2“ DE/EN, mkdocs DE/EN (harmonisation, portfolio, llm),
+  Portfolio-Manual (Datenquellen-Dialog, Konferenzmappe), Roadmap P3.
+
+---
+
 ## [0.35.0] – 2026-10-12
 
 ### Added

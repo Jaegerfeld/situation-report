@@ -15,7 +15,9 @@
 #   Beleggrad. Farbschlüssel und Legende stehen VOR der ersten Tabelle
 #   (dasselbe Muster wie die Konferenzmappe, 0.31.0). Der Score ist blau
 #   abgestuft, nicht Ampel: Er ist ein Befund, kein Urteil. Ampelfarben
-#   trägt nur die Konfidenz.
+#   trägt nur die Konfidenz. Seit Schritt 2 (12.10.2026) außerdem: die
+#   Matrix als eingebetteter Block für die Konferenzmappe (CSS auf .harmo
+#   begrenzt) und die Seite „Veränderung zweier Stände" nach dem D2-Muster.
 # =============================================================================
 
 from __future__ import annotations
@@ -23,6 +25,7 @@ from __future__ import annotations
 from datetime import date
 from html import escape
 
+from .delta import HarmonisationDelta
 from .model import (
     DECISION_BRAND_SPECIFIC,
     DECISION_OPEN,
@@ -32,6 +35,7 @@ from .model import (
     EVIDENCE_HEARSAY,
     LANGS,
     Assessment,
+    Decision,
     Workspace,
 )
 from .score import (
@@ -67,7 +71,25 @@ _T: dict[str, dict[str, str]] = {
         "col_question": "Frage", "col_value": "Wert", "col_evidence": "Beleg",
         "ev_documented": "belegt", "ev_estimated": "geschätzt", "ev_hearsay": "Hörensagen",
         "unknown": "unbekannt", "note": "Anmerkung",
-        "footer": "SituationReport · Harmonisierungs-Score · nur Standardbibliothek, deterministisch, ohne KI-Anteil",
+        "footer": "SituationReport · Harmonisierungs-Score · Rechnung deterministisch, nur Standardbibliothek; KI-Text steht nur in als Entwurf gekennzeichneten Abschnitten",
+        "delta_title": "Harmonisierungs-Score — Veränderung zweier Stände",
+        "delta_meta": "Früherer Stand {prev} · späterer Stand {now}",
+        "delta_claim": "Ein gesunkener Score ist keine Verschlechterung, sondern ein anderer Befund. Die Tabelle ordnet nach Prozess, nicht nach gut und schlecht.",
+        "delta_quiet": "Keine Änderungen zwischen den beiden Ständen.",
+        "delta_catalogue": "Achtung: Der Fragenkatalog unterscheidet sich zwischen den Ständen; die Scores sind nicht vergleichbar.",
+        "delta_cells": "Veränderte Zellen",
+        "col_dimension": "Dimension",
+        "col_score": "Score",
+        "col_confidence": "Konfidenz",
+        "col_spread": "Spanne",
+        "col_assessments": "Bewertungen",
+        "delta_new_assessments": "Neue Bewertungen",
+        "delta_assessment_dated": "Bewertung vom {day}",
+        "delta_decisions": "Entscheidungen des Boards",
+        "delta_added": "Hinzugekommene Prozesse",
+        "delta_removed": "Entfallene Prozesse",
+        "delta_undated": "{n} Entscheidung(en) ohne Datum gelten in beiden Ständen als vorhanden.",
+        "block_hint": "Auszug aus dem Harmonisierungs-Score; die zweite Lesart mit allen Antworten steht in der Matrix selbst.",
     },
     "en": {
         "title": "Harmonisation score — decision matrix",
@@ -90,7 +112,25 @@ _T: dict[str, dict[str, str]] = {
         "col_question": "Question", "col_value": "Value", "col_evidence": "Evidence",
         "ev_documented": "documented", "ev_estimated": "estimated", "ev_hearsay": "hearsay",
         "unknown": "unknown", "note": "Note",
-        "footer": "SituationReport · harmonisation score · standard library only, deterministic, no AI involved",
+        "footer": "SituationReport · harmonisation score · computation deterministic, standard library only; AI text appears only in sections labeled as drafts",
+        "delta_title": "Harmonisation score — change between two states",
+        "delta_meta": "Earlier state {prev} · later state {now}",
+        "delta_claim": "A lower score is not a worsening but a different finding. The table is ordered by process, not by good and bad.",
+        "delta_quiet": "No changes between the two states.",
+        "delta_catalogue": "Warning: the question catalogue differs between the states; the scores are not comparable.",
+        "delta_cells": "Changed cells",
+        "col_dimension": "Dimension",
+        "col_score": "Score",
+        "col_confidence": "Confidence",
+        "col_spread": "Spread",
+        "col_assessments": "Assessments",
+        "delta_new_assessments": "New assessments",
+        "delta_assessment_dated": "assessment dated {day}",
+        "delta_decisions": "Board decisions",
+        "delta_added": "Processes added",
+        "delta_removed": "Processes removed",
+        "delta_undated": "{n} board decision(s) without a date count as present in both states.",
+        "block_hint": "Excerpt from the harmonisation score; the second reading with every answer is in the matrix itself.",
     },
     "ro": {
         "title": "Scor de armonizare — matricea decidenților",
@@ -113,7 +153,25 @@ _T: dict[str, dict[str, str]] = {
         "col_question": "Întrebare", "col_value": "Valoare", "col_evidence": "Dovadă",
         "ev_documented": "documentat", "ev_estimated": "estimat", "ev_hearsay": "din auzite",
         "unknown": "necunoscut", "note": "Notă",
-        "footer": "SituationReport · scor de armonizare · doar biblioteca standard, determinist, fără AI",
+        "footer": "SituationReport · scor de armonizare · calcul determinist, doar biblioteca standard; text AI apare doar în secțiuni marcate ca schiță",
+        "delta_title": "Scor de armonizare — schimbarea între două stări",
+        "delta_meta": "Stare anterioară {prev} · stare ulterioară {now}",
+        "delta_claim": "Un scor mai mic nu este o înrăutățire, ci o altă constatare. Tabelul este ordonat după proces, nu după bine și rău.",
+        "delta_quiet": "Nicio schimbare între cele două stări.",
+        "delta_catalogue": "Atenție: catalogul de întrebări diferă între stări; scorurile nu sunt comparabile.",
+        "delta_cells": "Celule modificate",
+        "col_dimension": "Dimensiune",
+        "col_score": "Scor",
+        "col_confidence": "Încredere",
+        "col_spread": "Interval",
+        "col_assessments": "Evaluări",
+        "delta_new_assessments": "Evaluări noi",
+        "delta_assessment_dated": "evaluare din {day}",
+        "delta_decisions": "Deciziile board-ului",
+        "delta_added": "Procese adăugate",
+        "delta_removed": "Procese eliminate",
+        "delta_undated": "{n} decizie(i) fără dată se consideră prezente în ambele stări.",
+        "block_hint": "Extras din scorul de armonizare; a doua lectură cu toate răspunsurile se află în matricea însăși.",
     },
     "pt": {
         "title": "Score de harmonização — matriz de decisão",
@@ -136,7 +194,25 @@ _T: dict[str, dict[str, str]] = {
         "col_question": "Pergunta", "col_value": "Valor", "col_evidence": "Evidência",
         "ev_documented": "documentado", "ev_estimated": "estimado", "ev_hearsay": "por ouvir dizer",
         "unknown": "desconhecido", "note": "Nota",
-        "footer": "SituationReport · score de harmonização · só biblioteca padrão, determinístico, sem IA",
+        "footer": "SituationReport · score de harmonização · cálculo determinístico, só biblioteca padrão; texto de IA só em secções marcadas como rascunho",
+        "delta_title": "Score de harmonização — alteração entre dois estados",
+        "delta_meta": "Estado anterior {prev} · estado posterior {now}",
+        "delta_claim": "Um score mais baixo não é uma piora, mas um resultado diferente. A tabela está ordenada por processo, não por bom e mau.",
+        "delta_quiet": "Sem alterações entre os dois estados.",
+        "delta_catalogue": "Atenção: o catálogo de perguntas difere entre os estados; os scores não são comparáveis.",
+        "delta_cells": "Células alteradas",
+        "col_dimension": "Dimensão",
+        "col_score": "Score",
+        "col_confidence": "Confiança",
+        "col_spread": "Amplitude",
+        "col_assessments": "Avaliações",
+        "delta_new_assessments": "Novas avaliações",
+        "delta_assessment_dated": "avaliação de {day}",
+        "delta_decisions": "Decisões do board",
+        "delta_added": "Processos adicionados",
+        "delta_removed": "Processos removidos",
+        "delta_undated": "{n} decisão(ões) sem data contam como presentes em ambos os estados.",
+        "block_hint": "Excerto do score de harmonização; a segunda leitura com todas as respostas está na própria matriz.",
     },
     "fr": {
         "title": "Score d'harmonisation — matrice de décision",
@@ -159,7 +235,25 @@ _T: dict[str, dict[str, str]] = {
         "col_question": "Question", "col_value": "Valeur", "col_evidence": "Preuve",
         "ev_documented": "documenté", "ev_estimated": "estimé", "ev_hearsay": "par ouï-dire",
         "unknown": "inconnu", "note": "Remarque",
-        "footer": "SituationReport · score d'harmonisation · bibliothèque standard uniquement, déterministe, sans IA",
+        "footer": "SituationReport · score d'harmonisation · calcul déterministe, bibliothèque standard uniquement ; du texte IA n'apparaît que dans des sections marquées comme brouillon",
+        "delta_title": "Score d'harmonisation — évolution entre deux états",
+        "delta_meta": "État antérieur {prev} · état postérieur {now}",
+        "delta_claim": "Un score plus bas n'est pas une dégradation mais un autre constat. Le tableau est ordonné par processus, non par bon et mauvais.",
+        "delta_quiet": "Aucun changement entre les deux états.",
+        "delta_catalogue": "Attention : le catalogue de questions diffère entre les états ; les scores ne sont pas comparables.",
+        "delta_cells": "Cellules modifiées",
+        "col_dimension": "Dimension",
+        "col_score": "Score",
+        "col_confidence": "Confiance",
+        "col_spread": "Écart",
+        "col_assessments": "Évaluations",
+        "delta_new_assessments": "Nouvelles évaluations",
+        "delta_assessment_dated": "évaluation du {day}",
+        "delta_decisions": "Décisions du board",
+        "delta_added": "Processus ajoutés",
+        "delta_removed": "Processus retirés",
+        "delta_undated": "{n} décision(s) sans date comptent comme présentes dans les deux états.",
+        "block_hint": "Extrait du score d'harmonisation ; la deuxième lecture avec toutes les réponses se trouve dans la matrice elle-même.",
     },
 }
 
@@ -171,10 +265,18 @@ _SCORE_SHADES = ("#f4f7fb", "#dbe6f3", "#b7cde6", "#8fb0d6", "#5f8cc0")
 _CONF_COLOURS = {CONFIDENCE_HIGH: "#d9efd9", CONFIDENCE_MEDIUM: "#fff1c9",
                  CONFIDENCE_LOW: "#f6d5d5"}
 
-_CSS = """
+_PAGE_CSS = """
 body{font-family:"Segoe UI",Calibri,Arial,sans-serif;font-size:14px;color:#23303e;margin:28px auto;max-width:1180px;line-height:1.45}
 h1{color:#16304d;font-size:24px;margin:0 0 4px}h2{color:#16304d;font-size:18px;margin:28px 0 8px}
 .meta{color:#5b6b7c;font-size:13px;margin:0 0 14px}
+.quiet{background:#e6f4e6;border-left:4px solid #1e8449;padding:8px 12px;margin:0 0 16px}
+footer{color:#5b6b7c;font-size:12px;margin-top:30px;border-top:1px solid #d9dfe6;padding-top:8px}
+"""
+
+#: Rules every rendering shares — the page uses them as they are, the embedded
+#: block (Konferenzmappe) gets them scoped to .harmo so the host page's tables
+#: keep their own look.
+_CORE_CSS = """
 .claim{background:#eef3f8;border-left:4px solid #9a3412;padding:8px 12px;margin:0 0 16px;color:#16304d}
 .legend{border:1px solid #d9dfe6;border-radius:6px;padding:8px 12px;margin:0 0 16px;font-size:13px}
 .legend .k{font-weight:700;color:#9a3412;margin-right:6px}
@@ -187,8 +289,28 @@ td.cell{text-align:center;min-width:120px}td.cell .s{font-size:20px;font-weight:
 td.cell .m{font-size:12px;color:#5b6b7c}td.none{color:#5b6b7c;font-style:italic;text-align:center}
 td.dec{min-width:130px}.dec b{color:#16304d}
 .detail th{background:#5b6b7c}.detail td.v{text-align:center;width:60px}
-.note{color:#5b6b7c;font-size:13px}footer{color:#5b6b7c;font-size:12px;margin-top:30px;border-top:1px solid #d9dfe6;padding-top:8px}
+.note{color:#5b6b7c;font-size:13px}
+td.chg{white-space:nowrap}td.chg b{color:#16304d}
 """
+
+_CSS = _PAGE_CSS + _CORE_CSS
+
+
+def _scoped(css: str, scope: str = ".harmo") -> str:
+    """Prefix every selector of ``css`` with ``scope`` (rules are brace-delimited)."""
+    out: list[str] = []
+    for chunk in css.split("}"):
+        chunk = chunk.strip()
+        if not chunk:
+            continue
+        selectors, body = chunk.split("{", 1)
+        scoped = ",".join(f"{scope} {s.strip()}" for s in selectors.split(","))
+        out.append(f"{scoped}{{{body}}}")
+    return "".join(out)
+
+
+_BLOCK_CSS = (".harmo{font-size:14px;color:#23303e;line-height:1.45}"
+              ".harmo h3{color:#16304d;font-size:16px;margin:14px 0 6px}" + _scoped(_CORE_CSS))
 
 
 def _tr(lang: str, key: str) -> str:
@@ -272,13 +394,10 @@ def _assessment_table(ws: Workspace, a: Assessment, lang: str) -> str:
             f'{"".join(rows)}</table>{note}')
 
 
-def render_html(ws: Workspace, lang: str = DEFAULT_LANG, today: date | None = None) -> str:
-    """The complete report as one self-contained HTML document."""
-    lang = lang if lang in LANGS else "en"
-    today = today or date.today()
+def _matrix_table(ws: Workspace, lang: str) -> str:
+    """The decision matrix itself: processes × dimensions plus the board's columns."""
     cells = matrix(ws)
     dims = ws.catalogue.dimensions
-
     head = "".join(f"<th>{escape(d.label(lang))}</th>" for d in dims)
     body: list[str] = []
     for p in ws.processes:
@@ -287,6 +406,34 @@ def render_html(ws: Workspace, lang: str = DEFAULT_LANG, today: date | None = No
         body.append(f"<tr><td><b>{escape(p.name)}</b>{owner}{brands}</td>"
                     + "".join(_score_cell(cells[p.id][d.id], lang) for d in dims)
                     + _decision_cells(ws, p.id, lang) + "</tr>")
+    return (f"<table><tr><th>{escape(_tr(lang, 'col_process'))}</th>{head}"
+            f"<th>{escape(_tr(lang, 'col_decision'))}</th><th>{escape(_tr(lang, 'col_depth'))}</th></tr>"
+            f"{''.join(body)}</table>")
+
+
+def render_matrix_block(ws: Workspace, lang: str = DEFAULT_LANG,
+                        heading: str | None = None) -> str:
+    """
+    The matrix as an embeddable block (Konferenzmappe): claim, legend and
+    table with their CSS scoped to ``.harmo``, so the host page keeps its
+    own table styling. ``heading`` names the source solution when a
+    portfolio brings several workspaces.
+    """
+    lang = lang if lang in LANGS else "en"
+    cat = ws.catalogue
+    title = f"<h3>{escape(heading)}</h3>" if heading else ""
+    cat_note = f" · {escape(cat.note)}" if cat.note else ""
+    return (f'<div class="harmo"><style>{_BLOCK_CSS}</style>{title}'
+            f'<p class="note">{escape(_tr(lang, "catalogue"))}: {escape(cat.name)}{cat_note} · '
+            f'{escape(_tr(lang, "block_hint"))}</p>'
+            f'<div class="claim">{escape(_tr(lang, "no_judgement"))}</div>'
+            f"{_legend(ws, lang)}{_matrix_table(ws, lang)}</div>")
+
+
+def render_html(ws: Workspace, lang: str = DEFAULT_LANG, today: date | None = None) -> str:
+    """The complete report as one self-contained HTML document."""
+    lang = lang if lang in LANGS else "en"
+    today = today or date.today()
 
     details: list[str] = []
     for p in ws.processes:
@@ -306,9 +453,100 @@ def render_html(ws: Workspace, lang: str = DEFAULT_LANG, today: date | None = No
         f"{escape(_tr(lang, 'catalogue'))}: {escape(cat.name)}{cat_note}</p>"
         f'<div class="claim">{escape(_tr(lang, "no_judgement"))}</div>'
         f"{_legend(ws, lang)}"
-        f"<table><tr><th>{escape(_tr(lang, 'col_process'))}</th>{head}"
-        f"<th>{escape(_tr(lang, 'col_decision'))}</th><th>{escape(_tr(lang, 'col_depth'))}</th></tr>"
-        f"{''.join(body)}</table>"
+        f"{_matrix_table(ws, lang)}"
         f"<h2>{escape(_tr(lang, 'details_title'))}</h2>{''.join(details)}"
+        f"<footer>{escape(_tr(lang, 'footer'))}</footer></body></html>"
+    )
+
+
+# ---------------------------------------------------------------------------
+# Veränderung zweier Stände (P3 Schritt 2)
+# ---------------------------------------------------------------------------
+
+def _num(value: float | None) -> str:
+    return "–" if value is None else f"{value:g}"
+
+
+def _conf(value: str, lang: str) -> str:
+    return _tr(lang, "conf_" + value) if value else "–"
+
+
+def _pair(old: str, new: str) -> str:
+    return f"{escape(old)} → <b>{escape(new)}</b>"
+
+
+def _decision_label(d: Decision | None, lang: str) -> str:
+    if d is None or (d.decision == DECISION_OPEN and not d.depth):
+        return _tr(lang, "dec_open")
+    key = {DECISION_STANDARDISE: "dec_standardise", DECISION_BRAND_SPECIFIC: "dec_brand_specific",
+           DECISION_OPEN: "dec_open"}[d.decision]
+    text = _tr(lang, key)
+    if d.depth:
+        text += f" („{d.depth}“)" if lang == "de" else f' ("{d.depth}")'
+    if d.day:
+        text += f" {_tr(lang, 'dec_date')} {_fmt_date(d.day, lang)}"
+    return text
+
+
+def render_delta_html(delta: HarmonisationDelta, now: Workspace, lang: str = DEFAULT_LANG,
+                      today: date | None = None) -> str:
+    """
+    The change between two states as one self-contained HTML page. Cells
+    in process order; 'no changes' is said explicitly, so a quiet page is
+    never mistaken for one that was not computed.
+    """
+    lang = lang if lang in LANGS else "en"
+    today = today or date.today()
+    dim_label = {d.id: d.label(lang) for d in now.catalogue.dimensions}
+    parts: list[str] = []
+    if delta.quiet:
+        parts.append(f'<p class="quiet">{escape(_tr(lang, "delta_quiet"))}</p>')
+    if delta.catalogue_changed:
+        parts.append(f'<div class="claim">{escape(_tr(lang, "delta_catalogue"))}</div>')
+    if delta.cells:
+        rows = "".join(
+            f"<tr><td><b>{escape(now.process(c.process).name)}</b></td>"
+            f"<td>{escape(dim_label.get(c.dimension, c.dimension))}</td>"
+            f'<td class="chg">{_pair(_num(c.score[0]), _num(c.score[1]))}</td>'
+            f'<td class="chg">{_pair(_conf(c.confidence[0], lang), _conf(c.confidence[1], lang))}</td>'
+            f'<td class="chg">{_pair(_num(c.spread[0]), _num(c.spread[1]))}</td>'
+            f'<td class="chg">{_pair(str(c.assessments[0]), str(c.assessments[1]))}</td></tr>'
+            for c in delta.cells)
+        parts.append(
+            f"<h2>{escape(_tr(lang, 'delta_cells'))}</h2><table><tr>"
+            f"<th>{escape(_tr(lang, 'col_process'))}</th><th>{escape(_tr(lang, 'col_dimension'))}</th>"
+            f"<th>{escape(_tr(lang, 'col_score'))}</th><th>{escape(_tr(lang, 'col_confidence'))}</th>"
+            f"<th>{escape(_tr(lang, 'col_spread'))}</th><th>{escape(_tr(lang, 'col_assessments'))}</th>"
+            f"</tr>{rows}</table>")
+    if delta.new_assessments:
+        items = "".join(
+            f"<li><b>{escape(now.process(n.process).name)}</b>: "
+            f"{escape(_tr(lang, 'delta_assessment_dated').format(day=_fmt_date(n.day, lang)))}</li>"
+            for n in delta.new_assessments)
+        parts.append(f"<h2>{escape(_tr(lang, 'delta_new_assessments'))}</h2><ul>{items}</ul>")
+    if delta.decisions:
+        items = "".join(
+            f"<li><b>{escape(now.process(d.process).name)}</b>: "
+            f"{_pair(_decision_label(d.old, lang), _decision_label(d.new, lang))}</li>"
+            for d in delta.decisions)
+        parts.append(f"<h2>{escape(_tr(lang, 'delta_decisions'))}</h2><ul>{items}</ul>")
+    for key, names in (("delta_added", delta.added_processes),
+                       ("delta_removed", delta.removed_processes)):
+        if names:
+            items = "".join(f"<li>{escape(n)}</li>" for n in names)
+            parts.append(f"<h2>{escape(_tr(lang, key))}</h2><ul>{items}</ul>")
+    if delta.undated_decisions:
+        parts.append(f'<p class="note">'
+                     f'{escape(_tr(lang, "delta_undated").format(n=delta.undated_decisions))}</p>')
+
+    return (
+        f'<!doctype html><html lang="{lang}"><head><meta charset="utf-8">'
+        f"<title>{escape(_tr(lang, 'delta_title'))}</title><style>{_CSS}</style></head><body>"
+        f"<h1>{escape(_tr(lang, 'delta_title'))}</h1>"
+        f'<p class="meta">{escape(_tr(lang, "generated"))} {escape(_fmt_date(today, lang))} · '
+        f"{escape(_tr(lang, 'delta_meta').format(prev=delta.label_prev, now=delta.label_now))} · "
+        f"{escape(_tr(lang, 'catalogue'))}: {escape(now.catalogue.name)}</p>"
+        f'<div class="claim">{escape(_tr(lang, "delta_claim"))}</div>'
+        f"{''.join(parts)}"
         f"<footer>{escape(_tr(lang, 'footer'))}</footer></body></html>"
     )
