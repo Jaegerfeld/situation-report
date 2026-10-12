@@ -10,8 +10,7 @@
 #   Beispiel-Arbeitsbereich für den Harmonisierungs-Score: ein generischer
 #   Katalog mit 3 × 8 Fragen, vier End-to-End-Prozesse mit APQC-üblichen
 #   Namen, drei Bewertungen und zwei Board-Entscheidungen. Der Katalog ist
-#   eine ILLUSTRATION der Struktur aus dem Workshop Wolfsburg (3 Dimensionen
-#   × 8 Fragen je Prozess) — die Fragen des Erstnutzers sind nicht bekannt
+#   eine ILLUSTRATION der Struktur (3 Dimensionen × 8 Fragen je Prozess) — die Fragen des Erstnutzers sind nicht bekannt
 #   und stehen bewusst nicht hier. Keine Inhalte eines realen Konzerns.
 #   Jede Frage ist so formuliert, dass hohe Zustimmung FÜR eine
 #   Harmonisierung spricht; nur so sind die Werte einer Dimension addierbar.
@@ -52,7 +51,7 @@ def _q(qid: str, de: str, en: str) -> dict:
 EXAMPLE_CATALOGUE: dict = {
     "schema_version": SCHEMA_VERSION,
     "name": "Beispielkatalog Harmonisierungs-Score (3 × 8)",
-    "note": ("Illustration der Struktur aus dem Workshop Wolfsburg 08/2026. Hohe "
+    "note": ("Illustration der Struktur: drei Dimensionen, acht Fragen je Prozess. Hohe "
              "Zustimmung spricht für eine Harmonisierung. Ersetzen Sie die Fragen "
              "durch Ihren eigenen Katalog — diese Datei ist Daten, nicht Code."),
     "dimensions": [

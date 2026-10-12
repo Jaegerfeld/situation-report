@@ -3,7 +3,7 @@
 Harmonisation score per end-to-end process: a structured assessment in three dimensions
 (**business value · transparency · IT and operations**), stored versioned, one score with
 confidence per dimension, rendered as a **decision matrix** for the board. Origin:
-Wolfsburg workshop 08/2026, priority P3.
+roadmap, priority P3.
 
 !!! info "A finding, not a judgement"
     The module recommends nothing — neither *what* to harmonise nor *how deep*. It computes
@@ -44,7 +44,7 @@ One folder with four things, all JSON with a `schema_version`:
 ```
 
 **The catalogue is data, not code.** The bundled example catalogue with 3 × 8 questions
-illustrates the workshop structure; your own questions go into the same file. Every
+illustrates the structure; your own questions go into the same file. Every
 question is phrased so that strong agreement speaks *for* harmonisation — only then can
 the values of a dimension be added up.
 

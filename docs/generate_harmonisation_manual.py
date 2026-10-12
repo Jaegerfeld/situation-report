@@ -207,8 +207,8 @@ T = {
         "toc": "Inhalt",
         "s1_t": "1  Worum es geht",
         "s1_p": "Ein Konzern mit mehreren Marken oder Einheiten betreibt denselben End-to-End-Prozess "
-                "oft in mehreren Varianten. Harmonisieren oder nicht – und wie tief? Der Workshop in "
-                "Wolfsburg (08/2026) beschrieb dafür einen Harmonisierungs-Score: drei Dimensionen "
+                "oft in mehreren Varianten. Harmonisieren oder nicht – und wie tief? Ein "
+                "Harmonisierungs-Score beantwortet das strukturiert: drei Dimensionen "
                 "(Business Value, Transparenz, IT und Betrieb) mit acht Fragen je Prozess, dessen "
                 "Ausgabe ein Lagebild auf Vorstandsebene speist. Das Modul harmonisation setzt diese "
                 "Struktur um.",
@@ -288,8 +288,8 @@ T = {
         "toc": "Contents",
         "s1_t": "1  What it is about",
         "s1_p": "A group with several brands or units often runs the same end-to-end process in "
-                "several variants. Harmonise or not – and how deep? The Wolfsburg workshop (08/2026) "
-                "described a harmonisation score for this: three dimensions (business value, "
+                "several variants. Harmonise or not – and how deep? A harmonisation score answers "
+                "that in a structured way: three dimensions (business value, "
                 "transparency, IT and operations) with eight questions per process, feeding a "
                 "board-level situational picture. The harmonisation module implements that structure.",
         "s1_b1": "Question catalogue as data – the bundled example is an illustration; your own "
@@ -368,8 +368,8 @@ T = {
         "toc": "Cuprins",
         "s1_t": "1  Despre ce este vorba",
         "s1_p": "Un grup cu mai multe mărci sau unități rulează adesea același proces end-to-end în mai "
-                "multe variante. Armonizare sau nu – și cât de adânc? Atelierul de la Wolfsburg (08/2026) "
-                "a descris un scor de armonizare: trei dimensiuni (valoare de business, transparență, IT "
+                "multe variante. Armonizare sau nu – și cât de adânc? Un scor de armonizare "
+                "răspunde structurat: trei dimensiuni (valoare de business, transparență, IT "
                 "și operare) cu opt întrebări per proces, care alimentează un tablou de situație la nivel "
                 "de board. Modulul harmonisation implementează această structură.",
         "s1_b1": "Catalog de întrebări ca date – exemplul livrat este o ilustrare; întrebările dvs. intră în același fișier.",
@@ -436,8 +436,8 @@ T = {
         "toc": "Índice",
         "s1_t": "1  Do que se trata",
         "s1_p": "Um grupo com várias marcas ou unidades executa muitas vezes o mesmo processo end-to-end em "
-                "várias variantes. Harmonizar ou não – e com que profundidade? O workshop de Wolfsburg (08/2026) "
-                "descreveu um score de harmonização: três dimensões (valor de negócio, transparência, TI e "
+                "várias variantes. Harmonizar ou não – e com que profundidade? Um score de harmonização "
+                "responde de forma estruturada: três dimensões (valor de negócio, transparência, TI e "
                 "operações) com oito perguntas por processo, alimentando um quadro de situação ao nível do board. "
                 "O módulo harmonisation implementa essa estrutura.",
         "s1_b1": "Catálogo de perguntas como dados – o exemplo fornecido é uma ilustração; as suas perguntas entram no mesmo ficheiro.",
@@ -504,8 +504,8 @@ T = {
         "toc": "Sommaire",
         "s1_t": "1  De quoi il s'agit",
         "s1_p": "Un groupe comptant plusieurs marques ou entités exploite souvent le même processus de bout en bout "
-                "en plusieurs variantes. Harmoniser ou non – et à quelle profondeur ? L'atelier de Wolfsburg (08/2026) "
-                "a décrit pour cela un score d'harmonisation : trois dimensions (valeur métier, transparence, IT et "
+                "en plusieurs variantes. Harmoniser ou non – et à quelle profondeur ? Un score "
+                "d'harmonisation y répond de façon structurée : trois dimensions (valeur métier, transparence, IT et "
                 "exploitation) avec huit questions par processus, alimentant une image de situation au niveau du board. "
                 "Le module harmonisation met cette structure en œuvre.",
         "s1_b1": "Catalogue de questions sous forme de données – l'exemple fourni est une illustration ; vos propres questions vont dans le même fichier.",

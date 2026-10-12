@@ -68,8 +68,8 @@ ONEPAGERS: dict[str, dict[str, dict]] = {
                 ("h", "Worum geht es?"),
                 ("p", "Ein Konzern mit mehreren Marken hat denselben End-to-End-Prozess "
                       "in mehreren Varianten. Harmonisieren, ja oder nein \u2013 und wie "
-                      "tief? Der Workshop in Wolfsburg (08/2026) beschrieb daf\u00fcr "
-                      "einen Harmonisierungs-Score: drei Dimensionen (Business Value, "
+                      "tief? Ein Harmonisierungs-Score beantwortet das strukturiert: "
+                      "drei Dimensionen (Business Value, "
                       "Transparenz, IT/Betrieb) \u00d7 acht Fragen je Prozess, Ausgabe f\u00fcr "
                       "ein Lagebild auf Vorstandsebene. Das Modul harmonisation setzt "
                       "diese Struktur um \u2013 als Werkzeug, nicht als Urteil."),
@@ -106,8 +106,8 @@ ONEPAGERS: dict[str, dict[str, dict]] = {
             "sections": [
                 ("h", "What is it?"),
                 ("p", "A group with several brands runs the same end-to-end process in "
-                      "several variants. Harmonise or not \u2013 and how deep? The Wolfsburg "
-                      "workshop (08/2026) described a harmonisation score for this: three "
+                      "several variants. Harmonise or not \u2013 and how deep? A harmonisation "
+                      "score answers that in a structured way: three "
                       "dimensions (business value, transparency, IT/operations) \u00d7 eight "
                       "questions per process, feeding a board-level situational picture. "
                       "The harmonisation module implements that structure \u2013 as a tool, "

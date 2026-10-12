@@ -7,8 +7,7 @@
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
-#   Datenmodell des Harmonisierungs-Scores (Workshop Wolfsburg 08/2026,
-#   Priorität P3): Ein Fragenkatalog in drei Dimensionen (Business Value,
+#   Datenmodell des Harmonisierungs-Scores (Roadmap P3): Ein Fragenkatalog in drei Dimensionen (Business Value,
 #   Transparenz, IT/Betrieb), End-to-End-Prozesse, versionierte Bewertungen
 #   je Prozess mit Antwort UND Beleggrad je Frage, und die Entscheidung des
 #   Boards je Prozess. Alles JSON mit eigener SCHEMA_VERSION, nur
