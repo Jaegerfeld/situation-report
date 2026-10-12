@@ -351,10 +351,10 @@ def content_de(st: dict) -> list:
             ["Speichern", "Die Konfiguration als JSON sichern (= wiederverwendbares "
                           "Template)."],
             ["Laden", "Eine gespeicherte Konfiguration öffnen."],
-            ["Datenquellen …", "Dialog mit den neun Register-Pfaden der "
+            ["Datenquellen …", "Dialog mit den zehn Register-Pfaden der "
                                "Solution (Risiken, NFR, Capabilities, "
                                "Dependencies, Decisions, SLO, DORA, "
-                               "Flussprobleme, Themes) samt Status je Feld "
+                               "Flussprobleme, Themes, Harmonisierungs-Ordner) samt Status je Feld "
                                "(gefunden/leer/FEHLT). „Aus Datenraum "
                                "übernehmen …“ füllt die Felder per "
                                "Konvention aus registers/; beim Portfolio "
@@ -631,7 +631,9 @@ def content_de(st: dict) -> list:
            "mappe.html --conference-date JJJJ-MM-TT</font>) bündelt die "
            "Sitzungs-Inputs druckbar: Aktuelle Daten, Impediment-Backlog "
            "samt ROAM/Dependencies, Business Objectives (Capabilities + "
-           "SLOs) und die integrierte Roadmap (Input 4, B7).", st),
+           "SLOs) und die integrierte Roadmap (Input 4, B7); seit 0.36.0 als Anhang "
+           "die Harmonisierungs-Matrix, wenn die Solution einen Arbeitsbereich "
+           "nennt (Feld harmonisation).", st),
         _P("<b>Der Konferenztermin</b> (0.31.0): Die Mappe ist fuer einen "
            "<i>geplanten</i> Termin geschrieben, nicht fuer den Tag ihrer "
            "Erzeugung. Das Feld <b>Konferenz am</b> im Manager-Fenster "
@@ -871,10 +873,10 @@ def content_en(st: dict) -> list:
             ["Report mode", "Pooled or Comparison (see section 5)."],
             ["Save", "Save the configuration as JSON (= a reusable template)."],
             ["Load", "Open a saved configuration."],
-            ["Data sources …", "Dialog with the solution's nine register "
+            ["Data sources …", "Dialog with the solution's ten register "
                                "paths (risks, NFR, capabilities, "
                                "dependencies, decisions, SLO, DORA, flow "
-                               "problems, themes) plus a per-field status "
+                               "problems, themes, harmonisation folder) plus a per-field status "
                                "(found/empty/MISSING). 'Take from data "
                                "folder …' fills the fields by convention "
                                "from registers/; for a portfolio the "
@@ -1143,7 +1145,9 @@ def content_en(st: dict) -> list:
            "--conference-date YYYY-MM-DD</font>) bundles the meeting "
            "inputs printably: current data, impediment backlog with "
            "ROAM/dependencies, business objectives (capabilities + SLOs) "
-           "and the integrated roadmap (input 4, B7).", st),
+           "and the integrated roadmap (input 4, B7); since 0.36.0 the harmonisation "
+           "matrix as an annex when the solution names a workspace (field "
+           "harmonisation).", st),
         _P("<b>The conference date</b> (0.31.0): the pre-read is written "
            "for a <i>planned</i> date, not for the day it was produced. The "
            "<b>Conference on</b> field in the manager window stores it in "
@@ -1374,10 +1378,10 @@ def content_ro(st: dict) -> list:
             ["Mod raport", "Pooled sau Comparison (vezi sectiunea 5)."],
             ["Salveaza", "Salvati configuratia ca JSON (= template reutilizabil)."],
             ["Incarca", "Deschideti o configuratie salvata."],
-            ["Surse de date …", "Dialog cu cele noua cai de registre ale "
+            ["Surse de date …", "Dialog cu cele zece cai de registre ale "
                                "solutiei (riscuri, NFR, capabilities, "
                                "dependente, decizii, SLO, DORA, probleme "
-                               "de flux, teme) plus status per camp "
+                               "de flux, teme, folderul de armonizare) plus status per camp "
                                "(gasit/gol/LIPSESTE). 'Preia din folderul "
                                "de date …' umple campurile prin conventie "
                                "din registers/; la portofoliu dialogul "
@@ -1644,7 +1648,9 @@ def content_ro(st: dict) -> list:
            "conferinta se sorteaza primele, cu contor rosu. Mapa "
            "conferintei (<font name='Courier'>--conference mapa.html"
            "</font>) aduna inputurile sedintei intr-o pagina printabila; "
-           "roadmap-ul integrat este inputul 4 (B7).", st),
+           "roadmap-ul integrat este inputul 4 (B7); din 0.36.0 matricea de "
+           "armonizare ca anexa, daca solutia numeste un spatiu de lucru (campul "
+           "harmonisation).", st),
         _P("<b>Data conferintei</b> (0.31.0): mapa este scrisa pentru o "
            "data <i>planificata</i>, nu pentru ziua in care a fost creata. "
            "Campul <b>Conferinta pe</b> din fereastra managerului o "
@@ -1850,10 +1856,10 @@ def content_pt(st: dict) -> list:
             ["Modo de relatorio", "Pooled ou Comparison (ver seccao 5)."],
             ["Guardar", "Guardar a configuracao como JSON (= template reutilizavel)."],
             ["Carregar", "Abrir uma configuracao guardada."],
-            ["Fontes de dados …", "Dialogo com os nove caminhos de "
+            ["Fontes de dados …", "Dialogo com os dez caminhos de "
                                "registos da solution (riscos, NFR, "
                                "capabilities, dependencias, decisoes, "
-                               "SLO, DORA, problemas de fluxo, temas) e "
+                               "SLO, DORA, problemas de fluxo, temas, pasta de harmonizacao) e "
                                "estado por campo (encontrado/vazio/EM "
                                "FALTA). 'Assumir da pasta de dados …' "
                                "preenche por convencao a partir de "
@@ -2122,7 +2128,9 @@ def content_pt(st: dict) -> list:
            "terceira conferencia ordenam primeiro, com contador vermelho. "
            "O dossier da conferencia (<font name='Courier'>--conference "
            "dossier.html</font>) reune os inputs da reuniao numa pagina "
-           "imprimivel; o roadmap integrado e o input 4 (B7).", st),
+           "imprimivel; o roadmap integrado e o input 4 (B7); desde 0.36.0 a matriz de "
+           "harmonizacao como anexo, quando a solution indica uma area de trabalho "
+           "(campo harmonisation).", st),
         _P("<b>A data da conferencia</b> (0.31.0): o dossier e escrito "
            "para uma data <i>planeada</i>, nao para o dia em que foi "
            "produzido. O campo <b>Conferencia a</b> na janela do gestor "
@@ -2329,10 +2337,10 @@ def content_fr(st: dict) -> list:
             ["Mode de rapport", "Pooled ou Comparison (voir section 5)."],
             ["Enregistrer", "Enregistrer la configuration en JSON (= template reutilisable)."],
             ["Charger", "Ouvrir une configuration enregistree."],
-            ["Sources de donnees …", "Dialogue avec les neuf chemins de "
+            ["Sources de donnees …", "Dialogue avec les dix chemins de "
                                "registres de la solution (risques, NFR, "
                                "capabilities, dependances, decisions, "
-                               "SLO, DORA, problemes de flux, themes) et "
+                               "SLO, DORA, problemes de flux, themes, dossier d'harmonisation) et "
                                "un etat par champ (trouve/vide/MANQUE). "
                                "« Reprendre du dossier de donnees … » "
                                "remplit les champs par convention depuis "
@@ -2613,7 +2621,9 @@ def content_fr(st: dict) -> list:
            "conference se classent en premier, avec compteur rouge. Le "
            "dossier de conference (<font name='Courier'>--conference "
            "dossier.html</font>) rassemble les inputs de la seance en une "
-           "page imprimable ; la roadmap integree est l'input 4 (B7).", st),
+           "page imprimable ; la roadmap integree est l'input 4 (B7) ; depuis 0.36.0 la "
+           "matrice d'harmonisation en annexe, si la solution nomme un espace de "
+           "travail (champ harmonisation).", st),
         _P("<b>La date de la conference</b> (0.31.0) : le dossier est "
            "ecrit pour une date <i>prevue</i>, non pour le jour de sa "
            "production. Le champ <b>Conference le</b> de la fenetre du "

@@ -625,3 +625,42 @@ class TestDecisionPointInReport:
             portfolio, log=lambda *_: None)
         # Zwei Member-Solutions => der Indikator ist anwendbar.
         assert pressure.applicable is True
+
+
+# ---------------------------------------------------------------------------
+# P3 Schritt 2: Harmonisierungs-Matrix als Anhang der Konferenzmappe
+# ---------------------------------------------------------------------------
+
+class TestConferenceHarmonisationAnnex:
+    def _solution(self, monkeypatch, harmonisation: str) -> SolutionConfig:
+        cfg = SolutionConfig(name="Solution H", members=[
+            Member(name="ART H1", issue_times="H1.xlsx")], harmonisation=harmonisation)
+        rd = {"H1.xlsx": ReportData(
+            issues=[_issue("H1.xlsx", f"H1-{n}", 1, 5 + n) for n in range(1, 4)],
+            stages=["Analysis", "Dev", "Done"], source_prefix="H1.xlsx")}
+        monkeypatch.setattr(aggregator, "load_report_data", _fake_loader(rd))
+        return cfg
+
+    def test_annex_carries_the_matrix(self, monkeypatch, tmp_path) -> None:
+        from harmonisation.examples import write_example
+        write_example(tmp_path)
+        cfg = self._solution(monkeypatch, str(tmp_path))
+        html = aggregator.render_conference_html(cfg, log=lambda *_: None, lang="de")
+        assert "Anhang · Harmonisierungs-Matrix (Board-Lagebild)" in html
+        assert "Order-to-Delivery" in html and 'class="harmo"' in html
+        # Anhang NACH dem letzten Input — es ist kein fünfter Konferenz-Input.
+        assert html.index("Anhang · Harmonisierungs") > html.index("Input 1 · Aktuelle Daten")
+        assert "Input 5" not in html
+
+    def test_without_workspace_no_annex(self, monkeypatch) -> None:
+        cfg = self._solution(monkeypatch, "")
+        html = aggregator.render_conference_html(cfg, log=lambda *_: None, lang="de")
+        assert "Harmonisierungs-Matrix" not in html
+
+    def test_broken_workspace_is_skipped_with_a_warning(self, monkeypatch, tmp_path) -> None:
+        messages: list[str] = []
+        cfg = self._solution(monkeypatch, str(tmp_path / "missing"))
+        html = aggregator.render_conference_html(cfg, log=messages.append, lang="en")
+        assert "Harmonisation matrix" not in html
+        assert any("harmonisation workspace skipped" in m for m in messages)
+        assert "Input 1 · Current data" in html          # die Mappe selbst steht

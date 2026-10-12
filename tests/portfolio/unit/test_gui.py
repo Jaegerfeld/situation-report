@@ -699,3 +699,28 @@ class TestNarrateUnused:
     def test_messages_exist_in_all_languages(self, lang):
         for key in ("msg_narrate_unused_conference", "msg_narrate_unused_pdf"):
             assert _T[lang][key].strip()
+
+
+class TestHarmonisationRegisterField:
+    """P3 Schritt 2: das zehnte Registerfeld ist ein Ordner, kein JSON."""
+
+    def test_in_register_and_preserved_fields(self) -> None:
+        from portfolio.gui import _PRESERVED_FIELDS, FOLDER_FIELDS, REGISTER_FIELDS
+        assert "harmonisation" in REGISTER_FIELDS
+        assert "harmonisation" in _PRESERVED_FIELDS
+        assert FOLDER_FIELDS == ("harmonisation",)
+
+    def test_fill_from_datenraum_finds_the_workspace_folder(self, tmp_path) -> None:
+        from portfolio.gui import fill_from_datenraum
+        reg = tmp_path / "registers"
+        (reg / "harmonisation").mkdir(parents=True)
+        assert fill_from_datenraum(tmp_path) == {}            # ohne Katalog kein Treffer
+        (reg / "harmonisation" / "catalogue.json").write_text("{}", encoding="utf-8")
+        found = fill_from_datenraum(tmp_path)
+        assert found == {"harmonisation": str((reg / "harmonisation").resolve())}
+
+    def test_status_accepts_a_folder(self, tmp_path) -> None:
+        from portfolio.gui import STATUS_FOUND, STATUS_MISSING, register_field_status
+        (tmp_path / "harmo").mkdir()
+        assert register_field_status(tmp_path, "harmo") == STATUS_FOUND
+        assert register_field_status(tmp_path, "nope") == STATUS_MISSING

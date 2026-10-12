@@ -39,7 +39,10 @@ from portfolio.report_texts import LANGUAGES
 # (Flussproblem-Backlog der VSC), seit B7 das optionale "themes"-Feld
 # (Strategic Themes + Roadmap), seit 19.09.2026 das optionale
 # report."conference_date" (geplanter VSC-Termin) und report."language"
-# (Reportsprache) — alles additiv, daher kein Schema-Bump.
+# (Reportsprache), seit P3 Schritt 2 (12.10.2026) das optionale
+# "harmonisation"-Feld (ORDNER eines Harmonisierungs-Arbeitsbereichs, dessen
+# Matrix die Konferenzmappe als Anhang trägt) — alles additiv, daher kein
+# Schema-Bump.
 SCHEMA_VERSION = 2
 APP_NAME = "situation_report"
 
@@ -188,6 +191,9 @@ class SolutionConfig:
                     "" means no backlog.
         themes:     Optional path to a strategic-themes/roadmap JSON (B7);
                     "" means no themes register.
+        harmonisation: Optional path to a harmonisation-score workspace
+                    FOLDER (P3); its decision matrix joins the conference
+                    pre-read as an annex. "" means none.
         language:   Report language ("de"/"en"/"ro"/"pt"/"fr"), or None to
                     follow whoever calls: the GUI passes its own language, the
                     CLI falls back to English. Set it only to pin a report to
@@ -218,6 +224,7 @@ class SolutionConfig:
     dora: str = ""
     flow_problems: str = ""
     themes: str = ""
+    harmonisation: str = ""
     conference_date: date | None = None
     language: str | None = None
     #: Folder of the file this config was loaded from (set by
@@ -391,6 +398,7 @@ def parse_solution_config(data: dict[str, Any]) -> SolutionConfig:
         dora=str(data.get("dora", "")).strip(),
         flow_problems=str(data.get("flow_problems", "")).strip(),
         themes=str(data.get("themes", "")).strip(),
+        harmonisation=str(data.get("harmonisation", "")).strip(),
     )
 
 
@@ -467,7 +475,8 @@ def to_dict(config: SolutionConfig) -> dict[str, Any]:
             "closed_stage": config.stage_map.closed_stage,
         }
     for register in ("risks", "nfr", "capabilities", "dependencies",
-                     "decisions", "slo", "dora", "flow_problems", "themes"):
+                     "decisions", "slo", "dora", "flow_problems", "themes",
+                     "harmonisation"):
         value = getattr(config, register)
         if value:
             out[register] = value

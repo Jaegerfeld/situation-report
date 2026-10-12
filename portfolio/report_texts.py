@@ -1240,6 +1240,13 @@ _TEXTS: dict[str, dict[str, str]] = {
         LANG_PT: "Input 4 · Roadmap integrado & strategic themes",
         LANG_FR: "Input 4 · Roadmap intégrée & strategic themes",
     },
+    "vsc.annex_harmonisation": {
+        LANG_DE: "Anhang · Harmonisierungs-Matrix (Board-Lagebild)",
+        LANG_EN: "Annex · Harmonisation matrix (board view)",
+        LANG_RO: "Anexă · Matricea de armonizare (imaginea board-ului)",
+        LANG_PT: "Anexo · Matriz de harmonização (visão do board)",
+        LANG_FR: "Annexe · Matrice d'harmonisation (vue du board)",
+    },
     "art.detail.quality": {
         LANG_DE: "ART-Detail — Datenqualität je ART",
         LANG_EN: "ART Detail — Data Quality per ART",

@@ -61,6 +61,10 @@ METRIC_CFD = "cfd"
 #: via build_reports' classify_stages(), so daily entry counts stay additive.
 _CANON_STAGES = [GROUP_TODO, GROUP_IN_PROGRESS, GROUP_DONE]
 
+from harmonisation.model import HarmonisationError
+from harmonisation.model import Workspace as HarmonisationWorkspace
+from harmonisation.model import load_workspace as load_harmonisation
+from harmonisation.render import render_matrix_block
 from project_template import MODULE_BUILD_REPORTS, get_section, load_template
 from sources.base import DoraRecord, QualityRecord, SloRecord
 
@@ -819,6 +823,29 @@ def _collect_flow_problems(
     return entries
 
 
+def _collect_harmonisation(
+    config: SolutionConfig,
+    log: Callable[[str], None] = print,
+) -> list[tuple[str, HarmonisationWorkspace]]:
+    """
+    Collect harmonisation-score workspaces for the conference pre-read (P3,
+    step 2) — same rules as the other governance registers; a missing or
+    inconsistent workspace is logged and skipped, never breaks the pre-read.
+    """
+    entries: list[tuple[str, HarmonisationWorkspace]] = []
+    for label, sub in _governance_sources(config, log):
+        if not sub.harmonisation:
+            continue
+        try:
+            ws = load_harmonisation(
+                resolve_config_path(sub.base_dir, sub.harmonisation, log))
+        except (OSError, HarmonisationError) as exc:
+            log(f"  WARNING [{label}]: harmonisation workspace skipped ({exc})")
+            continue
+        entries.append((label, ws))
+    return entries
+
+
 def _collect_themes(
     config: SolutionConfig,
     log: Callable[[str], None] = print,
@@ -1237,7 +1264,9 @@ def render_conference_html(
     their meeting order: current data (summary + source quality), the
     impediment backlog (flow problems, with ROAM risks and dependencies as
     the related governance views) and the business objectives proxy
-    (capability map + SLOs). The integrated roadmap view joins with B7.
+    (capability map + SLOs). The integrated roadmap view joins with B7; the
+    harmonisation decision matrix (P3) follows as an annex — a board view,
+    not one of the conference inputs, which is why it is not numbered.
     No plotly figures — the pre-read is meant to be read, the full report
     to be explored.
 
@@ -1277,6 +1306,11 @@ def render_conference_html(
     slo = render_slo_html(_collect_slo(config, log=log), lang=lang)
     theme_entries, epic_entries = _collect_themes(config, log=log)
     themes = render_themes_html(theme_entries, epic_entries, lang=lang)
+    harmo_entries = _collect_harmonisation(config, log=log)
+    harmonisation = "".join(
+        render_matrix_block(ws, lang=lang,
+                            heading=label if len(harmo_entries) > 1 else None)
+        for label, ws in harmo_entries)
 
     def block(label: str, *fragments: str) -> str:
         body = "".join(f for f in fragments if f)
@@ -1302,5 +1336,6 @@ def render_conference_html(
         + block(t("vsc.input2", lang), flow, roam, deps)
         + block(t("vsc.input3", lang), caps, slo)
         + block(t("vsc.input4", lang), themes)
+        + block(t("vsc.annex_harmonisation", lang), harmonisation)
     )
     return head + body + "</body></html>"

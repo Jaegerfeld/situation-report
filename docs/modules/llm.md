@@ -73,6 +73,7 @@ language (all five house languages), audit purpose `d6_translation`.
 premortem/attack questions from the decision log — a **questions guard**
 machine-discards any non-question output (raw material for judgement,
 never judgements; audit purpose `d5_red_team`).
+- **Harmonisation reading (P3, 0.36.0):** `python -m harmonisation <folder> --narrate` drafts a reading of the decision matrix or of the change between two states; the contract names processes, dimensions and brands, never persons, and the prompt forbids any recommendation on what to harmonise (audit purpose `p3_reading`).
 
 Without `--narrate` the briefing is exactly the deterministic D2 output
 (clean degradation). With it, the briefing gains the labeled section

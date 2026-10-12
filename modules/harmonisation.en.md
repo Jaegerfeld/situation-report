@@ -30,6 +30,10 @@ python -m harmonisation <folder> --example      # write the example workspace an
 | `--lang de\|en\|ro\|pt\|fr` | matrix language (default: de) |
 | `--example` | writes the example workspace into the folder |
 | `--browser` | opens the matrix in the browser |
+| `--since YYYY-MM-DD` | the **change** since that date instead of the matrix (`<folder>/delta.<lang>.html`) |
+| `--delta FOLDER` | change against a second workspace (the earlier state) |
+| `--narrate [PROVIDER]` | **AI reading (draft)** below the matrix or the change; default `ollama`, also `claude`, `mock` |
+| `--llm-model`, `--llm-base-url` | model or address for `--narrate` (otherwise the provider's defaults) |
 
 ## Workspace
 
@@ -71,11 +75,65 @@ brand-specific · open) and depth in the board's own wording. Colour key and leg
 before the first table. Below, the second reading: every assessment with every answer and
 its evidence level.
 
+## Change between two states (step 2)
+
+"What has changed since the last assessment?" — after the delta-briefing pattern.
+Assessments are dated, so `--since 2026-09-20` recomputes the earlier state from today's
+files; `--delta <folder>` compares against a second workspace. Compared per process and
+dimension: **score, confidence, spread and number of assessments** (old → new), plus new
+assessments (date only, no names), the board's decisions, processes added or removed. A
+changed question catalogue is flagged as a warning — the scores are not comparable then.
+
+- "No changes" is said explicitly.
+- **A lower score is not a worsening** but a different finding. The table is ordered by
+  process, not by good and bad.
+- Decisions without a date count as present in both states; the page counts them.
+
+```bash
+python -m harmonisation <folder> --since 2026-09-20 --lang en --browser
+```
+
+## AI reading (draft)
+
+`--narrate` (or the checkbox in the GUI) adds a reading below the matrix or the change —
+the same pattern as the executive summary of the portfolio reports:
+
+- The model sees **only a contract** with every number of the matrix or the change:
+  processes, dimensions, brands, board decisions — **never persons** (owners and
+  assessors are structurally absent from the contract).
+- Every number in the draft must appear in the contract, otherwise it is discarded
+  (retried once).
+- The versioned prompt additionally forbids **any recommendation** on what to harmonise
+  or how deep — the score is a finding, the judgement rests with the board.
+- The draft sits labeled (Art. 50 banner) directly below the table and additionally in
+  `<output>.reading.md` for editing; the operator evidence goes to `llm_audit.jsonl` next
+  to the output (purpose `p3_reading`).
+- If the AI fails, the deterministic page still stands; the command line reports it with
+  exit code 3, the GUI in the status line.
+
+```bash
+python -m harmonisation <folder> --narrate            # locally via Ollama
+python -m harmonisation <folder> --since 2026-09-20 --narrate mock   # stand-in, no model
+```
+
+## In the conference pre-read
+
+In the portfolio module a solution carries the optional field `"harmonisation"` with the
+**folder** of the workspace (data-sources dialog, tenth field with a folder picker;
+"Take from data folder" recognises `registers/harmonisation/` by its catalogue). The
+pre-read then shows the matrix as an **annex after input 4** — a board view, deliberately
+not a fifth conference input. A missing or inconsistent workspace is skipped with a
+warning; the pre-read still stands.
+
 ## Deliberately absent
 
-- No harmonisation proposal, no ranking, no recommended depth.
-- No AI: standard library only, deterministic, reproducible.
+- No harmonisation proposal, no ranking, no recommended depth — not in the AI reading
+  either.
+- No AI in the core: the computation is deterministic, standard library only. The optional
+  AI reading only phrases, labeled as a draft, and computes nothing.
 - No overall score.
+- No diff at answer level: the matrix's second reading shows every answer; a diff on it
+  would be a diff on individual people's statements.
 
 ## Tests
 

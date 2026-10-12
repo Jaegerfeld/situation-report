@@ -74,6 +74,7 @@ Haussprachen), Audit-Zweck `d6_translation`.
 Premortem-/Angriffs-Fragen aus dem Decision-Log — ein **Fragen-Wächter**
 verwirft maschinell jede Nicht-Frage (Rohmaterial fürs Urteil, nie
 Urteile; Audit-Zweck `d5_red_team`).
+- **Harmonisierungs-Lesart (P3, 0.36.0):** `python -m harmonisation <ordner> --narrate` entwirft eine Lesart der Entscheider-Matrix oder der Veränderung zweier Stände; der Contract nennt Prozesse, Dimensionen und Marken, nie Personen, und der Prompt untersagt jede Empfehlung, was harmonisiert wird (Audit-Zweck `p3_reading`).
 
 Ohne `--narrate` ist das Briefing exakt die deterministische D2-Ausgabe
 (saubere Degradation). Mit Flag bekommt es den gekennzeichneten

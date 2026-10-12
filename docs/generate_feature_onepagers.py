@@ -139,6 +139,84 @@ ONEPAGERS: dict[str, dict[str, dict]] = {
             ],
         },
     },
+    "harmonisation_step2": {
+        "de": {
+            "title": "Harmonisierungs-Score: Schritt 2",
+            "tagline": "12.10.2026 \u00b7 Was hat sich ge\u00e4ndert, wie liest man es, und wo "
+                       "steht es in der Mappe \u2013 ohne dass das Werkzeug urteilt.",
+            "sections": [
+                ("h", "Worum geht es?"),
+                ("p", "Die Entscheider-Matrix aus 0.35.0 bekommt drei Anschl\u00fcsse. Keiner "
+                      "\u00e4ndert die Rechnung \u2013 sie zeigen den Befund anders oder an "
+                      "anderer Stelle: als Ver\u00e4nderung gegen\u00fcber einem fr\u00fcheren Stand, "
+                      "als KI-formulierte Lesart und als Anhang der Konferenzmappe."),
+                ("h", "Was es tut"),
+                ("li", "Ver\u00e4nderung zweier St\u00e4nde: --since DATUM rechnet den Stand von "
+                       "damals aus den datierten Bewertungen zur\u00fcck, --delta ORDNER vergleicht "
+                       "mit einem zweiten Arbeitsbereich; Score, Konfidenz, Spanne, Bewertungen, "
+                       "Board-Entscheidungen, Prozesse \u2013 \u201ekeine \u00c4nderungen\u201c wird gesagt"),
+                ("li", "KI-Lesart (Entwurf): --narrate; das Modell sieht nur einen Contract mit "
+                       "allen Zahlen, nie Personen; Zahlen-W\u00e4chter, Kennzeichnung, Audit; "
+                       "Entwurf unter der Tabelle und als .reading.md zum Redigieren"),
+                ("li", "Konferenzmappe: Config-Feld harmonisation (Ordner) \u2013 die Matrix "
+                       "erscheint als Anhang nach Input 4"),
+                ("h", "Drei Entscheidungen"),
+                ("p", "<b>Ein gesunkener Score ist keine Verschlechterung.</b> Er ist ein "
+                      "anderer Befund. Die Ver\u00e4nderung ordnet nach Prozess, nicht nach gut "
+                      "und schlecht \u2013 anders als das Delta-Briefing, das Verschlechterungen "
+                      "zuerst zeigt, weil dort Kennzahlen eine Richtung haben."),
+                ("p", "<b>Auch die KI empfiehlt nichts.</b> Der Prompt untersagt jede "
+                      "Empfehlung, was harmonisiert wird oder in welcher Tiefe. Die Lesart "
+                      "beschreibt, wo das Bild unsicher ist und wo Entscheidungen offen sind; "
+                      "das Urteil bleibt beim Board."),
+                ("p", "<b>Anhang, nicht Input 5.</b> Die Konferenz hat vier Inputs. Die "
+                      "Matrix ist eine Board-Sicht und h\u00e4ngt hinten an \u2013 wer sie zum "
+                      "f\u00fcnften Input erkl\u00e4rt, erfindet ein Ritual, das es nicht gibt."),
+                ("h", "So benutzt du es"),
+                ("code", "python -m harmonisation C:\\\\Lagebild\\\\harmo --since 2026-09-20\n"
+                         "python -m harmonisation C:\\\\Lagebild\\\\harmo --since 2026-09-20 --narrate\n"
+                         "python -m harmonisation C:\\\\Lagebild\\\\harmo --narrate mock"),
+            ],
+        },
+        "en": {
+            "title": "Harmonisation Score: Step 2",
+            "tagline": "12 Oct 2026 \u00b7 What changed, how to read it, and where it sits in "
+                       "the pre-read \u2013 without the tool passing judgement.",
+            "sections": [
+                ("h", "What is it?"),
+                ("p", "The decision matrix from 0.35.0 gains three connections. None of them "
+                      "changes the arithmetic \u2013 they show the finding differently or "
+                      "somewhere else: as the change against an earlier state, as an "
+                      "AI-phrased reading, and as an annex of the conference pre-read."),
+                ("h", "What it does"),
+                ("li", "Change between two states: --since DATE recomputes the earlier state "
+                       "from the dated assessments, --delta FOLDER compares against a second "
+                       "workspace; score, confidence, spread, assessments, board decisions, "
+                       "processes \u2013 \u201cno changes\u201d is said explicitly"),
+                ("li", "AI reading (draft): --narrate; the model sees only a contract with every "
+                       "number, never persons; numbers guard, labeling, audit; draft below the "
+                       "table and as .reading.md for editing"),
+                ("li", "Conference pre-read: config field harmonisation (folder) \u2013 the matrix "
+                       "appears as an annex after input 4"),
+                ("h", "Three decisions"),
+                ("p", "<b>A lower score is not a worsening.</b> It is a different finding. The "
+                      "change is ordered by process, not by good and bad \u2013 unlike the delta "
+                      "briefing, which shows worsenings first because its metrics have a "
+                      "direction."),
+                ("p", "<b>The AI recommends nothing either.</b> The prompt forbids any "
+                      "recommendation on what to harmonise or how deep. The reading describes "
+                      "where the picture is uncertain and which decisions are open; the "
+                      "judgement stays with the board."),
+                ("p", "<b>An annex, not input 5.</b> The conference has four inputs. The matrix "
+                      "is a board view and hangs at the back \u2013 calling it the fifth input "
+                      "would invent a ritual that does not exist."),
+                ("h", "How to use it"),
+                ("code", "python -m harmonisation C:\\\\Lagebild\\\\harmo --since 2026-09-20\n"
+                         "python -m harmonisation C:\\\\Lagebild\\\\harmo --since 2026-09-20 --narrate\n"
+                         "python -m harmonisation C:\\\\Lagebild\\\\harmo --narrate mock"),
+            ],
+        },
+    },
     "llm_deployment_label": {
         "de": {
             "title": "Die Kennzeichnung folgt der Adresse",

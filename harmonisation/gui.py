@@ -26,6 +26,7 @@ from datetime import date, datetime
 from pathlib import Path
 from tkinter import filedialog, messagebox, ttk
 
+from .cli import run_delta, run_report
 from .examples import write_example
 from .model import (
     ASSESSMENTS_DIR,
@@ -54,7 +55,6 @@ from .model import (
     processes_to_json,
     write_json,
 )
-from .render import render_html
 
 # ---------------------------------------------------------------------------
 # Sprache (geteilte Präferenzdatei mit Launcher/Portfolio)
@@ -130,6 +130,12 @@ _T: dict[str, dict[str, str]] = {
         "msg_invalid": "Ungültige Eingabe: {error}", "msg_saved": "Gespeichert: {path}",
         "msg_matrix": "Matrix erzeugt: {path}", "msg_example": "Beispiel angelegt in {path}",
         "msg_no_process": "Bitte einen Prozess wählen.",
+        "lbl_since": "Stand seit (JJJJ-MM-TT)",
+        "btn_delta": "Veränderung erzeugen …",
+        "chk_reading": "KI-Lesart (Entwurf)",
+        "msg_delta": "Veränderung erzeugt: {path}",
+        "msg_bad_since": "Bitte ein Datum JJJJ-MM-TT eintragen.",
+        "msg_no_draft": "Erzeugt, aber ohne KI-Entwurf (KI-Fehler): {path}",
     },
     LANG_EN: {
         "window_title": "Harmonisation Score",
@@ -153,6 +159,12 @@ _T: dict[str, dict[str, str]] = {
         "msg_invalid": "Invalid input: {error}", "msg_saved": "Saved: {path}",
         "msg_matrix": "Matrix generated: {path}", "msg_example": "Example created in {path}",
         "msg_no_process": "Please choose a process.",
+        "lbl_since": "Since (YYYY-MM-DD)",
+        "btn_delta": "Generate change …",
+        "chk_reading": "AI reading (draft)",
+        "msg_delta": "Change generated: {path}",
+        "msg_bad_since": "Please enter a date YYYY-MM-DD.",
+        "msg_no_draft": "Generated, but without the AI draft (AI failed): {path}",
     },
     LANG_RO: {
         "window_title": "Scor de armonizare",
@@ -176,6 +188,12 @@ _T: dict[str, dict[str, str]] = {
         "msg_invalid": "Intrare nevalidă: {error}", "msg_saved": "Salvat: {path}",
         "msg_matrix": "Matrice generată: {path}", "msg_example": "Exemplu creat în {path}",
         "msg_no_process": "Alegeți un proces.",
+        "lbl_since": "Stare din (AAAA-LL-ZZ)",
+        "btn_delta": "Generează schimbarea …",
+        "chk_reading": "Lectură AI (schiță)",
+        "msg_delta": "Schimbare generată: {path}",
+        "msg_bad_since": "Introduceți o dată AAAA-LL-ZZ.",
+        "msg_no_draft": "Generat, dar fără schița AI (eroare AI): {path}",
     },
     LANG_PT: {
         "window_title": "Score de harmonização",
@@ -199,6 +217,12 @@ _T: dict[str, dict[str, str]] = {
         "msg_invalid": "Entrada inválida: {error}", "msg_saved": "Guardado: {path}",
         "msg_matrix": "Matriz gerada: {path}", "msg_example": "Exemplo criado em {path}",
         "msg_no_process": "Escolha um processo.",
+        "lbl_since": "Desde (AAAA-MM-DD)",
+        "btn_delta": "Gerar alteração …",
+        "chk_reading": "Leitura por IA (rascunho)",
+        "msg_delta": "Alteração gerada: {path}",
+        "msg_bad_since": "Introduza uma data AAAA-MM-DD.",
+        "msg_no_draft": "Gerado, mas sem o rascunho de IA (falha da IA): {path}",
     },
     LANG_FR: {
         "window_title": "Score d'harmonisation",
@@ -222,6 +246,12 @@ _T: dict[str, dict[str, str]] = {
         "msg_invalid": "Entrée invalide : {error}", "msg_saved": "Enregistré : {path}",
         "msg_matrix": "Matrice générée : {path}", "msg_example": "Exemple créé dans {path}",
         "msg_no_process": "Veuillez choisir un processus.",
+        "lbl_since": "Depuis (AAAA-MM-JJ)",
+        "btn_delta": "Générer l'évolution …",
+        "chk_reading": "Lecture IA (brouillon)",
+        "msg_delta": "Évolution générée : {path}",
+        "msg_bad_since": "Veuillez saisir une date AAAA-MM-JJ.",
+        "msg_no_draft": "Généré, mais sans le brouillon IA (échec IA) : {path}",
     },
 }
 
@@ -313,6 +343,9 @@ class HarmonisationApp:
         self.lang = _load_lang_pref()
         self.workspace = tk.StringVar(value="")
         self.report_lang = tk.StringVar(value=self.lang)
+        self.since = tk.StringVar(value="")
+        self.narrate = tk.BooleanVar(value=False)
+        self.provider = tk.StringVar(value="ollama")
         self.status = tk.StringVar(value="")
         self.ws: Workspace | None = None
         self._answer_vars: dict[str, tuple[tk.StringVar, tk.StringVar]] = {}
@@ -422,8 +455,16 @@ class HarmonisationApp:
         ttk.Combobox(bottom, textvariable=self.report_lang, values=_LANG_ORDER, width=4,
                      state="readonly").pack(side="left", padx=(4, 12))
         ttk.Button(bottom, text=self._t("btn_matrix"), command=self._generate).pack(side="left")
+        ttk.Label(bottom, text=self._t("lbl_since")).pack(side="left", padx=(16, 0))
+        ttk.Entry(bottom, textvariable=self.since, width=11).pack(side="left", padx=(4, 4))
+        ttk.Button(bottom, text=self._t("btn_delta"), command=self._generate_delta).pack(side="left")
+        ki = ttk.Frame(frm)
+        ki.grid(column=0, columnspan=3, row=3, sticky="ew", pady=(6, 0))
+        ttk.Checkbutton(ki, text=self._t("chk_reading"), variable=self.narrate).pack(side="left")
+        ttk.Combobox(ki, textvariable=self.provider, values=_provider_ids(), width=10,
+                     state="readonly").pack(side="left", padx=(8, 0))
         ttk.Label(frm, textvariable=self.status, foreground="#14304a").grid(
-            column=0, columnspan=3, row=3, sticky="w", pady=(6, 0))
+            column=0, columnspan=3, row=4, sticky="w", pady=(6, 0))
         if self.workspace.get():
             self._reload()
 
@@ -658,20 +699,52 @@ class HarmonisationApp:
         self._reload()
         self.status.set(self._t("msg_saved").format(path=DECISIONS_FILE))
 
+    def _narrate_with(self) -> str | None:
+        return (self.provider.get() or "ollama") if self.narrate.get() else None
+
+    def _finish(self, path: Path, complete: bool, key: str) -> None:
+        self.status.set(self._t(key if complete else "msg_no_draft").format(path=path))
+        webbrowser.open(path.resolve().as_uri())
+
     def _generate(self) -> None:
         root = self._root()
         if root is None:
             return
+        lang = self.report_lang.get() or self.lang
         try:
-            ws = load_workspace(root)
+            path, complete = run_report(root, root / f"matrix.{lang}.html", lang,
+                                        narrate_with=self._narrate_with(), log=print)
         except HarmonisationError as exc:
             self.status.set(self._t("msg_error").format(error=exc))
             return
+        self._finish(path, complete, "msg_matrix")
+
+    def _generate_delta(self) -> None:
+        root = self._root()
+        if root is None:
+            return
+        try:
+            since = _parse_day(self.since.get())
+        except ValueError:
+            self.status.set(self._t("msg_bad_since"))
+            return
         lang = self.report_lang.get() or self.lang
-        path = root / f"matrix.{lang}.html"
-        path.write_text(render_html(ws, lang), encoding="utf-8")
-        self.status.set(self._t("msg_matrix").format(path=path))
-        webbrowser.open(path.resolve().as_uri())
+        try:
+            path, complete = run_delta(root, root / f"delta.{lang}.html", lang, since=since,
+                                       narrate_with=self._narrate_with(), log=print)
+        except HarmonisationError as exc:
+            self.status.set(self._t("msg_error").format(error=exc))
+            return
+        self._finish(path, complete, "msg_delta")
+
+
+def _provider_ids() -> list[str]:
+    """The llm providers to offer; a plain fallback keeps the window usable without llm."""
+    try:
+        from llm.base import discover_providers
+        return list(discover_providers()) or ["ollama"]
+    except Exception:  # pragma: no cover - defensive
+        return ["ollama", "claude", "mock"]
 
 
 def main() -> None:

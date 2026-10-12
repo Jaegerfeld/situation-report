@@ -186,6 +186,7 @@ _T: dict[str, dict[str, str]] = {
         "reg_dora": "DORA & Qualität",
         "reg_flow_problems": "Flussprobleme (VSC)",
         "reg_themes": "Themes & Roadmap",
+        "reg_harmonisation": "Harmonisierungs-Score (Ordner)",
         "msg_load_error": "Laden fehlgeschlagen: {error}",
         "msg_need_name": "Bitte einen Namen für die Solution angeben.",
         "msg_need_members": "Bitte mindestens einen ART hinzufügen.",
@@ -291,6 +292,7 @@ _T: dict[str, dict[str, str]] = {
         "reg_dora": "DORA & quality",
         "reg_flow_problems": "Flow problems (VSC)",
         "reg_themes": "Themes & roadmap",
+        "reg_harmonisation": "Harmonisation score (folder)",
         "msg_load_error": "Load failed: {error}",
         "msg_need_name": "Please enter a name for the solution.",
         "msg_need_members": "Please add at least one ART.",
@@ -396,6 +398,7 @@ _T: dict[str, dict[str, str]] = {
         "reg_dora": "DORA & calitate",
         "reg_flow_problems": "Probleme de flux (VSC)",
         "reg_themes": "Teme & roadmap",
+        "reg_harmonisation": "Scor de armonizare (dosar)",
         "msg_load_error": "Încărcare eșuată: {error}",
         "msg_need_name": "Introduceți un nume pentru soluție.",
         "msg_need_members": "Adăugați cel puțin un ART.",
@@ -501,6 +504,7 @@ _T: dict[str, dict[str, str]] = {
         "reg_dora": "DORA & qualidade",
         "reg_flow_problems": "Problemas de fluxo (VSC)",
         "reg_themes": "Temas & roadmap",
+        "reg_harmonisation": "Score de harmonização (pasta)",
         "msg_load_error": "Falha ao carregar: {error}",
         "msg_need_name": "Introduza um nome para a solução.",
         "msg_need_members": "Adicione pelo menos um ART.",
@@ -606,6 +610,7 @@ _T: dict[str, dict[str, str]] = {
         "reg_dora": "DORA & qualité",
         "reg_flow_problems": "Problèmes de flux (VSC)",
         "reg_themes": "Thèmes & roadmap",
+        "reg_harmonisation": "Score d'harmonisation (dossier)",
         "msg_load_error": "Échec du chargement : {error}",
         "msg_need_name": "Veuillez saisir un nom pour la solution.",
         "msg_need_members": "Veuillez ajouter au moins un ART.",
@@ -978,11 +983,15 @@ def default_metrics_for_mode(mode: str, art_depth: bool = False) -> list[str]:
 #: Konferenzmappe auf geladenem Demo-Portfolio).
 _PRESERVED_FIELDS = ("framework", "stage_map", "risks", "nfr",
                      "capabilities", "dependencies", "decisions", "slo",
-                     "dora", "flow_problems", "themes", "base_dir")
+                     "dora", "flow_problems", "themes", "harmonisation",
+                     "base_dir")
 
-#: The nine register fields, in dialog order (Datenquellen-Dialog).
+#: The ten register fields, in dialog order (Datenquellen-Dialog). All but
+#: the last name a JSON file; "harmonisation" names a workspace FOLDER.
 REGISTER_FIELDS = ("risks", "nfr", "capabilities", "dependencies",
-                   "decisions", "slo", "dora", "flow_problems", "themes")
+                   "decisions", "slo", "dora", "flow_problems", "themes",
+                   "harmonisation")
+FOLDER_FIELDS = ("harmonisation",)
 
 STATUS_EMPTY = "empty"
 STATUS_FOUND = "found"
@@ -1001,8 +1010,9 @@ def register_field_status(base_dir: Path | None, value: str) -> str:
     if not value:
         return STATUS_EMPTY
     from .solution_config import resolve_config_path
+    target = resolve_config_path(base_dir, value)
     return (STATUS_FOUND
-            if resolve_config_path(base_dir, value).is_file()
+            if target.is_file() or target.is_dir()
             else STATUS_MISSING)
 
 
@@ -1020,9 +1030,14 @@ def fill_from_datenraum(folder: Path) -> dict[str, str]:
     folder = Path(folder)
     registers = (folder / "registers"
                  if (folder / "registers").is_dir() else folder)
-    return {name: str((registers / f"{name}.json").resolve())
-            for name in REGISTER_FIELDS
-            if (registers / f"{name}.json").is_file()}
+    found = {name: str((registers / f"{name}.json").resolve())
+             for name in REGISTER_FIELDS if name not in FOLDER_FIELDS
+             and (registers / f"{name}.json").is_file()}
+    for name in FOLDER_FIELDS:
+        # A workspace folder counts when it carries its catalogue.
+        if (registers / name / "catalogue.json").is_file():
+            found[name] = str((registers / name).resolve())
+    return found
 
 
 def relativize_paths(cfg: SolutionConfig, config_path: Path) -> SolutionConfig:
@@ -1740,9 +1755,13 @@ class SolutionManagerApp(tk.Tk):
             status_labels[name].grid(row=row, column=2, sticky="w")
 
             def browse(n: str = name) -> None:
-                picked = filedialog.askopenfilename(
-                    parent=dlg, title=self._tr("dlg_pick_register"),
-                    filetypes=[("JSON", "*.json")])
+                if n in FOLDER_FIELDS:
+                    picked = filedialog.askdirectory(
+                        parent=dlg, title=self._tr("dlg_pick_register"))
+                else:
+                    picked = filedialog.askopenfilename(
+                        parent=dlg, title=self._tr("dlg_pick_register"),
+                        filetypes=[("JSON", "*.json")])
                 if picked:
                     variables[n].set(picked)
 

@@ -3,7 +3,7 @@
 # Repository:     https://github.com/Jaegerfeld/situation-report
 # KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
 # Erstellt:       03.09.2026
-# Geändert:       03.09.2026
+# Geändert:       12.10.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
@@ -11,7 +11,9 @@
 #   Systemvorgaben Teil des Betreiber-Nachweises sind (Rechts-Leitplanke
 #   c). Der Narrations-Prompt (D2) erzwingt die Architektur-Grundsätze
 #   sprachlich; maschinell erzwungen werden sie zusätzlich in guard.py.
-#   Deutsch ist der Standard (Entscheidung Robert 03.09.2026).
+#   Deutsch ist der Standard (Entscheidung Robert 03.09.2026). Seit 12.10.2026
+#   auch der Lesart-Prompt des Harmonisierungs-Scores (P3 Schritt 2), der
+#   zusätzlich jede Harmonisierungs-Empfehlung untersagt.
 # =============================================================================
 
 from __future__ import annotations
@@ -163,6 +165,38 @@ _RED_TEAM = {LANG_DE: _RED_TEAM_DE, LANG_EN: _RED_TEAM_EN}
 def red_team_system_prompt(lang: str = DEFAULT_LANG) -> str:
     """The versioned red-team system prompt (D5; unknown lang → default)."""
     return _RED_TEAM.get(lang, _RED_TEAM[DEFAULT_LANG])
+
+
+_HARMONISATION_DE = """Du formulierst den Entwurf einer kurzen Lesart zu einer Harmonisierungs-Matrix (Scores je End-to-End-Prozess und Dimension) oder zur Veränderung zwischen zwei Bewertungsständen.
+
+Regeln (verbindlich):
+1. Nutze AUSSCHLIESSLICH Informationen aus dem übergebenen Contract. Erfinde nichts — keine Zahlen, keine Ursachen, keine Empfehlungen, die nicht im Contract stehen.
+2. Jede Zahl in deinem Text muss wörtlich im Contract vorkommen. Im Zweifel: Zahl weglassen und qualitativ formulieren.
+3. Nenne Prozesse, Dimensionen, Marken und das Board — niemals Personen.
+4. Antworte in 5 bis 8 Sätzen: zuerst, wo das Bild unsicher ist (niedrige Konfidenz, große Spanne, viel Unbekanntes), dann, wo die Scores hoch oder niedrig liegen, zuletzt, welche Entscheidungen des Boards offen sind oder sich geändert haben.
+5. Sprich KEINE Empfehlung aus, was harmonisiert werden soll oder in welcher Tiefe — der Score ist ein Befund, das Urteil liegt beim Board. Ein niedrigerer Score ist keine Verschlechterung, sondern ein anderer Befund.
+6. Sachlicher Management-Ton, keine Dramatisierung, keine Emojis.
+7. Der Text ist ein ENTWURF für menschliche Redaktion — schreibe nichts, was eine Freigabe oder Prüfung behauptet.
+8. Antworte auf DEUTSCH — der Contract ist englisch beschriftet, dein Text ist es NICHT. Übersetze Dimensionsnamen sinngemäß."""
+
+_HARMONISATION_EN = """You draft a short reading of a harmonisation matrix (scores per end-to-end process and dimension) or of the change between two assessment states.
+
+Binding rules:
+1. Use ONLY information from the provided contract. Invent nothing — no numbers, no causes, no recommendations beyond the contract.
+2. Every number in your text must appear verbatim in the contract. When in doubt, drop the number and phrase it qualitatively.
+3. Name processes, dimensions, brands and the board — never persons.
+4. Answer in 5 to 8 sentences: first where the picture is uncertain (low confidence, wide spread, much unknown), then where scores are high or low, finally which board decisions are open or have changed.
+5. Make NO recommendation on what to harmonise or how deep — the score is a finding, the judgement rests with the board. A lower score is a different finding, not a worsening.
+6. Sober management tone, no dramatisation, no emojis.
+7. The text is a DRAFT for human editing — claim no approval or review.
+8. Answer in ENGLISH."""
+
+_HARMONISATION = {LANG_DE: _HARMONISATION_DE, LANG_EN: _HARMONISATION_EN}
+
+
+def harmonisation_system_prompt(lang: str = DEFAULT_LANG) -> str:
+    """The versioned harmonisation-reading prompt (P3 step 2; unknown lang → default)."""
+    return _HARMONISATION.get(lang, _HARMONISATION[DEFAULT_LANG])
 
 
 #: Zielsprache → ausgeschriebener Name für den Übersetzungs-Prompt (D6);
