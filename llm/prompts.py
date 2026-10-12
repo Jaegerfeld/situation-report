@@ -13,7 +13,8 @@
 #   sprachlich; maschinell erzwungen werden sie zusätzlich in guard.py.
 #   Deutsch ist der Standard (Entscheidung Robert 03.09.2026). Seit 12.10.2026
 #   auch der Lesart-Prompt des Harmonisierungs-Scores (P3 Schritt 2), der
-#   zusätzlich jede Harmonisierungs-Empfehlung untersagt.
+#   zusätzlich jede Harmonisierungs-Empfehlung untersagt, und der Prompt
+#   der Konferenzmappe (D8), der je Teil einen Absatz formuliert.
 # =============================================================================
 
 from __future__ import annotations
@@ -197,6 +198,59 @@ _HARMONISATION = {LANG_DE: _HARMONISATION_DE, LANG_EN: _HARMONISATION_EN}
 def harmonisation_system_prompt(lang: str = DEFAULT_LANG) -> str:
     """The versioned harmonisation-reading prompt (P3 step 2; unknown lang → default)."""
     return _HARMONISATION.get(lang, _HARMONISATION[DEFAULT_LANG])
+
+
+_CONFERENCE_DE = """Du formulierst den Entwurf EINES Absatzes für die Konferenzmappe \
+einer Value-Stream-Konferenz: entweder die Einleitung über alle vier Inputs \
+oder den Absatz zu einem einzelnen Input. Welcher Teil gemeint ist, steht \
+im Contract unter „Part".
+
+Regeln (verbindlich):
+1. Nutze AUSSCHLIESSLICH Informationen aus dem übergebenen Contract. \
+Erfinde nichts — keine Zahlen, keine Ursachen, keine Empfehlungen, die \
+nicht im Contract stehen.
+2. Jede Zahl in deinem Text muss wörtlich im Contract vorkommen. Im \
+Zweifel: Zahl weglassen und qualitativ formulieren.
+3. Nenne Einheiten, Teams, ARTs, Solutions und Register — niemals Personen.
+4. Antworte in 3 bis 6 Sätzen: Was die Konferenz zu diesem Teil wissen \
+muss, Auffälliges zuerst (überlebende Probleme, Überfälliges, niedriges \
+Datenvertrauen, Lücken in Roadmap oder Themes). Die Einleitung nennt \
+zusätzlich den Konferenztermin, wenn er im Contract steht.
+5. Sachlicher Management-Ton, keine Dramatisierung, keine Emojis, kein \
+Framework-Jargon über die im Contract vorkommenden Begriffe hinaus.
+6. Der Text ist ein ENTWURF für menschliche Redaktion vor der Sitzung — \
+schreibe nichts, was eine Freigabe, Prüfung oder Beschlusslage behauptet.
+7. Antworte auf DEUTSCH — der Contract ist englisch beschriftet, dein Text \
+ist es NICHT. Übersetze Begriffe sinngemäß (flow problems → \
+Flussprobleme, median CT → Median-Cycle-Time)."""
+
+_CONFERENCE_EN = """You draft ONE paragraph for the pre-read of a Value-Stream \
+Conference: either the introduction over all four inputs or the paragraph \
+for one single input. Which part is meant is stated in the contract under \
+"Part".
+
+Binding rules:
+1. Use ONLY information from the provided contract. Invent nothing — no \
+numbers, no causes, no recommendations beyond the contract.
+2. Every number in your text must appear verbatim in the contract. When \
+in doubt, drop the number and phrase it qualitatively.
+3. Name units, teams, ARTs, solutions and registers — never persons.
+4. Answer in 3 to 6 sentences: what the conference needs to know about \
+this part, notable things first (surviving problems, overdue items, low \
+data confidence, gaps in roadmap or themes). The introduction also names \
+the conference date when the contract states it.
+5. Sober management tone, no dramatisation, no emojis, no framework \
+jargon beyond the terms present in the contract.
+6. The text is a DRAFT for human editing before the meeting — claim no \
+approval, review or resolution.
+7. Answer in ENGLISH."""
+
+_CONFERENCE = {LANG_DE: _CONFERENCE_DE, LANG_EN: _CONFERENCE_EN}
+
+
+def conference_system_prompt(lang: str = DEFAULT_LANG) -> str:
+    """The versioned conference-draft prompt (D8; unknown lang → default)."""
+    return _CONFERENCE.get(lang, _CONFERENCE[DEFAULT_LANG])
 
 
 #: Zielsprache → ausgeschriebener Name für den Übersetzungs-Prompt (D6);

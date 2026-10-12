@@ -5,6 +5,45 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [0.37.0] – 2026-10-12
+
+### Added
+- **KI-Entwurf für die Konferenzmappe (Roadmap D8) — entschieden und umgesetzt.**
+  Die Mappe war seit B6 bauartbedingt ohne KI; seit dem 11.09.2026 sagte die
+  Statuszeile nur, dass der KI-Haken hier nicht wirkt. Entscheidung Robert
+  12.10.2026: Die Mappe bekommt Entwürfe — **Einleitung über alle vier Inputs
+  plus je Input ein Absatz** (fünf Teile) — und zwar **nur auf ausdrücklichen
+  Schalter**, und der **Ort ist wählbar**: standardmäßig nur als Entwurfsdatei
+  `<mappe>.html.narration.md` neben der Mappe (die vorgelesene Unterlage bleibt
+  deterministisch, ein Mensch holt den Text bewusst hinein), auf Wunsch
+  gekennzeichnet in der Mappe selbst (Einleitung vor dem ersten Input, je Absatz
+  direkt unter seiner Überschrift).
+
+  Jeder Teil hat seinen eigenen deterministischen Contract aus denselben
+  Registern, die die Mappe zeigt (Kennzahlen und Quell-Konfidenz; Flussprobleme
+  mit überlebenden und Cross-VS-Problemen, ROAM, Dependencies samt Überfälligem;
+  Capabilities und SLOs; Themes, Epics, Zombies). Owner, Melder und Personen
+  tauchen in keinem Contract auf. Zahlen-Wächter, Art.-50-Banner und
+  Betreiber-Nachweis `llm_audit.jsonl` (Zweck `d8_conference`) kommen unumgehbar
+  aus `llm/narrate.py`; der Prompt v1 formuliert je Teil 3–6 Sätze und behauptet
+  keine Beschlusslage. Scheitert ein Teil (Zahlen-Wächter nach einer
+  Wiederholung, Backend weg), fehlt genau dieser Teil; die Entwurfsdatei nennt
+  ihn, die Mappe steht.
+
+  CLI: `--conference mappe.html --narrate [PROVIDER]` schreibt die Entwurfsdatei,
+  `--conference-draft inline` legt die Entwürfe zusätzlich in die Mappe. GUI: der
+  vorhandene KI-Haken gilt jetzt auch für „Konferenzmappe …“; neue Auswahl
+  „Mappen-Entwurf: nur Datei | in der Mappe“ in der KI-Zeile; die Statuszeile nennt
+  die Entwurfsdatei und die Zahl fehlender Teile.
+
+### Changed
+- Der Hinweis „der KI-Haken wirkt hier nicht“ entfällt für die Konferenzmappe;
+  er bleibt für PDF-Ausgabe. Portfolio-Manual (fünf Sprachen), mkdocs
+  portfolio/llm DE+EN, Onepager „KI-Entwurf für die Konferenzmappe“ DE/EN,
+  Roadmap D8.
+
+---
+
 ## [0.36.0] – 2026-10-12
 
 ### Added

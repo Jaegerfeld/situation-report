@@ -139,6 +139,79 @@ ONEPAGERS: dict[str, dict[str, dict]] = {
             ],
         },
     },
+    "conference_draft": {
+        "de": {
+            "title": "KI-Entwurf f\u00fcr die Konferenzmappe",
+            "tagline": "12.10.2026 \u00b7 F\u00fcnf Entw\u00fcrfe, nur auf Knopfdruck, und der Ort "
+                       "ist w\u00e4hlbar \u2013 die vorgelesene Unterlage bleibt deterministisch.",
+            "sections": [
+                ("h", "Worum geht es?"),
+                ("p", "Die Konferenzmappe b\u00fcndelt die vier Inputs einer Value-Stream-"
+                      "Konferenz. Sie war bewusst ohne KI: Unterlage einer bereits "
+                      "einberufenen Sitzung, vorgelesen, kein Erkundungsbericht. Der "
+                      "KI-Haken daneben wirkte nicht \u2013 seit September sagte die "
+                      "Statuszeile das wenigstens. Ob die Mappe Entw\u00fcrfe bekommen soll, "
+                      "war die offene Entscheidung D8."),
+                ("h", "Die Entscheidung"),
+                ("li", "Ort w\u00e4hlbar: Standard ist die Entwurfsdatei mappe.html.narration.md "
+                       "neben der Mappe; auf Wunsch stehen die Entw\u00fcrfe gekennzeichnet in "
+                       "der Mappe selbst (--conference-draft inline, GUI-Auswahl)"),
+                ("li", "Umfang: eine Einleitung \u00fcber alle vier Inputs und je Input ein "
+                       "Absatz \u2013 f\u00fcnf Teile mit je eigenem Contract"),
+                ("li", "Nur ausdr\u00fccklich: --narrate zusammen mit --conference, in der "
+                       "Oberfl\u00e4che der vorhandene KI-Haken; ohne Schalter exakt wie bisher"),
+                ("h", "Drei Leitplanken"),
+                ("p", "<b>Zahlen nur aus dem Contract.</b> Jeder Teil hat seinen "
+                      "deterministischen Contract aus denselben Registern, die die Mappe "
+                      "zeigt. Der Zahlen-W\u00e4chter verwirft, was nicht darin steht."),
+                ("p", "<b>Nie Personen.</b> Owner, Melder, Namen fehlen in allen f\u00fcnf "
+                      "Contracts strukturell \u2013 per Test erzwungen."),
+                ("p", "<b>Ein Teil scheitert, die Mappe steht.</b> Fehlende Teile werden in "
+                      "der Entwurfsdatei genannt; die Unterlage wird immer geschrieben."),
+                ("h", "So benutzt du es"),
+                ("code", "python -m portfolio cfg.json --conference mappe.html --narrate\n"
+                         "python -m portfolio cfg.json --conference mappe.html --narrate "
+                         "--conference-draft inline\n"
+                         "python -m portfolio cfg.json --conference mappe.html --narrate mock"),
+            ],
+        },
+        "en": {
+            "title": "AI Drafts for the Conference Pre-Read",
+            "tagline": "12 Oct 2026 \u00b7 Five drafts, only on request, and the place is "
+                       "yours to choose \u2013 the paper that is read aloud stays deterministic.",
+            "sections": [
+                ("h", "What is it?"),
+                ("p", "The conference pre-read bundles the four inputs of a Value-Stream "
+                      "Conference. It was deliberately AI-free: the paper of an already "
+                      "convened meeting, read aloud, not an exploration report. The AI "
+                      "checkbox next to it had no effect \u2013 since September the status "
+                      "line at least said so. Whether the pre-read should get drafts at "
+                      "all was the open decision D8."),
+                ("h", "The decision"),
+                ("li", "Place is selectable: the default is the editing file "
+                       "preread.html.narration.md next to the pre-read; on request the "
+                       "drafts sit labeled in the page itself (--conference-draft inline, "
+                       "GUI box)"),
+                ("li", "Scope: an introduction over all four inputs and one paragraph per "
+                       "input \u2013 five parts, each with its own contract"),
+                ("li", "Explicit only: --narrate together with --conference, in the GUI the "
+                       "existing AI checkbox; without the switch exactly as before"),
+                ("h", "Three guard rails"),
+                ("p", "<b>Numbers only from the contract.</b> Every part has a deterministic "
+                      "contract built from the same registers the pre-read shows. The "
+                      "numbers guard discards whatever is not in it."),
+                ("p", "<b>Never persons.</b> Owners, raisers and names are structurally "
+                      "absent from all five contracts \u2013 enforced by test."),
+                ("p", "<b>One part fails, the pre-read stands.</b> Missing parts are named "
+                      "in the editing file; the paper is always written."),
+                ("h", "How to use it"),
+                ("code", "python -m portfolio cfg.json --conference preread.html --narrate\n"
+                         "python -m portfolio cfg.json --conference preread.html --narrate "
+                         "--conference-draft inline\n"
+                         "python -m portfolio cfg.json --conference preread.html --narrate mock"),
+            ],
+        },
+    },
     "harmonisation_step2": {
         "de": {
             "title": "Harmonisierungs-Score: Schritt 2",

@@ -208,13 +208,15 @@ class TestOutputLanguageIsPinned:
 
     def test_every_prompt_family_pins_its_language(self) -> None:
         from llm.prompts import (
+            conference_system_prompt,
             exec_summary_system_prompt,
             harmonisation_system_prompt,
             narration_system_prompt,
             red_team_system_prompt,
         )
         for prompt in (narration_system_prompt, exec_summary_system_prompt,
-                       red_team_system_prompt, harmonisation_system_prompt):
+                       red_team_system_prompt, harmonisation_system_prompt,
+                       conference_system_prompt):
             assert "DEUTSCH" in prompt("de"), prompt.__name__
             assert "ENGLISH" in prompt("en"), prompt.__name__
 

@@ -74,6 +74,7 @@ premortem/attack questions from the decision log — a **questions guard**
 machine-discards any non-question output (raw material for judgement,
 never judgements; audit purpose `d5_red_team`).
 - **Harmonisation reading (P3, 0.36.0):** `python -m harmonisation <folder> --narrate` drafts a reading of the decision matrix or of the change between two states; the contract names processes, dimensions and brands, never persons, and the prompt forbids any recommendation on what to harmonise (audit purpose `p3_reading`).
+- **Conference pre-read drafts (D8, 0.37.0):** `python -m portfolio cfg.json --conference mappe.html --narrate` drafts an introduction plus one paragraph per input into `mappe.html.narration.md` (`--conference-draft inline` also into the page); five contracts without persons, audit purpose `d8_conference`.
 
 Without `--narrate` the briefing is exactly the deterministic D2 output
 (clean degradation). With it, the briefing gains the labeled section

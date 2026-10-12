@@ -324,7 +324,21 @@ python -m portfolio portfolio.json --conference mappe.html --conference-date 202
 Input 1 · Aktuelle Daten (Summary + Quell-Qualität), Input 2 ·
 Impediment-Backlog & Governance (Flussprobleme zuerst, dann ROAM und
 Dependencies), Input 3 · Business Objectives (Capability-Map + SLOs),
-Input 4 · Integrierte Roadmap & Strategic Themes (B7). Seit 0.36.0 ergänzt eine Solution, die in `"harmonisation"` den **Ordner** eines Harmonisierungs-Arbeitsbereichs nennt, die Entscheider-Matrix des Moduls `harmonisation` als **Anhang nach Input 4** — eine Board-Sicht, bewusst kein fünfter Konferenz-Input. Der vollständige
+Input 4 · Integrierte Roadmap & Strategic Themes (B7). Seit 0.36.0 ergänzt eine Solution, die in `"harmonisation"` den **Ordner** eines Harmonisierungs-Arbeitsbereichs nennt, die Entscheider-Matrix des Moduls `harmonisation` als **Anhang nach Input 4** — eine Board-Sicht, bewusst kein fünfter Konferenz-Input.
+
+**KI-Entwürfe für die Mappe (D8, seit 0.37.0).** `--conference` zusammen mit
+`--narrate [PROVIDER]` entwirft fünf gekennzeichnete Teile — eine Einleitung über
+alle vier Inputs und je Input einen Absatz — in die Entwurfsdatei
+`<DATEI>.narration.md`; die Mappe selbst bleibt deterministisch. Mit
+`--conference-draft inline` stehen die Entwürfe zusätzlich in der Mappe
+(Einleitung vor Input 1, jeder Absatz unter seiner Überschrift). Jeder Teil hat
+seinen eigenen deterministischen Contract aus denselben Registern, die die Mappe
+zeigt — Einheiten, Teams und Register, nie Personen; Zahlen-Wächter,
+Art.-50-Banner und Betreiber-Nachweis (Zweck `d8_conference`) gelten unverändert.
+Ein Teil, dessen Entwurf scheitert, wird in der Datei genannt und fehlt; die Mappe
+wird trotzdem geschrieben. In der Oberfläche gilt der KI-Haken jetzt auch für
+„Konferenzmappe …“; die neue Auswahl „Mappen-Entwurf: nur Datei | in der Mappe“
+bestimmt den Ort. Der vollständige
 interaktive Report bleibt die Detailquelle. **In der GUI:** Der Knopf
 *Konferenzmappe …* im Manager-Fenster schreibt dieselbe Seite für die
 aktuell konfigurierte Solution und öffnet sie im Browser — von dort als
