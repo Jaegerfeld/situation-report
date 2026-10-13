@@ -525,10 +525,18 @@ portfolio/
 ├── themes_config.py   Strategic Themes/Roadmap (B7): Orphan-/Zombie-Regeln
 ├── slo_config.py      SLO-Register (C1): zentrale Budget-/Status-Regel
 ├── dora_config.py     Delivery-Register (C2): DORA-Tiers + Qualität
-├── snapshot.py        Report-Snapshot (D2): Kennzahlen/Qualität/Governance einfrieren
+├── solution_areas_config.py Solution-Area-Register (P5): Nähte, Rekurrenz-Schwellen
+├── decision_point.py  Cross-Value-Stream-Druck + Entscheidungspunkt-Wecker (P4)
+├── snapshot.py        Report-Snapshot (D2): Kennzahlen/Qualität/Governance einfrieren (acht Register)
 ├── delta.py           Delta-Briefing (D2): zwei Snapshots vergleichen, HTML/Markdown
-├── aggregator.py      Zusammenführung auf Datensatz-Ebene + Rendering (HTML/PDF)
-└── summary.py         Management-Summary + Datenqualität (A1/A2), Ausreißer (A3), ROAM-Board (B3), NFR-Dashboard (B2)
+├── exec_summary.py    Exec-Summary-Contract für die KI (D1): Zahlen nur aus dem Snapshot
+├── red_team.py        Red-Team-Fragen (D5) gegen den Contract
+├── conference_draft.py KI-Entwurf für die Konferenzmappe (D8): Datei oder inline
+├── onepager.py        Lagevortrag-Einseiter (P6): 4 × 3, BLUF, Kata-Modus
+├── report_texts.py    Report-Texte in fünf Sprachen (t(key, lang))
+├── gui.py             Solutions-&-Portfolios-GUI (Datenquellen-Dialog mit elf Registern)
+├── aggregator.py      Zusammenführung auf Datensatz-Ebene + Rendering (HTML/PDF/Konferenzmappe)
+└── summary.py         Management-Summary + Datenqualität (A1/A2), Ausreißer (A3), Register-Blöcke (ROAM, NFR, Abhängigkeiten, Entscheidungen, Flussprobleme, Solution Areas, Themes, SLO, DORA)
 ```
 
 Nutzt `build_reports` (Loader, Metriken, Export) wieder. Die Aggregation erfolgt

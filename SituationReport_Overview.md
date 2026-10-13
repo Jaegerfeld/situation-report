@@ -64,6 +64,10 @@ There are also two helper tools for everyday use:
   the software without needing real project data.
 - **Launcher:** The start window from which all tools are opened.
 
+Above the single train, the **Portfolio** module pools several ARTs into
+one solution or portfolio view, adds governance registers and prepares
+the Value-Stream Conference (see *Further modules* below).
+
 ---
 
 ## Installation and start
@@ -515,35 +519,78 @@ browser, covering the entire generated date range — no date filter needed.
 
 ---
 
-## Planned modules (not available yet)
+## Further modules
+
+### Portfolio — Solutions & Portfolios
+
+Several ARTs (Agile Release Trains) together form a solution; several
+solutions form a portfolio. The Portfolio module pools the issues of all
+member ARTs and runs the same flow metrics over them. Around the numbers it
+reads **governance registers** — simple JSON files for risks, non-functional
+requirements, capabilities, dependencies, decisions, SLOs, DORA values,
+flow problems, strategic themes and solution areas — and shows them with
+legends in five languages.
+
+> **📖 Explanation:**
+> A single ART report tells you how one train is doing. The portfolio view
+> answers the questions above the trains: where does work cross train
+> boundaries, which dependency is overdue, which flow problem has survived
+> three conferences, which two teams keep having to form a temporary
+> "solution area" for the same reason. Those are the questions a
+> Value-Stream Conference needs on the table.
+
+It produces the **conference pre-read** (four inputs plus annex), a
+**snapshot** of any report state, the **delta briefing** between two
+snapshots ("what changed since last time?") and a **one-pager** for the
+situation briefing: four dimensions × three questions on one A4 page, with
+a kata mode (an empty sheet for training).
+
+### Simulate — forecasts
+
+A throughput-based Monte-Carlo forecast: "How many items will we finish by
+this date?" and "When will these 20 items be done?" — with probabilities
+instead of promises, built from the team's own history and standard-library
+Python only.
 
 ### Get Data — direct Jira retrieval
 
-This module is still being planned. It is intended to fetch data directly
-via the Jira REST API — without a manual export.
+Fetches issues straight from the Jira REST API, or validates a manual
+export before it goes into Transform Data. Data minimisation is applied at
+the source: only the fields the metrics need are kept.
 
-> **📖 Explanation:**
-> Currently you have to export data manually from Jira (download it as a
-> file). Once Get Data is finished, SituationReport can fetch the data from
-> Jira itself — you only enter which project you want to analyse and the
-> program retrieves the data automatically.
+### Sources — external metric values
 
-**Workaround until it is finished:** Export Jira data manually, merge with
-the Helper if needed, then process with Transform Data.
+Pluggable readers for values that do not come from Jira: SLO status from
+Prometheus, deployment and lead-time data from GitHub or GitLab, quality
+values from SonarQube, or any CSV. The portfolio registers reference them.
 
-### Simulate — forecasts and predictions
+### LLM — AI as a drafting staff member
 
-This module is still being planned. Based on historical data it is intended
-to enable forecasts — for example: "When will we likely be finished with
-this amount of tasks?"
+Optional and replaceable: a local model (Ollama), the Claude API, or a
+**prompt export** that writes the complete prompt to a file or the
+clipboard so it can be run on another machine or model. Every draft passes
+three guards: a numbers guard (no figure that is not in the data), an AI
+label on every output, and an audit record of each call. The AI never
+decides — it drafts an executive summary, a narration of the delta
+briefing, red-team questions, a translation, or an intro for the conference
+pre-read; a human releases it.
 
-> **📖 Explanation:**
-> With historical data (how long has the team needed so far?) you can make
-> predictions using statistical methods. For example: "We still have 20
-> tasks open. If we historically complete 3 per week, we will be done in 7
-> weeks — with 85% probability even within 9 weeks." These forecasts are
-> more honest than classic estimates because they are based on real
-> measurement data.
+### Harmonisation — how aligned are our end-to-end processes?
+
+A catalogue of harmonisation dimensions is assessed per end-to-end process
+on a 0–4 scale (plus "unknown"), with an evidence grade that becomes a
+confidence. The result is a decision matrix for the board, the change
+between two assessment states, and an optional AI reading that may describe
+but not recommend. The matrix also joins the portfolio's conference pre-read
+as an annex.
+
+### Testdata Generator 2.0
+
+Besides synthetic exports with flow anti-patterns, the generator can now
+make the data as messy as a real train (realism knob, learned from real
+transition data), **continue an existing data set** as if time had passed
+(the past stays byte-for-byte identical) and continue a whole demo
+portfolio including snapshot rotation.
 
 ---
 
@@ -551,7 +598,26 @@ this amount of tasks?"
 
 | Version | Date | Key changes |
 |---------|------|-------------|
-| **0.13.0** | 2026-05-17 | English as the default language (docs site, changelog, GUI default) |
+| **0.44.0** | 2026-10-13 | Solution-area register with recurrence signal (P5) — all six workshop priorities built |
+| 0.43.0 | 2026-10-13 | Situation-briefing one-pager with kata mode (P6) |
+| 0.42.0 | 2026-10-13 | Prompt export instead of a model call (provider `export`) |
+| 0.38.0 – 0.41.0 | 2026-10-13 | Testdata Generator 2.0: realism knob, continuation of a data set and of a scenario, learning from real transitions |
+| 0.37.0 – 0.37.2 | 2026-10-12/13 | AI draft for the conference pre-read (D8); snapshot carries all registers; hygiene patch |
+| 0.35.0 – 0.36.0 | 2026-10-12 | Harmonisation module: score per end-to-end process, change between two states, AI reading |
+| 0.34.0 | 2026-10-11 | AI labelling follows the address, not the provider name (D9) |
+| 0.32.0 – 0.33.0 | 2026-09-19 | Reports and chart labels follow the interface language |
+| 0.30.0 | 2026-09-11 | Model and address selectable for the AI provider |
+| 0.29.0 | 2026-09-10 | Flow-debt display (A6) |
+| 0.28.0 | 2026-09-04 | Portfolio reports resolved down to ART level (ART depth) |
+| 0.25.0 | 2026-09-04 | Portfolio data folder (Datenraum) with relative paths |
+| 0.23.0 | 2026-09-03 | AI narration of the delta briefing (D2) — first use of the `llm` module |
+| 0.21.0 | 2026-09-03 | `sources` module: SLO, DORA and quality values from external systems |
+| 0.20.0 | 2026-09-03 | Delta briefing between two snapshots (D2, deterministic core) |
+| 0.18.0 – 0.19.0 | 2026-09-02/03 | Portfolio: data-quality flag, governance registers (capability map, NFR, ROAM, decisions, dependencies, flow problems, themes), demo-portfolio scenario |
+| 0.17.0 | 2026-07-01 | Simulate module: Monte-Carlo forecast |
+| 0.15.0 | 2026-06-22 | Portfolio module (Solutions & Portfolios) |
+| 0.14.0 | 2026-05-22 | Data hand-over from Transform Data to Build Reports |
+| 0.13.0 | 2026-05-17 | English as the default language (docs site, changelog, GUI default) |
 | 0.12.1 | 2026-05-17 | Testdata Generator promoted from Alpha to Beta |
 | 0.12.0 | 2026-05-17 | Testdata Generator: direct combined report in the browser |
 | 0.11.0 | 2026-05-16 | Shared project template for all GUI modules |
@@ -593,18 +659,22 @@ situation-report/
 ├── build_reports/      → report generation
 ├── testdata_generator/ → test-data generation
 ├── helper/             → helper tools
-├── get_data/           → (planned)
-└── simulate/           → (planned)
+├── get_data/           → Jira retrieval (REST) or export validation
+├── portfolio/          → solutions & portfolios, registers, conference pre-read, one-pager
+├── sources/            → external metric values (SLO, DORA, quality)
+├── llm/                → AI drafting behind guards (local, API, prompt export)
+├── harmonisation/      → harmonisation score per end-to-end process
+└── simulate/           → Monte-Carlo forecast
 ```
 
 - **Language:** Python
 - **GUI framework:** tkinter
 - **Charts:** Plotly
-- **Tests:** pytest (approx. 750+ tests, as of v0.13.0)
+- **Tests:** pytest (1,895 tests, as of v0.44.0)
 - **CI/CD:** GitHub Actions (automatic builds for Windows, macOS, Linux)
 - **License:** BSD-3-Clause
 
 ---
 
 *This document was created from the project's source documentation and
-adapted for non-technical readers (updated 2026-05-17).*
+adapted for non-technical readers (updated 2026-10-13).*

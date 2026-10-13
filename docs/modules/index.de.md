@@ -5,12 +5,12 @@
 | [launcher](launcher.md) | Zentraler Einstiegspunkt – startet alle Module | verfügbar |
 | [transform_data](transform_data.md) | Transformation von Jira-Rohdaten in Stage-Time-Metriken | verfügbar |
 | [build_reports](build_reports.md) | Erzeugung von Metriken und Reports | verfügbar |
-| [portfolio](portfolio.md) | Aggregierte Large-Solution- & Portfolio-Reports über mehrere ARTs | verfügbar (Alpha) |
+| [portfolio](portfolio.md) | Aggregierte Large-Solution- & Portfolio-Reports über mehrere ARTs — Governance-Register, Konferenzmappe, Delta-Briefing, Einseiter | verfügbar (Alpha) |
 | [helper](helper.md) | JSON-Dateien zusammenführen (Jira-Paginierung) | verfügbar (Alpha) |
-| [testdata_generator](testdata_generator.md) | Generierung synthetischer Testdaten | verfügbar (Beta) |
+| [testdata_generator](testdata_generator.md) | Generierung synthetischer Testdaten — Realismus-Regler, Fortschreibung eines Datensatzes, Lernen aus echten Übergängen | verfügbar (Beta) |
 | [get_data](get_data.md) | Datenabruf aus Jira — REST oder Export-Validierung | verfügbar (Alpha) |
 | [sources](sources.md) | Steckbare externe Metrik-Quellen (SLO, DORA, Qualität) | verfügbar (Alpha) |
-| [llm](llm.md) | Steckbare KI-Narration (lokal Ollama, Claude-API, mock) | verfügbar (Alpha) |
+| [llm](llm.md) | Steckbare KI-Narration (lokal Ollama, Claude-API, Prompt-Export, mock) | verfügbar (Alpha) |
 | [simulate](simulate.md) | Simulationen und Vorhersagemodelle | verfügbar (Alpha) |
 | [harmonisation](harmonisation.md) | Harmonisierungs-Score je End-to-End-Prozess — Entscheider-Matrix fürs Board | verfügbar (Alpha) |
 

@@ -42,12 +42,12 @@ The software is the tool; the **memoranda (Denkschriften)** are its conceptual f
 | [`launcher`](https://jaegerfeld.github.io/situation-report/modules/launcher/) | Central entry point – launches all modules | available |
 | [`transform_data`](https://jaegerfeld.github.io/situation-report/modules/transform_data/) | Transform raw Jira data into stage-time metrics | available |
 | [`build_reports`](https://jaegerfeld.github.io/situation-report/modules/build_reports/) | Generate flow metrics and reports | available |
-| [`portfolio`](https://jaegerfeld.github.io/situation-report/modules/portfolio/) | Aggregated Large-Solution & Portfolio reports across several ARTs | available (Alpha) |
+| [`portfolio`](https://jaegerfeld.github.io/situation-report/modules/portfolio/) | Aggregated Large-Solution & Portfolio reports across several ARTs — governance registers, conference pre-read, delta briefing, one-pager | available (Alpha) |
 | [`helper`](https://jaegerfeld.github.io/situation-report/modules/helper/) | Helper tools (JSON Merger) | available (Alpha) |
-| [`testdata_generator`](https://jaegerfeld.github.io/situation-report/modules/testdata_generator/) | Generate synthetic test data | available (Beta) |
+| [`testdata_generator`](https://jaegerfeld.github.io/situation-report/modules/testdata_generator/) | Generate synthetic test data — realism knobs, continuation of a data set, learning from real transitions | available (Beta) |
 | [`get_data`](https://jaegerfeld.github.io/situation-report/modules/get_data/) | Retrieve data from Jira — REST or export validation | available (Alpha) |
 | [`sources`](https://jaegerfeld.github.io/situation-report/modules/sources/) | Pluggable external metric sources (SLO, DORA, quality) | available (Alpha) |
-| [`llm`](https://jaegerfeld.github.io/situation-report/modules/llm/) | Pluggable AI narration (local Ollama, Claude API, mock) | available (Alpha) |
+| [`llm`](https://jaegerfeld.github.io/situation-report/modules/llm/) | Pluggable AI narration (local Ollama, Claude API, prompt export, mock) | available (Alpha) |
 | [`simulate`](https://jaegerfeld.github.io/situation-report/modules/simulate/) | Simulations and forecasting models | available (Alpha) |
 | [`harmonisation`](https://jaegerfeld.github.io/situation-report/modules/harmonisation/) | Harmonisation score per end-to-end process — decision matrix for the board | available (Alpha) |
 

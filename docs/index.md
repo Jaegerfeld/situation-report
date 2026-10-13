@@ -16,12 +16,12 @@ Toolsuite for the situational picture at portfolio and solution level: flow metr
 | [`launcher`](modules/launcher.md) | Central entry point – launches all modules | available |
 | [`transform_data`](modules/transform_data.md) | Transform raw Jira data into stage-time metrics | available |
 | [`build_reports`](modules/build_reports.md) | Generate metrics and reports | available |
-| [`portfolio`](modules/portfolio.md) | Aggregated Large-Solution & Portfolio reports across several ARTs | available (Alpha) |
+| [`portfolio`](modules/portfolio.md) | Aggregated Large-Solution & Portfolio reports across several ARTs — governance registers, conference pre-read, delta briefing, one-pager | available (Alpha) |
 | [`helper`](modules/helper.md) | Merge JSON files (Jira pagination) | available (Alpha) |
-| [`testdata_generator`](modules/testdata_generator.md) | Generate synthetic test data | available (Beta) |
+| [`testdata_generator`](modules/testdata_generator.md) | Generate synthetic test data — realism knobs, continuation of a data set, learning from real transitions | available (Beta) |
 | [`get_data`](modules/get_data.md) | Retrieve data from Jira — REST or export validation | available (Alpha) |
 | [`sources`](modules/sources.md) | Pluggable external metric sources (SLO, DORA, quality) | available (Alpha) |
-| [`llm`](modules/llm.md) | Pluggable AI narration (local Ollama, Claude API, mock) | available (Alpha) |
+| [`llm`](modules/llm.md) | Pluggable AI narration (local Ollama, Claude API, prompt export, mock) | available (Alpha) |
 | [`simulate`](modules/simulate.md) | Simulations and prediction models | available (Alpha) |
 | [`harmonisation`](modules/harmonisation.md) | Harmonisation score per end-to-end process — decision matrix for the board | available (Alpha) |
 
