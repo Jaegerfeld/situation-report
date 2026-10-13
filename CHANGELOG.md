@@ -5,6 +5,31 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [0.42.0] – 2026-10-13
+
+### Added
+- **Prompt exportieren statt Modell aufrufen (Provider `export`).** Auftrag Robert
+  13.10.2026: An jeder KI-Stelle soll sich der Prompt in die Zwischenablage kopieren lassen,
+  um ihn mit einem Export des Dokuments auf einem anderen Rechner oder Modell auszuführen.
+  Umgesetzt als Provider, damit er ohne weitere Verdrahtung überall erscheint, wo die
+  KI-Schicht erreichbar ist: `--narrate export` (D1 Executive Summary, D2 Narration, D5
+  Red-Team-Fragen, D6 Übersetzung, D8 Konferenzmappe, P3 Harmonisierungs-Lesart,
+  `python -m llm test --llm export`) und „export“ in den Provider-Auswahlen der Oberflächen.
+  Kein Modell wird aufgerufen: Der komplette Prompt — versionierter Systemprompt plus
+  deterministischer Contract — landet als `prompt_<zweck>_<zeitstempel>.md` neben der
+  Ausgabe (im Ordner des Betreiber-Nachweises) und in der Zwischenablage, mit Anleitung
+  voran: Systemprompt als Systemanweisung, Eingabe als Nachricht, Antwort in die
+  Entwurfsdatei einfügen und wie jeden Entwurf redigieren. Die Seite trägt einen
+  Platzhalter-Abschnitt mit dem Banner „Kein Modell aufgerufen — Prompt exportiert (Pfad)“
+  in fünf Sprachen; der Betreiber-Nachweis führt Provider `export`, Modell `none`,
+  Deployment-Klasse `export`. Zahlen- und Fragen-Wächter überspringen den Platzhalter — sie
+  gelten der Antwort, die ein Mensch zurückbringt. Ohne Zwischenablage (kopflose Umgebung)
+  bleibt die Datei der verlässliche Weg; der Platzhalter sagt, was kopiert wurde. Tests
+  `tests/llm/unit/test_export.py`. mkdocs llm DE/EN, Portfolio-Manual DE/EN, Onepager
+  „Prompt-Export“ DE/EN.
+
+---
+
 ## [0.41.0] – 2026-10-13
 
 ### Added

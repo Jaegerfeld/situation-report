@@ -139,6 +139,86 @@ ONEPAGERS: dict[str, dict[str, dict]] = {
             ],
         },
     },
+    "prompt_export": {
+        "de": {
+            "title": "Prompt-Export statt Modellaufruf",
+            "tagline": "13.10.2026 \u00b7 Derselbe Prompt, dasselbe Dokument \u2013 nur das "
+                       "Modell steht woanders.",
+            "sections": [
+                ("h", "Worum geht es?"),
+                ("p", "Die KI-Schicht formuliert Entw\u00fcrfe aus deterministischen "
+                      "Contracts: Executive Summary, Narration, Red-Team-Fragen, "
+                      "\u00dcbersetzung, Konferenzmappe, Harmonisierungs-Lesart. Bisher "
+                      "musste daf\u00fcr ein Modell erreichbar sein \u2013 lokal per Ollama oder "
+                      "extern per API. Manchmal steht das passende Modell aber auf einem "
+                      "anderen Rechner, in einem anderen Netz, bei einem anderen Anbieter."),
+                ("h", "Was es tut"),
+                ("li", "Provider \u201eexport\u201c in jeder Provider-Auswahl und bei jedem "
+                       "--narrate: ruft kein Modell auf"),
+                ("li", "Legt Systemprompt und Contract als Datei neben die Ausgabe und in "
+                       "die Zwischenablage \u2013 mit Anleitung, wie das Modell zu f\u00fcttern "
+                       "und wohin die Antwort geh\u00f6rt"),
+                ("li", "Die Seite tr\u00e4gt einen Platzhalter mit dem Banner \u201eKein Modell "
+                       "aufgerufen\u201c; der Betreiber-Nachweis f\u00fchrt Provider export, "
+                       "Modell none"),
+                ("li", "Die Antwort kommt in die Entwurfsdatei und wird wie jeder KI-Entwurf "
+                       "redigiert und freigegeben"),
+                ("h", "Drei Entscheidungen"),
+                ("p", "<b>Ein Provider, keine Sonderverdrahtung.</b> Weil der Export "
+                      "\u00fcber dieselbe Schnittstelle l\u00e4uft wie ollama, claude und mock, "
+                      "erscheint er \u00fcberall von selbst \u2013 und bleibt es, wenn die "
+                      "n\u00e4chste KI-Stelle dazukommt."),
+                ("p", "<b>Der Contract bleibt die Grenze.</b> Exportiert wird genau das, "
+                      "was ein Modell sehen d\u00fcrfte: der deterministische Contract ohne "
+                      "Personen. Mehr geht nicht in die Zwischenablage als in die API."),
+                ("p", "<b>Die Datei ist der verl\u00e4ssliche Weg.</b> Die Zwischenablage "
+                      "ist bequem, aber nicht \u00fcberall da; die Datei liegt immer neben "
+                      "der Ausgabe, im Ordner des Betreiber-Nachweises."),
+                ("h", "So benutzt du es"),
+                ("code", "python -m portfolio cfg.json --output report.html --narrate export\n"
+                         "python -m portfolio --delta prev.json now.json --output d.html --narrate export\n"
+                         "python -m harmonisation C:\\Lagebild\\harmo --narrate export"),
+            ],
+        },
+        "en": {
+            "title": "Prompt Export instead of a Model Call",
+            "tagline": "13 Oct 2026 \u00b7 The same prompt, the same document \u2013 only the "
+                       "model lives elsewhere.",
+            "sections": [
+                ("h", "What is it?"),
+                ("p", "The AI layer drafts from deterministic contracts: executive summary, "
+                      "narration, red-team questions, translation, conference pre-read, "
+                      "harmonisation reading. So far a model had to be reachable \u2013 "
+                      "locally via Ollama or externally via API. Sometimes the right model "
+                      "sits on another machine, in another network, at another provider."),
+                ("h", "What it does"),
+                ("li", "Provider 'export' in every provider box and every --narrate: calls "
+                       "no model"),
+                ("li", "Writes system prompt and contract to a file next to the output and "
+                       "to the clipboard \u2013 with instructions on how to feed the model and "
+                       "where the answer belongs"),
+                ("li", "The page carries a placeholder with the banner 'No model called'; "
+                       "the operator evidence records provider export, model none"),
+                ("li", "The answer goes into the draft file and is edited and approved like "
+                       "every AI draft"),
+                ("h", "Three decisions"),
+                ("p", "<b>One provider, no special wiring.</b> Because the export runs "
+                      "through the same interface as ollama, claude and mock, it appears "
+                      "everywhere by itself \u2013 and stays there when the next AI step "
+                      "arrives."),
+                ("p", "<b>The contract remains the boundary.</b> What is exported is exactly "
+                      "what a model would be allowed to see: the deterministic contract "
+                      "without persons. No more goes to the clipboard than to the API."),
+                ("p", "<b>The file is the reliable channel.</b> The clipboard is convenient "
+                      "but not always there; the file always sits next to the output, in "
+                      "the folder of the operator evidence."),
+                ("h", "How to use it"),
+                ("code", "python -m portfolio cfg.json --output report.html --narrate export\n"
+                         "python -m portfolio --delta prev.json now.json --output d.html --narrate export\n"
+                         "python -m harmonisation C:\\Lagebild\\harmo --narrate export"),
+            ],
+        },
+    },
     "testdata_generator_2": {
         "de": {
             "title": "Testdaten-Generator 2.0",

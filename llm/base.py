@@ -33,6 +33,8 @@ DEPLOYMENT_LOCAL = "local"
 DEPLOYMENT_REMOTE = "remote"
 DEPLOYMENT_EXTERNAL = "external_api"
 DEPLOYMENT_MOCK = "mock"
+#: No model at all: the prompt bundle was written to a file (provider "export").
+DEPLOYMENT_EXPORT = "export"
 
 
 def classify_endpoint(url: str) -> str:

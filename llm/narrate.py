@@ -3,7 +3,7 @@
 # Repository:     https://github.com/Jaegerfeld/situation-report
 # KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
 # Erstellt:       03.09.2026
-# Geändert:       03.09.2026
+# Geändert:       13.10.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
@@ -11,7 +11,11 @@
 #   versionierten Systemprompt anwenden → generieren → Zahlen-Wächter →
 #   Betreiber-Nachweis schreiben → gekennzeichnetes Ergebnis zurückgeben.
 #   Die Wächter sind hier verdrahtet, damit KEIN Aufrufer sie umgehen
-#   kann, ohne dieses Modul zu meiden.
+#   kann, ohne dieses Modul zu meiden. Seit 13.10.2026 kennt der Pfad den
+#   Provider "export" (kein Modell, Prompt-Bündel in Datei und
+#   Zwischenablage): Zweck und Ausgabeordner wandern in die Provider-Config,
+#   der Zahlen-Wächter überspringt den Platzhalter, Banner und Nachweis
+#   sagen, dass kein Modell lief.
 # =============================================================================
 
 from __future__ import annotations
@@ -21,7 +25,7 @@ from pathlib import Path
 from typing import Any
 
 from .audit import append_audit
-from .base import LlmResult, discover_providers
+from .base import DEPLOYMENT_EXPORT, LlmResult, discover_providers
 from .guard import NumbersGuardError, ai_banner_text, enforce_numbers
 from .prompts import DEFAULT_LANG, narration_system_prompt
 
@@ -75,12 +79,20 @@ def narrate(
 
     cfg = dict(config or {})
     cfg.setdefault("lang", lang)
+    # The export provider needs to know what this call is and where the
+    # output lives - every other provider ignores both keys.
+    cfg.setdefault("purpose", purpose)
+    if audit_path is not None:
+        cfg.setdefault("export_dir", str(Path(audit_path).parent))
     system = (system_prompt if system_prompt is not None
               else narration_system_prompt(lang))
     result = provider.complete(system, source_text, cfg)
 
     try:
-        enforce_numbers(result.text, source_text)
+        # An exported prompt carries no model text - the placeholder names a
+        # file path, nothing a numbers guard could judge.
+        if result.deployment_class != DEPLOYMENT_EXPORT:
+            enforce_numbers(result.text, source_text)
     except NumbersGuardError:
         if audit_path is not None:
             append_audit(audit_path, result, source_text, purpose,
