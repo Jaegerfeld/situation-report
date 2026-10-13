@@ -408,6 +408,25 @@ python -m portfolio portfolio.json --onepager kata.html --kata
 GUI: button **One-pager …** in the manager window; column 2 uses the snapshot last written in
 this session.
 
+## Solution areas & recurrence per seam (optional, P5)
+
+`"solution_areas": "solution_areas.json"` renders the **solution-area register**: dynamic
+solution areas — temporary collaborations across teams or value streams — with `id`, `title`,
+a short `topic` key, at least two `participants`, `opened_on` and `closed_on` (empty = still
+active). The report groups them by **seam** (the same participants) and counts how often the
+same topic came back there: twice is highlighted, **from three times on it is the EA
+signal** — dynamic areas should be rare, and the same one recurring at the same place points
+at the value-stream cut or the architecture, not at the teams. The seams join Input 2 of the
+conference pre-read, the snapshot and the delta briefing, the one-pager (dependencies row,
+decision point "check the seam") and the exec-summary contract.
+
+```json
+{"schema": 1, "areas": [
+  {"id": "SA-1", "title": "Shared test environment", "topic": "test environment",
+   "participants": ["ART Alpha-1", "ART Alpha-3"], "opened_on": "2026-03-01", "closed_on": "2026-03-28"}
+]}
+```
+
 ## Strategic themes & integrated roadmap (optional, B7)
 
 `"themes": "themes.json"` gives strategic themes a structured home and

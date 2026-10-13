@@ -31,6 +31,7 @@ from __future__ import annotations
 
 import random
 import zlib
+from collections import Counter
 from dataclasses import dataclass
 from datetime import date, timedelta
 
@@ -85,6 +86,7 @@ from portfolio.risks_config import (
     RiskRegister,
 )
 from portfolio.slo_config import SloRegister
+from portfolio.solution_areas_config import SolutionArea, SolutionAreaRegister
 from portfolio.themes_config import (
     EPIC_DONE,
     EPIC_IN_PROGRESS,
@@ -117,6 +119,7 @@ class ScaleProfile:
     themes: int
     epics: int
     flow_problems: int
+    solution_areas: int = 0
 
 
 #: S = anchors only (today's storytelling density); M = realistic demo;
@@ -125,10 +128,12 @@ SCALE_PROFILES: dict[str, ScaleProfile] = {
     SCALE_S: ScaleProfile(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
     SCALE_M: ScaleProfile(risks=10, nfrs=6, runway=4, capabilities=6,
                           dependencies=12, decisions=7, assumptions=3,
-                          slos=6, themes=3, epics=12, flow_problems=7),
+                          slos=6, themes=3, epics=12, flow_problems=7,
+                          solution_areas=4),
     SCALE_L: ScaleProfile(risks=36, nfrs=16, runway=10, capabilities=16,
                           dependencies=40, decisions=22, assumptions=8,
-                          slos=18, themes=7, epics=40, flow_problems=22),
+                          slos=18, themes=7, epics=40, flow_problems=22,
+                          solution_areas=14),
 }
 
 # ── Gemeinsame Namenspools (Teams, nie Personen — Aggregat-Grenze) ──────────
@@ -285,6 +290,8 @@ def populate_registers(
     _gen_slo(g, registers["slo"])
     _gen_flow_problems(g, registers["flow_problems"])
     _gen_themes(g, registers["themes"])
+    if "solution_areas" in registers:
+        _gen_solution_areas(g, registers["solution_areas"])
 
 
 def _gen_risks(g: _Gen, risks: RiskRegister) -> None:
@@ -416,6 +423,36 @@ def _gen_flow_problems(g: _Gen, flow: FlowProblemRegister) -> None:
                 days=g.rng.randrange(10, 120)),
             conferences=g.rng.randrange(1, 3))
         g.emit(flow.problems, fid, entry)
+
+
+_AREA_TOPICS = ("Shared test environment", "API contract alignment",
+                "Release calendar", "Identity migration", "Data model change")
+
+
+def _gen_solution_areas(g: _Gen, areas: SolutionAreaRegister) -> None:
+    """
+    Closed areas between two ARTs, all opened at least 30 days before the
+    reference: they exist in both stands, so the drop rule does not apply
+    (a closed area cannot be "new since prev"). The same topic appears at
+    most twice per seam — the EA signal stays with the story anchors.
+    """
+    if len(g.art_names) < 2:
+        return
+    seen: Counter[tuple[tuple[str, ...], str]] = Counter(
+        (a.seam, a.topic) for a in areas.areas)
+    for i in range(g.profile.solution_areas):
+        pair = g.rng.sample(g.art_names, 2)
+        topic = _pick(g.rng, _AREA_TOPICS, i)
+        key = (tuple(sorted(pair)), topic)
+        if seen[key] >= 2:
+            continue
+        seen[key] += 1
+        opened = g.reference - timedelta(days=g.rng.randrange(30, 300))
+        length = g.rng.randrange(10, 60)
+        areas.areas.append(SolutionArea(
+            area_id=f"SA-{g.tag}{100 + i}", title=f"{topic} ({pair[0]} / {pair[1]})",
+            topic=topic, participants=pair, opened_on=opened,
+            closed_on=opened + timedelta(days=length)))
 
 
 def _gen_themes(g: _Gen, themes: ThemesRegister) -> None:

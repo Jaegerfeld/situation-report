@@ -54,10 +54,10 @@ def _governance() -> dict:
 
 
 class TestGovernanceRegisters:
-    def test_seven_registers(self) -> None:
+    def test_eight_registers(self) -> None:
         gov = _governance()
         assert set(gov) == {"risks", "dependencies", "nfr", "runway", "capabilities",
-                            "decisions", "epics", "flow_problems", "slo"}
+                            "decisions", "epics", "flow_problems", "slo", "solution_areas"}
 
     def test_flow_problems_without_owner_or_raiser(self) -> None:
         fp = _governance()["flow_problems"]

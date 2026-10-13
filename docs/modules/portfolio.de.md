@@ -417,6 +417,25 @@ python -m portfolio portfolio.json --onepager kata.html --kata
 GUI: Knopf **Einseiter …** im Manager-Fenster; Spalte 2 nutzt den zuletzt in dieser Sitzung
 geschriebenen Snapshot.
 
+## Solution Areas & Rekurrenz je Naht (optional, P5)
+
+`"solution_areas": "solution_areas.json"` rendert das **Solution-Area-Register**: dynamische
+Solution Areas — befristete Zusammenarbeit über Teams oder Value Streams hinweg — mit `id`,
+`title`, einem kurzen Schlüssel `topic`, mindestens zwei `participants`, `opened_on` und
+`closed_on` (leer = noch aktiv). Der Report gruppiert sie je **Naht** (dieselben Beteiligten)
+und zählt, wie oft derselbe Anlass dort wiederkam: zweimal wird hervorgehoben, **ab dreimal ist
+es das EA-Signal** — dynamische Areas sollten selten sein, und dieselbe an derselben Stelle
+zeigt auf den Value-Stream-Schnitt oder die Architektur, nicht auf die Teams. Die Nähte stehen
+in Input 2 der Konferenzmappe, im Snapshot und Delta-Briefing, im Einseiter (Zeile
+Abhängigkeiten, Entscheidungspunkt „Naht prüfen“) und im Exec-Summary-Contract.
+
+```json
+{"schema": 1, "areas": [
+  {"id": "SA-1", "title": "Shared test environment", "topic": "test environment",
+   "participants": ["ART Alpha-1", "ART Alpha-3"], "opened_on": "2026-03-01", "closed_on": "2026-03-28"}
+]}
+```
+
 ## Strategic Themes & integrierte Roadmap (optional, B7)
 
 `"themes": "themes.json"` gibt strategischen Themen ein strukturiertes

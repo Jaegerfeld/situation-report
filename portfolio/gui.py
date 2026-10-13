@@ -188,6 +188,7 @@ _T: dict[str, dict[str, str]] = {
         "reg_flow_problems": "Flussprobleme (VSC)",
         "reg_themes": "Themes & Roadmap",
         "reg_harmonisation": "Harmonisierungs-Score (Ordner)",
+        "reg_solution_areas": "Solution Areas (P5)",
         "msg_load_error": "Laden fehlgeschlagen: {error}",
         "msg_need_name": "Bitte einen Namen für die Solution angeben.",
         "msg_need_members": "Bitte mindestens einen ART hinzufügen.",
@@ -303,6 +304,7 @@ _T: dict[str, dict[str, str]] = {
         "reg_flow_problems": "Flow problems (VSC)",
         "reg_themes": "Themes & roadmap",
         "reg_harmonisation": "Harmonisation score (folder)",
+        "reg_solution_areas": "Solution areas (P5)",
         "msg_load_error": "Load failed: {error}",
         "msg_need_name": "Please enter a name for the solution.",
         "msg_need_members": "Please add at least one ART.",
@@ -418,6 +420,7 @@ _T: dict[str, dict[str, str]] = {
         "reg_flow_problems": "Probleme de flux (VSC)",
         "reg_themes": "Teme & roadmap",
         "reg_harmonisation": "Scor de armonizare (dosar)",
+        "reg_solution_areas": "Solution areas (P5)",
         "msg_load_error": "Încărcare eșuată: {error}",
         "msg_need_name": "Introduceți un nume pentru soluție.",
         "msg_need_members": "Adăugați cel puțin un ART.",
@@ -533,6 +536,7 @@ _T: dict[str, dict[str, str]] = {
         "reg_flow_problems": "Problemas de fluxo (VSC)",
         "reg_themes": "Temas & roadmap",
         "reg_harmonisation": "Score de harmonização (pasta)",
+        "reg_solution_areas": "Solution areas (P5)",
         "msg_load_error": "Falha ao carregar: {error}",
         "msg_need_name": "Introduza um nome para a solução.",
         "msg_need_members": "Adicione pelo menos um ART.",
@@ -648,6 +652,7 @@ _T: dict[str, dict[str, str]] = {
         "reg_flow_problems": "Problèmes de flux (VSC)",
         "reg_themes": "Thèmes & roadmap",
         "reg_harmonisation": "Score d'harmonisation (dossier)",
+        "reg_solution_areas": "Solution areas (P5)",
         "msg_load_error": "Échec du chargement : {error}",
         "msg_need_name": "Veuillez saisir un nom pour la solution.",
         "msg_need_members": "Veuillez ajouter au moins un ART.",
@@ -1029,13 +1034,13 @@ def default_metrics_for_mode(mode: str, art_depth: bool = False) -> list[str]:
 _PRESERVED_FIELDS = ("framework", "stage_map", "risks", "nfr",
                      "capabilities", "dependencies", "decisions", "slo",
                      "dora", "flow_problems", "themes", "harmonisation",
-                     "base_dir")
+                     "solution_areas", "base_dir")
 
-#: The ten register fields, in dialog order (Datenquellen-Dialog). All but
-#: the last name a JSON file; "harmonisation" names a workspace FOLDER.
+#: The eleven register fields, in dialog order (Datenquellen-Dialog). All
+#: name a JSON file except "harmonisation", which names a workspace FOLDER.
 REGISTER_FIELDS = ("risks", "nfr", "capabilities", "dependencies",
                    "decisions", "slo", "dora", "flow_problems", "themes",
-                   "harmonisation")
+                   "harmonisation", "solution_areas")
 FOLDER_FIELDS = ("harmonisation",)
 
 STATUS_EMPTY = "empty"

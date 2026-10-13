@@ -107,7 +107,8 @@ class TestBuild:
 
     def test_sources_name_the_registers(self, onepager) -> None:
         assert any("IssueTimes" in s for s in onepager.sources)
-        assert any(s.startswith("dependencies, risks: dependencies, risks") for s in onepager.sources)
+        assert any(s.startswith("dependencies, risks, solution_areas: dependencies, risks, solution_areas")
+                   for s in onepager.sources)
 
 
 class TestRender:

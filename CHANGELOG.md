@@ -5,6 +5,30 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [0.44.0] – 2026-10-13
+
+### Added
+- **Solution-Area-Register mit Rekurrenz-Signal (Roadmap P5).** Beleg aus der
+  Workshop-Analyse: „Dynamic solution areas should be rare; if they recur frequently, that
+  signals an organizational or architectural anti-pattern.“ Neues optionales Register
+  `solution_areas.json` (Config-Feld `solution_areas`, elftes Feld im Datenquellen-Dialog):
+  dynamische Solution Areas mit `id`, `title`, kurzem Schlüssel `topic`, mindestens zwei
+  `participants` (Teams/ARTs/Value Streams — nie Personen), `opened_on`, `closed_on` (leer =
+  aktiv). Der Report gruppiert je **Naht** (dieselben Beteiligten) und zählt, wie oft derselbe
+  Anlass dort wiederkam: **zweimal hervorgehoben, ab dreimal das EA-Signal** — Value-Stream-
+  Schnitt oder Architektur prüfen, nicht die Teams. Damit wird ein Organisations-Anti-Pattern
+  erstmals gemessen statt behauptet. Die Nähte stehen im Report (HTML + PDF-Tabelle), in
+  Input 2 der Konferenzmappe, im Snapshot und Delta-Briefing (Sektion `solution_areas`), in den
+  Exec-Summary-Kopfzahlen und im Einseiter (Zeile Abhängigkeiten; Entscheidungspunkt „Naht
+  prüfen“ und BLUF-Klausel bei Signal). Demo-Szenario: die Naht Alpha-1 × Alpha-3 öffnet zum
+  dritten Mal eine Area zum Thema „test environment“; die dritte Area kommt im Delta neu dazu;
+  `--scale` erzeugt dazu eine Grundmenge geschlossener Areas (höchstens zweimal je Naht). Tests
+  `tests/portfolio/unit/test_solution_areas.py`. Portfolio-Manual fünf Sprachen (5.18), mkdocs
+  DE/EN, Onepager „Solution Areas & Rekurrenz“ DE/EN, Roadmap P5 ✅ — damit sind alle sechs
+  Workshop-Prioritäten P1–P6 umgesetzt.
+
+---
+
 ## [0.43.0] – 2026-10-13
 
 ### Added

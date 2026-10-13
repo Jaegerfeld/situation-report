@@ -139,6 +139,81 @@ ONEPAGERS: dict[str, dict[str, dict]] = {
             ],
         },
     },
+    "solution_areas": {
+        "de": {
+            "title": "Solution Areas & Rekurrenz je Naht",
+            "tagline": "13.10.2026 \u00b7 Dynamische Areas sollten selten sein \u2013 wenn "
+                       "dieselbe wiederkommt, zeigt sie auf den Schnitt, nicht auf die Teams.",
+            "sections": [
+                ("h", "Worum geht es?"),
+                ("p", "Solution Areas sind befristete Zusammenarbeit \u00fcber Teams oder "
+                      "Value Streams hinweg \u2013 n\u00fctzlich, wenn sie selten sind. Kehrt "
+                      "dieselbe Area an derselben Naht immer wieder, ist das kein "
+                      "Teamproblem, sondern ein Organisations- oder Architektur-"
+                      "Anti-Pattern. Bisher wurde das behauptet; jetzt wird es gez\u00e4hlt."),
+                ("h", "Was es tut"),
+                ("li", "Leichtes Register: Anlass als kurzer Schl\u00fcssel, mindestens zwei "
+                       "Beteiligte, Er\u00f6ffnung, Schlie\u00dfung"),
+                ("li", "Report gruppiert je Naht (dieselben Beteiligten) und z\u00e4hlt die "
+                       "Wiederkehr desselben Anlasses: zweimal hervorgehoben, ab dreimal "
+                       "EA-Signal"),
+                ("li", "Steht in Report, Konferenzmappe (Input 2), Snapshot und "
+                       "Delta-Briefing, Einseiter (Entscheidungspunkt \u201eNaht pr\u00fcfen\u201c)"),
+                ("li", "Demo: Alpha-1 \u00d7 Alpha-3 \u00f6ffnet zum dritten Mal eine Area zum "
+                       "Testumgebungs-Thema \u2013 das Signal kommt im Delta neu dazu"),
+                ("h", "Drei Entscheidungen"),
+                ("p", "<b>Naht = Beteiligtenmenge, Anlass = Schl\u00fcssel.</b> Rekurrenz "
+                      "z\u00e4hlt nur, wenn beides gleich ist. Zwei Teams, die aus zwei "
+                      "verschiedenen Gr\u00fcnden zusammenkommen, sind kein Muster."),
+                ("p", "<b>Zwei Schwellen, keine Ampel.</b> Zweimal ist ein Hinweis, "
+                      "dreimal ein Signal. Was daraus folgt \u2013 Schnitt \u00e4ndern, "
+                      "Schnittstelle bauen, Team zusammenlegen \u2013 sagt das Werkzeug nicht."),
+                ("p", "<b>Teams, nie Personen.</b> Beteiligte sind ARTs, Teams oder Value "
+                      "Streams; das Register tr\u00e4gt keine Namen \u2013 dieselbe "
+                      "Aggregat-Grenze wie \u00fcberall im Lagebild."),
+                ("h", "So benutzt du es"),
+                ("code", "solution.json: \"solution_areas\": \"registers/solution_areas.json\"\n"
+                         "python -m portfolio solution.json --output report.html\n"
+                         "python -m portfolio portfolio.json --onepager seite.html"),
+            ],
+        },
+        "en": {
+            "title": "Solution Areas & Recurrence per Seam",
+            "tagline": "13 Oct 2026 \u00b7 Dynamic areas should be rare \u2013 when the same one "
+                       "comes back, it points at the cut, not at the teams.",
+            "sections": [
+                ("h", "What is it?"),
+                ("p", "Solution areas are temporary collaborations across teams or value "
+                      "streams \u2013 useful when rare. When the same area keeps recurring at "
+                      "the same seam, that is not a team problem but an organisational or "
+                      "architectural anti-pattern. So far this was asserted; now it is counted."),
+                ("h", "What it does"),
+                ("li", "Lightweight register: topic as a short key, at least two participants, "
+                       "opened and closed dates"),
+                ("li", "The report groups per seam (the same participants) and counts the "
+                       "return of the same topic: twice highlighted, from three times on an "
+                       "EA signal"),
+                ("li", "Appears in the report, the conference pre-read (input 2), snapshot and "
+                       "delta briefing, the one-pager (decision point 'check the seam')"),
+                ("li", "Demo: Alpha-1 \u00d7 Alpha-3 opens an area on the test-environment topic "
+                       "for the third time \u2013 the signal arrives in the delta"),
+                ("h", "Three decisions"),
+                ("p", "<b>Seam = set of participants, topic = key.</b> Recurrence counts only "
+                      "when both match. Two teams meeting for two different reasons are no "
+                      "pattern."),
+                ("p", "<b>Two thresholds, no traffic light.</b> Twice is a hint, three times a "
+                      "signal. What follows \u2013 change the cut, build an interface, merge "
+                      "teams \u2013 the tool does not say."),
+                ("p", "<b>Teams, never persons.</b> Participants are ARTs, teams or value "
+                      "streams; the register carries no names \u2013 the same aggregate "
+                      "boundary as everywhere in the situational picture."),
+                ("h", "How to use it"),
+                ("code", "solution.json: \"solution_areas\": \"registers/solution_areas.json\"\n"
+                         "python -m portfolio solution.json --output report.html\n"
+                         "python -m portfolio portfolio.json --onepager page.html"),
+            ],
+        },
+    },
     "situation_onepager": {
         "de": {
             "title": "Lagevortrag-Einseiter",

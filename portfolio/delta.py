@@ -285,7 +285,7 @@ def compute_delta(prev: Snapshot, now: Snapshot) -> DeltaReport:
             now.governance.get(section, []), prev.as_of, now.as_of)
         for section in ("risks", "dependencies", "nfr", "runway",
                         "capabilities", "decisions", "epics",
-                        "flow_problems", "slo")
+                        "flow_problems", "slo", "solution_areas")
     }
 
     completed_delta = (int(now.total.get("completed", 0))
@@ -333,6 +333,7 @@ _SECTION_TITLES = {
     "epics": "Roadmap epics (updated roadmaps)",
     "flow_problems": "Flow problems (impediment backlog)",
     "slo": "SLOs",
+    "solution_areas": "Solution areas (seams)",
 }
 
 

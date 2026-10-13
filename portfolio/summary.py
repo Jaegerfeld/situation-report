@@ -70,6 +70,7 @@ from portfolio.slo_config import (
     error_budget_remaining_pct,
     slo_status,
 )
+from portfolio.solution_areas_config import Seam, SolutionArea, seams
 from portfolio.themes_config import (
     HORIZONS,
     Epic,
@@ -2241,6 +2242,102 @@ def flow_problems_figure(
         cells=dict(values=columns, align="left", fill_color=fills),
     ))
     fig.update_layout(title=_flow_title(entries, title or t("flow.heading", lang), lang),
+                      title_font_size=14, margin=dict(t=40, b=10))
+    return fig
+
+
+# ---------------------------------------------------------------------------
+# Solution areas & recurrence per seam (P5)
+# ---------------------------------------------------------------------------
+
+def _areas_title(entries: list[tuple[str, SolutionArea]], title: str,
+                 lang: str = DEFAULT_LANG) -> str:
+    seam_list = seams([a for _, a in entries])
+    return t("areas.title", lang, title=title, areas=len(entries), seams=len(seam_list),
+             recurring=sum(1 for s in seam_list if s.highlighted),
+             signals=sum(1 for s in seam_list if s.signal))
+
+
+def _areas_rows(entries: list[tuple[str, SolutionArea]], reference: date,
+                lang: str = DEFAULT_LANG) -> list[tuple[Seam, list[str]]]:
+    rows = []
+    for seam in seams([a for _, a in entries]):
+        topics = ", ".join(f"{topic} ({n}×)" if n > 1 else topic
+                           for topic, n in seam.topics.most_common())
+        last = seam.last_opened.strftime(t("fmt.date", lang)) if seam.last_opened else "–"
+        rows.append((seam, [" × ".join(seam.participants), topics,
+                            f"{seam.count} ({seam.active})",
+                            str(seam.total_days(reference)), last,
+                            f"{seam.recurrence}×"]))
+    return rows
+
+
+def _areas_headers(lang: str = DEFAULT_LANG) -> list[str]:
+    return [t("areas.col.seam", lang), t("areas.col.topics", lang), t("areas.col.areas", lang),
+            t("areas.col.duration", lang), t("areas.col.last", lang),
+            t("areas.col.recurrence", lang)]
+
+
+def render_solution_areas_html(
+    entries: list[tuple[str, SolutionArea]],
+    title: str | None = None,
+    lang: str = DEFAULT_LANG,
+    reference: date | None = None,
+) -> str:
+    """
+    Render the solution-area register as seams with their recurrence (P5).
+
+    One row per seam (the same participants); the most recurrent topic
+    decides the order. A seam where the same topic came back twice is
+    highlighted, from three times on it is the EA signal: dynamic areas
+    should be rare, and the same one recurring at the same place points at
+    the value-stream cut or the architecture, not at the teams.
+    """
+    if not entries:
+        return ""
+    reference = reference or date.today()
+    recurring_seen = False
+    head = "".join(f"<th>{_html.escape(h)}</th>" for h in _areas_headers(lang))
+    rows = ""
+    for seam, cells in _areas_rows(entries, reference, lang):
+        tds = []
+        for col, c in enumerate(cells):
+            if col == 5 and seam.highlighted:
+                recurring_seen = True
+                weight = "700" if seam.signal else "600"
+                tds.append(f"<td style='background:{_OVERDUE_COLOR};font-weight:{weight}'>"
+                           f"{_html.escape(c)}</td>")
+            else:
+                tds.append(f"<td>{_html.escape(c)}</td>")
+        rows += f"<tr>{''.join(tds)}</tr>"
+    heading = _areas_title(entries, title or t("areas.heading", lang), lang)
+    legend = (_legend_line(_legend_flag(t("areas.col.recurrence", lang), _OVERDUE_COLOR,
+                                        t("legend.area_recurring", lang)))
+              if recurring_seen else "")
+    return (f"<h2 class='metric-heading'>{_html.escape(heading)}</h2>"
+            f"<table class='sr-summary'><tr>{head}</tr>{rows}</table>{legend}")
+
+
+def solution_areas_figure(
+    entries: list[tuple[str, SolutionArea]],
+    title: str | None = None,
+    lang: str = DEFAULT_LANG,
+    reference: date | None = None,
+):
+    """Render the seams table as a plotly Table figure (PDF)."""
+    import plotly.graph_objects as go
+
+    reference = reference or date.today()
+    rows = _areas_rows(entries, reference, lang)
+    headers = _areas_headers(lang)
+    columns = [[cells[c] for _, cells in rows] for c in range(len(headers))]
+    fills: list[list[str]] = [["white"] * len(rows) for _ in headers]
+    fills[5] = [_OVERDUE_COLOR if seam.highlighted else "white" for seam, _ in rows]
+    fig = go.Figure(go.Table(
+        header=dict(values=headers, fill_color="#f2f2f2", align="left"),
+        cells=dict(values=columns, align="left", fill_color=fills),
+    ))
+    fig.update_layout(title=_areas_title(entries, title or t("areas.heading", lang), lang),
                       title_font_size=14, margin=dict(t=40, b=10))
     return fig
 
