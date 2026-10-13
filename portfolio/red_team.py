@@ -120,8 +120,11 @@ def run_red_team(
         system_prompt=red_team_system_prompt(lang),
         purpose="d5_red_team")
     # Zweiter, D5-spezifischer Wächter NACH den zentralen Wächtern:
-    # nur Fragen verlassen das Werkzeug.
-    enforce_questions(narration.text)
+    # nur Fragen verlassen das Werkzeug. Ein exportierter Prompt trägt keine
+    # Fragen, sondern den Platzhalter - der Wächter gilt der späteren Antwort.
+    from llm.base import DEPLOYMENT_EXPORT
+    if narration.result.deployment_class != DEPLOYMENT_EXPORT:
+        enforce_questions(narration.text)
     output.write_text(
         f"> {narration.banner}\n\n{narration.text}\n", encoding="utf-8")
     log(f"Red-team question draft (for human moderation): {output}")

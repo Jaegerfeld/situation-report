@@ -17,7 +17,8 @@ to AI backends.
   model entirely on the user's machine: no account, no key, no corporate
   API approval, data never leaves the system. `claude` (Anthropic
   Messages API, default `claude-sonnet-5`) is the external alternative;
-  `mock` demonstrates the full flow without any model.
+  `mock` demonstrates the full flow without any model; `export` calls none and
+  writes the prompt to a file and the clipboard instead (0.42.0).
 - **Easy to extend** — a new backend is ONE file in `llm/providers/`
   defining a `PROVIDER` object; auto-discovery picks it up
   (`python -m llm providers` is the authoritative inventory).
@@ -88,6 +89,20 @@ for the real thing).
 The model only ever sees the delta briefing's Markdown contract — which
 by construction names teams, ARTs and solutions, never persons (enforced
 by a pipeline test).
+
+## Exporting the prompt instead of calling a model (since 0.42.0)
+
+Every AI step — executive summary (D1), narration (D2), red-team questions (D5),
+translation (D6), conference drafts (D8), harmonisation reading (P3) — accepts the provider
+`export`: `--narrate export` on the command line, "export" in the provider box of the GUIs.
+No model is called. The complete prompt (versioned system prompt plus the deterministic
+contract) is written to `prompt_<purpose>_<timestamp>.md` next to the output and copied to
+the clipboard, with instructions on top. Run it on another machine or model together with an
+export of the document, paste the answer into the draft file next to the output
+(`<output>.narration.md`, `.exec_summary.md`, `.reading.md` …) and edit it like every AI
+draft. The page carries a placeholder section whose banner says "No model called"; the
+operator evidence records provider `export`, model `none`. The numbers guard does not judge
+the placeholder — it is for the answer, which a human brings back.
 
 ## Setting up Ollama (the local path)
 

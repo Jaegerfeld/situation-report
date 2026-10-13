@@ -90,6 +90,21 @@ Das Modell sieht ausschließlich den Markdown-Contract des
 Delta-Briefings — der nennt per Konstruktion Teams, ARTs und Solutions,
 nie Personen (durch einen Pipeline-Test erzwungen).
 
+## Prompt exportieren statt Modell aufrufen (seit 0.42.0)
+
+Jede KI-Stelle — Executive Summary (D1), Narration (D2), Red-Team-Fragen (D5), Übersetzung
+(D6), Konferenzmappen-Entwürfe (D8), Harmonisierungs-Lesart (P3) — kennt den Provider
+`export`: `--narrate export` auf der Kommandozeile, „export“ in der Provider-Auswahl der
+Oberflächen. Es wird kein Modell aufgerufen. Der komplette Prompt (versionierter
+Systemprompt plus deterministischer Contract) landet als `prompt_<zweck>_<zeitstempel>.md`
+neben der Ausgabe und in der Zwischenablage, mit Anleitung voran. Auf einem anderen Rechner
+oder Modell ausführen, zusammen mit einem Export des Dokuments; die Antwort in die
+Entwurfsdatei neben der Ausgabe einfügen (`<ausgabe>.narration.md`, `.exec_summary.md`,
+`.reading.md` …) und wie jeden KI-Entwurf redigieren. Die Seite trägt einen
+Platzhalter-Abschnitt, dessen Banner „Kein Modell aufgerufen“ sagt; der Betreiber-Nachweis
+führt Provider `export`, Modell `none`. Der Zahlen-Wächter prüft den Platzhalter nicht — er
+gilt der Antwort, die ein Mensch zurückbringt.
+
 ## Ollama einrichten (der lokale Weg)
 
 Siehe das Tutorial [Ollama auf Windows 11 installieren](../tutorials/install-ollama.md)

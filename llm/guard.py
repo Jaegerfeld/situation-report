@@ -23,7 +23,7 @@ from __future__ import annotations
 
 import re
 
-from .base import LlmResult
+from .base import DEPLOYMENT_EXPORT, LlmResult
 from .prompts import PROMPT_VERSION
 
 #: Numbers incl. decimal comma/point and thousands separators (1.234,5).
@@ -113,12 +113,30 @@ _BANNERS = {
 }
 
 
+_EXPORT_BANNERS = {
+    "de": ("Kein Modell aufgerufen — Prompt exportiert ({path}). Die Antwort eines "
+           "externen Modells gilt als ungeprüfter KI-Entwurf und ist vor Verwendung "
+           "durch einen Menschen zu redigieren und freizugeben."),
+    "en": ("No model called — prompt exported ({path}). An external model's answer "
+           "counts as an unreviewed AI draft; a human must edit and approve it before use."),
+    "ro": ("Niciun model apelat — prompt exportat ({path}). Răspunsul unui model extern "
+           "este o schiță AI neverificată; un om trebuie să o redacteze și să o aprobe."),
+    "pt": ("Nenhum modelo chamado — prompt exportado ({path}). A resposta de um modelo "
+           "externo é um rascunho de IA não revisto; uma pessoa tem de o redigir e aprovar."),
+    "fr": ("Aucun modèle appelé — prompt exporté ({path}). La réponse d'un modèle externe "
+           "est un brouillon IA non relu ; une personne doit le réviser et l'approuver."),
+}
+
+
 def ai_banner_text(result: LlmResult, lang: str = "de") -> str:
     """
     The mandatory AI label for a draft (Art. 50 — always shown until a
     human edits and adopts it; the tool never claims approval). Covers
     the five house languages; unknown codes fall back to German.
     """
+    if result.deployment_class == DEPLOYMENT_EXPORT:
+        return _EXPORT_BANNERS.get(lang, _EXPORT_BANNERS["de"]).format(
+            path=result.endpoint or "-")
     meta = (f"{result.model} @ {result.deployment_class}, "
             f"Prompt {PROMPT_VERSION}")
     return _BANNERS.get(lang, _BANNERS["de"]).format(meta=meta)
