@@ -5,12 +5,12 @@
 | [launcher](launcher.md) | Central entry point – launches all modules | available |
 | [transform_data](transform_data.md) | Transform raw Jira data into stage-time metrics | available |
 | [build_reports](build_reports.md) | Generate metrics and reports | available |
-| [portfolio](portfolio.md) | Aggregated Large-Solution & Portfolio reports across several ARTs | available (Alpha) |
+| [portfolio](portfolio.md) | Aggregated Large-Solution & Portfolio reports across several ARTs — governance registers, conference pre-read, delta briefing, one-pager | available (Alpha) |
 | [helper](helper.md) | Merge JSON files (Jira pagination) | available (Alpha) |
-| [testdata_generator](testdata_generator.md) | Generate synthetic test data | available (Beta) |
+| [testdata_generator](testdata_generator.md) | Generate synthetic test data — realism knobs, continuation of a data set, learning from real transitions | available (Beta) |
 | [get_data](get_data.md) | Retrieve data from Jira — REST or export validation | available (Alpha) |
 | [sources](sources.md) | Pluggable external metric sources (SLO, DORA, quality) | available (Alpha) |
-| [llm](llm.md) | Pluggable AI narration (local Ollama, Claude API, mock) | available (Alpha) |
+| [llm](llm.md) | Pluggable AI narration (local Ollama, Claude API, prompt export, mock) | available (Alpha) |
 | [simulate](simulate.md) | Simulations and prediction models | available (Alpha) |
 | [harmonisation](harmonisation.md) | Harmonisation score per end-to-end process — decision matrix for the board | available (Alpha) |
 

@@ -37,5 +37,7 @@ Module öffnen lassen (Windows: `SituationReport.bat`, macOS:
 - **Diagramme/Export:** Plotly, kaleido, ReportLab
 - **Datenquellen:** Jira (REST-Abruf oder geprüfter Export) sowie steckbare
   externe Quellen für SLO-, DORA- und Qualitätswerte
-- **KI:** optional und austauschbar — lokal (Ollama) oder extern (Claude-API)
+- **KI:** optional und austauschbar — lokal (Ollama), extern (Claude-API) oder als
+  Prompt-Export für ein getrennt betriebenes Modell; jeder Entwurf läuft durch
+  Zahlen-Wächter, Kennzeichnung und Betreiber-Nachweis
 - **Lizenz:** BSD-3-Clause

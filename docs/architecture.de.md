@@ -43,11 +43,12 @@ C4Container
         Container(helper, "helper", "Python · tkinter", "Führt mehrere paginierte Jira-JSON-Dateien zu einer zusammen")
         Container(transform_data, "transform_data", "Python · tkinter", "Liest JSON-Export + Workflow-Definition, berechnet Stage-Zeiten, schreibt XLSX-Dateien")
         Container(build_reports, "build_reports", "Python · tkinter · Plotly", "Liest XLSX, filtert Issues, berechnet Flow-Metriken, exportiert HTML/PDF")
-        Container(portfolio, "portfolio", "Python · tkinter · Plotly", "Aggregiert mehrere ARTs zu Pooled-/Comparison-Reports auf Large-Solution- & Portfolio-Ebene (HTML/PDF); optional bis auf ART-Ebene aufgelöst (ART-Tiefe)")
+        Container(portfolio, "portfolio", "Python · tkinter · Plotly", "Aggregiert mehrere ARTs zu Pooled-/Comparison-Reports auf Large-Solution- & Portfolio-Ebene (HTML/PDF); Governance-Register, Konferenzmappe, Snapshot/Delta-Briefing, Einseiter; optional bis auf ART-Ebene aufgelöst (ART-Tiefe)")
+        Container(harmonisation, "harmonisation", "Python · tkinter", "Harmonisierungs-Score je End-to-End-Prozess: Katalog als Daten, 0–4 plus unbekannt, Entscheider-Matrix, Veränderung zweier Stände, KI-Lesart")
         Container(testdata_generator, "testdata_generator", "Python · tkinter", "Erzeugt synthetische Jira-JSON-Exporte für Tests und Demos")
         Container(simulate, "simulate", "Python · tkinter · Plotly", "Throughput-basierter Monte-Carlo-Forecast: wie viele / wann fertig (mit Scope-Wachstum) + Scope-Konfidenz; HTML-Report")
         Container(sources, "sources", "Python", "Steckbare externe Metrik-Quellen (Prometheus, GitHub, GitLab, SonarQube, CSV) für SLO-, DORA- und Qualitätswerte")
-        Container(llm, "llm", "Python", "Steckbare Sprachmodelle (lokal Ollama, Claude-API, mock) hinter Zahlen-Wächter, KI-Kennzeichnung und Betreiber-Nachweis")
+        Container(llm, "llm", "Python", "Steckbare Sprachmodelle (lokal Ollama, Claude-API, Prompt-Export, mock) hinter Zahlen-Wächter, KI-Kennzeichnung und Betreiber-Nachweis")
     }
 
     Rel(user, get_data, "startet", "CLI")
@@ -56,6 +57,9 @@ C4Container
     Rel(user, build_reports, "startet", "GUI / CLI")
     Rel(user, portfolio, "startet", "GUI / CLI")
     Rel(portfolio, build_reports, "nutzt", "Metriken + Export")
+    Rel(user, harmonisation, "startet", "GUI / CLI")
+    Rel(portfolio, harmonisation, "bettet ein", "Entscheider-Matrix als Anhang")
+    Rel(harmonisation, llm, "entwirft über", "KI-Lesart")
     Rel(user, simulate, "startet", "GUI / CLI")
     Rel(simulate, build_reports, "nutzt", "Loader (ReportData)")
     Rel(user, testdata_generator, "startet", "GUI / CLI")
@@ -67,7 +71,7 @@ C4Container
     Rel(transform_data, build_reports, "liefert", "IssueTimes.xlsx · CFD.xlsx")
     Rel(transform_data, simulate, "liefert", "IssueTimes.xlsx")
     Rel(portfolio, sources, "liest", "SLO- · DORA- · Qualitäts-Register")
-    Rel(portfolio, llm, "entwirft über", "Narration · Summary · Red-Team-Fragen")
+    Rel(portfolio, llm, "entwirft über", "Narration · Summary · Red-Team-Fragen · Mappen-Entwurf · Übersetzung")
 ```
 
 ### Datenfluss
@@ -80,8 +84,12 @@ flowchart LR
     hlp["helper\nJSON Merger"]
     td["transform_data"]
     br["build_reports"]
+    pf["portfolio\nSolutions & Portfolios"]
+    harmo["harmonisation"]
+    reg(["🗂️ Governance-Register\nJSON"])
     sim["simulate\nMonte-Carlo-Forecast"]
     out(["📄 HTML / PDF\n📊 Excel"])
+    pfout(["📄 Report · Konferenzmappe\nDelta-Briefing · Einseiter"])
 
     jira -- "JSON\nmehrere Seiten" --> hlp
     gd -- "JSON" --> td
@@ -90,8 +98,12 @@ flowchart LR
     tdg -- "JSON" --> td
     td -- "IssueTimes.xlsx\nCFD.xlsx\nTransitions.xlsx" --> br
     td -- "IssueTimes.xlsx" --> sim
+    td -- "IssueTimes.xlsx\nje ART" --> pf
+    reg --> pf
+    harmo -- "Entscheider-Matrix" --> pf
     br --> out
     sim --> out
+    pf --> pfout
 ```
 
 ---
@@ -223,3 +235,88 @@ C4Component
 
 Reine Standardbibliothek (`random`, `bisect`, `statistics`) — kein numpy/pandas —
 für maximale Portabilität; nutzt `build_reports.loader` zum Einlesen der Eingabe.
+
+---
+
+## Level 3 — Komponenten: portfolio
+
+```mermaid
+C4Component
+    title Komponenten: portfolio
+
+    Person(user, "Nutzer")
+    System_Ext(xlsx_in, "IssueTimes.xlsx je ART", "aus transform_data")
+    System_Ext(registers, "Governance-Register", "JSON: Risiken · NFR · Capabilities · Abhängigkeiten · Entscheidungen · SLO · DORA · Flussprobleme · Themes · Solution Areas")
+    System_Ext(harmo, "harmonisation-Arbeitsbereich", "Entscheider-Matrix (Anhang)")
+    System_Ext(out, "Ausgabe", "HTML · PDF · Konferenzmappe · Delta-Briefing · Einseiter · Snapshot-JSON")
+
+    Container_Boundary(pf, "portfolio") {
+        Component(cli, "__main__ / cli", "Python · argparse", "GUI ohne Argumente; CLI: Report, PDF, Konferenzmappe, Snapshot, Delta, Einseiter, KI-Schalter")
+        Component(gui, "gui", "tkinter", "Solutions-&-Portfolios-Editor; Datenquellen-Dialog mit elf Registern; Datenraum")
+        Component(config, "solution_config + *_config", "Python", "Solution-/Portfolio-Konfiguration und je Register ein parse/load/save-Modul (Schema versioniert)")
+        Component(aggregator, "aggregator", "Python · Plotly", "Record-Pooling über die build_reports-Metriken; Collector je Register; Rendering HTML/PDF/Konferenzmappe")
+        Component(summary, "summary", "Python", "Management-Summary, Datenqualität, Register-Blöcke mit Legenden (fünf Sprachen)")
+        Component(snapshot, "snapshot / delta", "Python", "Report-Stand einfrieren (acht Governance-Register); zwei Stände zum Delta-Briefing vergleichen")
+        Component(ai, "exec_summary / red_team / conference_draft", "Python", "Contracts für die KI: Zahlen nur aus dem Snapshot, Fragen, Mappen-Entwurf (Datei oder inline)")
+        Component(onepager, "onepager", "Python", "Lagevortrag-Einseiter: vier Dimensionen × drei Fragen, BLUF-Vorlagensatz, Kata-Modus")
+    }
+
+    Rel(user, cli, "startet")
+    Rel(cli, gui, "öffnet (ohne Argument)")
+    Rel(cli, aggregator, "ruft")
+    Rel(gui, aggregator, "ruft")
+    Rel(aggregator, config, "liest")
+    Rel(config, registers, "lädt")
+    Rel(aggregator, xlsx_in, "poolt über build_reports-Loader")
+    Rel(aggregator, harmo, "bettet Matrix ein")
+    Rel(aggregator, summary, "rendert Blöcke")
+    Rel(snapshot, aggregator, "nutzt Collector")
+    Rel(ai, snapshot, "liest Contract aus")
+    Rel(onepager, aggregator, "nutzt Collector")
+    Rel(aggregator, out, "schreibt")
+    Rel(snapshot, out, "schreibt")
+    Rel(onepager, out, "schreibt")
+```
+
+| Datei | Verantwortung |
+|-------|---------------|
+| `__main__.py` / `cli.py` | Einstieg; argparse; `--pdf`, `--conference`, `--snapshot`, `--delta`, `--onepager`, `--kata`, KI-Schalter |
+| `gui.py` | Solutions-&-Portfolios-GUI; Datenquellen-Dialog (elf Register-Pfade); Templates; Datenraum |
+| `solution_config.py` | Solution-/Portfolio-Konfiguration (Mitglieder, Modus, Stage-Map, Register-Pfade, Konferenztermin) |
+| `*_config.py` | Je Register ein Modul: ROAM-Risiken, NFR/Runway, Capabilities, Abhängigkeiten, Entscheidungen, SLO, DORA, Flussprobleme, Themes, Solution Areas |
+| `aggregator.py` | Record-Pooling; Collector; HTML-Report, PDF-Seiten, Konferenzmappe (vier Inputs + Anhang) |
+| `summary.py` | Management-Summary, Datenqualitäts-Flag, Register-Tabellen und -Figuren, Legenden |
+| `decision_point.py` | Cross-Value-Stream-Druck und Entscheidungspunkt-Wecker (P4) |
+| `snapshot.py` / `delta.py` | Report-Snapshot (acht Governance-Register) und Delta-Briefing |
+| `exec_summary.py` / `red_team.py` / `conference_draft.py` | KI-Contracts (D1, D5, D8) — Zahlen kommen aus dem Snapshot, nie aus dem Modell |
+| `onepager.py` | Einseiter (P6): deterministische Lesung derselben Collector; nur Entscheidungspunkte, keine Empfehlungen |
+| `report_texts.py` | Alle Report-Texte in fünf Sprachen |
+
+---
+
+## Level 3 — Komponenten: harmonisation
+
+| Datei | Verantwortung |
+|-------|---------------|
+| `__main__.py` / `cli.py` | GUI ohne Argumente; CLI: Report, `--since`/`--delta`, `--narrate` |
+| `model.py` | Arbeitsbereich (Katalog, Prozesse, Bewertungen, Entscheidungen) mit Schema-Prüfung |
+| `score.py` | Score-Arithmetik: 0–4 plus „unbekannt“, Beleggrad → Konfidenz, Median und Spanne |
+| `delta.py` | Veränderung zweier Stände (`filter_as_of`, `compute_delta`) |
+| `reading.py` | KI-Lesart: Contract ohne Personen, Prompt untersagt Empfehlungen, Rückgabewert 3 ohne Entwurf |
+| `render.py` | Entscheider-Matrix, Delta-HTML, Matrix-Block für die Konferenzmappe des Portfolios |
+| `gui.py` | tkinter-Editor und Report-Dialog (fünf Sprachen) |
+
+---
+
+## Level 3 — Komponenten: llm
+
+| Datei | Verantwortung |
+|-------|---------------|
+| `base.py` | Provider-Protokoll, `LlmResult`, Betriebsklassen (lokal · entfernt · Export · Attrappe) |
+| `providers/*.py` | Backends: `ollama` (lokal), `claude` (API), `export` (schreibt das Prompt-Paket statt ein Modell zu rufen), `mock` |
+| `narrate.py` | Ein Einstieg für jeden KI-Zweck: Contract rein, Entwurf raus, Wächter angewandt |
+| `guard.py` | Zahlen-Wächter (keine Zahl, die nicht im Contract steht) und Kennzeichnungs-Banner (Art. 50) |
+| `audit.py` | Betreiber-Nachweis: eine JSONL-Zeile je Aufruf (Zweck, Anbieter, Modell, Adresse, Hashes) |
+| `prompts.py` | Versionierte Systemprompts je Zweck (Exec Summary, Narration, Red Team, Übersetzung, Mappen-Entwurf, Harmonisierungs-Lesart) |
+| `export.py` | Prompt-Paket (`build_bundle`, `write_bundle`, Zwischenablage) für einen Modelllauf auf einem anderen Rechner |
+| `translate.py` | Report-Übersetzung (D6) durch dieselben Wächter |

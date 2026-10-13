@@ -16,12 +16,12 @@ Toolsuite für das Lagebild auf Portfolio- und Solution-Ebene: Flow-Metriken aus
 | [`launcher`](modules/launcher.md) | Zentraler Einstiegspunkt – startet alle Module | verfügbar |
 | [`transform_data`](modules/transform_data.md) | Transformation von Jira-Rohdaten in Stage-Time-Metriken | verfügbar |
 | [`build_reports`](modules/build_reports.md) | Erzeugung von Metriken und Reports | verfügbar |
-| [`portfolio`](modules/portfolio.md) | Aggregierte Large-Solution- & Portfolio-Reports über mehrere ARTs | verfügbar (Alpha) |
+| [`portfolio`](modules/portfolio.md) | Aggregierte Large-Solution- & Portfolio-Reports über mehrere ARTs — Governance-Register, Konferenzmappe, Delta-Briefing, Einseiter | verfügbar (Alpha) |
 | [`helper`](modules/helper.md) | JSON-Dateien zusammenführen (Jira-Paginierung) | verfügbar (Alpha) |
-| [`testdata_generator`](modules/testdata_generator.md) | Generierung synthetischer Testdaten | verfügbar (Beta) |
+| [`testdata_generator`](modules/testdata_generator.md) | Generierung synthetischer Testdaten — Realismus-Regler, Fortschreibung eines Datensatzes, Lernen aus echten Übergängen | verfügbar (Beta) |
 | [`get_data`](modules/get_data.md) | Datenabruf aus Jira — REST oder Export-Validierung | verfügbar (Alpha) |
 | [`sources`](modules/sources.md) | Steckbare externe Metrik-Quellen (SLO, DORA, Qualität) | verfügbar (Alpha) |
-| [`llm`](modules/llm.md) | Steckbare KI-Narration (lokal Ollama, Claude-API, mock) | verfügbar (Alpha) |
+| [`llm`](modules/llm.md) | Steckbare KI-Narration (lokal Ollama, Claude-API, Prompt-Export, mock) | verfügbar (Alpha) |
 | [`simulate`](modules/simulate.md) | Simulationen und Vorhersagemodelle | verfügbar (Alpha) |
 | [`harmonisation`](modules/harmonisation.md) | Harmonisierungs-Score je End-to-End-Prozess — Entscheider-Matrix fürs Board | verfügbar (Alpha) |
 

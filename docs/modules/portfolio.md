@@ -515,10 +515,18 @@ portfolio/
 ├── themes_config.py   Strategic themes/roadmap (B7): orphan/zombie rules
 ├── slo_config.py      SLO register (C1): central budget/status rule
 ├── dora_config.py     Delivery register (C2): DORA tiers + quality
-├── snapshot.py        Report snapshot (D2): freeze metrics/quality/governance
+├── solution_areas_config.py Solution-area register (P5): seams, recurrence thresholds
+├── decision_point.py  Cross-value-stream pressure + decision-point alarm (P4)
+├── snapshot.py        Report snapshot (D2): freeze metrics/quality/governance (eight registers)
 ├── delta.py           Delta briefing (D2): diff two snapshots, HTML/Markdown
-├── aggregator.py      Record-level pooling + rendering (HTML/PDF)
-└── summary.py         Management summary + data quality (A1/A2), outliers (A3), ROAM board (B3), NFR dashboard (B2)
+├── exec_summary.py    Exec-summary contract for the AI (D1): numbers only from the snapshot
+├── red_team.py        Red-team questions (D5) against the contract
+├── conference_draft.py AI draft for the conference pre-read (D8): file or inline
+├── onepager.py        Situation-briefing one-pager (P6): 4 × 3, BLUF, kata mode
+├── report_texts.py    Report texts in five languages (t(key, lang))
+├── gui.py             Solutions & Portfolios GUI (data-source dialog with eleven registers)
+├── aggregator.py      Record-level pooling + rendering (HTML/PDF/conference pre-read)
+└── summary.py         Management summary + data quality (A1/A2), outliers (A3), register blocks (ROAM, NFR, dependencies, decisions, flow problems, solution areas, themes, SLO, DORA)
 ```
 
 Reuses `build_reports` (loader, metrics, export). Aggregation is done by

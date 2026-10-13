@@ -43,11 +43,12 @@ C4Container
         Container(helper, "helper", "Python · tkinter", "Merges multiple paginated Jira JSON files into one")
         Container(transform_data, "transform_data", "Python · tkinter", "Reads JSON export + workflow definition, computes stage times, writes XLSX files")
         Container(build_reports, "build_reports", "Python · tkinter · Plotly", "Reads XLSX, filters issues, computes flow metrics, exports HTML/PDF")
-        Container(portfolio, "portfolio", "Python · tkinter · Plotly", "Aggregates several ARTs into pooled/comparison Large-Solution & Portfolio reports (HTML/PDF); optionally resolved down to ART level (ART depth)")
+        Container(portfolio, "portfolio", "Python · tkinter · Plotly", "Aggregates several ARTs into pooled/comparison Large-Solution & Portfolio reports (HTML/PDF); governance registers, conference pre-read, snapshot/delta briefing, one-pager; optionally resolved down to ART level (ART depth)")
+        Container(harmonisation, "harmonisation", "Python · tkinter", "Harmonisation score per end-to-end process: catalogue as data, 0–4 plus unknown, decision matrix, change between two states, AI reading")
         Container(testdata_generator, "testdata_generator", "Python · tkinter", "Generates synthetic Jira JSON exports for testing and demos")
         Container(simulate, "simulate", "Python · tkinter · Plotly", "Throughput-based Monte-Carlo forecast: how many / when done (with scope growth) + scope confidence; HTML report")
         Container(sources, "sources", "Python", "Pluggable external metric sources (Prometheus, GitHub, GitLab, SonarQube, CSV) for SLO, DORA and quality values")
-        Container(llm, "llm", "Python", "Pluggable language models (local Ollama, Claude API, mock) behind the numbers guard, AI labelling and audit trail")
+        Container(llm, "llm", "Python", "Pluggable language models (local Ollama, Claude API, prompt export, mock) behind the numbers guard, AI labelling and audit trail")
     }
 
     Rel(user, get_data, "starts", "CLI")
@@ -56,6 +57,9 @@ C4Container
     Rel(user, build_reports, "starts", "GUI / CLI")
     Rel(user, portfolio, "starts", "GUI / CLI")
     Rel(portfolio, build_reports, "reuses", "metrics + export")
+    Rel(user, harmonisation, "starts", "GUI / CLI")
+    Rel(portfolio, harmonisation, "embeds", "decision matrix as annex")
+    Rel(harmonisation, llm, "drafts via", "AI reading")
     Rel(user, simulate, "starts", "GUI / CLI")
     Rel(simulate, build_reports, "reuses", "loader (ReportData)")
     Rel(user, testdata_generator, "starts", "GUI / CLI")
@@ -67,7 +71,7 @@ C4Container
     Rel(transform_data, build_reports, "delivers", "IssueTimes.xlsx · CFD.xlsx")
     Rel(transform_data, simulate, "delivers", "IssueTimes.xlsx")
     Rel(portfolio, sources, "reads", "SLO · DORA · quality registers")
-    Rel(portfolio, llm, "drafts via", "narration · summary · red-team questions")
+    Rel(portfolio, llm, "drafts via", "narration · summary · red-team questions · conference draft · translation")
 ```
 
 ### Data flow
@@ -80,8 +84,12 @@ flowchart LR
     hlp["helper\nJSON Merger"]
     td["transform_data"]
     br["build_reports"]
+    pf["portfolio\nSolutions & Portfolios"]
+    harmo["harmonisation"]
+    reg(["🗂️ Governance registers\nJSON"])
     sim["simulate\nMonte-Carlo forecast"]
     out(["📄 HTML / PDF\n📊 Excel"])
+    pfout(["📄 Report · Conference pre-read\nDelta briefing · One-pager"])
 
     jira -- "JSON\nmultiple pages" --> hlp
     gd -- "JSON" --> td
@@ -90,8 +98,12 @@ flowchart LR
     tdg -- "JSON" --> td
     td -- "IssueTimes.xlsx\nCFD.xlsx\nTransitions.xlsx" --> br
     td -- "IssueTimes.xlsx" --> sim
+    td -- "IssueTimes.xlsx\nper ART" --> pf
+    reg --> pf
+    harmo -- "decision matrix" --> pf
     br --> out
     sim --> out
+    pf --> pfout
 ```
 
 ---
@@ -223,3 +235,88 @@ C4Component
 
 Standard library only (`random`, `bisect`, `statistics`) — no numpy/pandas — for
 maximum portability; reuses `build_reports.loader` to read the input.
+
+---
+
+## Level 3 — Components: portfolio
+
+```mermaid
+C4Component
+    title Components: portfolio
+
+    Person(user, "User")
+    System_Ext(xlsx_in, "IssueTimes.xlsx per ART", "from transform_data")
+    System_Ext(registers, "Governance registers", "JSON: risks · NFR · capabilities · dependencies · decisions · SLO · DORA · flow problems · themes · solution areas")
+    System_Ext(harmo, "harmonisation workspace", "decision matrix (annex)")
+    System_Ext(out, "Output", "HTML · PDF · conference pre-read · delta briefing · one-pager · snapshot JSON")
+
+    Container_Boundary(pf, "portfolio") {
+        Component(cli, "__main__ / cli", "Python · argparse", "GUI without arguments; CLI: report, PDF, conference, snapshot, delta, one-pager, AI switches")
+        Component(gui, "gui", "tkinter", "Solutions & Portfolios editor; data-source dialog with eleven registers; data folder (Datenraum)")
+        Component(config, "solution_config + *_config", "Python", "Solution/portfolio config and one parse/load/save module per register (schema-versioned)")
+        Component(aggregator, "aggregator", "Python · Plotly", "Record-level pooling over build_reports metrics; collectors per register; HTML/PDF/conference rendering")
+        Component(summary, "summary", "Python", "Management summary, data quality, register blocks with legends (five languages)")
+        Component(snapshot, "snapshot / delta", "Python", "Freeze a report state (eight governance registers); diff two states into the delta briefing")
+        Component(ai, "exec_summary / red_team / conference_draft", "Python", "Contracts for the AI: numbers only from the snapshot, questions, pre-read draft (file or inline)")
+        Component(onepager, "onepager", "Python", "Situation-briefing one-pager: four dimensions × three questions, BLUF template sentence, kata mode")
+    }
+
+    Rel(user, cli, "starts")
+    Rel(cli, gui, "opens (no argument)")
+    Rel(cli, aggregator, "calls")
+    Rel(gui, aggregator, "calls")
+    Rel(aggregator, config, "reads")
+    Rel(config, registers, "loads")
+    Rel(aggregator, xlsx_in, "pools via build_reports loader")
+    Rel(aggregator, harmo, "embeds matrix")
+    Rel(aggregator, summary, "renders blocks")
+    Rel(snapshot, aggregator, "reuses collectors")
+    Rel(ai, snapshot, "reads contract from")
+    Rel(onepager, aggregator, "reuses collectors")
+    Rel(aggregator, out, "writes")
+    Rel(snapshot, out, "writes")
+    Rel(onepager, out, "writes")
+```
+
+| File | Responsibility |
+|------|---------------|
+| `__main__.py` / `cli.py` | Entry point; argparse; `--pdf`, `--conference`, `--snapshot`, `--delta`, `--onepager`, `--kata`, AI switches |
+| `gui.py` | Solutions & Portfolios GUI; data-source dialog (eleven register paths); templates; data folder |
+| `solution_config.py` | Solution/portfolio config (members, mode, stage map, register paths, conference date) |
+| `*_config.py` | One module per register: ROAM risks, NFR/runway, capabilities, dependencies, decisions, SLO, DORA, flow problems, themes, solution areas |
+| `aggregator.py` | Record pooling; collectors; HTML report, PDF pages, conference pre-read (four inputs + annex) |
+| `summary.py` | Management summary, data-quality flag, register tables and figures, legends |
+| `decision_point.py` | Cross-value-stream pressure and the decision-point alarm (P4) |
+| `snapshot.py` / `delta.py` | Report snapshot (eight governance registers) and delta briefing |
+| `exec_summary.py` / `red_team.py` / `conference_draft.py` | AI contracts (D1, D5, D8) — numbers come from the snapshot, never from the model |
+| `onepager.py` | One-pager (P6): deterministic reading of the same collectors; decision points only, no recommendations |
+| `report_texts.py` | All report texts in five languages |
+
+---
+
+## Level 3 — Components: harmonisation
+
+| File | Responsibility |
+|------|---------------|
+| `__main__.py` / `cli.py` | GUI without arguments; CLI: report, `--since`/`--delta`, `--narrate` |
+| `model.py` | Workspace (catalogue, processes, assessments, decisions) with schema validation |
+| `score.py` | Score arithmetic: 0–4 plus "unknown", evidence grade → confidence, median and range |
+| `delta.py` | Change between two states (`filter_as_of`, `compute_delta`) |
+| `reading.py` | AI reading: contract without persons, prompt forbids recommendations, exit code 3 without a draft |
+| `render.py` | Decision matrix, delta HTML, matrix block for the portfolio conference pre-read |
+| `gui.py` | tkinter editor and report dialog (five languages) |
+
+---
+
+## Level 3 — Components: llm
+
+| File | Responsibility |
+|------|---------------|
+| `base.py` | Provider protocol, `LlmResult`, deployment classes (local · remote · export · mock) |
+| `providers/*.py` | Backends: `ollama` (local), `claude` (API), `export` (writes the prompt bundle instead of calling a model), `mock` |
+| `narrate.py` | One entry point for every AI purpose: contract in, draft out, guards applied |
+| `guard.py` | Numbers guard (no figure that is not in the contract) and the labelling banner (Art. 50) |
+| `audit.py` | Operator record: one JSONL line per call (purpose, provider, model, address, hashes) |
+| `prompts.py` | Versioned system prompts per purpose (exec summary, narration, red team, translation, conference draft, harmonisation reading) |
+| `export.py` | Prompt bundle (`build_bundle`, `write_bundle`, clipboard) for a model run on another machine |
+| `translate.py` | Report translation (D6) through the same guards |
