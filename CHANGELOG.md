@@ -5,6 +5,44 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [0.38.0] – 2026-10-13
+
+### Added
+- **Testdaten-Generator: realistische Statuswege (`--realism`).** Ein echter ART läuft nicht
+  brav durch alle Stufen. Gemessen am echten ART_A (458 Vorgänge, 9 Stages): 40 verschiedene
+  Übergangspaare, 12 % rückwärts, 7,5 % Selbstschleifen, 358 Sprünge über mindestens eine
+  Stufe, 149 Eintritte in „Done“ ohne „Releasing“, Median 4 Übergänge je Vorgang. Der
+  Generator lieferte bisher 11 Paare, 0 % Schleifen, keine Sprünge, Median 7 — ein
+  Durchlauf durch alle neun Stufen, auch durch „Blocker“, das in Wirklichkeit ein Nebengleis
+  ist. (Auftrag Robert 13.10.2026, Konzept `Ideen/Konzept_Testdaten-Fortschreibung-und-Realismus_2026-10-13.md`.)
+
+  **Pfad und Zeit sind jetzt getrennt** (`testdata_generator/paths.py`): Erst wird die
+  Stage-Folge gewürfelt, dann die Zeit auf die Schritte verteilt — im Muster-Modus das
+  CT-Budget, sonst Verweildauern. Der Sammelregler `realism` (CLI `--realism 0–100`,
+  Profilfeld `realism`) skaliert acht Störungen linear: Sprünge über Stufen, Abbrüche direkt
+  in die Endstufe (ohne Abschluss, wie „Done/Canceled“ im echten Export), Parken in einer
+  Nebenstage (am Namen erkannt: Blocker, Blocked, On Hold, Waiting …; nie Schritt der
+  normalen Kette), Selbstschleifen, Rückschritte über mehrere Stufen, einmalige
+  Wiedereröffnung, Start nicht in der ersten Arbeitsstufe, Weg vom Abschluss in die Endstufe.
+  **0 ist das bisherige Verhalten**, nur `backflow_prob`. **Bei ca. 0,7 liegen die Kennzahlen
+  in den Korridoren des echten ART_A** (Test `test_paths.py::TestCalibrationAgainstArtA`:
+  Paare 30–60, 8–18 % rückwärts, 4–11 % Schleifen, ≥ 150 Sprünge, ≥ 40 Abbrüche, Median ≤ 6).
+  Die Störungen wirken in jedem Modus, auch unter den Flow-Mustern (dort skaliert der Backflow
+  mit dem Realismus ein; bisher war der Muster-Modus strikt vorwärts).
+
+  Das Portfolio-Szenario erzeugt seine sechs ARTs mit Realismus 60; die eingebauten
+  Geschichten (Ausreißer Alpha-3, schwache Quelle Beta-3, Delta-Briefing) bleiben erhalten.
+  GUI: Regler „Realismus (0–100)“ (Standard 60) und Spalte im ART-Profile-Dialog. Manual in
+  fünf Sprachen, mkdocs DE/EN. Invarianten per Test: offene Vorgänge berühren die
+  Abschlussstufe nie, Rückfluss nie unter die erste Arbeitsstufe, Parken führt zur Ausgangsstufe
+  zurück, Determinismus je Seed.
+
+### Changed
+- **Seeds erzeugen andere Daten als vor 0.38.0** — die Würfelreihenfolge hat sich durch die
+  Trennung von Pfad und Zeit geändert. Reproduzierbarkeit je Seed gilt weiterhin.
+
+---
+
 ## [0.37.2] – 2026-10-13
 
 ### Fixed

@@ -3,7 +3,7 @@
 # Repository:     https://github.com/Jaegerfeld/situation-report
 # KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
 # Erstellt:       02.05.2026
-# Geändert:       13.05.2026
+# Geändert:       13.10.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
@@ -11,7 +11,11 @@
 #   realistischen Status-Übergängen entlang eines definierten Workflows.
 #   Unterstützt vier Flow-Muster (Triangle, Flat Triangle, Cluster, Batch)
 #   sowie lognormale Cycle-Time-Verteilung. Erzeugt JSON im Jira-REST-API-
-#   Format (kompatibel mit transform_data).
+#   Format (kompatibel mit transform_data). Seit 0.38.0 sind Pfad und Zeit
+#   getrennt: paths.sample_path würfelt die Stage-Folge (Regler ``realism``
+#   für Sprünge, Abbrüche, Parken, Schleifen, Wiedereröffnung), hier wird
+#   die Zeit auf die Schritte verteilt — im Muster-Modus das CT-Budget,
+#   sonst Verweildauern je Schritt.
 # =============================================================================
 
 from __future__ import annotations
@@ -22,6 +26,7 @@ from dataclasses import dataclass, field
 from datetime import date, datetime, timedelta, timezone
 from math import ceil
 
+from .paths import PathSpec, detect_parking, knobs_at, sample_path
 from .workflow_parser import WorkflowSpec
 
 PATTERN_NONE = "none"
@@ -52,6 +57,12 @@ class GeneratorConfig:
         std_cycle_days:    Std deviation of cycle time in days. None = 30 % of mean.
         pattern:           Flow pattern: none | triangle | flat_triangle | cluster | batch.
         pi_duration_weeks: PI cycle length in weeks (used by cluster/batch patterns).
+        realism:           0.0–1.0 — how untidy the stage paths are (skips, cancels,
+                           parking, self-loops, long backflow, reopening, entry spread).
+                           0 = the pre-0.38.0 chain (only backflow_prob); ~0.7 matches a
+                           real ART. Applies in every mode, patterns included.
+        parking_stage:     Name of the side-track stage (e.g. "Blocker"); None = detect
+                           by name, see paths.PARKING_NAMES.
     """
 
     project_key: str = "TEST"
@@ -72,6 +83,8 @@ class GeneratorConfig:
     pattern: str = PATTERN_NONE
     pi_duration_weeks: int = 12
     pattern_strength: float = 0.5
+    realism: float = 0.0
+    parking_stage: str | None = None
 
 
 def _fmt_dt(dt: datetime) -> str:
@@ -205,9 +218,10 @@ def _simulate_issue(  # noqa: C901
     """
     Simulate a single Jira issue with status transitions along the workflow.
 
-    When target_ct_hours is provided (pattern mode), the transition chain is
-    forward-only with time distributed proportionally across stages. When None,
-    the original random dwell / backflow logic is used.
+    When target_ct_hours is provided (pattern mode), the cycle time is
+    distributed proportionally across the sampled path (backflow_prob is off,
+    realism applies). When None, every step draws its own dwell time and
+    backflow_prob applies as before.
 
     Returns a dict in Jira REST API format.
     """
@@ -266,62 +280,45 @@ def _simulate_issue(  # noqa: C901
             created_ts = _random_datetime(rng, config.from_date, config.to_date)
 
     # ── Simulate transition chain ────────────────────────────────────────────
-    # No transition may fall after to_date: an issue whose cycle time does not
-    # fit inside [from_date, to_date] simply stays "in progress" at whichever
-    # stage it had reached by to_date, rather than completing in the future.
-    # (Triangle/flat-triangle CTs and over-budget dwell chains can otherwise run
-    # years past the window — see _sample_pi_close_dt for the equivalent clamp on
-    # the cluster/batch path.)
+    # Path first, time second (0.38.0): the stage sequence comes from
+    # paths.sample_path — realism 0 reproduces the old one-forward/one-back
+    # chain — and the time is laid over it afterwards. No transition may fall
+    # after to_date: an issue whose path does not fit inside [from_date,
+    # to_date] simply stays "in progress" at whichever stage it had reached by
+    # to_date, rather than completing in the future.
     to_dt = datetime(
         config.to_date.year, config.to_date.month, config.to_date.day,
         23, 59, 59, tzinfo=timezone(timedelta(hours=1)),
     )
+    spec = PathSpec(
+        n_stages=len(stages), first_idx=first_idx, closed_idx=closed_idx,
+        target_idx=target_idx,
+        parking_idx=detect_parking(stages, config.parking_stage),
+        # Pattern mode used to be strictly forward; with realism on, the
+        # backflow scales in so patterns and realism combine (0 stays 0).
+        backflow_prob=(config.backflow_prob * config.realism if target_ct_hours is not None
+                       else config.backflow_prob),
+        knobs=knobs_at(config.realism),
+    )
+    path = sample_path(spec, rng)
+    if target_ct_hours is not None:
+        dwells = [max(1.0, d) for d in _fill_time_budget(rng, len(path), target_ct_hours)]
+    else:
+        dwells = [float(rng.randint(config.min_dwell_hours, config.max_dwell_hours))
+                  for _ in path]
+
     histories: list[dict] = []
     current_idx = 0
     current_ts = created_ts
     hist_id = issue_num * 10000
-
-    if target_ct_hours is not None:
-        # Pattern mode: forward-only with Dirichlet-like time distribution
-        n_fwd = target_idx - current_idx
-        dwells = _fill_time_budget(rng, n_fwd, target_ct_hours)
-        for dwell in dwells:
-            nxt = current_idx + 1
-            next_ts = current_ts + timedelta(hours=max(1.0, dwell))
-            if next_ts > to_dt:
-                break  # remaining transitions fall past to_date → issue stays open
-            current_ts = next_ts
-            histories.append(_make_history(stages[current_idx], stages[nxt], current_ts, hist_id))
-            hist_id += 1
-            current_idx = nxt
-    else:
-        # Normal mode: random dwell with optional backflow
-        max_steps = len(stages) * 6
-        step = 0
-        while current_idx < target_idx and step < max_steps:
-            step += 1
-            if current_idx > first_idx and rng.random() < config.backflow_prob:
-                back_idx = max(first_idx, current_idx - 1)
-                dwell = rng.randint(config.min_dwell_hours, config.max_dwell_hours)
-                next_ts = current_ts + timedelta(hours=dwell)
-                if next_ts > to_dt:
-                    break  # transition would fall past to_date → issue stays open
-                current_ts = next_ts
-                histories.append(
-                    _make_history(stages[current_idx], stages[back_idx], current_ts, hist_id)
-                )
-                hist_id += 1
-                current_idx = back_idx
-                continue
-            nxt = current_idx + 1
-            dwell = rng.randint(config.min_dwell_hours, config.max_dwell_hours)
-            next_ts = current_ts + timedelta(hours=dwell)
-            if next_ts > to_dt:
-                break  # transition would fall past to_date → issue stays open
-            current_ts = next_ts
-            histories.append(_make_history(stages[current_idx], stages[nxt], current_ts, hist_id))
-            hist_id += 1
-            current_idx = nxt
+    for nxt, dwell in zip(path, dwells):
+        next_ts = current_ts + timedelta(hours=dwell)
+        if next_ts > to_dt:
+            break  # remaining transitions fall past to_date → issue stays open
+        current_ts = next_ts
+        histories.append(_make_history(stages[current_idx], stages[nxt], current_ts, hist_id))
+        hist_id += 1
+        current_idx = nxt
 
     current_stage = stages[current_idx]
     numeric_id = 100000 + issue_num
