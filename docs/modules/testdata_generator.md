@@ -43,6 +43,8 @@ python -m testdata_generator \
 | `--pattern PATTERN` | `none` | Flow anti-pattern: `none` / `triangle` / `flat_triangle` / `cluster` / `batch` |
 | `--pi-duration-weeks INT` | `12` | PI cycle length in weeks (for `cluster`/`batch`) |
 | `--realism 0–100` | `0` | Untidiness of the stage paths (skips, cancels, parking, self-loops, reopening); about 70 is like a real ART |
+| `--continue OLD.json` | (none) | Continue an earlier extract up to `--to-date` (since 0.39.0); `--issues` = number of NEW issues, `--rate-per-day` alternative |
+| `--rate-per-day FLOAT` | (rate of the first window) | With `--continue`: new issues per day |
 
 ## Flow Patterns
 
@@ -69,6 +71,31 @@ spread over the longer or shorter path.
 The portfolio scenario builds its six ARTs with realism 60 since 0.38.0 (profile field
 `realism`, overridable per ART). Seeds produce different data than before 0.38.0 — the
 order of random draws changed.
+
+## Continuation — the second extract (since 0.39.0)
+
+A generated raw data set is an extract taken on T1. `--continue` produces the extract one
+would have taken on T2 — exactly as if the data had been pulled manually twice:
+
+```bash
+python -m testdata_generator --workflow workflow.txt --continue ART_A.json --to-date 2026-03-01
+```
+
+- **The past is untouchable:** keys, creation dates and every transition up to T1 stay byte
+  for byte; closed and cancelled issues are not touched at all.
+- **Open issues move on:** new transitions after T1 under the same path and time model
+  (realism, backflow, cycle time) until they finish or T2 is reached — whatever would fall
+  after T2 stays open.
+- **New issues** join in (T1, T2] with continuing keys; their number follows the rate of
+  the first window, or `--issues N` / `--rate-per-day X`.
+- **Reproducible:** the same seed and the same T2 give the same extract; a chain
+  T1 → T2 → T3 keeps every earlier state in full.
+
+For this the generator writes a `generator` record into the JSON envelope since 0.39.0
+(cuts, seed, knobs, stages); `transform_data` reads only `issues` and is unaffected. A data
+set without the record (older, or a real export) can be continued when the knobs are given —
+T1 is then the youngest timestamp. Output: `<name>_<T2>.json` next to the source, or
+`--output`. GUI: button **Continue…** next to **Generate** (To date and realism from the form).
 
 ## Workflow file
 
@@ -102,6 +129,7 @@ testdata_generator/
 ├── cli.py               # run_generate() + argparse CLI
 ├── generator.py         # Core logic: issue simulation (time onto the path)
 ├── paths.py             # Stage paths: realism disturbances, parking stage (0.38.0)
+├── continuation.py      # Continuation: second extract, envelope record (0.39.0)
 └── workflow_parser.py   # Re-export from transform_data.workflow
 ```
 

@@ -133,6 +133,11 @@ _T: dict[str, dict[str, str]] = {
         "btn_browse_wf":      "Durchsuchen…",
         "btn_browse_out":     "Durchsuchen…",
         "btn_run":            "Generieren",
+        "btn_continue":       "Fortschreiben…",
+        "dlg_continue_src":   "Früheren Abzug (JSON) wählen",
+        "log_continue_started": "--- Fortschreibung: {} bis {} ---",
+        "log_continue_done":  "Fortschreibung fertig: {}",
+        "err_continue_to_date": "FEHLER: Fortschreiben braucht ein gültiges Bis-Datum (YYYY-MM-DD).",
         "btn_report":         "Report erstellen",
         "log_report_started": "--- Report wird erstellt (transform + build_reports) ---",
         "log_report_done":    "--- Report im Browser geöffnet ---",
@@ -235,6 +240,11 @@ _T: dict[str, dict[str, str]] = {
         "btn_browse_wf":      "Browse…",
         "btn_browse_out":     "Browse…",
         "btn_run":            "Generate",
+        "btn_continue":       "Continue…",
+        "dlg_continue_src":   "Choose the earlier extract (JSON)",
+        "log_continue_started": "--- Continuation: {} up to {} ---",
+        "log_continue_done":  "Continuation finished: {}",
+        "err_continue_to_date": "ERROR: Continue needs a valid To date (YYYY-MM-DD).",
         "btn_report":         "Create Report",
         "log_report_started": "--- Building report (transform + build_reports) ---",
         "log_report_done":    "--- Report opened in browser ---",
@@ -678,6 +688,9 @@ class _App:
         btn_frame.grid(row=18, column=0, columnspan=3, pady=(10, 4))
         self._btn_run = ttk.Button(btn_frame, text="Generate", command=self._run)
         self._btn_run.pack(side="left", padx=(0, 6))
+        # 0.39.0: continue an earlier extract as a second one (see _continue)
+        self._btn_continue = ttk.Button(btn_frame, text="Continue…", command=self._continue)
+        self._btn_continue.pack(side="left", padx=(0, 6))
         self._btn_report = ttk.Button(
             btn_frame, text="Create Report", command=self._make_report,
             state="disabled",
@@ -815,6 +828,7 @@ class _App:
         for key, lbl in self._labels.items():
             lbl.configure(text=self._t(key))
         self._btn_run.configure(text=self._t("btn_run"))
+        self._btn_continue.configure(text=self._t("btn_continue"))
         self._btn_report.configure(text=self._t("btn_report"))
         self._btn_scenario.configure(text=self._t("btn_scenario"))
         self._btn_scenario_report.configure(text=self._t("btn_scenario_report"))
@@ -1042,6 +1056,72 @@ class _App:
             except ValueError:
                 return None
         return result if result else None
+
+    def _continue(self) -> None:
+        """
+        Continue an earlier extract (0.39.0): the chosen JSON keeps its past,
+        open issues move on up to the form's To date, new issues join at the
+        earlier rate. Workflow and realism come from the form; the output
+        lands next to the source as <name>_<to-date>.json.
+        """
+        if self._running:
+            return
+        workflow_str = self._var_workflow.get().strip()
+        if not workflow_str:
+            self._log_msg(self._t("err_no_workflow"))
+            return
+        try:
+            to_date = date.fromisoformat(self._var_to_date.get().strip())
+        except ValueError:
+            self._log_msg(self._t("err_continue_to_date"))
+            return
+        try:
+            raw_realism = int(self._var_realism.get() or "0")
+            if not (0 <= raw_realism <= 100):
+                raise ValueError
+        except ValueError:
+            self._log_msg(self._t("err_realism"))
+            return
+        source = filedialog.askopenfilename(
+            title=self._t("dlg_continue_src"),
+            filetypes=[("JSON files", "*.json"), ("All files", "*.*")])
+        if not source:
+            return
+        seed: int | None = None
+        if self._var_seed.get().strip():
+            try:
+                seed = int(self._var_seed.get().strip())
+            except ValueError:
+                self._log_msg(self._t("err_seed"))
+                return
+        self._log_msg(self._t("log_continue_started").format(Path(source).name, to_date))
+        self._running = True
+        self._btn_run.configure(state="disabled")
+        self._btn_continue.configure(state="disabled")
+
+        def _do() -> None:
+            try:
+                from .cli import run_continue
+                written = run_continue(
+                    Path(source), Path(workflow_str), to_date, seed=seed,
+                    realism=raw_realism / 100.0, log=self._log_msg)
+                if written is not None:
+                    self._last_report = {"json": written, "workflow": Path(workflow_str)}
+                    self._root.after(0, lambda: self._log_msg(
+                        self._t("log_continue_done").format(written)))
+                    self._root.after(0, lambda: self._btn_report.configure(state="normal"))
+            except Exception as exc:  # noqa: BLE001 - the log is the error channel
+                message = f"ERROR: {exc}"
+                self._root.after(0, lambda: self._log_msg(message))
+            finally:
+                self._root.after(0, self._continue_finished)
+
+        threading.Thread(target=_do, daemon=True).start()
+
+    def _continue_finished(self) -> None:
+        self._running = False
+        self._btn_run.configure(state="normal")
+        self._btn_continue.configure(state="normal")
 
     def _run(self) -> None:  # noqa: C901
         if self._running:

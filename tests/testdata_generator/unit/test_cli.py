@@ -155,3 +155,74 @@ class TestMain:
         with patch("sys.argv", ["prog", "--workflow", str(wf), "--issue-types", "bad"]), \
              pytest.raises(SystemExit):
             main()
+
+
+class TestRunContinue:
+    """0.39.0: the CLI path of the continuation — file in, second extract out."""
+
+    def _first(self, tmp_path):
+        from pathlib import Path as _P
+        wf = _P(__file__).resolve().parents[3] / "testdata_generator" / "workflow_ART_A.txt"
+        out = tmp_path / "first.json"
+        run_generate(wf, out, project_key="ART", issue_count=60, from_date=date(2025, 7, 1),
+                     to_date=date(2026, 1, 1), seed=3, realism=0.5, log=lambda m: None)
+        return wf, out
+
+    def test_writes_next_to_the_source_and_logs_counts(self, tmp_path):
+        from testdata_generator.cli import run_continue
+        wf, first = self._first(tmp_path)
+        lines: list[str] = []
+        written = run_continue(first, wf, date(2026, 3, 1), log=lines.append)
+        assert written == tmp_path / "first_2026-03-01.json" and written.exists()
+        assert any("Issues before:   60" in li for li in lines)
+        assert any("New issues:" in li for li in lines)
+
+    def test_explicit_output_count_and_realism_override(self, tmp_path):
+        import json
+
+        from testdata_generator.cli import run_continue
+        from testdata_generator.continuation import read_meta
+        wf, first = self._first(tmp_path)
+        target = tmp_path / "out" / "second.json"
+        written = run_continue(first, wf, date(2026, 2, 1), output=target,
+                               new_issue_count=5, realism=0.9, log=lambda m: None)
+        data = json.loads(written.read_text(encoding="utf-8"))
+        assert len(data["issues"]) == 65
+        assert read_meta(data)["config"]["realism"] == 0.9
+
+    def test_errors_are_logged_not_raised(self, tmp_path):
+        from testdata_generator.cli import run_continue
+        wf, first = self._first(tmp_path)
+        lines: list[str] = []
+        assert run_continue(first, wf, date(2025, 12, 1), log=lines.append) is None
+        assert any("must lie after" in li for li in lines)
+        assert run_continue(tmp_path / "nope.json", wf, date(2026, 3, 1),
+                            log=lines.append) is None
+        assert any("cannot read" in li for li in lines)
+
+    def test_main_dispatches_continue(self, tmp_path, monkeypatch, capsys):
+        import sys
+
+        from testdata_generator.cli import main
+        wf, first = self._first(tmp_path)
+        monkeypatch.setattr(sys, "argv", [
+            "testdata_generator", "--workflow", str(wf), "--continue", str(first),
+            "--to-date", "2026-03-01", "--issues", "4"])
+        with pytest.raises(SystemExit) as exc:
+            main()
+        assert exc.value.code == 0
+        out = capsys.readouterr().out
+        assert "New issues:      4" in out
+        assert (tmp_path / "first_2026-03-01.json").exists()
+
+    def test_main_continue_needs_to_date(self, tmp_path, monkeypatch, capsys):
+        import sys
+
+        from testdata_generator.cli import main
+        wf, first = self._first(tmp_path)
+        monkeypatch.setattr(sys, "argv", [
+            "testdata_generator", "--workflow", str(wf), "--continue", str(first)])
+        with pytest.raises(SystemExit) as exc:
+            main()
+        assert exc.value.code == 2
+        assert "needs --to-date" in capsys.readouterr().err

@@ -5,6 +5,30 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [0.39.0] – 2026-10-13
+
+### Added
+- **Testdaten-Generator: Fortschreibung — der zweite Abzug (`--continue`).** Ein erzeugter
+  Rohdatensatz ist ein Abzug zum Stichtag T1. `--continue OLD.json --to-date T2` erzeugt
+  den Abzug, den man an T2 gezogen hätte, „ganz so wie wenn man zweimal manuell Daten
+  abgezogen hätte“ (Auftrag Robert 13.10.2026, Entscheidung: offene Vorgänge laufen weiter):
+  **Vergangenheit unantastbar** (Schlüssel, Anlagedatum, alle Übergänge bis T1 byteidentisch;
+  geschlossene und abgebrochene Vorgänge unberührt — per Test), **offene Vorgänge laufen
+  weiter** (ab T1 neue Übergänge nach demselben Pfad- und Zeitmodell bis fertig oder T2;
+  Realismus, Backflow und Cycle-Time wie im ersten Lauf), **neue Vorgänge** in (T1, T2] mit
+  fortlaufenden Schlüsseln (Anzahl aus der Rate des ersten Fensters, `--issues N` oder
+  `--rate-per-day X`), **reproduzierbar** (Seed ⊕ T2; Kette T1 → T2 → T3 behält jeden Stand).
+
+  Dafür schreibt `generate()` einen Eintrag `generator` in den JSON-Envelope (Stichtage,
+  Seed, Regler, Stages, Kette der Fortschreibungen); `transform_data` liest nur `issues`.
+  Ohne Eintrag (ältere Datei, echter Export) lässt sich fortschreiben, wenn die Regler
+  mitgegeben werden — T1 ist dann der jüngste Zeitstempel. Ausgabe `<name>_<T2>.json` neben
+  der Quelle oder `--output`. GUI: Knopf **Fortschreiben…** neben **Generieren**. Tests
+  `test_continuation.py` (17). Manual in fünf Sprachen, mkdocs DE/EN.
+  Die Szenario-Fortschreibung (ganzer Datenraum mit Snapshot-Rotation) folgt als eigener Schritt.
+
+---
+
 ## [0.38.0] – 2026-10-13
 
 ### Added
