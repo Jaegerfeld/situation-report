@@ -40,7 +40,6 @@ from testdata_generator.workflow_parser import parse_workflow
 
 ROOT = Path(__file__).resolve().parents[3]
 XLSX = ROOT / "tests" / "testdata" / "ART_A" / "ART_A_Transitions.xlsx"
-CSV = ROOT / "testdata_generator" / "ART_A_Transitions.csv"
 WORKFLOW = ROOT / "testdata_generator" / "workflow_ART_A.txt"
 
 
@@ -67,10 +66,17 @@ class TestLearn:
         assert profile.dwell_hours["Analysis"] and all(h >= 0 for h in profile.dwell_hours["Analysis"])
         assert len(profile.dwell_hours["Analysis"]) <= 400
 
-    def test_csv_and_xlsx_agree(self, wf, profile) -> None:
-        from_csv = learn_profile(CSV, stages=wf.stages)
-        assert from_csv.issues == profile.issues or abs(from_csv.issues - profile.issues) < 120
-        assert from_csv.start.keys() == profile.start.keys() or from_csv.issues != profile.issues
+    def test_csv_reads_like_xlsx(self, wf, profile, tmp_path) -> None:
+        # The CSV twin is built from the tracked XLSX: the module's own
+        # ART_A_*.csv samples are gitignored and absent in CI.
+        from openpyxl import load_workbook
+        ws = load_workbook(XLSX, read_only=True).active
+        csv_path = tmp_path / "ART_A_Transitions.csv"
+        with csv_path.open("w", encoding="utf-8", newline="") as f:
+            for row in ws.iter_rows(values_only=True):
+                f.write(";".join("" if c is None else str(c) for c in row) + "\n")
+        from_csv = learn_profile(csv_path, stages=wf.stages)
+        assert from_csv.to_dict() == {**profile.to_dict(), "source": csv_path.name}
 
     def test_without_stages_the_seen_order_is_kept(self) -> None:
         p = learn_profile(XLSX)
