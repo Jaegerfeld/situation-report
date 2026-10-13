@@ -198,12 +198,16 @@ class _ArtProfile:
     pattern: str = PATTERN_NONE
     pattern_strength: float = 0.5
     pi_duration_weeks: int = 12
+    #: Untidiness of the stage paths (0.38.0); the demo ARTs look like real
+    #: ones by default — a straight chain is a lie about any ART.
+    realism: float = 0.6
 
 
 #: Je ART übersteuerbare Profil-Felder (GUI-Dialog, CLI --art-profiles).
 ART_PROFILE_FIELDS = ("issue_count", "mean_cycle_days", "std_cycle_days",
                       "completion_rate", "todo_rate", "backflow_prob",
-                      "pattern", "pattern_strength", "pi_duration_weeks")
+                      "pattern", "pattern_strength", "pi_duration_weeks",
+                      "realism")
 
 _PATTERNS = (PATTERN_NONE, PATTERN_TRIANGLE, PATTERN_FLAT_TRIANGLE,
              PATTERN_CLUSTER, PATTERN_BATCH)
@@ -229,10 +233,10 @@ def _coerce_profile_value(key: str, value):
     except (TypeError, ValueError) as exc:
         raise ValueError(
             f"Invalid value for '{key}': {value!r} (number expected).") from exc
-    if key == "pattern_strength":
+    if key in ("pattern_strength", "realism"):
         if not 0 <= number <= 100:
             raise ValueError(
-                f"pattern_strength must be 0–100, got {value!r}.")
+                f"{key} must be 0–100, got {value!r}.")
         return number / 100.0
     return number
 
@@ -303,6 +307,7 @@ def default_art_profile_rows() -> dict[str, dict[str, str]]:
             "pattern_strength": str(int(round(
                 profile.pattern_strength * 100))),
             "pi_duration_weeks": str(profile.pi_duration_weeks),
+            "realism": str(int(round(profile.realism * 100))),
         }
     return rows
 
@@ -886,6 +891,7 @@ def build_portfolio_scenario(
             pattern=profile.pattern,
             pattern_strength=profile.pattern_strength,
             pi_duration_weeks=profile.pi_duration_weeks,
+            realism=profile.realism,
         )
         raw = out / "raw" / f"{profile.name}_jira.json"
         raw.write_text(json.dumps(generate(workflow, config), indent=2),
@@ -1050,9 +1056,11 @@ def build_portfolio_scenario(
         "einer seed-generierten Grundmenge; `--scale s|m|l` steuert deren",
         "Umfang je Solution (s = nur Anker, m = Standard, l = Stresstest).",
         "Die Anker und ihre Geschichten sind auf jeder Skala identisch.",
+        "Die Statuswege der ARTs sind seit 0.38.0 unordentlich wie in echten",
+        "ARTs (Realismus 60: Sprünge, Abbrüche, Schleifen, Wiedereröffnung).",
         "Je ART lassen sich die Generator-Regler übersteuern (GUI-Dialog",
         "„ART-Profile…“ bzw. `--art-profiles datei.json`): Issues, Ø-/σ-CT,",
-        "Quoten, Backflow, Muster + Stärke, PI-Wochen — Overrides gelten",
+        "Quoten, Backflow, Realismus, Muster + Stärke, PI-Wochen — Overrides gelten",
         "in beiden Delta-Ständen, alles andere behält seinen Story-Wert.",
         "",
         "Eingebaute Geschichten:",

@@ -102,6 +102,7 @@ def run_generate(
     pattern: str = PATTERN_NONE,
     pi_duration_weeks: int = 12,
     pattern_strength: float = 0.5,
+    realism: float = 0.0,
     log: Callable[[str], None] = print,
 ) -> None:
     """
@@ -127,6 +128,8 @@ def run_generate(
         pattern:           Flow pattern to simulate (none/triangle/flat_triangle/cluster/batch).
         pi_duration_weeks: PI cycle duration in weeks (cluster/batch patterns only).
         pattern_strength:  Pattern intensity 0.0–1.0 (0=subtle, 0.5=default, 1.0=strong).
+        realism:           Untidiness of the stage paths 0.0–1.0 (0 = plain chain,
+                           ~0.7 = like a real ART); see paths.py.
         log:               Callable for progress messages.
     """
     effective_from = from_date or date(2025, 1, 1)
@@ -159,9 +162,12 @@ def run_generate(
         pattern=pattern,
         pi_duration_weeks=pi_duration_weeks,
         pattern_strength=pattern_strength,
+        realism=realism,
     )
 
     log(f"Generating {issue_count} issues for project '{project_key}'…")
+    if realism > 0:
+        log(f"Realism: {realism:.2f} (skips, cancels, parking, self-loops, reopening)")
     if pattern != PATTERN_NONE:
         log(f"Pattern: {pattern}" + (
             f"  (mean={mean_cycle_days}d, std={std_cycle_days}d)" if mean_cycle_days else ""
@@ -253,6 +259,10 @@ def main() -> None:
     parser.add_argument("--pattern-strength", type=int, default=50,
                         choices=range(0, 101), metavar="0-100",
                         help="Pattern intensity 0–100 (0=subtle, 50=default, 100=strong).")
+    parser.add_argument("--realism", type=int, default=0,
+                        help="Untidiness of the stage paths 0-100: 0 = plain chain "
+                             "(default, as before 0.38.0), about 70 = like a real ART "
+                             "(skips, cancels, parking, self-loops, reopening).")
 
     args = parser.parse_args()
 
@@ -307,6 +317,7 @@ def main() -> None:
         pattern=args.pattern,
         pi_duration_weeks=args.pi_duration_weeks,
         pattern_strength=args.pattern_strength / 100.0,
+        realism=max(0, min(100, args.realism)) / 100.0,
     )
 
 

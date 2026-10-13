@@ -126,6 +126,8 @@ _T: dict[str, dict[str, str]] = {
         "lbl_std_cycle":      "Std.-Abw. (Tage, leer=auto)",
         "lbl_pattern":          "Muster",
         "lbl_pattern_strength": "Musterstärke (0–100)",
+        "lbl_realism":        "Realismus (0–100)",
+        "err_realism":        "FEHLER: Realismus muss eine ganze Zahl zwischen 0 und 100 sein.",
         "lbl_pi_weeks":         "PI-Dauer (Wochen)",
         "lbl_log":            "Log",
         "btn_browse_wf":      "Durchsuchen…",
@@ -172,6 +174,7 @@ _T: dict[str, dict[str, str]] = {
         "col_todo":           "To-Do-Quote",
         "col_backflow":       "Backflow",
         "col_pi_weeks":       "PI-Wochen",
+        "col_realism":        "Realismus",
         "btn_profiles_reset": "Zurücksetzen",
         "log_profiles_set":   "--- ART-Profile: {} Übersteuerung(en) aktiv ---",
         "log_profiles_error": "FEHLER ART-Profile: {}",
@@ -225,6 +228,8 @@ _T: dict[str, dict[str, str]] = {
         "lbl_std_cycle":      "Std Dev (days, empty=auto)",
         "lbl_pattern":          "Pattern",
         "lbl_pattern_strength": "Pattern Strength (0–100)",
+        "lbl_realism":        "Realism (0–100)",
+        "err_realism":        "ERROR: Realism must be an integer between 0 and 100.",
         "lbl_pi_weeks":         "PI Duration (weeks)",
         "lbl_log":            "Log",
         "btn_browse_wf":      "Browse…",
@@ -271,6 +276,7 @@ _T: dict[str, dict[str, str]] = {
         "col_todo":           "To-do rate",
         "col_backflow":       "Backflow",
         "col_pi_weeks":       "PI weeks",
+        "col_realism":        "Realism",
         "btn_profiles_reset": "Reset",
         "log_profiles_set":   "--- ART profiles: {} override(s) active ---",
         "log_profiles_error": "ERROR ART profiles: {}",
@@ -302,6 +308,7 @@ _TEMPLATE_FIELDS = (
     "workflow", "output", "project", "issues", "from_date", "to_date",
     "issue_types", "completion", "todo", "backflow", "seed",
     "mean_cycle", "std_cycle", "pattern", "pattern_strength", "pi_weeks",
+    "realism",
 )
 
 
@@ -549,6 +556,9 @@ class _App:
         self._var_pattern          = tk.StringVar(value=PATTERN_NONE)
         self._var_pattern_strength = tk.StringVar(value="50")
         self._var_pi_weeks         = tk.StringVar(value="12")
+        # 0.38.0: the GUI is the demo path — it starts untidy like a real ART;
+        # the CLI keeps 0 (scripts and tests rely on the plain chain).
+        self._var_realism          = tk.StringVar(value="60")
         self._lang_var        = tk.StringVar(value=_load_lang_pref())
         self._flag_imgs: dict[str, tk.PhotoImage] = {}
         self._create_flag_imgs()
@@ -658,9 +668,14 @@ class _App:
             frame, 16, "lbl_pi_weeks", self._var_pi_weeks, 4, 26
         )
 
+        # ── Realism row (0.38.0) ──────────────────────────────────────────────
+        self._realism_scale, self._realism_entry = self._slider_row(
+            frame, 17, "lbl_realism", self._var_realism, 0, 100
+        )
+
         # ── Run + Report + Progress ───────────────────────────────────────────
         btn_frame = ttk.Frame(frame)
-        btn_frame.grid(row=17, column=0, columnspan=3, pady=(10, 4))
+        btn_frame.grid(row=18, column=0, columnspan=3, pady=(10, 4))
         self._btn_run = ttk.Button(btn_frame, text="Generate", command=self._run)
         self._btn_run.pack(side="left", padx=(0, 6))
         self._btn_report = ttk.Button(
@@ -671,14 +686,14 @@ class _App:
 
         # ── Demo portfolio section ────────────────────────────────────────────
         ttk.Separator(frame, orient="horizontal").grid(
-            row=18, column=0, columnspan=3, sticky="ew", pady=(8, 4)
+            row=19, column=0, columnspan=3, sticky="ew", pady=(8, 4)
         )
         lbl_scen = ttk.Label(frame, text="")
-        lbl_scen.grid(row=19, column=0, columnspan=3, sticky="w")
+        lbl_scen.grid(row=20, column=0, columnspan=3, sticky="w")
         self._labels["lbl_scenario"] = lbl_scen
 
         scen_frame = ttk.Frame(frame)
-        scen_frame.grid(row=20, column=0, columnspan=3, pady=(4, 4))
+        scen_frame.grid(row=21, column=0, columnspan=3, pady=(4, 4))
         self._lbl_scale = ttk.Label(scen_frame, text="Scale:")
         self._lbl_scale.pack(side="left", padx=(0, 4))
         # Register-Umfang je Solution: s = nur Anker, m = Demo, l = Stress.
@@ -727,7 +742,7 @@ class _App:
         ).pack(side="left")
 
         self._progress = ttk.Progressbar(frame, mode="indeterminate")
-        self._progress.grid(row=21, column=0, columnspan=3, sticky="ew")
+        self._progress.grid(row=22, column=0, columnspan=3, sticky="ew")
         self._progress.grid_remove()
 
     def _slider_row(
@@ -915,6 +930,7 @@ class _App:
             "pattern": self._var_pattern,
             "pattern_strength": self._var_pattern_strength,
             "pi_weeks": self._var_pi_weeks,
+            "realism": self._var_realism,
         }
 
     def _save_template(self) -> None:
@@ -1110,6 +1126,15 @@ class _App:
                 return
 
         try:
+            raw_realism = int(self._var_realism.get() or "0")
+            if not (0 <= raw_realism <= 100):
+                raise ValueError
+            realism = raw_realism / 100.0
+        except ValueError:
+            self._log_msg(self._t("err_realism"))
+            return
+
+        try:
             pi_duration_weeks = int(self._var_pi_weeks.get())
             if pi_duration_weeks <= 0:
                 raise ValueError
@@ -1150,6 +1175,7 @@ class _App:
                     pattern=pattern,
                     pi_duration_weeks=pi_duration_weeks,
                     pattern_strength=pattern_strength,
+                    realism=realism,
                     log=self._log_msg,
                 )
                 self._last_report = {
@@ -1198,14 +1224,15 @@ class _App:
         dlg.grab_set()
 
         ttk.Label(dlg, text=self._t("hint_art_profiles"),
-                  wraplength=640).grid(row=0, column=0, columnspan=10,
+                  wraplength=640).grid(row=0, column=0, columnspan=11,
                                        sticky="w", pady=(0, 8))
         columns = ("issue_count", "mean_cycle_days", "std_cycle_days",
                    "pattern", "pattern_strength", "completion_rate",
-                   "todo_rate", "backflow_prob", "pi_duration_weeks")
+                   "todo_rate", "backflow_prob", "pi_duration_weeks",
+                   "realism")
         headers = ("col_issues", "col_mean_ct", "col_std_ct", "col_pattern",
                    "col_strength", "col_completion", "col_todo",
-                   "col_backflow", "col_pi_weeks")
+                   "col_backflow", "col_pi_weeks", "col_realism")
         ttk.Label(dlg, text=self._t("col_art")).grid(row=1, column=0,
                                                      sticky="w")
         for c, key in enumerate(headers):

@@ -413,6 +413,8 @@ def content_de(st: dict) -> list:
                     "Anteil offener Issues, die in frühen Stages verbleiben (0–1)"],
                    ["--backflow-prob FLOAT",     "0.1",
                     "Wahrscheinlichkeit eines Rückschritts bei jedem Übergang (0–1)"],
+                   ["--realism 0-100",          "0",
+                    "Unordnung der Statuswege: Sprünge, Abbrüche, Parken, Schleifen, Wiedereröffnung; ca. 70 wie ein echter ART (0 = wie vor 0.38.0)"],
                    ["--seed INT",               "(zufällig)",
                     "Seed für reproduzierbare Ausgabe (optional)"],
                    ["--mean-cycle-days FLOAT",  "(keiner)",
@@ -563,7 +565,7 @@ def content_de(st: dict) -> list:
               P("<b>ART-Profile (Knopf „ART-Profile…“ neben der Skala, CLI "
                 "--art-profiles DATEI.json):</b> Je ART lassen sich dieselben "
                 "Regler übersteuern wie bei der Einzel-ART-Erzeugung — Issues, "
-                "Ø- und σ-Cycle-Time, Fertig-/To-Do-Quote, Backflow, Muster "
+                "Ø- und σ-Cycle-Time, Fertig-/To-Do-Quote, Backflow, Realismus, Muster "
                 "(none/triangle/flat_triangle/cluster/batch) samt Stärke "
                 "(0–100) und PI-Wochen. Leere Felder = Standard. Übersteuerte "
                 "Werte gelten in BEIDEN Delta-Ständen (prev = 88 % der "
@@ -768,6 +770,8 @@ def content_en(st: dict) -> list:
                     "Fraction of open issues staying in early stages (0–1)"],
                    ["--backflow-prob FLOAT",     "0.1",
                     "Probability of a backward transition at each step (0–1)"],
+                   ["--realism 0-100",          "0",
+                    "Untidiness of the stage paths: skips, cancels, parking, self-loops, reopening; about 70 is like a real ART (0 = as before 0.38.0)"],
                    ["--seed INT",               "(random)",
                     "Seed for reproducible output (optional)"],
                    ["--mean-cycle-days FLOAT",  "(none)",
@@ -916,7 +920,7 @@ def content_en(st: dict) -> list:
               P("<b>ART profiles (button 'ART Profiles…' next to the scale, "
                 "CLI --art-profiles FILE.json):</b> per ART the same knobs as "
                 "in single-ART generation can be overridden — issues, mean and "
-                "std cycle time, completion/to-do rate, backflow, pattern "
+                "std cycle time, completion/to-do rate, backflow, realism, pattern "
                 "(none/triangle/flat_triangle/cluster/batch) with strength "
                 "(0–100) and PI weeks. Empty fields = default. Overridden "
                 "values apply in BOTH delta stands (prev = 88 % of the "
@@ -1118,6 +1122,8 @@ def content_ro(st: dict) -> list:
                     "Proporția problemelor deschise care rămân în etapele timpurii (0–1)"],
                    ["--backflow-prob FLOAT",     "0.1",
                     "Probabilitatea unei tranziții înapoi la fiecare pas (0–1)"],
+                   ["--realism 0-100",          "0",
+                    "Dezordinea traseelor de status: sarituri, anulari, parcare, bucle, redeschidere; cca. 70 ca un ART real (0 = ca inainte de 0.38.0)"],
                    ["--seed INT",               "(aleatoriu)",
                     "Seed pentru rezultate reproductibile (opțional)"],
                    ["--mean-cycle-days FLOAT",  "(niciunul)",
@@ -1213,7 +1219,7 @@ def content_ro(st: dict) -> list:
                 "--art-profiles FISIER.json):</b> per ART se pot suprascrie "
                 "aceleasi reglaje ca la generarea unui singur ART — issues, "
                 "cycle time mediu si sigma, rate de finalizare/to-do, "
-                "backflow, tipar (none/triangle/flat_triangle/cluster/batch) "
+                "backflow, realism, tipar (none/triangle/flat_triangle/cluster/batch) "
                 "cu intensitate (0–100) si saptamani PI. Campuri goale = "
                 "implicit. Valorile suprascrise se aplica in AMBELE stari "
                 "delta (prev = 88 % din issues); restul isi pastreaza "
@@ -1418,6 +1424,8 @@ def content_pt(st: dict) -> list:
                     "Fração de issues abertas que ficam em etapas iniciais (0–1)"],
                    ["--backflow-prob FLOAT",     "0.1",
                     "Probabilidade de transição regressiva em cada passo (0–1)"],
+                   ["--realism 0-100",          "0",
+                    "Desordem dos percursos de estado: saltos, cancelamentos, estacionamento, ciclos, reabertura; cerca de 70 como um ART real (0 = como antes de 0.38.0)"],
                    ["--seed INT",               "(aleatório)",
                     "Seed para resultado reprodutível (opcional)"],
                    ["--mean-cycle-days FLOAT",  "(nenhum)",
@@ -1514,7 +1522,7 @@ def content_pt(st: dict) -> list:
                 "--art-profiles FICHEIRO.json):</b> por ART podem "
                 "sobrepor-se os mesmos controlos da geracao de um unico ART "
                 "— issues, cycle time medio e sigma, taxas de "
-                "conclusao/to-do, backflow, padrao (none/triangle/"
+                "conclusao/to-do, backflow, realism, padrao (none/triangle/"
                 "flat_triangle/cluster/batch) com intensidade (0–100) e "
                 "semanas de PI. Campos vazios = padrao. Valores sobrepostos "
                 "aplicam-se em AMBOS os estados delta (prev = 88 % dos "
@@ -1721,6 +1729,8 @@ def content_fr(st: dict) -> list:
                     "Fraction de tickets ouverts restant dans les étapes initiales (0–1)"],
                    ["--backflow-prob FLOAT",     "0.1",
                     "Probabilité d'une transition en arrière à chaque pas (0–1)"],
+                   ["--realism 0-100",          "0",
+                    "Desordre des parcours de statut : sauts, abandons, mise en attente, boucles, reouverture ; environ 70 comme un ART reel (0 = comme avant 0.38.0)"],
                    ["--seed INT",               "(aléatoire)",
                     "Seed pour résultat reproductible (optionnel)"],
                    ["--mean-cycle-days FLOAT",  "(aucun)",
@@ -1819,7 +1829,7 @@ def content_fr(st: dict) -> list:
                 "CLI --art-profiles FICHIER.json) :</b> par ART, les memes "
                 "reglages que pour la generation d'un ART seul peuvent etre "
                 "surcharges — issues, cycle time moyen et sigma, taux de "
-                "completion/to-do, backflow, motif (none/triangle/"
+                "completion/to-do, backflow, realism, motif (none/triangle/"
                 "flat_triangle/cluster/batch) avec intensite (0–100) et "
                 "semaines de PI. Champs vides = defaut. Les valeurs "
                 "surchargees s'appliquent aux DEUX etats du delta (prev = "

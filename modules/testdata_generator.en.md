@@ -42,12 +42,33 @@ python -m testdata_generator \
 | `--std-cycle-days FLOAT` | (30 % of mean) | Standard deviation of cycle time |
 | `--pattern PATTERN` | `none` | Flow anti-pattern: `none` / `triangle` / `flat_triangle` / `cluster` / `batch` |
 | `--pi-duration-weeks INT` | `12` | PI cycle length in weeks (for `cluster`/`batch`) |
+| `--realism 0–100` | `0` | Untidiness of the stage paths (skips, cancels, parking, self-loops, reopening); about 70 is like a real ART |
 
 ## Flow Patterns
 
 Simulatable anti-patterns via `--mean-cycle-days` + `--pattern`:
 `triangle` (CT rises linearly), `flat_triangle` (rise flattens out),
 `cluster` (deliveries cluster at PI end), `batch` (PI clustering + high CT variance).
+
+## Realistic stage paths (since 0.38.0)
+
+A real ART does not walk neatly through every stage. Measured on the real ART_A (458 issues,
+9 stages): 40 distinct transition pairs, 12 % backward, 7.5 % self-loops, 358 jumps over at
+least one stage, 149 entries into the final stage without closing, median 4 transitions per
+issue. The generator before 0.38.0 produced 11 pairs, 0 % loops, median 7.
+
+`--realism` (0–100) scales eight disturbances of the path: jumps over stages, cancellations
+straight into the final stage, parking in a side-track stage (recognised by name: Blocker,
+Blocked, On Hold, Waiting …), self-loops, backflow over several stages, reopening, a start
+outside the first working stage, and the move from closing into the final stage
+(Releasing → Done). **0 is the previous behaviour** (only `--backflow-prob`), **about 70
+matches the real ART_A** — the calibration is pinned by tests. Path and time are separate:
+the disturbances apply in every mode, including the flow patterns, where the cycle time is
+spread over the longer or shorter path.
+
+The portfolio scenario builds its six ARTs with realism 60 since 0.38.0 (profile field
+`realism`, overridable per ART). Seeds produce different data than before 0.38.0 — the
+order of random draws changed.
 
 ## Workflow file
 
@@ -79,7 +100,8 @@ along the defined workflow. `transform_data` processes them into
 testdata_generator/
 ├── __main__.py          # Dispatcher: GUI without arguments, CLI with arguments
 ├── cli.py               # run_generate() + argparse CLI
-├── generator.py         # Core logic: issue simulation
+├── generator.py         # Core logic: issue simulation (time onto the path)
+├── paths.py             # Stage paths: realism disturbances, parking stage (0.38.0)
 └── workflow_parser.py   # Re-export from transform_data.workflow
 ```
 
