@@ -164,6 +164,10 @@ _T: dict[str, dict[str, str]] = {
         "tip_seed":           "Gleicher Seed → identische Ausgabe (reproduzierbar)",
         "lbl_scenario":       "Demo-Portfolio (2 Solutions × 3 ARTs, alle Artefakte)",
         "btn_scenario":       "Demo-Portfolio erzeugen…",
+        "btn_scenario_continue": "Szenario fortschreiben…",
+        "dlg_scenario_continue": "Datenraum (Ordner mit portfolio.json) wählen",
+        "log_scenario_continue_started": "--- Szenario-Fortschreibung bis {} ---",
+        "log_scenario_continue_done": "Szenario fortgeschrieben: {}",
         "lbl_scale":          "Umfang:",
         "tip_scale":          "s = nur Story-Anker, m = realistische Demo, l = Stresstest",
         "btn_art_profiles":   "ART-Profile…",
@@ -271,6 +275,10 @@ _T: dict[str, dict[str, str]] = {
         "tip_seed":           "Same seed → identical output (reproducible)",
         "lbl_scenario":       "Demo portfolio (2 solutions × 3 ARTs, all artifacts)",
         "btn_scenario":       "Generate Demo Portfolio…",
+        "btn_scenario_continue": "Continue Scenario…",
+        "dlg_scenario_continue": "Choose the data room (folder with portfolio.json)",
+        "log_scenario_continue_started": "--- Scenario continuation up to {} ---",
+        "log_scenario_continue_done": "Scenario continued: {}",
         "lbl_scale":          "Scale:",
         "tip_scale":          "s = story anchors only, m = realistic demo, l = stress test",
         "btn_art_profiles":   "ART Profiles…",
@@ -726,6 +734,12 @@ class _App:
             command=self._make_scenario,
         )
         self._btn_scenario.pack(side="left", padx=(0, 6))
+        # 0.40.0: continue an existing data room (To date from the form)
+        self._btn_scenario_continue = ttk.Button(
+            scen_frame, text="Continue Scenario…",
+            command=self._continue_scenario,
+        )
+        self._btn_scenario_continue.pack(side="left", padx=(0, 6))
         self._btn_scenario_report = ttk.Button(
             scen_frame, text="Open Portfolio Report",
             command=self._open_portfolio_report, state="disabled",
@@ -831,6 +845,7 @@ class _App:
         self._btn_continue.configure(text=self._t("btn_continue"))
         self._btn_report.configure(text=self._t("btn_report"))
         self._btn_scenario.configure(text=self._t("btn_scenario"))
+        self._btn_scenario_continue.configure(text=self._t("btn_scenario_continue"))
         self._btn_scenario_report.configure(text=self._t("btn_scenario_report"))
         self._btn_scenario_delta.configure(text=self._t("btn_scenario_delta"))
         self._btn_scenario_conference.configure(
@@ -1117,6 +1132,54 @@ class _App:
                 self._root.after(0, self._continue_finished)
 
         threading.Thread(target=_do, daemon=True).start()
+
+    def _continue_scenario(self) -> None:
+        """
+        Continue a demo data room in place (0.40.0): raw extracts move on to
+        the form's To date, transform_data outputs and configs follow, the
+        snapshots rotate. The demo buttons then point at the continued room.
+        """
+        if self._running:
+            return
+        try:
+            to_date = date.fromisoformat(self._var_to_date.get().strip())
+        except ValueError:
+            self._log_msg(self._t("err_continue_to_date"))
+            return
+        folder = filedialog.askdirectory(title=self._t("dlg_scenario_continue"))
+        if not folder:
+            return
+        self._log_msg(self._t("log_scenario_continue_started").format(to_date))
+        self._running = True
+        self._btn_scenario.configure(state="disabled")
+        self._btn_scenario_continue.configure(state="disabled")
+
+        def _do() -> None:
+            try:
+                from .scenario_continue import continue_portfolio_scenario
+                paths = continue_portfolio_scenario(Path(folder), to_date, log=self._log_msg)
+                self._last_scenario = paths
+                self._last_snapshots = (paths["snapshot_prev"], paths["snapshot_now"])
+                self._root.after(0, lambda: self._log_msg(
+                    self._t("log_scenario_continue_done").format(folder)))
+                self._root.after(0, self._enable_scenario_buttons)
+            except Exception as exc:  # noqa: BLE001 - the log is the error channel
+                message = f"ERROR: {exc}"
+                self._root.after(0, lambda: self._log_msg(message))
+            finally:
+                self._root.after(0, self._scenario_continue_finished)
+
+        threading.Thread(target=_do, daemon=True).start()
+
+    def _scenario_continue_finished(self) -> None:
+        self._running = False
+        self._btn_scenario.configure(state="normal")
+        self._btn_scenario_continue.configure(state="normal")
+
+    def _enable_scenario_buttons(self) -> None:
+        for btn in (self._btn_scenario_report, self._btn_scenario_delta,
+                    self._btn_scenario_conference, self._btn_scenario_narrate):
+            btn.configure(state="normal")
 
     def _continue_finished(self) -> None:
         self._running = False

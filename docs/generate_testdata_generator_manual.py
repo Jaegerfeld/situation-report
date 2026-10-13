@@ -553,7 +553,9 @@ def content_de(st: dict) -> list:
                 "geändert?\"-Briefing aus snapshots/snapshot_prev/now.json — ganz ohne "
                 "Kommandozeile.", st),
               PRE("python -m testdata_generator --scenario portfolio \\\n"
-                  "    --output demo/ --seed 42 --scale m", st),
+                  "    --output demo/ --seed 42 --scale m\n"
+                  "python -m testdata_generator --scenario portfolio \\\n"
+                  "    --continue demo/ --to-date 2026-03-01   # 0.40.0", st),
               P("<b>Skalen (--scale, auch als Auswahl in der GUI):</b> Die neun "
                 "Register je Solution bestehen aus festen Story-Ankern plus "
                 "einer seed-generierten Grundmenge — <b>s</b> = nur Anker "
@@ -911,7 +913,9 @@ def content_en(st: dict) -> list:
                 "'what changed?' briefing from snapshots/snapshot_prev/now.json — no command "
                 "line needed.", st),
               PRE("python -m testdata_generator --scenario portfolio \\\n"
-                  "    --output demo/ --seed 42 --scale m", st),
+                  "    --output demo/ --seed 42 --scale m\n"
+                  "python -m testdata_generator --scenario portfolio \\\n"
+                  "    --continue demo/ --to-date 2026-03-01   # 0.40.0", st),
               P("<b>Scales (--scale, also a picker in the GUI):</b> the nine "
                 "registers per solution consist of fixed story anchors plus "
                 "a seed-generated base population — <b>s</b> = anchors only "
@@ -1211,7 +1215,9 @@ def content_ro(st: dict) -> list:
                 "de portofoliu, 'Open Delta Briefing' briefingul 'ce s-a schimbat?' din "
                 "snapshots/snapshot_prev/now.json — fără linie de comandă.", st),
               PRE("python -m testdata_generator --scenario portfolio \\\n"
-                  "    --output demo/ --seed 42 --scale m", st),
+                  "    --output demo/ --seed 42 --scale m\n"
+                  "python -m testdata_generator --scenario portfolio \\\n"
+                  "    --continue demo/ --to-date 2026-03-01   # 0.40.0", st),
               P("<b>Scari (--scale, si ca selector in GUI):</b> cele noua "
                 "registre per solutie constau din ancore de poveste fixe "
                 "plus o populatie de baza generata cu seed — <b>s</b> = doar "
@@ -1516,7 +1522,9 @@ def content_pt(st: dict) -> list:
                 "portfólio, 'Open Delta Briefing' o briefing 'o que mudou?' a partir de "
                 "snapshots/snapshot_prev/now.json — sem linha de comandos.", st),
               PRE("python -m testdata_generator --scenario portfolio \\\n"
-                  "    --output demo/ --seed 42 --scale m", st),
+                  "    --output demo/ --seed 42 --scale m\n"
+                  "python -m testdata_generator --scenario portfolio \\\n"
+                  "    --continue demo/ --to-date 2026-03-01   # 0.40.0", st),
               P("<b>Escalas (--scale, tambem como seletor na GUI):</b> os "
                 "nove registos por solution consistem em ancoras de "
                 "historia fixas mais uma populacao base gerada com seed — "
@@ -1824,7 +1832,9 @@ def content_fr(st: dict) -> list:
                 "qui a changé ? » à partir de snapshots/snapshot_prev/now.json — sans ligne de "
                 "commande.", st),
               PRE("python -m testdata_generator --scenario portfolio \\\n"
-                  "    --output demo/ --seed 42 --scale m", st),
+                  "    --output demo/ --seed 42 --scale m\n"
+                  "python -m testdata_generator --scenario portfolio \\\n"
+                  "    --continue demo/ --to-date 2026-03-01   # 0.40.0", st),
               P("<b>Echelles (--scale, aussi un selecteur dans la GUI) :</b> "
                 "les neuf registres par solution se composent d'ancres "
                 "d'histoire fixes plus une population de base generee par "

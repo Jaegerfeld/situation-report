@@ -97,6 +97,15 @@ set without the record (older, or a real export) can be continued when the knobs
 T1 is then the youngest timestamp. Output: `<name>_<T2>.json` next to the source, or
 `--output`. GUI: button **Continue…** next to **Generate** (To date and realism from the form).
 
+**Whole data room (since 0.40.0):** `--scenario portfolio --continue demo/ --to-date T2`
+continues the demo portfolio in place: every raw extract under `raw/` moves on (a stale
+source such as Beta-3 stays exactly as stale), transform_data rewrites
+IssueTimes/Transitions/CFD, solution, portfolio and PI configs move to T2 with the same
+window length, and the snapshots rotate: the previous `snapshot_now.json` becomes
+`snapshot_prev.json`, a new `snapshot_now.json` is frozen — the delta briefing then shows
+real elapsed time instead of the staged two-week story. Registers stay unchanged.
+GUI: **Continue Scenario…** (To date from the form).
+
 ## Workflow file
 
 Same format as in `transform_data`:
@@ -130,6 +139,7 @@ testdata_generator/
 ├── generator.py         # Core logic: issue simulation (time onto the path)
 ├── paths.py             # Stage paths: realism disturbances, parking stage (0.38.0)
 ├── continuation.py      # Continuation: second extract, envelope record (0.39.0)
+├── scenario_continue.py # Scenario continuation with snapshot rotation (0.40.0)
 └── workflow_parser.py   # Re-export from transform_data.workflow
 ```
 
