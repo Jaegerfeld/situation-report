@@ -40,3 +40,6 @@ To preview the documentation locally:
 pip install -e ".[docs]"
 mkdocs serve
 ```
+
+The same extra brings `reportlab`, which the manual and onepager generators
+(`docs/generate_*.py`) need.

@@ -4,3 +4,8 @@
 *.png binary
 *.xlsx binary
 *.pptx binary
+
+# Git-Hooks laufen in der Shell: CRLF bricht sie ("bad interpreter"). Immer LF,
+# egal mit welcher autocrlf-Einstellung ausgecheckt wird (setup_hooks.py kopiert
+# die Dateien byteweise).
+scripts/hooks/* text eol=lf
