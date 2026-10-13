@@ -103,6 +103,7 @@ def run_generate(
     pi_duration_weeks: int = 12,
     pattern_strength: float = 0.5,
     realism: float = 0.0,
+    transition_profile: Path | None = None,
     log: Callable[[str], None] = print,
 ) -> None:
     """
@@ -130,6 +131,8 @@ def run_generate(
         pattern_strength:  Pattern intensity 0.0–1.0 (0=subtle, 0.5=default, 1.0=strong).
         realism:           Untidiness of the stage paths 0.0–1.0 (0 = plain chain,
                            ~0.7 = like a real ART); see paths.py.
+        transition_profile: Profile JSON learned from real transitions (learn.py);
+                           path and dwell times then come from the data.
         log:               Callable for progress messages.
     """
     effective_from = from_date or date(2025, 1, 1)
@@ -163,10 +166,14 @@ def run_generate(
         pi_duration_weeks=pi_duration_weeks,
         pattern_strength=pattern_strength,
         realism=realism,
+        transition_profile=str(transition_profile) if transition_profile else None,
     )
 
     log(f"Generating {issue_count} issues for project '{project_key}'…")
-    if realism > 0:
+    if transition_profile:
+        log(f"Transition profile: {transition_profile} (path and dwell from real data; "
+            f"realism/backflow/completion/to-do knobs do not apply to the path)")
+    elif realism > 0:
         log(f"Realism: {realism:.2f} (skips, cancels, parking, self-loops, reopening)")
     if pattern != PATTERN_NONE:
         log(f"Pattern: {pattern}" + (
@@ -190,6 +197,33 @@ def run_generate(
     log(f"  Open issues:   {open_count}")
 
 
+def run_learn(source: Path, output: Path | None = None, workflow: Path | None = None,
+              log: Callable[[str], None] = print) -> Path | None:
+    """
+    Learn a transition profile from a real transitions file (XLSX/CSV).
+
+    With ``workflow`` the profile is restricted to that workflow's stages.
+    Returns the written profile path, or None on a clean error (logged).
+    """
+    from .learn import LearnError, learn_profile, save_profile
+
+    stages = parse_workflow(workflow).stages if workflow else None
+    try:
+        profile = learn_profile(source, stages=stages)
+    except LearnError as exc:
+        log(f"ERROR: {exc}")
+        return None
+    target = output or source.with_name(f"{source.stem}_profile.json")
+    target.parent.mkdir(parents=True, exist_ok=True)
+    save_profile(target, profile)
+    log(f"Profile written to: {target}")
+    log(f"  Issues:      {profile.issues}")
+    log(f"  Transitions: {profile.transitions}")
+    log(f"  Stages:      {', '.join(profile.stages)}")
+    log("  Contains counts and hours only - no keys, no texts, no dates.")
+    return target
+
+
 def run_continue(
     source: Path,
     workflow: Path,
@@ -199,6 +233,7 @@ def run_continue(
     rate_per_day: float | None = None,
     seed: int | None = None,
     realism: float | None = None,
+    transition_profile: Path | None = None,
     log: Callable[[str], None] = print,
 ) -> Path | None:
     """
@@ -218,9 +253,12 @@ def run_continue(
     workflow_spec = parse_workflow(workflow)
     config = None
     meta = read_meta(data)
-    if meta is not None and realism is not None:
+    if meta is not None and (realism is not None or transition_profile is not None):
         config = config_from_meta(meta)
-        config.realism = realism
+        if realism is not None:
+            config.realism = realism
+        if transition_profile is not None:
+            config.transition_profile = str(transition_profile)
     log(f"Continuing {source.name}: last cut "
         f"{meta['to_date'] if meta else '(from the youngest timestamp)'} -> {to_date}")
     try:
@@ -330,6 +368,18 @@ def main() -> None:
     parser.add_argument("--rate-per-day", type=float, default=None, dest="rate_per_day",
                         help="With --continue: new issues per day (default: the "
                              "rate of the earlier window).")
+    parser.add_argument("--learn-from", type=Path, default=None, dest="learn_from",
+                        metavar="TRANSITIONS.xlsx",
+                        help="Learn a transition profile from a real transitions file "
+                             "(XLSX or CSV from transform_data) and stop (0.41.0). "
+                             "Writes <name>_profile.json (or --output); with "
+                             "--workflow restricted to that workflow's stages. The "
+                             "profile holds counts and hours only.")
+    parser.add_argument("--transition-profile", type=Path, default=None,
+                        dest="transition_profile", metavar="PROFILE.json",
+                        help="Generate (or continue) with a learned profile: stage paths "
+                             "and dwell times follow the real data; realism, backflow, "
+                             "completion and to-do knobs do not apply to the path.")
     parser.add_argument("--realism", type=int, default=0,
                         help="Untidiness of the stage paths 0-100: 0 = plain chain "
                              "(default, as before 0.38.0), about 70 = like a real ART "
@@ -363,6 +413,10 @@ def main() -> None:
             scale=args.scale, art_profiles=art_profiles)
         return
 
+    if args.learn_from is not None:
+        written = run_learn(args.learn_from, output=args.output, workflow=args.workflow)
+        sys.exit(0 if written else 1)
+
     if args.workflow is None:
         parser.error("--workflow is required (unless --scenario is used).")
 
@@ -375,7 +429,8 @@ def main() -> None:
         written = run_continue(
             args.continue_from, args.workflow, args.to_date, output=args.output,
             new_issue_count=explicit_issues, rate_per_day=args.rate_per_day,
-            seed=args.seed, realism=explicit_realism)
+            seed=args.seed, realism=explicit_realism,
+            transition_profile=args.transition_profile)
         sys.exit(0 if written else 1)
 
     issue_types: dict[str, float] | None = None
@@ -412,6 +467,7 @@ def main() -> None:
         pattern=args.pattern,
         pi_duration_weeks=args.pi_duration_weeks,
         pattern_strength=args.pattern_strength / 100.0,
+        transition_profile=args.transition_profile,
         realism=max(0, min(100, args.realism)) / 100.0,
     )
 

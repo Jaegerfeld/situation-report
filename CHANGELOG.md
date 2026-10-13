@@ -5,6 +5,28 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [0.41.0] – 2026-10-13
+
+### Added
+- **Testdaten-Generator: Lernen aus echten Daten (`--learn-from`, `--transition-profile`).**
+  Letzter Schritt der Überarbeitung (Auftrag Robert 13.10.2026). `--learn-from
+  Transitions.xlsx` liest eine Transitions-Datei aus transform_data (XLSX oder CSV) und
+  schätzt ein **Übergangsprofil**: Verteilung der ersten Stufe, Übergangsmatrix erster Ordnung
+  mit Endzustand (wo Vorgänge stehen bleiben), Verweildauern je Ausgangsstufe. Das Profil
+  enthält **nur Stufennamen, Zählungen und Stunden** — keine Schlüssel, Texte oder
+  Zeitpunkte; per Test gesichert. `--transition-profile PROFIL.json` erzeugt (und schreibt
+  fort) mit dieser Struktur: Pfad und Verweildauern aus den Daten, Fertig-Quote folgt den
+  Daten; `--mean-cycle-days` und die Flow-Muster bleiben wirksam und verteilen die Cycle-Time
+  auf den gelernten Pfad. Mit `--workflow` beim Lernen wird das Profil auf die Stages des
+  Workflows beschränkt; fremde Stufennamen werden beim Erzeugen abgewiesen. Gemessen: ein mit
+  dem ART_A-Profil erzeugter Satz liegt bei Paarvielfalt, Rückwärts- und Schleifenanteil und
+  Übergängen je Vorgang in den Korridoren des Originals (Test). GUI: Feld **Übergangsprofil**
+  und Knopf **Aus Transitions lernen…**; Vorlagenfeld `profile`. Tests `test_learn.py`.
+  Manual in fünf Sprachen, mkdocs DE/EN, **Onepager „Testdaten-Generator 2.0“ DE/EN** für die
+  ganze Serie (0.38.0–0.41.0).
+
+---
+
 ## [0.40.0] – 2026-10-13
 
 ### Added

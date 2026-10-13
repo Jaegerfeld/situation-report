@@ -127,6 +127,10 @@ _T: dict[str, dict[str, str]] = {
         "lbl_pattern":          "Muster",
         "lbl_pattern_strength": "Musterstärke (0–100)",
         "lbl_realism":        "Realismus (0–100)",
+        "lbl_profile":        "Übergangsprofil (JSON, optional)",
+        "btn_learn":          "Aus Transitions lernen…",
+        "dlg_learn_src":      "Transitions-Datei (XLSX/CSV) wählen",
+        "log_learn_done":     "Profil gelernt: {}",
         "err_realism":        "FEHLER: Realismus muss eine ganze Zahl zwischen 0 und 100 sein.",
         "lbl_pi_weeks":         "PI-Dauer (Wochen)",
         "lbl_log":            "Log",
@@ -238,6 +242,10 @@ _T: dict[str, dict[str, str]] = {
         "lbl_pattern":          "Pattern",
         "lbl_pattern_strength": "Pattern Strength (0–100)",
         "lbl_realism":        "Realism (0–100)",
+        "lbl_profile":        "Transition profile (JSON, optional)",
+        "btn_learn":          "Learn from Transitions…",
+        "dlg_learn_src":      "Choose the transitions file (XLSX/CSV)",
+        "log_learn_done":     "Profile learned: {}",
         "err_realism":        "ERROR: Realism must be an integer between 0 and 100.",
         "lbl_pi_weeks":         "PI Duration (weeks)",
         "lbl_log":            "Log",
@@ -326,7 +334,7 @@ _TEMPLATE_FIELDS = (
     "workflow", "output", "project", "issues", "from_date", "to_date",
     "issue_types", "completion", "todo", "backflow", "seed",
     "mean_cycle", "std_cycle", "pattern", "pattern_strength", "pi_weeks",
-    "realism",
+    "realism", "profile",
 )
 
 
@@ -577,6 +585,7 @@ class _App:
         # 0.38.0: the GUI is the demo path — it starts untidy like a real ART;
         # the CLI keeps 0 (scripts and tests rely on the plain chain).
         self._var_realism          = tk.StringVar(value="60")
+        self._var_profile          = tk.StringVar(value="")
         self._lang_var        = tk.StringVar(value=_load_lang_pref())
         self._flag_imgs: dict[str, tk.PhotoImage] = {}
         self._create_flag_imgs()
@@ -691,11 +700,16 @@ class _App:
             frame, 17, "lbl_realism", self._var_realism, 0, 100
         )
 
+        # ── Transition profile row (0.41.0) ──────────────────────────────────
+        row(18, "lbl_profile", self._var_profile, self._browse_profile)
+
         # ── Run + Report + Progress ───────────────────────────────────────────
         btn_frame = ttk.Frame(frame)
-        btn_frame.grid(row=18, column=0, columnspan=3, pady=(10, 4))
+        btn_frame.grid(row=19, column=0, columnspan=3, pady=(10, 4))
         self._btn_run = ttk.Button(btn_frame, text="Generate", command=self._run)
         self._btn_run.pack(side="left", padx=(0, 6))
+        self._btn_learn = ttk.Button(btn_frame, text="Learn…", command=self._learn)
+        self._btn_learn.pack(side="left", padx=(0, 6))
         # 0.39.0: continue an earlier extract as a second one (see _continue)
         self._btn_continue = ttk.Button(btn_frame, text="Continue…", command=self._continue)
         self._btn_continue.pack(side="left", padx=(0, 6))
@@ -707,14 +721,14 @@ class _App:
 
         # ── Demo portfolio section ────────────────────────────────────────────
         ttk.Separator(frame, orient="horizontal").grid(
-            row=19, column=0, columnspan=3, sticky="ew", pady=(8, 4)
+            row=20, column=0, columnspan=3, sticky="ew", pady=(8, 4)
         )
         lbl_scen = ttk.Label(frame, text="")
-        lbl_scen.grid(row=20, column=0, columnspan=3, sticky="w")
+        lbl_scen.grid(row=21, column=0, columnspan=3, sticky="w")
         self._labels["lbl_scenario"] = lbl_scen
 
         scen_frame = ttk.Frame(frame)
-        scen_frame.grid(row=21, column=0, columnspan=3, pady=(4, 4))
+        scen_frame.grid(row=22, column=0, columnspan=3, pady=(4, 4))
         self._lbl_scale = ttk.Label(scen_frame, text="Scale:")
         self._lbl_scale.pack(side="left", padx=(0, 4))
         # Register-Umfang je Solution: s = nur Anker, m = Demo, l = Stress.
@@ -769,7 +783,7 @@ class _App:
         ).pack(side="left")
 
         self._progress = ttk.Progressbar(frame, mode="indeterminate")
-        self._progress.grid(row=22, column=0, columnspan=3, sticky="ew")
+        self._progress.grid(row=23, column=0, columnspan=3, sticky="ew")
         self._progress.grid_remove()
 
     def _slider_row(
@@ -843,6 +857,7 @@ class _App:
             lbl.configure(text=self._t(key))
         self._btn_run.configure(text=self._t("btn_run"))
         self._btn_continue.configure(text=self._t("btn_continue"))
+        self._btn_learn.configure(text=self._t("btn_learn"))
         self._btn_report.configure(text=self._t("btn_report"))
         self._btn_scenario.configure(text=self._t("btn_scenario"))
         self._btn_scenario_continue.configure(text=self._t("btn_scenario_continue"))
@@ -960,6 +975,7 @@ class _App:
             "pattern_strength": self._var_pattern_strength,
             "pi_weeks": self._var_pi_weeks,
             "realism": self._var_realism,
+            "profile": self._var_profile,
         }
 
     def _save_template(self) -> None:
@@ -1072,6 +1088,28 @@ class _App:
                 return None
         return result if result else None
 
+    def _browse_profile(self) -> None:
+        path = filedialog.askopenfilename(
+            title=self._t("lbl_profile"),
+            filetypes=[("JSON files", "*.json"), ("All files", "*.*")])
+        if path:
+            self._var_profile.set(path)
+
+    def _learn(self) -> None:
+        """Learn a transition profile from a real transitions file and use it."""
+        source = filedialog.askopenfilename(
+            title=self._t("dlg_learn_src"),
+            filetypes=[("Transitions", "*.xlsx *.csv"), ("All files", "*.*")])
+        if not source:
+            return
+        from .cli import run_learn
+        workflow_str = self._var_workflow.get().strip()
+        written = run_learn(Path(source), workflow=Path(workflow_str) if workflow_str else None,
+                            log=self._log_msg)
+        if written is not None:
+            self._var_profile.set(str(written))
+            self._log_msg(self._t("log_learn_done").format(written))
+
     def _continue(self) -> None:
         """
         Continue an earlier extract (0.39.0): the chosen JSON keeps its past,
@@ -1117,9 +1155,12 @@ class _App:
         def _do() -> None:
             try:
                 from .cli import run_continue
+                profile_str = self._var_profile.get().strip()
                 written = run_continue(
                     Path(source), Path(workflow_str), to_date, seed=seed,
-                    realism=raw_realism / 100.0, log=self._log_msg)
+                    realism=raw_realism / 100.0,
+                    transition_profile=Path(profile_str) if profile_str else None,
+                    log=self._log_msg)
                 if written is not None:
                     self._last_report = {"json": written, "workflow": Path(workflow_str)}
                     self._root.after(0, lambda: self._log_msg(
@@ -1319,6 +1360,8 @@ class _App:
                     pi_duration_weeks=pi_duration_weeks,
                     pattern_strength=pattern_strength,
                     realism=realism,
+                    transition_profile=(Path(self._var_profile.get().strip())
+                                        if self._var_profile.get().strip() else None),
                     log=self._log_msg,
                 )
                 self._last_report = {

@@ -25,7 +25,15 @@ import random
 from dataclasses import dataclass, field
 from datetime import date, datetime, timedelta, timezone
 from math import ceil
+from pathlib import Path
 
+from .learn import (
+    TransitionProfile,
+    check_profile_fits,
+    load_profile,
+    sample_dwell_hours,
+    sample_profile_path,
+)
 from .paths import PathSpec, detect_parking, knobs_at, sample_path
 from .workflow_parser import WorkflowSpec
 
@@ -63,6 +71,9 @@ class GeneratorConfig:
                            real ART. Applies in every mode, patterns included.
         parking_stage:     Name of the side-track stage (e.g. "Blocker"); None = detect
                            by name, see paths.PARKING_NAMES.
+        transition_profile: Path to a profile JSON learned from real transitions
+                           (``--learn-from``). Path and dwell times then come from the
+                           data; realism/backflow/completion/to-do knobs are ignored.
     """
 
     project_key: str = "TEST"
@@ -85,6 +96,11 @@ class GeneratorConfig:
     pattern_strength: float = 0.5
     realism: float = 0.0
     parking_stage: str | None = None
+    #: Path to a transition profile learned from a real transitions file
+    #: (learn.py, 0.41.0). With a profile the stage path and the dwell times
+    #: come from the data; realism, backflow_prob, completion_rate and
+    #: todo_rate are not used for the path.
+    transition_profile: str | None = None
 
 
 def _fmt_dt(dt: datetime) -> str:
@@ -214,6 +230,7 @@ def _simulate_issue(  # noqa: C901
     target_ct_hours: float | None = None,
     target_closed_dt: datetime | None = None,
     _prerolled_incomplete: bool = False,
+    profile: TransitionProfile | None = None,
 ) -> dict:
     """
     Simulate a single Jira issue with status transitions along the workflow.
@@ -290,19 +307,30 @@ def _simulate_issue(  # noqa: C901
         config.to_date.year, config.to_date.month, config.to_date.day,
         23, 59, 59, tzinfo=timezone(timedelta(hours=1)),
     )
-    spec = PathSpec(
-        n_stages=len(stages), first_idx=first_idx, closed_idx=closed_idx,
-        target_idx=target_idx,
-        parking_idx=detect_parking(stages, config.parking_stage),
-        # Pattern mode used to be strictly forward; with realism on, the
-        # backflow scales in so patterns and realism combine (0 stays 0).
-        backflow_prob=(config.backflow_prob * config.realism if target_ct_hours is not None
-                       else config.backflow_prob),
-        knobs=knobs_at(config.realism),
-    )
-    path = sample_path(spec, rng)
+    if profile is not None:
+        # Learned structure (0.41.0): the data decide the path - and the
+        # dwell per source stage, unless a cycle-time budget shapes the time.
+        path = [stages.index(name) for name in sample_profile_path(profile, rng)]
+    else:
+        spec = PathSpec(
+            n_stages=len(stages), first_idx=first_idx, closed_idx=closed_idx,
+            target_idx=target_idx,
+            parking_idx=detect_parking(stages, config.parking_stage),
+            # Pattern mode used to be strictly forward; with realism on, the
+            # backflow scales in so patterns and realism combine (0 stays 0).
+            backflow_prob=(config.backflow_prob * config.realism if target_ct_hours is not None
+                           else config.backflow_prob),
+            knobs=knobs_at(config.realism),
+        )
+        path = sample_path(spec, rng)
     if target_ct_hours is not None:
         dwells = [max(1.0, d) for d in _fill_time_budget(rng, len(path), target_ct_hours)]
+    elif profile is not None:
+        dwells, prev = [], 0
+        for nxt in path:
+            fallback = float(rng.randint(config.min_dwell_hours, config.max_dwell_hours))
+            dwells.append(sample_dwell_hours(profile, stages[prev], rng, fallback))
+            prev = nxt
     else:
         dwells = [float(rng.randint(config.min_dwell_hours, config.max_dwell_hours))
                   for _ in path]
@@ -346,6 +374,16 @@ def _simulate_issue(  # noqa: C901
     }
 
 
+def load_transition_profile(config: GeneratorConfig,
+                            workflow: WorkflowSpec) -> TransitionProfile | None:
+    """The configured profile, checked against the workflow; None without one."""
+    if not config.transition_profile:
+        return None
+    profile = load_profile(Path(config.transition_profile))
+    check_profile_fits(profile, workflow.stages)
+    return profile
+
+
 def generate(workflow: WorkflowSpec, config: GeneratorConfig) -> dict:
     """
     Generate synthetic Jira issues in REST API JSON format.
@@ -360,6 +398,7 @@ def generate(workflow: WorkflowSpec, config: GeneratorConfig) -> dict:
     """
     rng = random.Random(config.seed)
     n = config.issue_count
+    profile = load_transition_profile(config, workflow)
 
     pi_ends: list[date] = []
     if config.pattern in (PATTERN_CLUSTER, PATTERN_BATCH):
@@ -418,7 +457,7 @@ def generate(workflow: WorkflowSpec, config: GeneratorConfig) -> dict:
 
         issues.append(
             _simulate_issue(workflow, config, rng, i, target_ct_hours, target_closed_dt,
-                            _prerolled_incomplete=prerolled_incomplete)
+                            _prerolled_incomplete=prerolled_incomplete, profile=profile)
         )
 
     # The generator record (0.39.0): to_date, seed, knobs and stages next to
