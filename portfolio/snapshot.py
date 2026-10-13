@@ -35,6 +35,7 @@ from .aggregator import (
     _collect_nfr,
     _collect_risks,
     _collect_slo,
+    _collect_solution_areas,
     _collect_themes,
     build_pooled_report_data,
     load_comparison_units,
@@ -109,7 +110,7 @@ def _governance_dict(
     Collect the governance registers into snapshot entries.
 
     Seven since 12.10.2026: flow problems (B6) and SLOs (C1) joined the
-    original five. Flow problems carry no owner or raiser here — the
+    original five; eight since 13.10.2026 with the solution areas (P5). Flow problems carry no owner or raiser here — the
     snapshot feeds the LLM contracts, and those name teams, never persons;
     an SLO's status is derived centrally (slo_config), never stored.
     """
@@ -149,9 +150,15 @@ def _governance_dict(
              "status": slo_status(s), "target_pct": s.target_pct,
              "sli_pct": s.sli_pct, "window": s.window, "solution": src}
             for src, s in _collect_slo(config, log=log)]
+    areas = [{"id": a.area_id, "title": a.title, "topic": a.topic,
+              "participants": list(a.participants), "status": a.status,
+              "opened_on": _iso(a.opened_on), "closed_on": _iso(a.closed_on),
+              "solution": src}
+             for src, a in _collect_solution_areas(config, log=log)]
     return {"risks": risks, "dependencies": deps, "nfr": nfrs,
             "runway": runway, "capabilities": caps, "decisions": decisions,
-            "epics": epics, "flow_problems": flow, "slo": slos}
+            "epics": epics, "flow_problems": flow, "slo": slos,
+            "solution_areas": areas}
 
 
 def build_snapshot(

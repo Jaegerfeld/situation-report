@@ -351,10 +351,10 @@ def content_de(st: dict) -> list:
             ["Speichern", "Die Konfiguration als JSON sichern (= wiederverwendbares "
                           "Template)."],
             ["Laden", "Eine gespeicherte Konfiguration öffnen."],
-            ["Datenquellen …", "Dialog mit den zehn Register-Pfaden der "
+            ["Datenquellen …", "Dialog mit den elf Register-Pfaden der "
                                "Solution (Risiken, NFR, Capabilities, "
                                "Dependencies, Decisions, SLO, DORA, "
-                               "Flussprobleme, Themes, Harmonisierungs-Ordner) samt Status je Feld "
+                               "Flussprobleme, Themes, Harmonisierungs-Ordner, Solution Areas) samt Status je Feld "
                                "(gefunden/leer/FEHLT). „Aus Datenraum "
                                "übernehmen …“ füllt die Felder per "
                                "Konvention aus registers/; beim Portfolio "
@@ -775,6 +775,15 @@ def content_de(st: dict) -> list:
            "Empfehlung. <font name='Courier'>--kata</font> (GUI-Haken Kata) rendert das "
            "leere Übungsblatt des Curriculums. GUI: Knopf Einseiter …", st),
         _SP(6),
+        _H2("5.18  Solution Areas & Rekurrenz je Naht (P5)", st), _hr(st),
+        _P("Dynamische Solution Areas sollten selten sein; kehrt dieselbe an derselben "
+           "Naht wieder, ist das ein Organisations- oder Architektur-Anti-Pattern. Das "
+           "Register (<font name='Courier'>solution_areas.json</font>: Anlass als kurzer "
+           "Schlüssel, mindestens zwei Beteiligte, Eröffnung, Schließung) wird je Naht "
+           "gruppiert; derselbe Anlass zweimal wird hervorgehoben, ab dreimal ist es das "
+           "EA-Signal: Value-Stream-Schnitt oder Architektur prüfen, nicht die Teams. "
+           "Erscheint in Report, Konferenzmappe (Input 2), Snapshot/Delta, Einseiter.", st),
+        _SP(6),
         _H1("6. Kommandozeile (CLI)", st), _hr(st),
         _P("Für Automatisierung und reproduzierbare Reports:", st),
         _CD("python -m portfolio meine_solution.json --output report.html", st),
@@ -892,10 +901,10 @@ def content_en(st: dict) -> list:
             ["Report mode", "Pooled or Comparison (see section 5)."],
             ["Save", "Save the configuration as JSON (= a reusable template)."],
             ["Load", "Open a saved configuration."],
-            ["Data sources …", "Dialog with the solution's ten register "
+            ["Data sources …", "Dialog with the solution's eleven register "
                                "paths (risks, NFR, capabilities, "
                                "dependencies, decisions, SLO, DORA, flow "
-                               "problems, themes, harmonisation folder) plus a per-field status "
+                               "problems, themes, harmonisation folder, solution areas) plus a per-field status "
                                "(found/empty/MISSING). 'Take from data "
                                "folder …' fills the fields by convention "
                                "from registers/; for a portfolio the "
@@ -1302,6 +1311,15 @@ def content_en(st: dict) -> list:
            "recommendation. <font name='Courier'>--kata</font> (GUI box Kata) renders the "
            "empty practice sheet of the curriculum. GUI: button One-pager ...", st),
         _SP(6),
+        _H2("5.18  Solution areas & recurrence per seam (P5)", st), _hr(st),
+        _P("Dynamic solution areas should be rare; the same one recurring at the same "
+           "seam is an organisational or architectural anti-pattern. The register "
+           "(<font name='Courier'>solution_areas.json</font>: topic as a short key, at "
+           "least two participants, opened/closed dates) is grouped per seam; the same "
+           "topic twice is highlighted, from three times on it is the EA signal: check "
+           "the value-stream cut or the architecture, not the teams. Appears in the "
+           "report, the conference pre-read (input 2), snapshot/delta, one-pager.", st),
+        _SP(6),
         _H1("6. Command line (CLI)", st), _hr(st),
         _P("For automation and reproducible reports:", st),
         _CD("python -m portfolio my_solution.json --output report.html", st),
@@ -1417,7 +1435,7 @@ def content_ro(st: dict) -> list:
             ["Mod raport", "Pooled sau Comparison (vezi sectiunea 5)."],
             ["Salveaza", "Salvati configuratia ca JSON (= template reutilizabil)."],
             ["Incarca", "Deschideti o configuratie salvata."],
-            ["Surse de date …", "Dialog cu cele zece cai de registre ale "
+            ["Surse de date …", "Dialog cu cele unsprezece cai de registre ale "
                                "solutiei (riscuri, NFR, capabilities, "
                                "dependente, decizii, SLO, DORA, probleme "
                                "de flux, teme, folderul de armonizare) plus status per camp "
@@ -1790,6 +1808,14 @@ def content_ro(st: dict) -> list:
            "doar puncte de decizie si lasa prezentatorului un rand - nicio recomandare. "
            "<font name='Courier'>--kata</font> reda fisa goala de exercitiu. GUI: buton O pagina ...", st),
         _SP(6),
+        _H2("5.18  Solution areas & recurenta per cusatura (P5)", st), _hr(st),
+        _P("Solution areas dinamice ar trebui sa fie rare; aceeasi arie care revine la "
+           "aceeasi cusatura este un anti-pattern organizational sau arhitectural. "
+           "Registrul (<font name='Courier'>solution_areas.json</font>: motiv ca cheie "
+           "scurta, cel putin doi participanti, date de deschidere/inchidere) este grupat "
+           "per cusatura; acelasi motiv de doua ori este evidentiat, de la trei ori este "
+           "semnalul EA: verificati taietura value stream sau arhitectura, nu echipele.", st),
+        _SP(6),
         _H1("6. Linia de comanda (CLI)", st), _hr(st),
         _P("Pentru automatizare si rapoarte reproductibile:", st),
         _CD("python -m portfolio solutia_mea.json --output report.html", st),
@@ -1906,7 +1932,7 @@ def content_pt(st: dict) -> list:
             ["Modo de relatorio", "Pooled ou Comparison (ver seccao 5)."],
             ["Guardar", "Guardar a configuracao como JSON (= template reutilizavel)."],
             ["Carregar", "Abrir uma configuracao guardada."],
-            ["Fontes de dados …", "Dialogo com os dez caminhos de "
+            ["Fontes de dados …", "Dialogo com os onze caminhos de "
                                "registos da solution (riscos, NFR, "
                                "capabilities, dependencias, decisoes, "
                                "SLO, DORA, problemas de fluxo, temas, pasta de harmonizacao) e "
@@ -2283,6 +2309,14 @@ def content_pt(st: dict) -> list:
            "nenhuma recomendacao. <font name='Courier'>--kata</font> gera a folha de "
            "exercicio vazia. GUI: botao Uma pagina ...", st),
         _SP(6),
+        _H2("5.18  Solution areas & recorrencia por costura (P5)", st), _hr(st),
+        _P("Solution areas dinamicas devem ser raras; a mesma a repetir-se na mesma "
+           "costura e um anti-padrao organizacional ou arquitetural. O registo "
+           "(<font name='Courier'>solution_areas.json</font>: motivo como chave curta, "
+           "pelo menos dois participantes, datas de abertura/fecho) e agrupado por "
+           "costura; o mesmo motivo duas vezes e destacado, a partir de tres vezes e o "
+           "sinal EA: verificar o corte de value stream ou a arquitetura, nao as equipas.", st),
+        _SP(6),
         _H1("6. Linha de comandos (CLI)", st), _hr(st),
         _P("Para automacao e relatorios reproduziveis:", st),
         _CD("python -m portfolio a_minha_solucao.json --output report.html", st),
@@ -2399,7 +2433,7 @@ def content_fr(st: dict) -> list:
             ["Mode de rapport", "Pooled ou Comparison (voir section 5)."],
             ["Enregistrer", "Enregistrer la configuration en JSON (= template reutilisable)."],
             ["Charger", "Ouvrir une configuration enregistree."],
-            ["Sources de donnees …", "Dialogue avec les dix chemins de "
+            ["Sources de donnees …", "Dialogue avec les onze chemins de "
                                "registres de la solution (risques, NFR, "
                                "capabilities, dependances, decisions, "
                                "SLO, DORA, problemes de flux, themes, dossier d'harmonisation) et "
@@ -2796,6 +2830,15 @@ def content_fr(st: dict) -> list:
            "points de decision et laisse une ligne au presentateur - aucune "
            "recommandation. <font name='Courier'>--kata</font> rend la fiche d'exercice "
            "vide. GUI : bouton Une page ...", st),
+        _SP(6),
+        _H2("5.18  Solution areas & recurrence par couture (P5)", st), _hr(st),
+        _P("Les solution areas dynamiques devraient etre rares ; la meme qui revient a "
+           "la meme couture est un anti-pattern organisationnel ou architectural. Le "
+           "registre (<font name='Courier'>solution_areas.json</font> : motif comme cle "
+           "courte, au moins deux participants, dates d'ouverture/fermeture) est groupe "
+           "par couture ; le meme motif deux fois est mis en evidence, a partir de trois "
+           "fois c'est le signal EA : verifier la decoupe value stream ou l'architecture, "
+           "pas les equipes.", st),
         _SP(6),
         _H1("6. Ligne de commande (CLI)", st), _hr(st),
         _P("Pour l'automatisation et des rapports reproductibles :", st),

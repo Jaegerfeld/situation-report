@@ -83,6 +83,7 @@ from .nfr_config import Nfr, RunwayItem, load_nfr
 from .report_texts import DEFAULT_LANG, t
 from .risks_config import Risk, load_risks
 from .slo_config import load_slo
+from .solution_areas_config import SolutionArea, load_solution_areas
 from .solution_config import (
     KIND_PORTFOLIO,
     KIND_SOLUTION,
@@ -115,10 +116,12 @@ from .summary import (
     render_quality_html,
     render_roam_html,
     render_slo_html,
+    render_solution_areas_html,
     render_summary_html,
     render_themes_html,
     roam_figure,
     slo_figure,
+    solution_areas_figure,
     summary_figure,
     themes_figure,
 )
@@ -846,6 +849,28 @@ def _collect_harmonisation(
     return entries
 
 
+def _collect_solution_areas(
+    config: SolutionConfig,
+    log: Callable[[str], None] = print,
+) -> list[tuple[str, SolutionArea]]:
+    """
+    Collect solution areas for the report (P5) — same rules as the other
+    governance registers; broken or missing files are logged and skipped.
+    """
+    entries: list[tuple[str, SolutionArea]] = []
+    for label, sub in _governance_sources(config, log):
+        if not sub.solution_areas:
+            continue
+        try:
+            register = load_solution_areas(
+                resolve_config_path(sub.base_dir, sub.solution_areas, log))
+        except (OSError, ValueError, json.JSONDecodeError) as exc:
+            log(f"  WARNING [{label}]: solution-areas file skipped ({exc})")
+            continue
+        entries.extend((label, area) for area in register.areas)
+    return entries
+
+
 def _collect_themes(
     config: SolutionConfig,
     log: Callable[[str], None] = print,
@@ -1097,6 +1122,8 @@ def render_html(
                                       lang=lang)
     flow = render_flow_problems_html(_collect_flow_problems(config, log=log),
                                      lang=lang)
+    areas = render_solution_areas_html(_collect_solution_areas(config, log=log),
+                                       lang=lang)
     theme_entries, epic_entries = _collect_themes(config, log=log)
     themes = render_themes_html(theme_entries, epic_entries, lang=lang)
     slo = render_slo_html(_collect_slo(config, log=log), lang=lang)
@@ -1105,7 +1132,7 @@ def render_html(
     # The key goes above the first shaded table, not at the end: a reader who
     # meets a coloured cell should already have seen what the colour means.
     tables = (summary + quality + caps + roam + nfr + deps
-              + decision_point + decisions + flow + themes + slo + dora)
+              + decision_point + decisions + flow + areas + themes + slo + dora)
     key = render_legend_key_html(lang) if tables else ""
     return html.replace("<body>", "<body>" + key + tables, 1)
 
@@ -1154,6 +1181,17 @@ def render_pdf(
                  for u in art_units],
                 title=t("art.detail", lang),
                 target_ct=target_ct, lang=lang))
+    extra.extend(_governance_figures(config, lang, log))
+    pages[1:1] = extra
+    export_pdf(pages, Path(output_path))
+    log(f"PDF written to: {output_path}")
+    return True
+
+
+def _governance_figures(config: SolutionConfig, lang: str,
+                        log: Callable[[str], None]) -> list:
+    """The governance-register pages of the PDF, in report order; empty registers yield none."""
+    extra = []
     cap_entries = _collect_capabilities(config, log=log)
     if cap_entries:
         extra.append(capability_figure(cap_entries, lang=lang))
@@ -1175,6 +1213,9 @@ def render_pdf(
     flow_entries = _collect_flow_problems(config, log=log)
     if flow_entries:
         extra.append(flow_problems_figure(flow_entries, lang=lang))
+    area_entries = _collect_solution_areas(config, log=log)
+    if area_entries:
+        extra.append(solution_areas_figure(area_entries, lang=lang))
     theme_entries, epic_entries = _collect_themes(config, log=log)
     if theme_entries or epic_entries:
         extra.append(themes_figure(theme_entries, epic_entries, lang=lang))
@@ -1184,10 +1225,7 @@ def render_pdf(
     dora_entries, quality_entries = _collect_delivery(config, log=log)
     if dora_entries or quality_entries:
         extra.append(dora_figure(dora_entries, quality_entries, lang=lang))
-    pages[1:1] = extra
-    export_pdf(pages, Path(output_path))
-    log(f"PDF written to: {output_path}")
-    return True
+    return extra
 
 
 def render_pooled_html(
@@ -1298,6 +1336,8 @@ def render_conference_html(
             config, [u.source_prefix for u in units], 90, log=log, lang=lang)
     flow = render_flow_problems_html(_collect_flow_problems(config, log=log),
                                      lang=lang)
+    areas = render_solution_areas_html(_collect_solution_areas(config, log=log),
+                                       lang=lang)
     roam = render_roam_html(_collect_risks(config, log=log), lang=lang)
     deps = render_dependencies_html(_collect_dependencies(config, log=log),
                                     lang=lang)
@@ -1333,7 +1373,7 @@ def render_conference_html(
     )
     body = (
         block(t("vsc.input1", lang), summary, quality)
-        + block(t("vsc.input2", lang), flow, roam, deps)
+        + block(t("vsc.input2", lang), flow, areas, roam, deps)
         + block(t("vsc.input3", lang), caps, slo)
         + block(t("vsc.input4", lang), themes)
         + block(t("vsc.annex_harmonisation", lang), harmonisation)

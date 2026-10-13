@@ -42,6 +42,7 @@ _REGISTER_STATUS_FIELDS = {
     "decisions": "status",
     "flow_problems": "status",
     "epics": "status",
+    "solution_areas": "status",
 }
 
 

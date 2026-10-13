@@ -1268,6 +1268,49 @@ _TEXTS: dict[str, dict[str, str]] = {
         LANG_DE: "kein Entwurf:", LANG_EN: "no draft:", LANG_RO: "fără schiță:",
         LANG_PT: "sem rascunho:", LANG_FR: "pas de brouillon :",
     },
+    "areas.heading": {
+        LANG_DE: "Solution Areas & Rekurrenz je Naht", LANG_EN: "Solution areas & recurrence per seam",
+        LANG_RO: "Solution areas & recurență per cusătură", LANG_PT: "Solution areas & recorrência por costura",
+        LANG_FR: "Solution areas & récurrence par couture",
+    },
+    "areas.title": {
+        LANG_DE: "{title} — {areas} Areas · {seams} Nähte · {recurring} wiederkehrend · {signals} EA-Signal",
+        LANG_EN: "{title} — {areas} areas · {seams} seams · {recurring} recurring · {signals} EA signal",
+        LANG_RO: "{title} — {areas} areas · {seams} cusături · {recurring} recurente · {signals} semnal EA",
+        LANG_PT: "{title} — {areas} areas · {seams} costuras · {recurring} recorrentes · {signals} sinal EA",
+        LANG_FR: "{title} — {areas} areas · {seams} coutures · {recurring} récurrentes · {signals} signal EA",
+    },
+    "areas.col.seam": {
+        LANG_DE: "Naht (Beteiligte)", LANG_EN: "Seam (participants)", LANG_RO: "Cusătură (participanți)",
+        LANG_PT: "Costura (participantes)", LANG_FR: "Couture (participants)",
+    },
+    "areas.col.topics": {
+        LANG_DE: "Anlässe (Häufigkeit)", LANG_EN: "Topics (frequency)", LANG_RO: "Motive (frecvență)",
+        LANG_PT: "Motivos (frequência)", LANG_FR: "Motifs (fréquence)",
+    },
+    "areas.col.areas": {
+        LANG_DE: "Areas (aktiv)", LANG_EN: "Areas (active)", LANG_RO: "Areas (active)",
+        LANG_PT: "Areas (ativas)", LANG_FR: "Areas (actives)",
+    },
+    "areas.col.duration": {
+        LANG_DE: "Dauer gesamt (Tage)", LANG_EN: "Total duration (days)", LANG_RO: "Durată totală (zile)",
+        LANG_PT: "Duração total (dias)", LANG_FR: "Durée totale (jours)",
+    },
+    "areas.col.last": {
+        LANG_DE: "Zuletzt eröffnet", LANG_EN: "Last opened", LANG_RO: "Ultima deschidere",
+        LANG_PT: "Última abertura", LANG_FR: "Dernière ouverture",
+    },
+    "areas.col.recurrence": {
+        LANG_DE: "Rekurrenz", LANG_EN: "Recurrence", LANG_RO: "Recurență",
+        LANG_PT: "Recorrência", LANG_FR: "Récurrence",
+    },
+    "legend.area_recurring": {
+        LANG_DE: "wiederkehrend — derselbe Anlass mindestens zweimal an derselben Naht; ab dreimal EA-Signal (Value-Stream-Schnitt oder Architektur prüfen)",
+        LANG_EN: "recurring — the same topic at least twice at the same seam; from three times on an EA signal (check the value-stream cut or the architecture)",
+        LANG_RO: "recurent — același motiv de cel puțin două ori la aceeași cusătură; de la trei ori semnal EA (verificați tăietura value stream sau arhitectura)",
+        LANG_PT: "recorrente — o mesmo motivo pelo menos duas vezes na mesma costura; a partir de três vezes sinal EA (verificar o corte de value stream ou a arquitetura)",
+        LANG_FR: "récurrent — le même motif au moins deux fois à la même couture ; à partir de trois fois signal EA (vérifier la découpe value stream ou l'architecture)",
+    },
     "art.detail.quality": {
         LANG_DE: "ART-Detail — Datenqualität je ART",
         LANG_EN: "ART Detail — Data Quality per ART",

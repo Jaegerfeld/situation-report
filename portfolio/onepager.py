@@ -38,6 +38,7 @@ from .dora_config import unit_tier
 from .nfr_config import RUNWAY_GAP, STATUS_VIOLATED
 from .report_texts import DEFAULT_LANG
 from .slo_config import SLO_AT_RISK, SLO_BREACHED, slo_status
+from .solution_areas_config import AREA_ACTIVE, seams
 from .solution_config import SolutionConfig
 from .summary import CONFIDENCE_HIGH, CONFIDENCE_LOW, CONFIDENCE_MEDIUM
 
@@ -104,6 +105,9 @@ _T: dict[str, dict[str, str]] = {
         "b_survived": "{n} Flussproblem(e) überleben die dritte Konferenz",
         "b_slo": "{n} SLO verletzt", "b_nfr": "{n} NFR verletzt", "b_caps": "{n} Capability kritisch",
         "b_overdue": "{n} Abhängigkeiten überfällig",
+        "d_areas": "Solution Areas {n} · {active} aktiv · {recurring} Nähte wiederkehrend",
+        "d_decide_seam": "Naht prüfen (EA-Signal, ≥ 3× gleicher Anlass): {names}",
+        "b_seam": "{n} Naht/Nähte mit EA-Signal",
         "b_calm": "Lage im Rahmen der vereinbarten Schwellen",
         "b_tail": "{items} Vorgänge, Median-CT {median} d",
     },
@@ -157,6 +161,9 @@ _T: dict[str, dict[str, str]] = {
         "b_survived": "{n} flow problem(s) survive the third conference",
         "b_slo": "{n} SLO breached", "b_nfr": "{n} NFR violated", "b_caps": "{n} capability critical",
         "b_overdue": "{n} dependencies overdue",
+        "d_areas": "solution areas {n} · {active} active · {recurring} recurring seams",
+        "d_decide_seam": "check the seam (EA signal, same topic ≥ 3×): {names}",
+        "b_seam": "{n} seam(s) with EA signal",
         "b_calm": "situation within the agreed thresholds",
         "b_tail": "{items} items, median CT {median} d",
     },
@@ -210,6 +217,9 @@ _T: dict[str, dict[str, str]] = {
         "b_survived": "{n} problemă/probleme de flux supraviețuiesc a treia conferință",
         "b_slo": "{n} SLO încălcate", "b_nfr": "{n} NFR încălcate", "b_caps": "{n} capabilitate critică",
         "b_overdue": "{n} dependențe întârziate",
+        "d_areas": "solution areas {n} · {active} active · {recurring} cusături recurente",
+        "d_decide_seam": "verificați cusătura (semnal EA, același motiv ≥ 3×): {names}",
+        "b_seam": "{n} cusătură/cusături cu semnal EA",
         "b_calm": "situație în limitele pragurilor convenite",
         "b_tail": "{items} elemente, CT mediană {median} z",
     },
@@ -263,6 +273,9 @@ _T: dict[str, dict[str, str]] = {
         "b_survived": "{n} problema(s) de fluxo sobrevive(m) à terceira conferência",
         "b_slo": "{n} SLO violados", "b_nfr": "{n} NFR violados", "b_caps": "{n} capacidade crítica",
         "b_overdue": "{n} dependências atrasadas",
+        "d_areas": "solution areas {n} · {active} ativas · {recurring} costuras recorrentes",
+        "d_decide_seam": "verificar a costura (sinal EA, mesmo motivo ≥ 3×): {names}",
+        "b_seam": "{n} costura(s) com sinal EA",
         "b_calm": "situação dentro dos limiares acordados",
         "b_tail": "{items} itens, CT mediana {median} d",
     },
@@ -316,6 +329,9 @@ _T: dict[str, dict[str, str]] = {
         "b_survived": "{n} problème(s) de flux survivent à la troisième conférence",
         "b_slo": "{n} SLO violés", "b_nfr": "{n} NFR violés", "b_caps": "{n} capacité critique",
         "b_overdue": "{n} dépendances en retard",
+        "d_areas": "solution areas {n} · {active} actives · {recurring} coutures récurrentes",
+        "d_decide_seam": "vérifier la couture (signal EA, même motif ≥ 3×) : {names}",
+        "b_seam": "{n} couture(s) avec signal EA",
         "b_calm": "situation dans les seuils convenus",
         "b_tail": "{items} éléments, CT médiane {median} j",
     },
@@ -575,6 +591,8 @@ def _dim_dependencies(ctx: _Ctx) -> None:
     deps = [d for _, d in agg._collect_dependencies(config, log=quiet)]
     risks = [r for _, r in agg._collect_risks(config, log=quiet)]
     pressure = agg._collect_dependency_pressure(config, log=quiet)
+    areas = [a for _, a in agg._collect_solution_areas(config, log=quiet)]
+    area_seams = seams(areas)
     c = cells["dependencies"]
     if not pressure.applicable:
         c["q1"].lines.append(_tr(lang, "d_pressure_na"))
@@ -592,7 +610,12 @@ def _dim_dependencies(ctx: _Ctx) -> None:
         c["q1"].lines.append(_tr(lang, "d_risks", n=len(risks),
                                  owned=sum(1 for r in risks if r.roam == "owned"),
                                  unmitigated=sum(1 for r in risks if r.roam in ("owned", "accepted"))))
-    c["q1"].confidence = _age_conf([r.status_since for r in risks], today, bool(deps or risks))
+    if areas:
+        c["q1"].lines.append(_tr(lang, "d_areas", n=len(areas),
+                                 active=sum(1 for a in areas if a.status == AREA_ACTIVE),
+                                 recurring=sum(1 for s in area_seams if s.highlighted)))
+    c["q1"].confidence = _age_conf([r.status_since for r in risks] + [a.opened_on for a in areas],
+                                   today, bool(deps or risks or areas))
     if delta:
         dep_d, risk_d = section("dependencies"), section("risks")
         if dep_d and not dep_d.empty:
@@ -610,9 +633,15 @@ def _dim_dependencies(ctx: _Ctx) -> None:
         c["q3"].decide.append(_tr(lang, "d_decide_overdue",
                                   names=_names([d.title for d in overdue_deps])))
         bluf_parts.append(_tr(lang, "b_overdue", n=len(overdue_deps)))
+    signals = [s for s in area_seams if s.signal]
+    if signals:
+        c["q3"].decide.append(_tr(lang, "d_decide_seam", names=_names(
+            [f"{' × '.join(s.participants)} ({s.recurring_topic})" for s in signals])))
+        bluf_parts.append(_tr(lang, "b_seam", n=len(signals)))
     c["q3"].confidence = c["q1"].confidence
-    sources.append("dependencies, risks: " + (", ".join(
-        n for n, present in (("dependencies", bool(deps)), ("risks", bool(risks))) if present) or "–"))
+    sources.append("dependencies, risks, solution_areas: " + (", ".join(
+        n for n, present in (("dependencies", bool(deps)), ("risks", bool(risks)),
+                             ("solution_areas", bool(areas))) if present) or "–"))
 
 
 

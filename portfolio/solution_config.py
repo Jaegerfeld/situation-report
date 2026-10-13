@@ -41,8 +41,9 @@ from portfolio.report_texts import LANGUAGES
 # report."conference_date" (geplanter VSC-Termin) und report."language"
 # (Reportsprache), seit P3 Schritt 2 (12.10.2026) das optionale
 # "harmonisation"-Feld (ORDNER eines Harmonisierungs-Arbeitsbereichs, dessen
-# Matrix die Konferenzmappe als Anhang trägt) — alles additiv, daher kein
-# Schema-Bump.
+# Matrix die Konferenzmappe als Anhang trägt), seit P5 (13.10.2026) das
+# optionale "solution_areas"-Feld (Solution-Area-Register) — alles additiv,
+# daher kein Schema-Bump.
 SCHEMA_VERSION = 2
 APP_NAME = "situation_report"
 
@@ -194,6 +195,8 @@ class SolutionConfig:
         harmonisation: Optional path to a harmonisation-score workspace
                     FOLDER (P3); its decision matrix joins the conference
                     pre-read as an annex. "" means none.
+        solution_areas: Optional path to a solution-area register JSON (P5,
+                    recurrence per seam); "" means no register.
         language:   Report language ("de"/"en"/"ro"/"pt"/"fr"), or None to
                     follow whoever calls: the GUI passes its own language, the
                     CLI falls back to English. Set it only to pin a report to
@@ -225,6 +228,7 @@ class SolutionConfig:
     flow_problems: str = ""
     themes: str = ""
     harmonisation: str = ""
+    solution_areas: str = ""
     conference_date: date | None = None
     language: str | None = None
     #: Folder of the file this config was loaded from (set by
@@ -399,6 +403,7 @@ def parse_solution_config(data: dict[str, Any]) -> SolutionConfig:
         flow_problems=str(data.get("flow_problems", "")).strip(),
         themes=str(data.get("themes", "")).strip(),
         harmonisation=str(data.get("harmonisation", "")).strip(),
+        solution_areas=str(data.get("solution_areas", "")).strip(),
     )
 
 
@@ -476,7 +481,7 @@ def to_dict(config: SolutionConfig) -> dict[str, Any]:
         }
     for register in ("risks", "nfr", "capabilities", "dependencies",
                      "decisions", "slo", "dora", "flow_problems", "themes",
-                     "harmonisation"):
+                     "harmonisation", "solution_areas"):
         value = getattr(config, register)
         if value:
             out[register] = value

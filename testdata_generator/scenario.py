@@ -107,6 +107,7 @@ from portfolio.risks_config import (
     save_risks,
 )
 from portfolio.slo_config import SloRegister, save_slo
+from portfolio.solution_areas_config import SolutionArea, SolutionAreaRegister, save_solution_areas
 from portfolio.solution_config import (
     KIND_PORTFOLIO,
     Member,
@@ -540,6 +541,46 @@ def _beta_themes(story: str = STORY_NOW) -> ThemesRegister:
     )
 
 
+def _alpha_solution_areas(reference: date, story: str = STORY_NOW) -> SolutionAreaRegister:
+    """
+    Solution areas of Alpha: the same seam Alpha-1 × Alpha-3 opened a third
+    time for the same topic — the EA signal (P5). The third opening is only
+    in the now stand, so the delta documents the signal coming on.
+    """
+    areas = [
+        SolutionArea("SA-A1", "Shared test environment for order flow", "test environment",
+                     ["ART Alpha-1", "ART Alpha-3"],
+                     opened_on=reference - timedelta(days=220),
+                     closed_on=reference - timedelta(days=190)),
+        SolutionArea("SA-A2", "Shared test environment, second round", "test environment",
+                     ["ART Alpha-1", "ART Alpha-3"],
+                     opened_on=reference - timedelta(days=120),
+                     closed_on=reference - timedelta(days=95),
+                     notes="Same seam, same topic: second time."),
+        SolutionArea("SA-A4", "Checkout latency task force", "latency",
+                     ["ART Alpha-1", "ART Alpha-2"],
+                     opened_on=reference - timedelta(days=60),
+                     closed_on=reference - timedelta(days=35)),
+    ]
+    if story == STORY_NOW:
+        areas.insert(2, SolutionArea(
+            "SA-A3", "Shared test environment, third round", "test environment",
+            ["ART Alpha-1", "ART Alpha-3"],
+            opened_on=reference - timedelta(days=9),
+            notes="Third time at the same seam - the EA signal: this is a cut or "
+                  "architecture problem, not a team problem."))
+    return SolutionAreaRegister(areas=areas)
+
+
+def _beta_solution_areas(reference: date) -> SolutionAreaRegister:
+    """One active area in Beta - rare, as it should be."""
+    return SolutionAreaRegister(areas=[
+        SolutionArea("SA-B1", "Export quality working group", "export quality",
+                     ["ART Beta-1", "ART Beta-3"],
+                     opened_on=reference - timedelta(days=20)),
+    ])
+
+
 def _alpha_flow_problems(reference: date) -> FlowProblemRegister:
     """Flow problems of Solution Alpha: one has survived three conferences."""
     return FlowProblemRegister(problems=[
@@ -939,6 +980,7 @@ def build_portfolio_scenario(
             "dora": _alpha_delivery(reference),
             "flow_problems": _alpha_flow_problems(reference),
             "themes": _alpha_themes(story),
+            "solution_areas": _alpha_solution_areas(reference, story),
         },
         "beta": {
             "risks": _beta_risks(reference, story),
@@ -950,6 +992,7 @@ def build_portfolio_scenario(
             "dora": _beta_delivery(reference),
             "flow_problems": _beta_flow_problems(reference),
             "themes": _beta_themes(story),
+            "solution_areas": _beta_solution_areas(reference),
         },
     }
     savers = {"risks": save_risks, "nfr": save_nfr,
@@ -957,7 +1000,7 @@ def build_portfolio_scenario(
               "dependencies": save_dependencies,
               "decisions": save_decisions, "slo": save_slo,
               "dora": save_delivery, "flow_problems": save_flow_problems,
-              "themes": save_themes}
+              "themes": save_themes, "solution_areas": save_solution_areas}
     register_paths: dict[str, Path] = {}
     for solution_key, regs in anchor_registers.items():
         populate_registers(
@@ -989,11 +1032,13 @@ def build_portfolio_scenario(
     flow_beta = register_paths["flow_problems_beta"]
     themes_alpha = register_paths["themes_alpha"]
     themes_beta = register_paths["themes_beta"]
+    areas_alpha = register_paths["solution_areas_alpha"]
+    areas_beta = register_paths["solution_areas_beta"]
 
     _registers = {r: f"registers/{r}.json"
                   for r in ("risks", "nfr", "capabilities", "dependencies",
                             "decisions", "slo", "dora", "flow_problems",
-                            "themes")}
+                            "themes", "solution_areas")}
     solution_alpha = out / "solutions" / "alpha" / "solution.json"
     save_solution_config(solution_alpha, SolutionConfig(
         name="Solution Alpha", members=members["alpha"],
@@ -1048,7 +1093,7 @@ def build_portfolio_scenario(
         "                              nfr.json, capabilities.json,",
         "                              dependencies.json, decisions.json,",
         "                              slo.json, dora.json, flow_problems.json,",
-        "                              themes.json)",
+        "                              themes.json, solution_areas.json)",
         "    workflows/  raw/  pi_config.json",
         "    snapshots/                snapshot_prev.json, snapshot_now.json",
         "",
@@ -1105,6 +1150,11 @@ def build_portfolio_scenario(
         "  Theme; die Roadmap-Matrix zeigt Trains × P1·P2·Y1·Y2·Y3. Im",
         "  Delta-Briefing: EP-A9 verlor sein Theme, EP-B2 wurde von P2 nach",
         "  P1 gezogen („updated roadmaps\").",
+        "- **Solution Areas & Rekurrenz (P5)**: `registers/solution_areas.json`;",
+        "  die Naht Alpha-1 × Alpha-3 öffnete zum dritten Mal eine Area für",
+        "  dasselbe Thema (test environment) — das EA-Signal: Schnitt oder",
+        "  Architektur prüfen, nicht die Teams. Im Delta-Briefing kommt die",
+        "  dritte Area (SA-A3) neu dazu.",
         "- **SLO & Error-Budgets (C1)**: `registers/slo.json`;",
         "  Betas „Order Sync API\" reißt ihr SLO (breached), Alphas",
         "  „Checkout\" hat sein Budget fast aufgebraucht (at risk).",
@@ -1166,6 +1216,7 @@ def build_portfolio_scenario(
             "decisions_beta": decisions_beta, "pi_config": pi_cfg,
             "flow_alpha": flow_alpha, "flow_beta": flow_beta,
             "themes_alpha": themes_alpha, "themes_beta": themes_beta,
+            "areas_alpha": areas_alpha, "areas_beta": areas_beta,
             "slo_alpha": slo_alpha, "slo_beta": slo_beta,
             "dora_alpha": dora_alpha, "dora_beta": dora_beta,
             "snapshot_prev": snapshot_prev, "snapshot_now": snapshot_now,
