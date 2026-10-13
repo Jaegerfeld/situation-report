@@ -43,6 +43,8 @@ python -m testdata_generator \
 | `--pattern MUSTER` | `none` | Flow-Antipattern: `none` / `triangle` / `flat_triangle` / `cluster` / `batch` |
 | `--pi-duration-weeks INT` | `12` | PI-Zyklus-Länge in Wochen (für `cluster`/`batch`) |
 | `--realism 0–100` | `0` | Unordnung der Statuswege (Sprünge, Abbrüche, Parken, Schleifen, Wiedereröffnung); ca. 70 wie ein echter ART |
+| `--continue OLD.json` | (keiner) | Früheren Abzug fortschreiben bis `--to-date` (seit 0.39.0); `--issues` = Zahl NEUER Vorgänge, `--rate-per-day` Alternative |
+| `--rate-per-day FLOAT` | (Rate des ersten Fensters) | Mit `--continue`: neue Vorgänge je Tag |
 
 ## Flow-Muster
 
@@ -69,6 +71,32 @@ kürzeren Pfad verteilt wird.
 Das Portfolio-Szenario erzeugt seine sechs ARTs seit 0.38.0 mit Realismus 60 (Profilfeld
 `realism`, je ART übersteuerbar). Seeds erzeugen seit 0.38.0 andere Daten als vorher — die
 Würfelreihenfolge hat sich geändert.
+
+## Fortschreibung — der zweite Abzug (seit 0.39.0)
+
+Ein erzeugter Rohdatensatz ist ein Abzug zum Stichtag T1. `--continue` erzeugt den Abzug,
+den man an T2 gezogen hätte — ganz so, wie wenn man zweimal manuell Daten abgezogen hätte:
+
+```bash
+python -m testdata_generator --workflow workflow.txt --continue ART_A.json --to-date 2026-03-01
+```
+
+- **Vergangenheit unantastbar:** Schlüssel, Anlagedatum und alle Übergänge bis T1 bleiben
+  byteidentisch; geschlossene und abgebrochene Vorgänge werden gar nicht angefasst.
+- **Offene Vorgänge laufen weiter:** ab T1 neue Übergänge nach demselben Pfad- und Zeitmodell
+  (Realismus, Backflow, Cycle-Time), bis sie fertig sind oder T2 erreicht ist — was nach T2
+  läge, bleibt offen.
+- **Neue Vorgänge** kommen in (T1, T2] dazu, Schlüssel laufen weiter; Anzahl aus der Rate des
+  ersten Fensters, oder `--issues N` bzw. `--rate-per-day X`.
+- **Reproduzierbar:** derselbe Seed und dasselbe T2 ergeben denselben Abzug; eine Kette
+  T1 → T2 → T3 behält jeden früheren Stand vollständig.
+
+Dafür schreibt der Generator seit 0.39.0 einen Eintrag `generator` in den JSON-Envelope
+(Stichtage, Seed, Regler, Stages); `transform_data` liest nur `issues` und bleibt unberührt.
+Ein Datensatz ohne den Eintrag (älter oder ein echter Export) lässt sich fortschreiben, wenn
+die Regler mitgegeben werden — T1 ist dann der jüngste Zeitstempel. Ausgabe:
+`<name>_<T2>.json` neben der Quelle, oder `--output`. GUI: Knopf **Fortschreiben…** neben
+**Generieren** (Bis-Datum und Realismus aus dem Formular).
 
 ## Workflow-Datei
 
@@ -102,6 +130,7 @@ testdata_generator/
 ├── cli.py               # run_generate() + argparse CLI
 ├── generator.py         # Kernlogik: Issue-Simulation (Zeit auf den Pfad)
 ├── paths.py             # Stage-Pfade: Realismus-Störungen, Parkstufe (0.38.0)
+├── continuation.py      # Fortschreibung: zweiter Abzug, Envelope-Metadaten (0.39.0)
 └── workflow_parser.py   # Re-Export von transform_data.workflow
 ```
 

@@ -190,6 +190,60 @@ def run_generate(
     log(f"  Open issues:   {open_count}")
 
 
+def run_continue(
+    source: Path,
+    workflow: Path,
+    to_date: date,
+    output: Path | None = None,
+    new_issue_count: int | None = None,
+    rate_per_day: float | None = None,
+    seed: int | None = None,
+    realism: float | None = None,
+    log: Callable[[str], None] = print,
+) -> Path | None:
+    """
+    Continue an earlier extract to ``to_date`` and write the second extract.
+
+    The knobs come from the file's generator record; ``realism`` overrides
+    that one knob when given (a data set made before 0.38.0 carries 0).
+    Returns the written path, or None on a clean error (logged).
+    """
+    from .continuation import ContinuationError, config_from_meta, continue_generation, read_meta
+
+    try:
+        data = json.loads(source.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        log(f"ERROR: cannot read {source}: {exc}")
+        return None
+    workflow_spec = parse_workflow(workflow)
+    config = None
+    meta = read_meta(data)
+    if meta is not None and realism is not None:
+        config = config_from_meta(meta)
+        config.realism = realism
+    log(f"Continuing {source.name}: last cut "
+        f"{meta['to_date'] if meta else '(from the youngest timestamp)'} -> {to_date}")
+    try:
+        result = continue_generation(
+            data, workflow_spec, to_date, config=config,
+            new_issue_count=new_issue_count, rate_per_day=rate_per_day, seed=seed)
+    except ContinuationError as exc:
+        log(f"ERROR: {exc}")
+        return None
+    target = output or source.with_name(f"{source.stem}_{to_date.isoformat()}.json")
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_text(json.dumps(result, indent=2, ensure_ascii=False), encoding="utf-8")
+    before = len(data.get("issues", []))
+    moved = sum(
+        1 for old, new in zip(data["issues"], result["issues"][:before])
+        if len(new["changelog"]["histories"]) > len(old["changelog"]["histories"]))
+    log(f"Done. Output written to: {target}")
+    log(f"  Issues before:   {before}")
+    log(f"  Moved on:        {moved}")
+    log(f"  New issues:      {len(result['issues']) - before}")
+    return target
+
+
 def main() -> None:
     """Entry point for CLI mode (called by __main__.py when args are present)."""
     parser = argparse.ArgumentParser(
@@ -259,6 +313,19 @@ def main() -> None:
     parser.add_argument("--pattern-strength", type=int, default=50,
                         choices=range(0, 101), metavar="0-100",
                         help="Pattern intensity 0–100 (0=subtle, 50=default, 100=strong).")
+    parser.add_argument("--continue", type=Path, default=None, dest="continue_from",
+                        metavar="OLD.json",
+                        help="Continue an earlier extract (0.39.0): keep its past "
+                             "byte for byte, let open issues move on after its cut "
+                             "and add new issues up to --to-date, as a second manual "
+                             "extract would show. Needs --workflow; knobs come from "
+                             "the file's generator record. Output defaults to "
+                             "OLD_<to-date>.json; --issues sets the number of NEW "
+                             "issues (default: the earlier rate), --rate-per-day "
+                             "an alternative rate.")
+    parser.add_argument("--rate-per-day", type=float, default=None, dest="rate_per_day",
+                        help="With --continue: new issues per day (default: the "
+                             "rate of the earlier window).")
     parser.add_argument("--realism", type=int, default=0,
                         help="Untidiness of the stage paths 0-100: 0 = plain chain "
                              "(default, as before 0.38.0), about 70 = like a real ART "
@@ -282,6 +349,18 @@ def main() -> None:
 
     if args.workflow is None:
         parser.error("--workflow is required (unless --scenario is used).")
+
+    if args.continue_from is not None:
+        if args.to_date is None:
+            parser.error("--continue needs --to-date (the new cut).")
+        # --issues keeps its CLI default of 100; only an explicit value counts here
+        explicit_issues = args.issue_count if "--issues" in sys.argv else None
+        explicit_realism = (args.realism / 100.0) if "--realism" in sys.argv else None
+        written = run_continue(
+            args.continue_from, args.workflow, args.to_date, output=args.output,
+            new_issue_count=explicit_issues, rate_per_day=args.rate_per_day,
+            seed=args.seed, realism=explicit_realism)
+        sys.exit(0 if written else 1)
 
     issue_types: dict[str, float] | None = None
     if args.issue_types:

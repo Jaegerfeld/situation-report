@@ -421,10 +421,16 @@ def generate(workflow: WorkflowSpec, config: GeneratorConfig) -> dict:
                             _prerolled_incomplete=prerolled_incomplete)
         )
 
+    # The generator record (0.39.0): to_date, seed, knobs and stages next to
+    # the issues, so a later run can continue this extract as a second one.
+    # transform_data reads only "issues" and ignores the record.
+    from .continuation import META_KEY, build_meta
+
     return {
         "expand": "schema,names",
         "startAt": 0,
         "maxResults": n,
         "total": n,
         "issues": issues,
+        META_KEY: build_meta(config, workflow),
     }
