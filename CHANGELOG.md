@@ -5,6 +5,33 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [0.37.2] – 2026-10-13
+
+### Fixed
+- **Tests schrieben in die echten Benutzer-Präferenzen.** Alle GUI-Module lesen und
+  schreiben `~/.situation_report/prefs.json` (Sprache, Modell, Provider). Die Tests
+  taten das bisher ungeschützt: ein Testlauf überschrieb die gespeicherte Sprache und
+  das gewählte Modell des Entwicklers, und ein Test konnte den nächsten über diese Datei
+  beeinflussen — die wahrscheinliche Ursache des flackernden Akzeptanztests der
+  build_reports-Oberfläche (12.10.2026: im Gesamtlauf rot, allein grün). Eine
+  autouse-Fixture in `tests/conftest.py` gibt jedem Test eine eigene Präferenz-Datei
+  (alle neun GUI-Module plus die Ausschluss-Defaults der build_reports-GUI).
+- **Git-Hooks mit CRLF.** `.gitattributes` kannte nur Binärregeln; `scripts/hooks/pre-commit`
+  lag im Arbeitsbaum mit CRLF-Zeilenenden, und `setup_hooks.py` kopierte sie so in
+  `.git/hooks/`, wo die Shell stolpert. Neue Regel `scripts/hooks/* text eol=lf`.
+- **`reportlab` fehlte in den Extras.** Die Handbuch- und Onepager-Generatoren unter
+  `docs/` brauchen es, `pyproject.toml` nannte es nicht; eine frische Entwicklungsumgebung
+  (`.[dev]`) konnte keine Manuals erzeugen. Jetzt in `docs` und `dev`.
+
+### Changed
+- Zwei Formulierungen nach der Wahrheitsregel entschärft: CHANGELOG 0.31.0 („der einzige
+  Tag, an dem die Konferenz nicht stattfindet“) und Roadmap C2 („einzige native DORA-API
+  am Markt“) — beides Allaussagen ohne Beleg.
+- Die Notiz, `dev-build.yml` bündle `sources` und `llm` nicht, war überholt: beide
+  Workflows führen dieselbe Modulliste. Keine Änderung nötig.
+
+---
+
 ## [0.37.1] – 2026-10-12
 
 ### Fixed
@@ -304,9 +331,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   unabgedeckt erscheinen nur, wenn sie auf der Seite auch vorkommen.
 
 - **Geplanter Konferenztermin statt heutigem Datum.** Im Kopf der
-  Konferenzmappe stand „Konferenz ‹heute›“ — irreführend, denn der einzige
-  Tag, an dem die Konferenz nicht stattfindet, ist der Tag, an dem man die
-  Mappe erzeugt. Die Kommandozeile kannte `--conference-date` bereits, die
+  Konferenzmappe stand „Konferenz ‹heute›“ — irreführend, denn die Mappe
+  entsteht vor der Konferenz, nicht an ihrem Tag. Die Kommandozeile kannte
+  `--conference-date` bereits, die
   Oberfläche reichte ihn nicht durch.
 
   Neu: das Feld **„Konferenz am“** im Solutions-&-Portfolios-Fenster (in allen

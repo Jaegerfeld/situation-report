@@ -3,7 +3,7 @@
 # Repository:     https://github.com/Jaegerfeld/situation-report
 # KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
 # Erstellt:       15.04.2026
-# Geändert:       18.04.2026
+# Geändert:       12.10.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
@@ -32,6 +32,17 @@ from build_reports.terminology import SAFE
 TESTDATA_DIR = Path(__file__).parent.parent.parent / "testdata" / "ART_A"
 ISSUE_TIMES = TESTDATA_DIR / "ART_A_IssueTimes.xlsx"
 CFD = TESTDATA_DIR / "ART_A_CFD.xlsx"
+
+
+def _gui_log(app) -> str:
+    """Flush pending `after(0, ...)` callbacks and return the GUI log text.
+
+    `_read_inputs` reports *why* it refused via `_log`, which only lands in the
+    Text widget on the next event-loop tick. Without this flush a failing
+    assertion shows nothing but `None` — that is what made the flaky run of
+    `test_read_inputs_returns_dict_with_valid_file` undiagnosable (12.10.2026)."""
+    app.update()
+    return app._log_area.get("1.0", "end").strip()
 
 
 @pytest.fixture(scope="module")
@@ -345,12 +356,22 @@ class TestGuiOnRealData:
             app._issue_times_var.set(str(ISSUE_TIMES))
             app._cfd_var.set(str(CFD))
             result = app._read_inputs()
-            assert result is not None
+            assert result is not None, (
+                f"_read_inputs refused the inputs. GUI log:\n{_gui_log(app)}\n"
+                f"issue_times={app._issue_times_var.get()!r} "
+                f"from={app._from_date_var.get()!r} to={app._to_date_var.get()!r}"
+            )
             assert result["issue_times"] == ISSUE_TIMES
             assert result["cfd"] == CFD
             # all metrics selected → full list returned (equivalent to None for run_reports)
             from build_reports.metrics import all_metrics
-            assert set(result["metrics"]) == {p.metric_id for p in all_metrics()}
+            expected = {p.metric_id for p in all_metrics()}
+            got = set(result["metrics"] or [])
+            assert got == expected, (
+                f"metric selection differs: missing={sorted(expected - got)} "
+                f"extra={sorted(got - expected)} — "
+                f"checkbox vars: { {m: v.get() for m, v in app._metric_vars.items()} }"
+            )
         finally:
             app.destroy()
 
