@@ -98,6 +98,15 @@ die Regler mitgegeben werden — T1 ist dann der jüngste Zeitstempel. Ausgabe:
 `<name>_<T2>.json` neben der Quelle, oder `--output`. GUI: Knopf **Fortschreiben…** neben
 **Generieren** (Bis-Datum und Realismus aus dem Formular).
 
+**Ganzer Datenraum (seit 0.40.0):** `--scenario portfolio --continue demo/ --to-date T2`
+schreibt das Demo-Portfolio an Ort und Stelle fort: jeder Roh-Abzug unter `raw/` läuft weiter
+(eine veraltete Quelle wie Beta-3 bleibt genau so veraltet), transform_data schreibt
+IssueTimes/Transitions/CFD neu, Solution-, Portfolio- und PI-Config wandern mit gleicher
+Fensterlänge auf T2, und die Snapshots rotieren: das bisherige `snapshot_now.json` wird
+`snapshot_prev.json`, ein neues `snapshot_now.json` wird eingefroren — das Delta-Briefing zeigt
+dann echte vergangene Zeit statt der gestellten Zwei-Wochen-Story. Register bleiben unverändert.
+GUI: **Szenario fortschreiben…** (Bis-Datum aus dem Formular).
+
 ## Workflow-Datei
 
 Dasselbe Format wie in `transform_data`:
@@ -131,6 +140,7 @@ testdata_generator/
 ├── generator.py         # Kernlogik: Issue-Simulation (Zeit auf den Pfad)
 ├── paths.py             # Stage-Pfade: Realismus-Störungen, Parkstufe (0.38.0)
 ├── continuation.py      # Fortschreibung: zweiter Abzug, Envelope-Metadaten (0.39.0)
+├── scenario_continue.py # Szenario-Fortschreibung mit Snapshot-Rotation (0.40.0)
 └── workflow_parser.py   # Re-Export von transform_data.workflow
 ```
 

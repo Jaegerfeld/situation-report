@@ -5,6 +5,31 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [0.40.0] – 2026-10-13
+
+### Added
+- **Testdaten-Generator: Szenario-Fortschreibung mit Snapshot-Rotation.** `--scenario portfolio
+  --continue demo/ --to-date T2` (GUI: **Szenario fortschreiben…**) schreibt den ganzen
+  Demo-Datenraum an Ort und Stelle fort: jeder Roh-Abzug unter `raw/` läuft mit der
+  Fortschreibung aus 0.39.0 weiter — eine veraltete Quelle (Beta-3, Datenstand 60 Tage alt)
+  bleibt genau so veraltet —, transform_data schreibt IssueTimes/Transitions/CFD neu,
+  Solution-, Portfolio- und PI-Config wandern mit gleicher Fensterlänge auf T2, und die
+  Snapshots rotieren: das bisherige `snapshot_now.json` wird `snapshot_prev.json`, ein neues
+  `snapshot_now.json` wird eingefroren. Das Delta-Briefing zeigt damit echte vergangene Zeit
+  statt der gestellten Zwei-Wochen-Story; Ketten (T1 → T2 → T3) sind möglich. Register bleiben
+  unverändert (Entscheidung Robert: sie werden von Menschen gepflegt). Ein Datenraum aus der
+  Zeit vor 0.39.0 (Roh-Abzüge ohne Envelope-Eintrag) meldet das und muss einmal neu erzeugt
+  werden. Tests `test_scenario_continue.py` (12). Manual in fünf Sprachen, mkdocs DE/EN.
+
+### Fixed
+- **mkdocs-Seiten des Testdaten-Generators:** Die Seiten unter `docs/modules/` hatten mehr
+  Inhalt als ihre Schwestern unter `modules/` (Status, Handbuch-Links, Oberfläche,
+  Portfolio-Szenario, Hinweis zur Cycle-Time-Verteilung); 0.38.0 und 0.39.0 hatten sie
+  versehentlich mit den kürzeren Fassungen überschrieben. Wiederhergestellt, mit den neuen
+  Abschnitten zu Realismus und Fortschreibung.
+
+---
+
 ## [0.39.0] – 2026-10-13
 
 ### Added

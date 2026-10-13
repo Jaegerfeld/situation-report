@@ -315,7 +315,11 @@ def main() -> None:
                         help="Pattern intensity 0–100 (0=subtle, 50=default, 100=strong).")
     parser.add_argument("--continue", type=Path, default=None, dest="continue_from",
                         metavar="OLD.json",
-                        help="Continue an earlier extract (0.39.0): keep its past "
+                        help="Continue an earlier extract (0.39.0) - or, with "
+                             "--scenario portfolio, a whole demo data room FOLDER in "
+                             "place (0.40.0: raw extracts, IssueTimes/CFD/Transitions, "
+                             "configs, PI config; snapshot_now becomes snapshot_prev). "
+                             "Single file: keep its past "
                              "byte for byte, let open issues move on after its cut "
                              "and add new issues up to --to-date, as a second manual "
                              "extract would show. Needs --workflow; knobs come from "
@@ -332,6 +336,18 @@ def main() -> None:
                              "(skips, cancels, parking, self-loops, reopening).")
 
     args = parser.parse_args()
+
+    if args.scenario == "portfolio" and args.continue_from is not None:
+        # 0.40.0: continue the whole data room in place (snapshots rotate)
+        from .scenario_continue import ScenarioContinuationError, continue_portfolio_scenario
+        if args.to_date is None:
+            parser.error("--scenario portfolio --continue needs --to-date (the new reference).")
+        try:
+            continue_portfolio_scenario(Path(args.continue_from), args.to_date)
+        except ScenarioContinuationError as exc:
+            print(f"ERROR: {exc}", file=sys.stderr)
+            sys.exit(1)
+        return
 
     if args.scenario == "portfolio":
         import json as _json
