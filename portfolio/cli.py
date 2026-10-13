@@ -337,6 +337,17 @@ def build_parser() -> argparse.ArgumentParser:
                         help="Write the Value-Stream-Conference pre-read "
                              "(Konferenzmappe, B6) to this HTML file: the "
                              "conference inputs in meeting order, printable.")
+    parser.add_argument("--onepager", type=Path, default=None, metavar="FILE",
+                        help="Write the situation-briefing one-pager (P6, 0.43.0): four "
+                             "dimensions (flow, quality, value, dependencies) x three "
+                             "questions, BLUF on top, confidence per cell, decision points "
+                             "only - no recommendation. --since-snapshot fills column 2.")
+    parser.add_argument("--since-snapshot", type=Path, default=None, dest="since_snapshot",
+                        metavar="PREV.json",
+                        help="With --onepager: earlier snapshot for column 2 (what changed).")
+    parser.add_argument("--kata", action="store_true",
+                        help="With --onepager: render the empty practice sheet of the "
+                             "curriculum kata ('a situation analysis in 30 minutes').")
     parser.add_argument("--conference-draft", choices=("file", "inline"),
                         default="file", dest="conference_draft",
                         help="With --conference and --narrate (D8): where the "
@@ -409,6 +420,43 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 
+def _run_conference(args: argparse.Namespace) -> None:
+    """B6: write the conference pre-read, with the D8 drafts when asked."""
+    from .aggregator import render_conference_html
+
+    conf_config = load_solution_config(args.config)
+    conf_lang = args.lang or conf_config.language or DEFAULT_LANG
+    html_doc = render_conference_html(
+        conf_config, conference_date=args.conference_date,
+        art_depth=(conf_config.art_depth if args.art_depth is None
+                   else args.art_depth),
+        lang=conf_lang)
+    if args.narrate:
+        html_doc = _draft_conference_parts(args, conf_config, html_doc, conf_lang)
+    args.conference.write_text(html_doc, encoding="utf-8")
+    print(f"Conference pre-read written: {args.conference}")
+    if args.browser:
+        webbrowser.open(args.conference.resolve().as_uri())
+
+
+def _run_onepager(args: argparse.Namespace) -> None:
+    """P6: write the situation-briefing one-pager (or the empty kata sheet)."""
+    from .onepager import build_onepager, render_onepager_html
+    from .snapshot import load_snapshot
+
+    config = load_solution_config(args.config)
+    lang = args.lang or config.language or DEFAULT_LANG
+    prev = load_snapshot(args.since_snapshot) if args.since_snapshot else None
+    page = build_onepager(config, lang=lang, prev_snapshot=prev,
+                          reference=args.as_of, target_ct=args.target_ct)
+    args.onepager.parent.mkdir(parents=True, exist_ok=True)
+    args.onepager.write_text(render_onepager_html(page, lang, kata=args.kata),
+                             encoding="utf-8")
+    print(f"One-pager written: {args.onepager}" + (" (kata)" if args.kata else ""))
+    if args.browser:
+        webbrowser.open(args.onepager.resolve().as_uri())
+
+
 def main() -> None:
     """Entry point for the portfolio CLI."""
     parser = build_parser()
@@ -444,21 +492,13 @@ def main() -> None:
         if not args.output and not args.pdf and not args.conference:
             return
 
+    if args.onepager:
+        _run_onepager(args)
+        if not args.output and not args.pdf and not args.conference:
+            return
+
     if args.conference:
-        from .aggregator import render_conference_html
-        conf_config = load_solution_config(args.config)
-        conf_lang = args.lang or conf_config.language or DEFAULT_LANG
-        html_doc = render_conference_html(
-            conf_config, conference_date=args.conference_date,
-            art_depth=(conf_config.art_depth if args.art_depth is None
-                       else args.art_depth),
-            lang=conf_lang)
-        if args.narrate:
-            html_doc = _draft_conference_parts(args, conf_config, html_doc, conf_lang)
-        args.conference.write_text(html_doc, encoding="utf-8")
-        print(f"Conference pre-read written: {args.conference}")
-        if args.browser:
-            webbrowser.open(args.conference.resolve().as_uri())
+        _run_conference(args)
         if not args.output and not args.pdf:
             return
 

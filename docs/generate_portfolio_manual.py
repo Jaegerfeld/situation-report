@@ -764,6 +764,17 @@ def content_de(st: dict) -> list:
            "Sessions, gekennzeichnet und auditiert.", st),
         _SP(6),
 
+        _H2("5.17  Lagevortrag-Einseiter (P6)", st), _hr(st),
+        _P("<b>Eine Folie, die jeder sofort lesen kann.</b> "
+           "<font name='Courier'>--onepager seite.html</font> rendert vier Dimensionen "
+           "(Flow, Qualität, Wert, Abhängigkeiten) × drei Fragen (Wo stehen wir? Was hat "
+           "sich geändert? Was folgt daraus?) auf eine A4-Seite, BLUF oben, Konfidenz je "
+           "Zelle. Spalte 2 füllt sich nur mit <font name='Courier'>--since-snapshot</font>; "
+           "Spalte 3 nennt nur Entscheidungsbedarf (Wecker, überlebende Flussprobleme, "
+           "Verletzungen, Überfälliges) und lässt dem Vortragenden eine Zeile — keine "
+           "Empfehlung. <font name='Courier'>--kata</font> (GUI-Haken Kata) rendert das "
+           "leere Übungsblatt des Curriculums. GUI: Knopf Einseiter …", st),
+        _SP(6),
         _H1("6. Kommandozeile (CLI)", st), _hr(st),
         _P("Für Automatisierung und reproduzierbare Reports:", st),
         _CD("python -m portfolio meine_solution.json --output report.html", st),
@@ -1280,6 +1291,17 @@ def content_en(st: dict) -> list:
            "sessions, labeled and audited.", st),
         _SP(6),
 
+        _H2("5.17  Situation-briefing one-pager (P6)", st), _hr(st),
+        _P("<b>One slide everyone can read at once.</b> "
+           "<font name='Courier'>--onepager page.html</font> renders four dimensions "
+           "(flow, quality, value, dependencies) x three questions (where do we stand, "
+           "what has changed, what follows) on one A4 page, BLUF on top, confidence per "
+           "cell. Column 2 fills only with <font name='Courier'>--since-snapshot</font>; "
+           "column 3 names decision points only (wake-up call, surviving flow problems, "
+           "violations, overdue items) and leaves the presenter a line - no "
+           "recommendation. <font name='Courier'>--kata</font> (GUI box Kata) renders the "
+           "empty practice sheet of the curriculum. GUI: button One-pager ...", st),
+        _SP(6),
         _H1("6. Command line (CLI)", st), _hr(st),
         _P("For automation and reproducible reports:", st),
         _CD("python -m portfolio my_solution.json --output report.html", st),
@@ -1759,6 +1781,15 @@ def content_ro(st: dict) -> list:
            "automat); material brut pentru sesiuni moderate uman.", st),
         _SP(6),
 
+        _H2("5.17  Raport de situatie pe o pagina (P6)", st), _hr(st),
+        _P("<b>O singura folie pe care oricine o citeste imediat.</b> "
+           "<font name='Courier'>--onepager pagina.html</font> reda patru dimensiuni "
+           "(flux, calitate, valoare, dependente) x trei intrebari (unde ne aflam, ce s-a "
+           "schimbat, ce urmeaza) pe o pagina A4, BLUF sus, incredere per celula. Coloana 2 "
+           "se umple doar cu <font name='Courier'>--since-snapshot</font>; coloana 3 numeste "
+           "doar puncte de decizie si lasa prezentatorului un rand - nicio recomandare. "
+           "<font name='Courier'>--kata</font> reda fisa goala de exercitiu. GUI: buton O pagina ...", st),
+        _SP(6),
         _H1("6. Linia de comanda (CLI)", st), _hr(st),
         _P("Pentru automatizare si rapoarte reproductibile:", st),
         _CD("python -m portfolio solutia_mea.json --output report.html", st),
@@ -2242,6 +2273,16 @@ def content_pt(st: dict) -> list:
            "material bruto para sessoes moderadas por humanos.", st),
         _SP(6),
 
+        _H2("5.17  Briefing de situacao numa pagina (P6)", st), _hr(st),
+        _P("<b>Um slide que todos leem de imediato.</b> "
+           "<font name='Courier'>--onepager pagina.html</font> gera quatro dimensoes "
+           "(fluxo, qualidade, valor, dependencias) x tres perguntas (onde estamos, o que "
+           "mudou, o que se segue) numa pagina A4, BLUF em cima, confianca por celula. A "
+           "coluna 2 so se preenche com <font name='Courier'>--since-snapshot</font>; a "
+           "coluna 3 nomeia apenas pontos de decisao e deixa ao apresentador uma linha - "
+           "nenhuma recomendacao. <font name='Courier'>--kata</font> gera a folha de "
+           "exercicio vazia. GUI: botao Uma pagina ...", st),
+        _SP(6),
         _H1("6. Linha de comandos (CLI)", st), _hr(st),
         _P("Para automacao e relatorios reproduziveis:", st),
         _CD("python -m portfolio a_minha_solucao.json --output report.html", st),
@@ -2745,6 +2786,17 @@ def content_fr(st: dict) -> list:
            "par des humains.", st),
         _SP(6),
 
+        _H2("5.17  Expose de situation sur une page (P6)", st), _hr(st),
+        _P("<b>Une seule diapositive que chacun lit immediatement.</b> "
+           "<font name='Courier'>--onepager page.html</font> rend quatre dimensions "
+           "(flux, qualite, valeur, dependances) x trois questions (ou en sommes-nous, "
+           "qu'est-ce qui a change, qu'en decoule-t-il) sur une page A4, BLUF en haut, "
+           "confiance par cellule. La colonne 2 ne se remplit qu'avec "
+           "<font name='Courier'>--since-snapshot</font> ; la colonne 3 ne nomme que des "
+           "points de decision et laisse une ligne au presentateur - aucune "
+           "recommandation. <font name='Courier'>--kata</font> rend la fiche d'exercice "
+           "vide. GUI : bouton Une page ...", st),
+        _SP(6),
         _H1("6. Ligne de commande (CLI)", st), _hr(st),
         _P("Pour l'automatisation et des rapports reproductibles :", st),
         _CD("python -m portfolio ma_solution.json --output report.html", st),

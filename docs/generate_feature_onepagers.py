@@ -139,6 +139,86 @@ ONEPAGERS: dict[str, dict[str, dict]] = {
             ],
         },
     },
+    "situation_onepager": {
+        "de": {
+            "title": "Lagevortrag-Einseiter",
+            "tagline": "13.10.2026 \u00b7 Vier Dimensionen, drei Fragen, eine Seite \u2013 und "
+                       "das Urteil bleibt beim Vortragenden.",
+            "sections": [
+                ("h", "Worum geht es?"),
+                ("p", "Ein Vorstand will keine 200 Seiten, sondern eine Folie, die jeder "
+                      "sofort lesen kann \u2013 und den Bereichsleiter, der sie m\u00fcndlich "
+                      "vertritt. Das Lagebild hat alle Zahlen daf\u00fcr l\u00e4ngst; sie "
+                      "lagen nur auf vielen Seiten."),
+                ("h", "Was es tut"),
+                ("li", "Vier Dimensionen (Flow, Qualit\u00e4t, Wert, Abh\u00e4ngigkeiten) \u00d7 "
+                       "drei Fragen (Wo stehen wir? Was hat sich ge\u00e4ndert? Was folgt "
+                       "daraus?) auf einer A4-Seite, BLUF oben, Konfidenz je Zelle"),
+                ("li", "Alles aus den vorhandenen Registern und Kennzahlen \u2013 keine neue "
+                       "Rechnung; Spalte 2 aus dem Delta-Briefing, wenn ein fr\u00fcherer "
+                       "Snapshot da ist"),
+                ("li", "Spalte 3 nennt nur, wo entschieden werden muss: Wecker, \u00fcberlebende "
+                       "Flussprobleme, Verletzungen, \u00dcberf\u00e4lliges \u2013 plus eine Zeile "
+                       "f\u00fcr den Vortragenden"),
+                ("li", "Kata-Modus: dieselbe Seite leer, als \u00dcbungsblatt f\u00fcr \u201eeine "
+                       "Lageanalyse in 30 Minuten\u201c"),
+                ("h", "Drei Entscheidungen"),
+                ("p", "<b>Kein Urteil in der Maschine.</b> Das Werkzeug zeigt, wo ein "
+                      "vereinbarter Entscheidungspunkt erreicht ist. Was folgt, schreibt der "
+                      "Mensch in die leere Zeile \u2013 dieselbe Nicht-Funktion wie beim "
+                      "Harmonisierungs-Score und der KI-Schicht."),
+                ("p", "<b>Keine Ampel \u00fcber alles.</b> Vier Zeilen mit je eigener Konfidenz "
+                      "statt einer gr\u00fcnen Wassermelone. Wer Gr\u00fcn will, muss vier Zellen "
+                      "lesen."),
+                ("p", "<b>BLUF aus Vorlagen.</b> Der erste Satz nennt die gr\u00f6\u00dfte "
+                      "Abweichung mit ihren Zahlen \u2013 Headline-Kata nach Hohpe, ohne KI. "
+                      "Die KI-Lesart (M6) kommt sp\u00e4ter obenauf."),
+                ("h", "So benutzt du es"),
+                ("code", "python -m portfolio portfolio.json --onepager seite.html "
+                         "--since-snapshot snapshots/snapshot_prev.json\n"
+                         "python -m portfolio portfolio.json --onepager kata.html --kata"),
+            ],
+        },
+        "en": {
+            "title": "Situation Briefing One-Pager",
+            "tagline": "13 Oct 2026 \u00b7 Four dimensions, three questions, one page \u2013 and "
+                       "the judgement stays with the presenter.",
+            "sections": [
+                ("h", "What is it?"),
+                ("p", "A board does not want 200 pages but one slide everyone can read at "
+                      "once \u2013 and the division head who defends it aloud. The situational "
+                      "picture has had every number for that; they were just spread over many "
+                      "pages."),
+                ("h", "What it does"),
+                ("li", "Four dimensions (flow, quality, value, dependencies) \u00d7 three "
+                       "questions (where do we stand, what has changed, what follows) on one "
+                       "A4 page, BLUF on top, confidence per cell"),
+                ("li", "Everything from the existing registers and metrics \u2013 no new "
+                       "arithmetic; column 2 from the delta briefing when an earlier snapshot "
+                       "exists"),
+                ("li", "Column 3 only names where a decision is due: wake-up call, surviving "
+                       "flow problems, violations, overdue items \u2013 plus a line for the "
+                       "presenter"),
+                ("li", "Kata mode: the same page empty, as the practice sheet for 'a situation "
+                       "analysis in 30 minutes'"),
+                ("h", "Three decisions"),
+                ("p", "<b>No judgement in the machine.</b> The tool shows where an agreed "
+                      "decision point is reached. What follows, a human writes into the empty "
+                      "line \u2013 the same non-feature as in the harmonisation score and the "
+                      "AI layer."),
+                ("p", "<b>No traffic light over everything.</b> Four rows, each with its own "
+                      "confidence, instead of one green watermelon. Whoever wants green has to "
+                      "read four cells."),
+                ("p", "<b>BLUF from templates.</b> The first sentence names the largest "
+                      "deviation with its numbers \u2013 headline kata after Hohpe, no AI. The "
+                      "AI reading (M6) comes on top later."),
+                ("h", "How to use it"),
+                ("code", "python -m portfolio portfolio.json --onepager page.html "
+                         "--since-snapshot snapshots/snapshot_prev.json\n"
+                         "python -m portfolio portfolio.json --onepager kata.html --kata"),
+            ],
+        },
+    },
     "prompt_export": {
         "de": {
             "title": "Prompt-Export statt Modellaufruf",
