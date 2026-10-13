@@ -27,8 +27,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Zwei Formulierungen nach der Wahrheitsregel entschärft: CHANGELOG 0.31.0 („der einzige
   Tag, an dem die Konferenz nicht stattfindet“) und Roadmap C2 („einzige native DORA-API
   am Markt“) — beides Allaussagen ohne Beleg.
-- Die Notiz, `dev-build.yml` bündle `sources` und `llm` nicht, war überholt: beide
-  Workflows führen dieselbe Modulliste. Keine Änderung nötig.
+- **Korrektur (13.10.2026):** Dieser Eintrag behauptete zunächst, `dev-build.yml` bündle
+  `sources` und `llm` bereits und es sei „keine Änderung nötig“. Das war falsch. Der Patch
+  enthielt sehr wohl zwei weitere Änderungen, die aus einem lokalen, nie gepushten Commit
+  stammten und mit dem Squash unangekündigt auf main gelangten: `dev-build.yml` bündelt
+  jetzt `sources`, `llm` und `CHANGELOG.md` wie `release.yml`; der Akzeptanztest
+  `test_read_inputs_returns_dict_with_valid_file` liefert bei Fehlschlag das GUI-Log und
+  die Checkbox-Zustände statt nur `None` (`_gui_log`). Beides ist in 0.37.2 enthalten.
 
 ---
 
