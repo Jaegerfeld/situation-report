@@ -45,6 +45,8 @@ python -m testdata_generator \
 | `--realism 0–100` | `0` | Unordnung der Statuswege (Sprünge, Abbrüche, Parken, Schleifen, Wiedereröffnung); ca. 70 wie ein echter ART |
 | `--continue OLD.json` | (keiner) | Früheren Abzug fortschreiben bis `--to-date` (seit 0.39.0); `--issues` = Zahl NEUER Vorgänge, `--rate-per-day` Alternative |
 | `--rate-per-day FLOAT` | (Rate des ersten Fensters) | Mit `--continue`: neue Vorgänge je Tag |
+| `--learn-from DATEI.xlsx` | (keiner) | Übergangsprofil aus einer echten Transitions-Datei lernen und beenden (seit 0.41.0); schreibt `<name>_profile.json` |
+| `--transition-profile PROFIL.json` | (keiner) | Mit gelerntem Profil erzeugen oder fortschreiben: Pfad und Verweildauern aus den Daten |
 
 ## Flow-Muster
 
@@ -107,6 +109,29 @@ Fensterlänge auf T2, und die Snapshots rotieren: das bisherige `snapshot_now.js
 dann echte vergangene Zeit statt der gestellten Zwei-Wochen-Story. Register bleiben unverändert.
 GUI: **Szenario fortschreiben…** (Bis-Datum aus dem Formular).
 
+## Lernen aus echten Daten (seit 0.41.0)
+
+Die Regler nähern einen echten ART an; wer einen hat, nimmt ihn als Vorlage. `--learn-from`
+liest eine Transitions-Datei aus transform_data (XLSX oder CSV: Key, Transition, Timestamp)
+und schätzt daraus ein **Übergangsprofil**: Verteilung der ersten Stufe, Übergangsmatrix
+erster Ordnung mit einem Endzustand (wo Vorgänge stehen bleiben) und Verweildauern je
+Ausgangsstufe. Das Profil enthält **nur Stufennamen, Zählungen und Stunden** — keine
+Schlüssel, keine Texte, keine Zeitpunkte. Was damit erzeugt wird, teilt mit der Quelle nur
+die Struktur.
+
+```bash
+python -m testdata_generator --learn-from ART_A_Transitions.xlsx --workflow workflow.txt
+python -m testdata_generator --workflow workflow.txt --transition-profile ART_A_Transitions_profile.json --issues 500
+```
+
+Mit `--transition-profile` kommen Stage-Pfad und Verweildauern aus dem Profil; Realismus,
+Backflow, Fertig- und To-Do-Quote wirken dann nicht auf den Pfad (die Fertig-Quote ergibt
+sich aus den Daten). `--mean-cycle-days` und die Flow-Muster bleiben wirksam: Sie verteilen
+die Cycle-Time auf den gelernten Pfad. Auch die Fortschreibung nutzt das Profil, wenn es in
+den Reglern des Abzugs steht oder mitgegeben wird. GUI: Feld **Übergangsprofil** und Knopf
+**Aus Transitions lernen…**. Mit `--workflow` beim Lernen wird das Profil auf die Stages des
+Workflows beschränkt; ein Profil mit fremden Stufennamen wird beim Erzeugen abgewiesen.
+
 ## Workflow-Datei
 
 Dasselbe Format wie in `transform_data`:
@@ -141,6 +166,7 @@ testdata_generator/
 ├── paths.py             # Stage-Pfade: Realismus-Störungen, Parkstufe (0.38.0)
 ├── continuation.py      # Fortschreibung: zweiter Abzug, Envelope-Metadaten (0.39.0)
 ├── scenario_continue.py # Szenario-Fortschreibung mit Snapshot-Rotation (0.40.0)
+├── learn.py             # Übergangsprofil aus echten Transitions (0.41.0)
 └── workflow_parser.py   # Re-Export von transform_data.workflow
 ```
 

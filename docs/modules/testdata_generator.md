@@ -70,6 +70,8 @@ python -m testdata_generator \
 | `--realism 0–100` | `0` | Untidiness of the stage paths (skips, cancels, parking, self-loops, reopening); about 70 is like a real ART |
 | `--continue OLD.json` | (none) | Continue an earlier extract up to `--to-date` (since 0.39.0); `--issues` = number of NEW issues, `--rate-per-day` alternative |
 | `--rate-per-day FLOAT` | (rate of the first window) | With `--continue`: new issues per day |
+| `--learn-from FILE.xlsx` | (none) | Learn a transition profile from a real transitions file and stop (since 0.41.0); writes `<name>_profile.json` |
+| `--transition-profile PROFILE.json` | (none) | Generate or continue with a learned profile: paths and dwell times from the data |
 
 ## Flow Patterns
 
@@ -226,6 +228,28 @@ window length, and the snapshots rotate: the previous `snapshot_now.json` become
 real elapsed time instead of the staged two-week story. Registers stay unchanged.
 GUI: **Continue Scenario…** (To date from the form).
 
+## Learning from real data (since 0.41.0)
+
+The knobs approximate a real ART; whoever has one uses it as the template. `--learn-from`
+reads a transitions file from transform_data (XLSX or CSV: Key, Transition, Timestamp) and
+estimates a **transition profile**: distribution of the first stage, first-order transition
+matrix with an end state (where issues come to rest) and dwell times per source stage. The
+profile holds **stage names, counts and hours only** — no keys, no texts, no dates. What is
+generated with it shares nothing but the structure with the source.
+
+```bash
+python -m testdata_generator --learn-from ART_A_Transitions.xlsx --workflow workflow.txt
+python -m testdata_generator --workflow workflow.txt --transition-profile ART_A_Transitions_profile.json --issues 500
+```
+
+With `--transition-profile` the stage path and the dwell times come from the profile;
+realism, backflow, completion and to-do rate do not act on the path (the completion rate
+follows from the data). `--mean-cycle-days` and the flow patterns stay in force: they spread
+the cycle time over the learned path. The continuation uses the profile too when it is part
+of the extract's knobs or passed along. GUI: field **Transition profile** and button
+**Learn from Transitions…**. Learning with `--workflow` restricts the profile to that
+workflow's stages; a profile with foreign stage names is rejected at generation time.
+
 ## Workflow file
 
 Same format as in `transform_data`:
@@ -267,6 +291,7 @@ testdata_generator/
 ├── paths.py             # Stage paths: realism disturbances, parking stage (0.38.0)
 ├── continuation.py      # Continuation: second extract, envelope record (0.39.0)
 ├── scenario_continue.py # Scenario continuation with snapshot rotation (0.40.0)
+├── learn.py             # Transition profile from real transitions (0.41.0)
 └── workflow_parser.py   Re-export from transform_data.workflow
 ```
 

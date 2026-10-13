@@ -139,6 +139,93 @@ ONEPAGERS: dict[str, dict[str, dict]] = {
             ],
         },
     },
+    "testdata_generator_2": {
+        "de": {
+            "title": "Testdaten-Generator 2.0",
+            "tagline": "13.10.2026 \u00b7 Statuswege wie im echten ART, Abz\u00fcge, die "
+                       "weiterlaufen, und Struktur, die aus echten Daten lernt.",
+            "sections": [
+                ("h", "Worum geht es?"),
+                ("p", "Der Generator lief brav durch alle Stufen: elf \u00dcbergangspaare, "
+                      "keine Schleifen, Median sieben \u00dcberg\u00e4nge je Vorgang. Ein "
+                      "echter ART (458 Vorg\u00e4nge) zeigt vierzig Paare, zw\u00f6lf Prozent "
+                      "r\u00fcckw\u00e4rts, sieben Prozent Selbstschleifen, Abbr\u00fcche direkt "
+                      "nach Done, Median vier. Und jeder Lauf war eine Einmal-Erzeugung \u2013 "
+                      "zwei Abz\u00fcge mit Zeit dazwischen gab es nicht."),
+                ("h", "Was es jetzt tut (0.38.0 bis 0.41.0)"),
+                ("li", "Realismus-Regler 0\u2013100: acht St\u00f6rungen (Spr\u00fcnge, Abbr\u00fcche, "
+                       "Parken, Schleifen, lange R\u00fcckschritte, Wiederer\u00f6ffnung, Start "
+                       "au\u00dferhalb der ersten Stufe, Archivierung); ~70 trifft den echten "
+                       "ART, Kalibrierung per Test"),
+                ("li", "Fortschreibung: --continue erzeugt den zweiten Abzug \u2013 Vergangenheit "
+                       "byteidentisch, offene Vorg\u00e4nge laufen weiter, neue kommen dazu, "
+                       "reproduzierbar \u00fcber Seed und Stichtag"),
+                ("li", "Ganzer Datenraum: das Demo-Portfolio l\u00e4uft an Ort und Stelle weiter, "
+                       "Configs wandern, Snapshots rotieren \u2013 das Delta-Briefing zeigt "
+                       "echte vergangene Zeit"),
+                ("li", "Lernen aus echten Daten: --learn-from sch\u00e4tzt \u00dcbergangsmatrix "
+                       "und Verweildauern aus einer Transitions-Datei \u2013 nur Z\u00e4hlungen "
+                       "und Stunden, keine Schl\u00fcssel"),
+                ("h", "Drei Entscheidungen"),
+                ("p", "<b>Pfad vor Zeit.</b> Erst wird die Stage-Folge gew\u00fcrfelt, dann die "
+                      "Zeit darauf verteilt. Darum wirken Realismus und Profil in jedem Modus, "
+                      "auch unter den Flow-Mustern, und darum kann ein offener Vorgang am "
+                      "Stichtag einfach einen neuen Pfad bekommen."),
+                ("p", "<b>Die Vergangenheit ist unantastbar.</b> Ein zweiter Abzug "
+                      "\u00e4ndert nichts an dem, was der erste zeigte \u2013 so wie zwei "
+                      "manuelle Abz\u00fcge aus Jira. Tests vergleichen die Daten Byte f\u00fcr Byte."),
+                ("p", "<b>Struktur ja, Inhalt nein.</b> Das gelernte Profil tr\u00e4gt "
+                      "Stufennamen, Z\u00e4hlungen und Stunden. Was damit entsteht, teilt mit "
+                      "der Quelle nur die Form."),
+                ("h", "So benutzt du es"),
+                ("code", "python -m testdata_generator --workflow wf.txt --issues 500 --realism 70\n"
+                         "python -m testdata_generator --workflow wf.txt --continue ART.json --to-date 2026-03-01\n"
+                         "python -m testdata_generator --scenario portfolio --continue demo/ --to-date 2026-03-01\n"
+                         "python -m testdata_generator --learn-from ART_A_Transitions.xlsx --workflow wf.txt"),
+            ],
+        },
+        "en": {
+            "title": "Test Data Generator 2.0",
+            "tagline": "13 Oct 2026 \u00b7 Stage paths like a real ART, extracts that move "
+                       "on, and structure learned from real data.",
+            "sections": [
+                ("h", "What is it?"),
+                ("p", "The generator walked neatly through every stage: eleven transition "
+                      "pairs, no loops, a median of seven transitions per issue. A real ART "
+                      "(458 issues) shows forty pairs, twelve percent backward, seven percent "
+                      "self-loops, cancellations straight into Done, median four. And every "
+                      "run was a one-off \u2013 two extracts with time in between did not exist."),
+                ("h", "What it does now (0.38.0 to 0.41.0)"),
+                ("li", "Realism knob 0\u2013100: eight disturbances (skips, cancels, parking, "
+                       "self-loops, long backflow, reopening, start outside the first stage, "
+                       "archiving); about 70 matches the real ART, calibration pinned by tests"),
+                ("li", "Continuation: --continue produces the second extract \u2013 the past "
+                       "byte for byte, open issues move on, new ones join, reproducible by "
+                       "seed and cut date"),
+                ("li", "Whole data room: the demo portfolio continues in place, configs move, "
+                       "snapshots rotate \u2013 the delta briefing shows real elapsed time"),
+                ("li", "Learning from real data: --learn-from estimates the transition matrix "
+                       "and dwell times from a transitions file \u2013 counts and hours only, "
+                       "no keys"),
+                ("h", "Three decisions"),
+                ("p", "<b>Path before time.</b> The stage sequence is drawn first, the time "
+                      "spread over it afterwards. That is why realism and profile act in "
+                      "every mode, flow patterns included, and why an open issue can simply "
+                      "get a new path at the cut."),
+                ("p", "<b>The past is untouchable.</b> A second extract changes nothing of "
+                      "what the first one showed \u2013 like two manual pulls from Jira. Tests "
+                      "compare the data byte for byte."),
+                ("p", "<b>Structure yes, content no.</b> The learned profile carries stage "
+                      "names, counts and hours. What comes out of it shares only the shape "
+                      "with its source."),
+                ("h", "How to use it"),
+                ("code", "python -m testdata_generator --workflow wf.txt --issues 500 --realism 70\n"
+                         "python -m testdata_generator --workflow wf.txt --continue ART.json --to-date 2026-03-01\n"
+                         "python -m testdata_generator --scenario portfolio --continue demo/ --to-date 2026-03-01\n"
+                         "python -m testdata_generator --learn-from ART_A_Transitions.xlsx --workflow wf.txt"),
+            ],
+        },
+    },
     "conference_draft": {
         "de": {
             "title": "KI-Entwurf f\u00fcr die Konferenzmappe",

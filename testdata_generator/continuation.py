@@ -38,7 +38,9 @@ from .generator import (
     _make_history,
     _sample_ct_days,
     generate,
+    load_transition_profile,
 )
+from .learn import TransitionProfile, sample_dwell_hours
 from .paths import PathSpec, detect_parking, knobs_at, sample_path
 from .workflow_parser import WorkflowSpec
 
@@ -123,7 +125,8 @@ def _key_number(key: str) -> int:
 
 
 def _continue_issue(issue: dict[str, Any], workflow: WorkflowSpec, config: GeneratorConfig,
-                    rng: random.Random, start_dt: datetime, to_dt: datetime) -> dict[str, Any]:
+                    rng: random.Random, start_dt: datetime, to_dt: datetime,
+                    profile: TransitionProfile | None = None) -> dict[str, Any]:
     """
     Give one open issue its life after T1: a fresh path from its current
     stage, time laid over it from ``start_dt``, cut at ``to_dt``. Returns the
@@ -142,23 +145,34 @@ def _continue_issue(issue: dict[str, Any], workflow: WorkflowSpec, config: Gener
     cur = stages.index(status)
     if cur >= closed_idx:
         return issue                                  # closed, archived or cancelled
-    completes = rng.random() < config.completion_rate
-    if completes:
-        target = closed_idx
+    if profile is not None:
+        # learned structure: walk the matrix on from the current stage
+        tail = _profile_tail(profile, status, rng)
+        path = [stages.index(n) for n in tail] if tail else []
     else:
-        lo = max(cur, first_idx)
-        target = rng.randint(lo, max(lo, closed_idx - 1))
-        if target == cur:
-            return issue                              # rests until the next cut
-    spec = PathSpec(
-        n_stages=len(stages), first_idx=first_idx, closed_idx=closed_idx,
-        target_idx=target, parking_idx=detect_parking(stages, config.parking_stage),
-        backflow_prob=config.backflow_prob, knobs=knobs_at(config.realism),
-        start_idx=cur)
-    path = sample_path(spec, rng)
+        completes = rng.random() < config.completion_rate
+        if completes:
+            target = closed_idx
+        else:
+            lo = max(cur, first_idx)
+            target = rng.randint(lo, max(lo, closed_idx - 1))
+            if target == cur:
+                return issue                              # rests until the next cut
+        spec = PathSpec(
+            n_stages=len(stages), first_idx=first_idx, closed_idx=closed_idx,
+            target_idx=target, parking_idx=detect_parking(stages, config.parking_stage),
+            backflow_prob=config.backflow_prob, knobs=knobs_at(config.realism),
+            start_idx=cur)
+        path = sample_path(spec, rng)
     if not path:
         return issue
-    if config.mean_cycle_days is not None:
+    if profile is not None and config.mean_cycle_days is None:
+        dwells, prev = [], cur
+        for nxt in path:
+            fallback = float(rng.randint(config.min_dwell_hours, config.max_dwell_hours))
+            dwells.append(sample_dwell_hours(profile, stages[prev], rng, fallback))
+            prev = nxt
+    elif config.mean_cycle_days is not None:
         std = (config.std_cycle_days if config.std_cycle_days is not None
                else config.mean_cycle_days * 0.3)
         budget = _sample_ct_days(rng, config.mean_cycle_days, std) * 24
@@ -188,6 +202,21 @@ def _continue_issue(issue: dict[str, Any], workflow: WorkflowSpec, config: Gener
     out["changelog"]["total"] = len(histories)
     out["changelog"]["maxResults"] = len(histories)
     return out
+
+
+def _profile_tail(profile: TransitionProfile, stage: str, rng: random.Random,
+                  max_steps: int = 60) -> list[str]:
+    """Continue the Markov walk from ``stage`` until the profile's end state."""
+    from .learn import END, _weighted
+
+    cur, tail = stage, []
+    for _ in range(max_steps):
+        nxt = _weighted(rng, profile.matrix.get(cur, {}))
+        if nxt is None or nxt == END:
+            break
+        tail.append(nxt)
+        cur = nxt
+    return tail
 
 
 def _renumber(issue: dict[str, Any], project_key: str, number: int) -> dict[str, Any]:
@@ -255,7 +284,8 @@ def continue_generation(
     start_dt = datetime(t1.year, t1.month, t1.day, 7, 0, 0, tzinfo=_TZ) + timedelta(days=1)
     to_dt = datetime(to_date.year, to_date.month, to_date.day, 23, 59, 59, tzinfo=_TZ)
 
-    issues = [_continue_issue(iss, workflow, config, rng, start_dt, to_dt)
+    profile = load_transition_profile(config, workflow)
+    issues = [_continue_issue(iss, workflow, config, rng, start_dt, to_dt, profile)
               for iss in data.get("issues", [])]
 
     # new issues: the earlier rate, unless told otherwise
