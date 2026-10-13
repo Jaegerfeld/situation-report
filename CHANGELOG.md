@@ -5,6 +5,31 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [0.43.0] – 2026-10-13
+
+### Added
+- **Lagevortrag-Einseiter (Roadmap P6).** „Eine fokussierte Folie, die jeder sofort lesen kann“
+  (Workshop-Analyse). `python -m portfolio cfg.json --onepager seite.html` (GUI: **Einseiter …**)
+  rendert die ganze Lage auf eine A4-Seite: **vier Dimensionen** — Flow, Qualität, Wert,
+  Abhängigkeiten — × **drei Fragen** — Wo stehen wir? Was hat sich geändert? Was folgt daraus?
+  —, **BLUF** oben, **Konfidenz-Badge je Zelle**, fünf Sprachen. Alles deterministisch aus den
+  Registern und Kennzahlen, die Report, Konferenzmappe und Delta-Briefing schon kennen; keine
+  neue Rechnung. Spalte 2 füllt sich nur mit `--since-snapshot PREV.json` (Delta-Briefing) —
+  ohne Vergleichsstand sagt sie das. **Spalte 3 nennt nur, wo entschieden werden muss**, nie
+  was: Wecker über Schwelle, Flussprobleme ab der dritten Konferenz, verletzte SLO/NFR,
+  überfällige Runway-Lücken, kritische Capabilities, Themes ohne Epic, Epics ohne Theme, Annahmen
+  über dem Prüfdatum, überfällige Abhängigkeiten — dazu eine leere Zeile für das Urteil des
+  Vortragenden. BLUF ist ein Vorlagensatz aus den Daten: die größte Abweichung zuerst, sonst
+  „Lage im Rahmen der vereinbarten Schwellen“. Konfidenz: Flow nach Quell-Qualität (A1);
+  Register hoch, wenn datiert innerhalb von 30 Tagen, mittel, wenn undatiert oder älter, fehlt,
+  wenn nicht verbunden. **`--kata`** (GUI-Haken Kata) rendert dieselbe Seite leer — das
+  Übungsblatt des Curriculums („eine Lageanalyse in 30 Minuten“); die gefüllte Seite ist die
+  Lösung. (Entscheidungen Robert 13.10.2026.) Tests `tests/portfolio/unit/test_onepager.py`.
+  Portfolio-Manual fünf Sprachen (Abschnitt 5.17), mkdocs DE/EN, Onepager „Lagevortrag-Einseiter“
+  DE/EN, Roadmap P6 ✅.
+
+---
+
 ## [0.42.0] – 2026-10-13
 
 ### Added

@@ -233,6 +233,11 @@ _T: dict[str, dict[str, str]] = {
         "msg_exec_error": "KI-Zusammenfassung fehlgeschlagen (Report ohne "
                           "Entwurf geschrieben): {error}",
         "btn_conference": "Konferenzmappe …",
+        "btn_onepager": "Einseiter …",
+        "chk_kata": "Kata",
+        "dlg_save_onepager": "Einseiter speichern",
+        "msg_onepager_done": "Einseiter erzeugt: {path}",
+        "msg_onepager_error": "Einseiter fehlgeschlagen: {error}",
         "dlg_save_conference": "Konferenzmappe speichern",
         "msg_conference_building": "Konferenzmappe wird erzeugt …",
         "lbl_draft_place": "Mappen-Entwurf",
@@ -343,6 +348,11 @@ _T: dict[str, dict[str, str]] = {
         "msg_exec_error": "AI summary failed (report written without the "
                           "draft): {error}",
         "btn_conference": "Conference pre-read …",
+        "btn_onepager": "One-pager …",
+        "chk_kata": "Kata",
+        "dlg_save_onepager": "Save one-pager",
+        "msg_onepager_done": "One-pager written: {path}",
+        "msg_onepager_error": "One-pager failed: {error}",
         "dlg_save_conference": "Save conference pre-read",
         "msg_conference_building": "Building conference pre-read …",
         "lbl_draft_place": "Pre-read draft",
@@ -453,6 +463,11 @@ _T: dict[str, dict[str, str]] = {
         "msg_exec_error": "Rezumatul AI a eșuat (raport scris fără "
                           "schiță): {error}",
         "btn_conference": "Mapa conferinței …",
+        "btn_onepager": "O pagină …",
+        "chk_kata": "Kata",
+        "dlg_save_onepager": "Salvează pagina",
+        "msg_onepager_done": "Pagina creată: {path}",
+        "msg_onepager_error": "Pagina a eșuat: {error}",
         "dlg_save_conference": "Salvează mapa conferinței",
         "msg_conference_building": "Se creează mapa conferinței …",
         "lbl_draft_place": "Schiță mapă",
@@ -563,6 +578,11 @@ _T: dict[str, dict[str, str]] = {
         "msg_exec_error": "Resumo por IA falhou (relatório escrito sem o "
                           "rascunho): {error}",
         "btn_conference": "Dossier da conferência …",
+        "btn_onepager": "Uma página …",
+        "chk_kata": "Kata",
+        "dlg_save_onepager": "Guardar página",
+        "msg_onepager_done": "Página criada: {path}",
+        "msg_onepager_error": "Página falhou: {error}",
         "dlg_save_conference": "Guardar o dossier da conferência",
         "msg_conference_building": "A criar o dossier da conferência …",
         "lbl_draft_place": "Rascunho do dossier",
@@ -673,6 +693,11 @@ _T: dict[str, dict[str, str]] = {
         "msg_exec_error": "Échec du résumé IA (rapport écrit sans le "
                           "brouillon) : {error}",
         "btn_conference": "Dossier de conférence …",
+        "btn_onepager": "Une page …",
+        "chk_kata": "Kata",
+        "dlg_save_onepager": "Enregistrer la page",
+        "msg_onepager_done": "Page créée : {path}",
+        "msg_onepager_error": "Page échouée : {error}",
         "dlg_save_conference": "Enregistrer le dossier de conférence",
         "msg_conference_building": "Création du dossier de conférence …",
         "lbl_draft_place": "Brouillon du dossier",
@@ -1376,6 +1401,12 @@ class SolutionManagerApp(tk.Tk):
             side="right")
         ttk.Button(btns, text=self._tr("btn_conference"),
                    command=self._conference).pack(side="right", padx=(0, 6))
+        # P6 (0.43.0): the one-pager, optionally as the empty kata sheet
+        self._kata = tk.BooleanVar(value=False)
+        ttk.Checkbutton(btns, text=self._tr("chk_kata"),
+                        variable=self._kata).pack(side="right", padx=(0, 2))
+        ttk.Button(btns, text=self._tr("btn_onepager"),
+                   command=self._onepager).pack(side="right", padx=(0, 6))
         ttk.Button(btns, text=self._tr("btn_delta"), command=self._delta).pack(
             side="right", padx=(0, 6))
         ttk.Button(btns, text=self._tr("btn_snapshot"), command=self._snapshot).pack(
@@ -1699,6 +1730,44 @@ class SolutionManagerApp(tk.Tk):
                 msg = self._tr("msg_snapshot_done").format(path=path)
             except Exception as exc:
                 msg = self._tr("msg_snapshot_error").format(error=exc)
+            self.after(0, lambda: self._status.set(msg))
+
+        threading.Thread(target=worker, daemon=True).start()
+
+    def _onepager(self) -> None:
+        """
+        Write the situation-briefing one-pager (P6): four dimensions x three
+        questions, BLUF on top, confidence per cell. Column 2 uses the most
+        recent snapshot written in this window when there is one; the Kata
+        box renders the empty practice sheet instead.
+        """
+        cfg = self._build_config()
+        if cfg is None:
+            return
+        kata = self._kata.get()
+        path = filedialog.asksaveasfilename(
+            title=self._tr("dlg_save_onepager"), defaultextension=".html",
+            initialfile=f"{cfg.name}_{'kata' if kata else 'onepager'}_"
+                        f"{date.today().isoformat()}.html",
+            filetypes=[("HTML", "*.html")])
+        if not path:
+            return
+        prev_path = getattr(self, "_last_snapshot_path", None)
+        self._status.set(self._tr("msg_generating"))
+        self.update_idletasks()
+
+        def worker() -> None:
+            try:
+                from .onepager import build_onepager, render_onepager_html
+                from .snapshot import load_snapshot
+                prev = load_snapshot(Path(prev_path)) if prev_path and Path(prev_path).is_file() else None
+                lang = cfg.language or self._lang
+                page = build_onepager(cfg, lang=lang, prev_snapshot=prev, log=lambda *_: None)
+                Path(path).write_text(render_onepager_html(page, lang, kata=kata), encoding="utf-8")
+                webbrowser.open(Path(path).resolve().as_uri())
+                msg = self._tr("msg_onepager_done").format(path=path)
+            except Exception as exc:
+                msg = self._tr("msg_onepager_error").format(error=exc)
             self.after(0, lambda: self._status.set(msg))
 
         threading.Thread(target=worker, daemon=True).start()

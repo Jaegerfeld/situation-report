@@ -376,6 +376,38 @@ means different things per register: grey is *done* for a dependency and
 flags (overdue, aging, uncovered) appear only when they occur on the
 page. The same holds for the full report and the delta briefing.
 
+## Situation-briefing one-pager (P6, since 0.43.0)
+
+"One focused slide everyone can read at once." `--onepager page.html` renders the whole
+situation on one A4 page: **four dimensions** (flow, quality, value, dependencies) ×
+**three questions** (where do we stand, what has changed, what follows), **BLUF** on top,
+a **confidence badge per cell**. Everything is deterministic and comes from the registers the
+report already knows; no new arithmetic, no judgement.
+
+```bash
+python -m portfolio portfolio.json --onepager page.html --since-snapshot snapshots/snapshot_prev.json
+python -m portfolio portfolio.json --onepager kata.html --kata
+```
+
+- **Column 1** — pooled metrics and flow problems; DORA tiers, SLO and NFR status; capability
+  health, themes and epics; cross-VS pressure, dependencies and ROAM risks.
+- **Column 2** — only with `--since-snapshot`: throughput, cycle-time shift and register
+  transitions from the delta briefing. Without an earlier state the column says so.
+- **Column 3** — **decision points only**, never a recommendation: flow problems past the third
+  conference, breached SLOs, violated NFRs, overdue runway gaps, critical capabilities, themes
+  without epic, epics without theme, assumptions past review date, the wake-up call above its
+  threshold, overdue dependencies — plus an empty line for the presenter's own judgement.
+- **BLUF** — a template sentence from the data: the largest deviation first (threshold breached,
+  survivors, violations), otherwise "situation within the agreed thresholds".
+- **Confidence** — flow follows the source quality (A1); registers count as high when dated
+  within 30 days, medium when present but undated or older, missing when not connected.
+- **Kata** (`--kata`, GUI box *Kata*) — the same page with empty cells and the questions as
+  prompts: the practice sheet of the curriculum ("a situation analysis in 30 minutes"); the
+  filled page is the answer key.
+
+GUI: button **One-pager …** in the manager window; column 2 uses the snapshot last written in
+this session.
+
 ## Strategic themes & integrated roadmap (optional, B7)
 
 `"themes": "themes.json"` gives strategic themes a structured home and

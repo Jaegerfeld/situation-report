@@ -383,6 +383,40 @@ Grau heißt bei einer Abhängigkeit *done*, bei einem ROAM-Risiko
 (überfällig, überaltert, unabgedeckt) nur, wenn sie auf der Seite
 vorkommen. Dasselbe gilt für den vollen Report und das Delta-Briefing.
 
+## Lagevortrag-Einseiter (P6, seit 0.43.0)
+
+„Eine fokussierte Folie, die jeder sofort lesen kann.“ `--onepager seite.html` rendert die ganze
+Lage auf eine A4-Seite: **vier Dimensionen** (Flow, Qualität, Wert, Abhängigkeiten) × **drei
+Fragen** (Wo stehen wir? Was hat sich geändert? Was folgt daraus?), **BLUF** oben, ein
+**Konfidenz-Badge je Zelle**. Alles deterministisch aus den Registern, die der Report schon
+kennt; keine neue Rechnung, kein Urteil.
+
+```bash
+python -m portfolio portfolio.json --onepager seite.html --since-snapshot snapshots/snapshot_prev.json
+python -m portfolio portfolio.json --onepager kata.html --kata
+```
+
+- **Spalte 1** — gepoolte Kennzahlen und Flussprobleme; DORA-Stufen, SLO- und NFR-Status;
+  Capability-Health, Themes und Epics; Cross-VS-Druck, Abhängigkeiten und ROAM-Risiken.
+- **Spalte 2** — nur mit `--since-snapshot`: Durchsatz, Cycle-Time-Verschiebung und
+  Register-Übergänge aus dem Delta-Briefing. Ohne Vergleichsstand sagt die Spalte das.
+- **Spalte 3** — **nur Entscheidungsbedarf**, nie eine Empfehlung: Flussprobleme ab der
+  dritten Konferenz, verletzte SLOs, verletzte NFRs, überfällige Runway-Lücken, kritische
+  Capabilities, Themes ohne Epic, Epics ohne Theme, Annahmen über dem Prüfdatum, der Wecker
+  über seiner Schwelle, überfällige Abhängigkeiten — plus eine leere Zeile für das Urteil des
+  Vortragenden.
+- **BLUF** — ein Vorlagensatz aus den Daten: die größte Abweichung zuerst (Schwelle gerissen,
+  Überlebende, Verletzungen), sonst „Lage im Rahmen der vereinbarten Schwellen“.
+- **Konfidenz** — Flow folgt der Quell-Qualität (A1); Register gelten als hoch, wenn datiert
+  innerhalb von 30 Tagen, mittel, wenn vorhanden, aber undatiert oder älter, fehlt, wenn nicht
+  verbunden.
+- **Kata** (`--kata`, GUI-Haken *Kata*) — dieselbe Seite mit leeren Zellen und den Fragen als
+  Platzhalter: das Übungsblatt des Curriculums („eine Lageanalyse in 30 Minuten“); die gefüllte
+  Seite ist die Lösung.
+
+GUI: Knopf **Einseiter …** im Manager-Fenster; Spalte 2 nutzt den zuletzt in dieser Sitzung
+geschriebenen Snapshot.
+
 ## Strategic Themes & integrierte Roadmap (optional, B7)
 
 `"themes": "themes.json"` gibt strategischen Themen ein strukturiertes
