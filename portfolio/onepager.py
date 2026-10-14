@@ -108,6 +108,8 @@ _T: dict[str, dict[str, str]] = {
         "d_areas": "Solution Areas {n} · {active} aktiv · {recurring} Nähte wiederkehrend",
         "d_decide_seam": "Naht prüfen (EA-Signal, ≥ 3× gleicher Anlass): {names}",
         "b_seam": "{n} Naht/Nähte mit EA-Signal",
+        "d_decide_points": "Wecker ausgelöst: {names}",
+        "b_points": "{n} Wecker ausgelöst",
         "b_calm": "Lage im Rahmen der vereinbarten Schwellen",
         "b_tail": "{items} Vorgänge, Median-CT {median} d",
     },
@@ -164,6 +166,8 @@ _T: dict[str, dict[str, str]] = {
         "d_areas": "solution areas {n} · {active} active · {recurring} recurring seams",
         "d_decide_seam": "check the seam (EA signal, same topic ≥ 3×): {names}",
         "b_seam": "{n} seam(s) with EA signal",
+        "d_decide_points": "decision point triggered: {names}",
+        "b_points": "{n} decision point(s) triggered",
         "b_calm": "situation within the agreed thresholds",
         "b_tail": "{items} items, median CT {median} d",
     },
@@ -220,6 +224,8 @@ _T: dict[str, dict[str, str]] = {
         "d_areas": "solution areas {n} · {active} active · {recurring} cusături recurente",
         "d_decide_seam": "verificați cusătura (semnal EA, același motiv ≥ 3×): {names}",
         "b_seam": "{n} cusătură/cusături cu semnal EA",
+        "d_decide_points": "punct de decizie declanșat: {names}",
+        "b_points": "{n} puncte de decizie declanșate",
         "b_calm": "situație în limitele pragurilor convenite",
         "b_tail": "{items} elemente, CT mediană {median} z",
     },
@@ -276,6 +282,8 @@ _T: dict[str, dict[str, str]] = {
         "d_areas": "solution areas {n} · {active} ativas · {recurring} costuras recorrentes",
         "d_decide_seam": "verificar a costura (sinal EA, mesmo motivo ≥ 3×): {names}",
         "b_seam": "{n} costura(s) com sinal EA",
+        "d_decide_points": "ponto de decisão disparado: {names}",
+        "b_points": "{n} ponto(s) de decisão disparado(s)",
         "b_calm": "situação dentro dos limiares acordados",
         "b_tail": "{items} itens, CT mediana {median} d",
     },
@@ -332,6 +340,8 @@ _T: dict[str, dict[str, str]] = {
         "d_areas": "solution areas {n} · {active} actives · {recurring} coutures récurrentes",
         "d_decide_seam": "vérifier la couture (signal EA, même motif ≥ 3×) : {names}",
         "b_seam": "{n} couture(s) avec signal EA",
+        "d_decide_points": "point de décision déclenché : {names}",
+        "b_points": "{n} point(s) de décision déclenché(s)",
         "b_calm": "situation dans les seuils convenus",
         "b_tail": "{items} éléments, CT médiane {median} j",
     },
@@ -645,6 +655,44 @@ def _dim_dependencies(ctx: _Ctx) -> None:
 
 
 
+_FAMILY_DIMENSION = {"dependencies": "dependencies", "solution_areas": "dependencies",
+                     "slo": "quality", "dora": "quality", "nfr": "quality", "runway": "quality",
+                     "capabilities": "value", "decisions": "value", "epics": "value", "themes": "value"}
+
+
+def _point_dimension(metric: str) -> str:
+    """Which of the four rows a decision point belongs to, by its path family."""
+    rest = metric.split("/", 1)[1] if "/" in metric else metric
+    if rest.startswith("governance."):
+        register = rest[len("governance."):].split("(", 1)[0].split(".", 1)[0]
+        return _FAMILY_DIMENSION.get(register, "flow")
+    if rest.startswith("pressure"):
+        return "dependencies"
+    return "flow"
+
+
+def _decision_points(ctx: _Ctx, prev_snapshot: Any) -> None:
+    """D4: triggered points of the alarm register become decision points of their row."""
+    from .decision_points_config import DP_TRIGGERED
+
+    agg = _collectors()
+    pressure = agg._collect_dependency_pressure(ctx.config, log=ctx.quiet)
+    results = agg.evaluate_decision_points(ctx.config, pressure=pressure, prev_snapshot=prev_snapshot,
+                                           log=ctx.quiet)
+    if not results:
+        return
+    triggered = [r for _, r in results if r.status == DP_TRIGGERED]
+    by_dim: dict[str, list[str]] = {}
+    for r in triggered:
+        by_dim.setdefault(_point_dimension(r.point.metric), []).append(
+            f"{r.point.point_id} {r.point.title}")
+    for dim, names in by_dim.items():
+        ctx.cells[dim]["q3"].decide.insert(0, _tr(ctx.lang, "d_decide_points", names=_names(names)))
+    if triggered:
+        ctx.bluf_parts.insert(0, _tr(ctx.lang, "b_points", n=len(triggered)))
+    ctx.sources.append(f"decision_points: {len(results)} ({len(triggered)} triggered)")
+
+
 def build_onepager(
     config: SolutionConfig,
     lang: str = DEFAULT_LANG,
@@ -684,6 +732,7 @@ def build_onepager(
     _dim_quality(ctx)
     _dim_value(ctx)
     _dim_dependencies(ctx)
+    _decision_points(ctx, prev_snapshot)
     cells, sources, bluf_parts = ctx.cells, ctx.sources, ctx.bluf_parts
 
     # ---- BLUF ---------------------------------------------------------------

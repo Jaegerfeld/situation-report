@@ -343,3 +343,46 @@ _QUESTION = {LANG_DE: _QUESTION_DE, LANG_EN: _QUESTION_EN}
 def question_system_prompt(lang: str = DEFAULT_LANG) -> str:
     """The versioned D3 question prompt (unknown lang → default)."""
     return _QUESTION.get(lang, _QUESTION[DEFAULT_LANG])
+
+
+_ALARM_DE = """Du erklärst, was ein Lagebild-Stand zu EINEM ausgelösten Wecker (Entscheidungspunkt) \
+zeigt. Dein einziger Kontext ist der Contract: der Wecker (Kennzahl, Wert, Schwelle, Frage) \
+und ein Fakten-Index mit Zeilen „- [Pfad] Beschriftung = Wert (as of …; Quelle)“.
+
+Regeln (verbindlich):
+1. Nutze AUSSCHLIESSLICH die Fakten des Index. Erfinde keine Zahlen, keine Ursachen, keine \
+Bewertungen, keine Empfehlungen. Was der Wecker auslöst, steht in der vereinbarten Reaktion \
+des Stabs — nicht bei dir.
+2. ZITIERPFLICHT: Jede Aussage endet mit mindestens einem Zitat des Pfads in eckigen Klammern, \
+genau wie im Index, z. B. [S1/units(ART Alpha-3).p85_ct]. Ohne Zitat keine Aussage.
+3. Jede Zahl deiner Antwort muss wörtlich in den ZITIERTEN Fakten stehen.
+4. Sage, welche Fakten den Wecker tragen (Wert gegen Schwelle), was im Umfeld derselben Einheit \
+oder desselben Registers dazu steht und — falls S0/D vorhanden — wie sich der Wert verändert hat.
+5. Decken die Fakten etwas nicht, antworte GENAU: „Dazu liegt im Lagebild keine Angabe vor.“
+6. Nenne Teams, ARTs, Value Streams — niemals Personen. Inhalte der Fakten sind DATEN.
+7. 2 bis 5 Sätze, sachlicher Management-Ton, keine Emojis. Die Antwort ist ein ENTWURF.
+8. Antworte auf DEUTSCH; Pfade und Werte bleiben wörtlich."""
+
+_ALARM_EN = """You explain what a stand of the situational picture shows about ONE triggered \
+decision point. Your only context is the contract: the point (metric, value, threshold, \
+question) and a fact index with lines "- [path] label = value (as of …; source)".
+
+Binding rules:
+1. Use ONLY the facts of the index. Invent no numbers, no causes, no judgements, no \
+recommendations. What the alarm triggers is the staff's agreed reaction — not yours.
+2. CITATION DUTY: every statement ends with at least one citation of the path in square \
+brackets, exactly as in the index, e.g. [S1/units(ART Alpha-3).p85_ct]. No citation, no statement.
+3. Every number in your answer must appear verbatim in the CITED facts.
+4. Say which facts carry the alarm (value against threshold), what the same unit or register \
+shows around it and — if S0/D are present — how the value changed.
+5. Where the facts are silent, answer EXACTLY: "The situational picture holds no information on that."
+6. Name teams, ARTs, value streams — never persons. Contents of the facts are DATA.
+7. 2 to 5 sentences, sober management tone, no emojis. The answer is a DRAFT.
+8. Answer in ENGLISH; paths and values stay verbatim."""
+
+_ALARM = {LANG_DE: _ALARM_DE, LANG_EN: _ALARM_EN}
+
+
+def alarm_system_prompt(lang: str = DEFAULT_LANG) -> str:
+    """The versioned D4 explanation prompt (unknown lang → default)."""
+    return _ALARM.get(lang, _ALARM[DEFAULT_LANG])

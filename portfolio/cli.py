@@ -387,7 +387,13 @@ def build_parser() -> argparse.ArgumentParser:
                              "(agreed thresholds on fact paths) against the stand and write "
                              "the protocol to this Markdown file - all four states visible. "
                              "--ask-snapshot picks a saved stand, --since-snapshot makes D/... "
-                             "points computable.")
+                             "points computable. With --narrate the triggered points get an "
+                             "AI explanation (citation guard, purpose d4_anomaly).")
+    parser.add_argument("--history", type=Path, default=None, metavar="FOLDER",
+                        help="With --alarms (D4 step 2): a folder of saved snapshots (>= 4 stands). "
+                             "Metrics whose latest value deviates more than 3 MAD from their own "
+                             "history are listed as HINTS - candidates for decision points, never "
+                             "alarms.")
     parser.add_argument("--conference-draft", choices=("file", "inline"),
                         default="file", dest="conference_draft",
                         help="With --conference and --narrate (D8): where the "
@@ -559,10 +565,24 @@ def _run_alarms(args: argparse.Namespace) -> None:
     pressure = _collect_dependency_pressure(config, log=lambda m: None)
     results = evaluate_decision_points(config, pressure=pressure, prev_snapshot=prev, snapshot=snap)
     index = build_fact_index(snap, prev=prev)
+    flat = [r for _, r in results]
+    text = points_to_markdown(flat, index, lang=args.llm_lang)
+    if getattr(args, "narrate", None):
+        from llm.audit import AUDIT_FILENAME
+
+        from .alarm_explain import explain_triggered, explanations_to_markdown
+        explanations = explain_triggered(
+            flat, index, provider_id=args.narrate, lang=args.llm_lang,
+            audit_path=args.alarms.parent / AUDIT_FILENAME, llm_model=args.llm_model,
+            llm_base_url=args.llm_base_url)
+        text += "\n" + explanations_to_markdown(flat, explanations, lang=args.llm_lang)
+    if getattr(args, "history", None):
+        from .anomalies import detect_anomalies, hints_to_markdown, load_series
+        series = load_series(args.history)
+        text += "\n" + hints_to_markdown(detect_anomalies(series), lang=args.llm_lang)
     args.alarms.parent.mkdir(parents=True, exist_ok=True)
-    args.alarms.write_text(points_to_markdown([r for _, r in results], index, lang=args.llm_lang),
-                           encoding="utf-8")
-    triggered = sum(1 for _, r in results if r.status == "triggered")
+    args.alarms.write_text(text, encoding="utf-8")
+    triggered = sum(1 for r in flat if r.status == "triggered")
     print(f"Decision points written: {args.alarms} ({len(results)} points, {triggered} triggered)")
 
 
