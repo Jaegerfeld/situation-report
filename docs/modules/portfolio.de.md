@@ -482,6 +482,17 @@ Wecker lassen sich in D3 erfragen (`S1/governance.decision_points(DP-1).status`)
 ]}
 ```
 
+**Schritt 2 (seit 0.49.0).** `--alarms … --history ORDNER` liest einen Ordner gespeicherter
+Snapshots (mindestens vier Stände) und listet **Auffälligkeits-Hinweise**: Kennzahlen, deren
+jüngster Wert mehr als 3 MAD vom Median der eigenen Historie abweicht (robuste Statistik,
+Standardbibliothek). Hinweise sind Kandidaten für Wecker, nie Alarme — ob daraus ein Wecker wird,
+vereinbart der Stab; höchstens zehn werden gezeigt, der Rest gezählt. `--alarms … --narrate PROVIDER`
+ergänzt je ausgelöstem Wecker eine **KI-Erklärung**: das Modell sieht den Wecker und nur die
+Fakten, die sein Pfad berührt, muss jede Aussage zitieren (Zitat-Wächter wie D3), darf keine
+Ursache über die Fakten hinaus nennen und empfiehlt nichts; eine verworfene Erklärung lässt den
+Wecker stehen. Ausgelöste Wecker erscheinen außerdem als Entscheidungspunkte in den Zeilen des
+Einseiters und führen dessen BLUF an.
+
 ## Solution Areas & Rekurrenz je Naht (optional, P5)
 
 `"solution_areas": "solution_areas.json"` rendert das **Solution-Area-Register**: dynamische

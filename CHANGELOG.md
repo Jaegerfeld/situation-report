@@ -5,6 +5,28 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [0.49.0] – 2026-10-14
+
+### Added
+- **Auffälligkeits-Hinweise und KI-Erklärschicht (Roadmap D4, Schritt 2) — Phase D ist damit
+  komplett.** `--alarms DATEI --history ORDNER` liest eine Reihe gespeicherter Snapshots (mindestens
+  vier Stände) und listet je Kennzahl des jüngsten Stands, die mehr als 3 MAD vom Median ihrer
+  eigenen Historie abweicht, einen **Hinweis** (`portfolio/anomalies.py`, robuste Statistik aus der
+  Standardbibliothek; MAD 0 = keine Aussage; höchstens zehn, Rest gezählt). Hinweise sind
+  **Kandidaten für Wecker, nie Alarme** — ob daraus ein Wecker wird, vereinbart der Stab.
+  `--alarms DATEI --narrate PROVIDER` ergänzt je **ausgelöstem** Wecker eine **KI-Erklärung**
+  (`portfolio/alarm_explain.py`): das Modell sieht den Wecker (Kennzahl, Wert, Schwelle, Frage) und
+  nur die Fakten, die sein Pfad berührt (Einheit, Register, Totals, Vorstand/Veränderung), muss jede
+  Aussage zitieren (Zitat-Wächter wie D3), darf keine Ursache über die Fakten hinaus nennen und
+  empfiehlt nichts; Prompt `alarm_system_prompt` v1 (DE/EN), Nachweis-Zweck `d4_anomaly`, Provider
+  frei (auch `export`); eine verworfene Erklärung lässt den Wecker stehen. **Einseiter:** ausgelöste
+  Wecker erscheinen als Entscheidungspunkte in der Zeile ihrer Pfadfamilie (Flow, Qualität, Wert,
+  Abhängigkeiten) und führen den BLUF an. Tests `tests/portfolio/unit/test_anomalies.py`,
+  `test_alarm_explain.py`. Doku: mkdocs portfolio DE/EN, Portfolio-Manual 5.21 (fünf Sprachen),
+  Onepager „Auffälligkeits-Hinweise“ DE/EN, Roadmap D4 ✅.
+
+---
+
 ## [0.48.0] – 2026-10-14
 
 ### Added

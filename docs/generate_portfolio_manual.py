@@ -814,6 +814,11 @@ def content_de(st: dict) -> list:
            "nicht berechenbar. Ohne Schwelle weckt nichts; das Werkzeug erfindet keine "
            "Schwellen und empfiehlt nichts. Wecker stehen im Snapshot und Delta; "
            "<font name='Courier'>--alarms DATEI</font> schreibt das Protokoll.", st),
+        _P("Schritt 2: <font name='Courier'>--history ORDNER</font> listet aus einer Snapshot-Reihe "
+           "(mindestens vier Stände) Auffälligkeits-Hinweise — Kennzahlen, die mehr als 3 MAD vom "
+           "Median ihrer Historie abweichen; Hinweise sind Kandidaten für Wecker, nie Alarme. "
+           "<font name='Courier'>--narrate</font> ergänzt je ausgelöstem Wecker eine zitierte "
+           "KI-Erklärung ohne Empfehlung. Ausgelöste Wecker führen den Einseiter an.", st),
         _SP(6),
         _H1("6. Kommandozeile (CLI)", st), _hr(st),
         _P("Für Automatisierung und reproduzierbare Reports:", st),
@@ -1381,6 +1386,11 @@ def content_en(st: dict) -> list:
            "threshold nothing alarms; the tool invents no thresholds and recommends nothing. "
            "Points join snapshot and delta; <font name='Courier'>--alarms FILE</font> writes "
            "the protocol.", st),
+        _P("Step 2: <font name='Courier'>--history FOLDER</font> lists anomaly hints from a "
+           "snapshot series (at least four stands) — metrics deviating more than 3 MAD from the "
+           "median of their history; hints are candidates for points, never alarms. "
+           "<font name='Courier'>--narrate</font> adds a cited AI explanation per triggered "
+           "point, without recommendation. Triggered points lead the one-pager.", st),
         _SP(6),
         _H1("6. Command line (CLI)", st), _hr(st),
         _P("For automation and reproducible reports:", st),
@@ -1900,6 +1910,11 @@ def content_ro(st: dict) -> list:
            "o cale de fapte, comparatie, prag, intrebare, reactie convenita, echipa). Raportul "
            "arata toate cele patru stari: declansat, sub prag, neconvenit, necalculabil. Fara "
            "prag nimic nu alarmeaza; instrumentul nu inventeaza praguri si nu recomanda nimic.", st),
+        _P("Pasul 2: <font name='Courier'>--history</font> listeaza indicii de anomalie dintr-o "
+           "serie de instantanee (cel putin patru stari) — indicatori care se abat cu peste 3 MAD "
+           "de la mediana istoricului; indiciile sunt candidati, nu alarme. "
+           "<font name='Courier'>--narrate</font> adauga o explicatie AI citata per punct "
+           "declansat, fara recomandare.", st),
         _SP(6),
         _H1("6. Linia de comanda (CLI)", st), _hr(st),
         _P("Pentru automatizare si rapoarte reproductibile:", st),
@@ -2424,6 +2439,11 @@ def content_pt(st: dict) -> list:
            "factos, comparacao, limiar, pergunta, reacao acordada, equipa). O relatorio mostra os "
            "quatro estados: disparado, abaixo do limiar, nao acordado, nao calculavel. Sem limiar "
            "nada dispara; a ferramenta nao inventa limiares e nao recomenda nada.", st),
+        _P("Passo 2: <font name='Courier'>--history</font> lista indicios de anomalia de uma serie "
+           "de instantaneos (pelo menos quatro estados) — indicadores que se desviam mais de 3 MAD "
+           "da mediana do seu historico; indicios sao candidatos, nunca alarmes. "
+           "<font name='Courier'>--narrate</font> acrescenta uma explicacao de IA citada por "
+           "ponto disparado, sem recomendacao.", st),
         _SP(6),
         _H1("6. Linha de comandos (CLI)", st), _hr(st),
         _P("Para automacao e relatorios reproduziveis:", st),
@@ -2971,6 +2991,11 @@ def content_fr(st: dict) -> list:
            "equipe). Le rapport montre les quatre etats : declenche, sous le seuil, non convenu, "
            "non calculable. Sans seuil rien ne se declenche ; l'outil n'invente pas de seuils "
            "et ne recommande rien.", st),
+        _P("Etape 2 : <font name='Courier'>--history</font> liste des indices d'anomalie a partir "
+           "d'une serie d'instantanes (au moins quatre etats) — indicateurs s'ecartant de plus de "
+           "3 MAD de la mediane de leur historique ; des indices sont des candidats, jamais des "
+           "alarmes. <font name='Courier'>--narrate</font> ajoute une explication IA citee par "
+           "point declenche, sans recommandation.", st),
         _SP(6),
         _H1("6. Ligne de commande (CLI)", st), _hr(st),
         _P("Pour l'automatisation et des rapports reproductibles :", st),

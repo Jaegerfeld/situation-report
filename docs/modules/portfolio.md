@@ -472,6 +472,16 @@ computable. Points can be asked about in D3 (`S1/governance.decision_points(DP-1
 ]}
 ```
 
+**Step 2 (since 0.49.0).** `--alarms … --history FOLDER` reads a folder of saved snapshots
+(at least four stands) and lists **anomaly hints**: metrics whose latest value deviates more than
+3 MAD from the median of their own history (robust statistics, standard library). Hints are
+candidates for decision points, never alarms — whether one becomes a point is for the staff to
+agree; at most ten are shown, the rest counted. `--alarms … --narrate PROVIDER` adds an **AI
+explanation per triggered point**: the model sees the point and only the facts its path touches,
+must cite every statement (citation guard as in D3), may name no cause beyond the facts and makes no
+recommendation; a discarded explanation leaves the point standing. Triggered points also appear as
+decision points in the one-pager's rows and lead its BLUF.
+
 ## Solution areas & recurrence per seam (optional, P5)
 
 `"solution_areas": "solution_areas.json"` renders the **solution-area register**: dynamic

@@ -139,6 +139,69 @@ ONEPAGERS: dict[str, dict[str, dict]] = {
             ],
         },
     },
+    "anomalies": {
+        "de": {
+            "title": "Auff\u00e4lligkeits-Hinweise und Erkl\u00e4rschicht (D4 Schritt 2)",
+            "tagline": "14.10.2026 \u00b7 Die Statistik schl\u00e4gt Wecker vor, der Stab vereinbart sie, "
+                       "die KI erkl\u00e4rt ausgel\u00f6ste \u2013 mit Zitat, ohne Empfehlung.",
+            "sections": [
+                ("h", "Worum geht es?"),
+                ("p", "Welche Kennzahl verdient einen Wecker? Die Reihe der eigenen St\u00e4nde wei\u00df "
+                      "es besser als jeder Vorgabewert: Was sich von seiner Historie entfernt, ist ein "
+                      "Kandidat. Und wenn ein Wecker klingelt, soll der Stab in zwei S\u00e4tzen "
+                      "lesen, was der Stand dazu zeigt \u2013 belegt, nicht gemeint."),
+                ("h", "Was es tut"),
+                ("li", "--history ORDNER: Median und MAD je Kennzahl \u00fcber mindestens vier St\u00e4nde; "
+                       "auff\u00e4llig ab 3 MAD; h\u00f6chstens zehn Hinweise, Rest gez\u00e4hlt"),
+                ("li", "Hinweise sind Kandidaten f\u00fcr Wecker \u2013 nie Alarme"),
+                ("li", "--narrate: je ausgel\u00f6stem Wecker eine KI-Erkl\u00e4rung aus den Fakten "
+                       "seines Pfads, jede Aussage zitiert, Zweck d4_anomaly"),
+                ("li", "Ausgel\u00f6ste Wecker f\u00fchren den Einseiter an und stehen in der Zeile "
+                       "ihrer Pfadfamilie"),
+                ("h", "Drei Entscheidungen"),
+                ("p", "<b>Statistik weckt nicht.</b> Ein Ausrei\u00dfer ist ein Befund, kein Alarm. "
+                      "Alarm wird er erst, wenn der Stab eine Schwelle vereinbart \u2013 P4-Regel 2."),
+                ("p", "<b>Robust statt mittelwertig.</b> Median und MAD lassen sich von einem einzelnen "
+                      "Ausrei\u00dfer nicht verschieben; eine flache Historie (MAD 0) sagt nichts."),
+                ("p", "<b>Erkl\u00e4ren mit Zitat, nie empfehlen.</b> Die Erkl\u00e4rung sieht nur die "
+                      "Fakten des Pfads und f\u00e4llt durch, wenn sie unzitiert bleibt \u2013 der "
+                      "Wecker bleibt stehen, die Erkl\u00e4rung fehlt."),
+                ("h", "So benutzt du es"),
+                ("code", "python -m portfolio solution.json --alarms wecker.md --history snapshots/\n"
+                         "python -m portfolio solution.json --alarms wecker.md --narrate ollama --since-snapshot prev.json"),
+            ],
+        },
+        "en": {
+            "title": "Anomaly Hints and Explanation Layer (D4 step 2)",
+            "tagline": "14 Oct 2026 \u00b7 Statistics propose decision points, the staff agrees them, "
+                       "the AI explains triggered ones \u2013 cited, without recommendation.",
+            "sections": [
+                ("h", "What is it?"),
+                ("p", "Which metric deserves a decision point? The series of your own stands knows "
+                      "better than any default: whatever drifts from its history is a candidate. And "
+                      "when a point triggers, the staff should read in two sentences what the stand "
+                      "shows about it \u2013 backed, not opined."),
+                ("h", "What it does"),
+                ("li", "--history FOLDER: median and MAD per metric over at least four stands; "
+                       "outstanding from 3 MAD; at most ten hints, the rest counted"),
+                ("li", "Hints are candidates for decision points \u2013 never alarms"),
+                ("li", "--narrate: per triggered point an AI explanation from the facts of its path, "
+                       "every statement cited, purpose d4_anomaly"),
+                ("li", "Triggered points lead the one-pager and sit in the row of their path family"),
+                ("h", "Three decisions"),
+                ("p", "<b>Statistics do not alarm.</b> An outlier is a finding, not an alarm. It becomes "
+                      "one only when the staff agrees a threshold \u2013 P4 rule 2."),
+                ("p", "<b>Robust, not average.</b> Median and MAD cannot be moved by a single outlier; "
+                      "a flat history (MAD 0) says nothing."),
+                ("p", "<b>Explain with citations, never recommend.</b> The explanation sees only the "
+                      "facts of the path and fails when uncited \u2013 the point stands, the "
+                      "explanation is missing."),
+                ("h", "How to use it"),
+                ("code", "python -m portfolio solution.json --alarms points.md --history snapshots/\n"
+                         "python -m portfolio solution.json --alarms points.md --narrate ollama --since-snapshot prev.json"),
+            ],
+        },
+    },
     "decision_points": {
         "de": {
             "title": "Wecker-Register (D4)",
