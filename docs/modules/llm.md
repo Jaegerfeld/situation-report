@@ -126,7 +126,7 @@ from the clipboard instead of a file.
   audit trail. Since 0.45.0 the bundle head also carries that checksum; a bundle edited after
   export is reported.
 
-The Solutions & Portfolios GUI has the same step as the button **Check AI answer …**.
+The Solutions & Portfolios GUI has the same step as the button **Check AI answer …**. For answers to the situational picture (purpose `d3_question`, since 0.46.0) the check also runs the **citation guard**: every statement must cite a fact path of the bundle's index and every number must come from the cited facts.
 
 ## Setting up Ollama (the local path)
 

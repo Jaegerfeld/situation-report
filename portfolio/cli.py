@@ -348,6 +348,25 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--kata", action="store_true",
                         help="With --onepager: render the empty practice sheet of the "
                              "curriculum kata ('a situation analysis in 30 minutes').")
+    parser.add_argument("--ask", default=None, metavar="QUESTION",
+                        help="D3 (0.46.0): ask one question about the stand of this "
+                             "config. The stand becomes a fact index with paths; the "
+                             "answer must cite a path for every statement (a citation "
+                             "guard discards anything else). Provider via --narrate "
+                             "(default ollama; export writes the prompt bundle). Writes "
+                             "<config>_<date>.ask.md unless --ask-output is given.")
+    parser.add_argument("--own-view", default="", dest="own_view", metavar="TEXT",
+                        help="With --ask: your own assessment BEFORE the answer (decision "
+                             "hygiene, principle 7). Shown next to the answer, never sent "
+                             "to the model.")
+    parser.add_argument("--ask-snapshot", type=Path, default=None, dest="ask_snapshot",
+                        metavar="SNAP.json",
+                        help="With --ask: ask about this saved stand instead of a live one "
+                             "(--since-snapshot adds S0/D facts either way).")
+    parser.add_argument("--ask-scope", choices=("all", "metrics", "registers"), default="all",
+                        dest="ask_scope", help="With --ask: which facts enter the index.")
+    parser.add_argument("--ask-output", type=Path, default=None, dest="ask_output",
+                        metavar="FILE", help="With --ask: where the .ask.md goes.")
     parser.add_argument("--conference-draft", choices=("file", "inline"),
                         default="file", dest="conference_draft",
                         help="With --conference and --narrate (D8): where the "
@@ -457,6 +476,62 @@ def _run_onepager(args: argparse.Namespace) -> None:
         webbrowser.open(args.onepager.resolve().as_uri())
 
 
+def _run_ask(args: argparse.Namespace) -> None:
+    """D3: one question about one stand, answer with citations or nothing."""
+    import sys
+
+    from llm.guard import CitationGuardError, NumbersGuardError
+
+    from .ask import run_ask
+    from .snapshot import load_snapshot
+
+    config = load_solution_config(args.config)
+    snap = load_snapshot(args.ask_snapshot) if args.ask_snapshot else None
+    prev = load_snapshot(args.since_snapshot) if args.since_snapshot else None
+    output = args.ask_output or args.config.with_name(
+        f"{args.config.stem}_{date.today().isoformat()}.ask.md")
+    try:
+        res = run_ask(config, args.ask, output, provider_id=args.narrate or "ollama",
+                      lang=args.llm_lang, own_view=args.own_view, snapshot=snap,
+                      prev_snapshot=prev, reference=args.as_of, target_ct=args.target_ct,
+                      scope=args.ask_scope, llm_model=args.llm_model,
+                      llm_base_url=args.llm_base_url)
+    except (CitationGuardError, NumbersGuardError) as exc:
+        print(f"REJECTED: {exc}", file=sys.stderr)
+        sys.exit(3)
+    if args.browser and res.written:
+        webbrowser.open(res.written.resolve().as_uri())
+
+
+def _run_side_outputs(args: argparse.Namespace) -> bool:
+    """
+    Snapshot, red team, question, one-pager and conference pre-read, in that
+    order. Returns True when nothing else (report HTML/PDF) was requested, so
+    main() can stop there.
+    """
+    report_requested = bool(args.output or args.pdf)
+    if args.snapshot:
+        from .snapshot import write_snapshot_for_config
+        write_snapshot_for_config(
+            args.config, args.snapshot,
+            as_of=args.as_of, target_ct=args.target_ct)
+    if args.red_team:
+        from .red_team import run_red_team
+        run_red_team(load_solution_config(args.config), args.red_team,
+                     provider_id=args.narrate or "ollama",
+                     lang=args.llm_lang, llm_model=args.llm_model,
+                     llm_base_url=args.llm_base_url)
+    if args.ask:
+        _run_ask(args)
+    if args.onepager:
+        _run_onepager(args)
+    if args.conference:
+        _run_conference(args)
+    ran_any = bool(args.snapshot or args.red_team or args.ask or args.onepager
+                   or args.conference)
+    return ran_any and not report_requested
+
+
 def main() -> None:
     """Entry point for the portfolio CLI."""
     parser = build_parser()
@@ -475,32 +550,8 @@ def main() -> None:
     if args.config is None:
         parser.error("config is required (except with --delta).")
 
-    if args.snapshot:
-        from .snapshot import write_snapshot_for_config
-        write_snapshot_for_config(
-            args.config, args.snapshot,
-            as_of=args.as_of, target_ct=args.target_ct)
-        if not args.output and not args.pdf and not args.conference:
-            return
-
-    if args.red_team:
-        from .red_team import run_red_team
-        run_red_team(load_solution_config(args.config), args.red_team,
-                     provider_id=args.narrate or "ollama",
-                     lang=args.llm_lang, llm_model=args.llm_model,
-                     llm_base_url=args.llm_base_url)
-        if not args.output and not args.pdf and not args.conference:
-            return
-
-    if args.onepager:
-        _run_onepager(args)
-        if not args.output and not args.pdf and not args.conference:
-            return
-
-    if args.conference:
-        _run_conference(args)
-        if not args.output and not args.pdf:
-            return
+    if _run_side_outputs(args):
+        return
 
     narrate_report = bool(
         args.narrate and args.output

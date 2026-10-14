@@ -22,6 +22,7 @@
 from __future__ import annotations
 
 import re
+from collections.abc import Mapping
 
 from .base import DEPLOYMENT_EXPORT, DEPLOYMENT_EXTERNAL_ANSWER, LlmResult
 from .prompts import PROMPT_VERSION
@@ -111,6 +112,80 @@ def question_violations(text: str) -> list[str]:
     if not bullets:
         return ["<keine Fragen enthalten>"]
     return offending
+
+
+#: The one sentence a D3 answer may state without a citation (per language).
+UNKNOWN_ANSWERS = {
+    "de": "Dazu liegt im Lagebild keine Angabe vor.",
+    "en": "The situational picture holds no information on that.",
+    "ro": "Tabloul situației nu conține informații despre aceasta.",
+    "pt": "O quadro de situação não contém informação sobre isso.",
+    "fr": "Le tableau de situation ne contient aucune information à ce sujet.",
+}
+#: A citation: [S1/total.median_ct], [S0/...], [D/...], [H/...] - keys use parentheses.
+CITATION_RE = re.compile(r"\[((?:S0|S1|D|H)/[^\]\n]+)\]")
+#: A fact line of the contract: "- [path] label = value (as of ...; source)".
+FACT_LINE_RE = re.compile(r"^- \[([^\]\n]+)\] (.*)$", re.M)
+_SENTENCE_SPLIT_RE = re.compile(r"(?<=[.!?])\s+(?=[A-ZÄÖÜ„\"(\[])")
+_BULLET_RE = re.compile(r"^(?:[-*•]|\d+[.)])\s+")
+
+
+def parse_fact_lines(contract: str) -> dict[str, str]:
+    """path -> evidence text (path + rest of the line) from a fact-index contract."""
+    return {path: f"{path} {rest}" for path, rest in FACT_LINE_RE.findall(contract)}
+
+
+def statements(text: str) -> list[str]:
+    """
+    The statements of an answer that must carry citations: list lines and
+    sentences of prose. Headings, empty lines and the unknown-answer sentence
+    are not statements.
+    """
+    out: list[str] = []
+    unknown = set(UNKNOWN_ANSWERS.values())
+    for raw in text.splitlines():
+        line = _BULLET_RE.sub("", raw.strip())
+        if not line or line.startswith("#"):
+            continue
+        for piece in _SENTENCE_SPLIT_RE.split(line):
+            piece = piece.strip()
+            if piece and CITATION_RE.sub("", piece).strip() not in unknown:
+                out.append(piece)
+    return out
+
+
+def citation_violations(answer: str, evidence: Mapping[str, str]) -> list[str]:
+    """
+    The citation guard (D3): every statement cites at least one path that
+    exists in the fact index, and every number of the statement occurs in
+    the cited facts — not merely somewhere in the contract. Empty list = pass.
+    """
+    violations: list[str] = []
+    for stmt in statements(answer):
+        cited = CITATION_RE.findall(stmt)
+        if not cited:
+            violations.append(f"uncited: {stmt[:90]}")
+            continue
+        unknown = [c for c in cited if c not in evidence]
+        violations += [f"unknown path: {c}" for c in unknown]
+        allowed: set[str] = set()
+        for c in cited:
+            if c in evidence:
+                allowed |= extract_numbers(evidence[c])
+        loose = extract_numbers(CITATION_RE.sub("", stmt)) - allowed
+        violations += [f"number not in cited facts: {n}" for n in sorted(loose)]
+    return violations
+
+
+class CitationGuardError(RuntimeError):
+    """Raised when a D3 answer states something it does not cite - discarded."""
+
+    def __init__(self, violations: list[str]) -> None:
+        super().__init__(
+            "Answer discarded: every statement must cite a fact path of the "
+            "stand and every number must come from the cited facts. "
+            f"{len(violations)} violation(s): " + " | ".join(violations[:4]))
+        self.violations = violations
 
 
 #: Banner texts per house language ({meta} = model @ deployment, prompt).

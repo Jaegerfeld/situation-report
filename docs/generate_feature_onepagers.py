@@ -139,6 +139,80 @@ ONEPAGERS: dict[str, dict[str, dict]] = {
             ],
         },
     },
+    "ask": {
+        "de": {
+            "title": "Befragbares Lagebild (D3)",
+            "tagline": "14.10.2026 \u00b7 Eine Frage an einen Stand \u2013 jede Antwort zitiert den Datenpfad, "
+                       "oder sie wird nicht geschrieben.",
+            "sections": [
+                ("h", "Worum geht es?"),
+                ("p", "Wer ein Lagebild liest, hat Fragen: Welche Abh\u00e4ngigkeit ist \u00fcberf\u00e4llig? "
+                      "Wie steht Alpha-2 beim Median? Bisher hie\u00df die Antwort: suchen. Jetzt l\u00e4sst "
+                      "sich der Stand fragen \u2013 und die KI darf nur sagen, was sie belegen kann."),
+                ("h", "Was es tut"),
+                ("li", "Der Stand wird zum Fakten-Index: jede Zahl, jeder Registereintrag bekommt einen "
+                       "Pfad wie S1/total.median_ct oder S1/governance.dependencies(D-7).status"),
+                ("li", "Der Index ist der einzige Kontext des Modells \u2013 kein Vektorspeicher, keine "
+                       "Websuche, keine Fremdquellen"),
+                ("li", "Zitat-W\u00e4chter: jede Aussage zitiert einen Pfad, jede Zahl stammt aus den "
+                       "zitierten Fakten \u2013 sonst wird die Antwort verworfen"),
+                ("li", "\u201eDazu liegt im Lagebild keine Angabe vor.\u201c ist die erlaubte Antwort, "
+                       "wenn die Fakten schweigen"),
+                ("li", "Eigene Einsch\u00e4tzung zuerst: das Feld steht vor der Antwort, geht nie ans "
+                       "Modell und landet neben der Antwort in der Datei"),
+                ("h", "Drei Entscheidungen"),
+                ("p", "<b>Fakten statt Volltext.</b> Der Index ist klein und deterministisch; damit "
+                      "entfallen Embeddings, Chunking und die Grenzen der RAG-Methode. Die "
+                      "DSK-Orientierungshilfe (10/2025) empfiehlt genau das Prinzip: Wissen aus den "
+                      "Referenzdaten, Modell nur f\u00fcr die Sprache."),
+                ("p", "<b>Hart statt weich.</b> Eine unzitierte Aussage wird nicht markiert, sondern "
+                      "verworfen \u2013 dieselbe Linie wie Zahlen-W\u00e4chter und llm check."),
+                ("p", "<b>Erkl\u00e4ren, nicht urteilen.</b> D3 geh\u00f6rt zu Vorhersage/Feedback. Keine "
+                      "Empfehlung, keine Bewertung, kein Chat-Ged\u00e4chtnis \u2013 jede Frage neu gegen "
+                      "den Stand, damit D7 sp\u00e4ter die Streuung messen kann."),
+                ("h", "So benutzt du es"),
+                ("code", "python -m portfolio solution.json --ask \"Welche Abh\u00e4ngigkeit ist \u00fcberf\u00e4llig?\" --narrate ollama\n"
+                         "python -m portfolio solution.json --ask \"...\" --own-view \"Ich vermute D-7.\" --since-snapshot prev.json\n"
+                         "python -m portfolio solution.json --ask \"...\" --narrate export   # Prompt-B\u00fcndel, R\u00fcckweg: llm check"),
+            ],
+        },
+        "en": {
+            "title": "Asking the Situational Picture (D3)",
+            "tagline": "14 Oct 2026 \u00b7 One question about one stand \u2013 every answer cites the data "
+                       "path, or it is not written.",
+            "sections": [
+                ("h", "What is it?"),
+                ("p", "Whoever reads a situational picture has questions: which dependency is overdue? "
+                      "Where does Alpha-2 stand on the median? Until now the answer was: search. Now "
+                      "the stand can be asked \u2013 and the AI may only say what it can cite."),
+                ("h", "What it does"),
+                ("li", "The stand becomes a fact index: every number and register entry gets a path "
+                       "such as S1/total.median_ct or S1/governance.dependencies(D-7).status"),
+                ("li", "The index is the model's only context \u2013 no vector store, no web search, no "
+                       "external sources"),
+                ("li", "Citation guard: every statement cites a path, every number comes from the cited "
+                       "facts \u2013 otherwise the answer is discarded"),
+                ("li", "'The situational picture holds no information on that.' is the permitted answer "
+                       "when the facts are silent"),
+                ("li", "Own assessment first: the field comes before the answer, never reaches the model "
+                       "and sits next to the answer in the file"),
+                ("h", "Three decisions"),
+                ("p", "<b>Facts, not full text.</b> The index is small and deterministic; embeddings, "
+                      "chunking and the limits of RAG fall away. The German DSK guidance (10/2025) "
+                      "recommends exactly the principle: knowledge from the reference data, the model "
+                      "only for language."),
+                ("p", "<b>Hard, not soft.</b> An uncited statement is not flagged but discarded \u2013 "
+                      "the same line as the numbers guard and llm check."),
+                ("p", "<b>Explain, do not judge.</b> D3 belongs to prediction/feedback. No "
+                      "recommendation, no judgement, no chat memory \u2013 every question anew against "
+                      "the stand, so that D7 can later measure the spread."),
+                ("h", "How to use it"),
+                ("code", "python -m portfolio solution.json --ask \"Which dependency is overdue?\" --narrate ollama --llm-lang en\n"
+                         "python -m portfolio solution.json --ask \"...\" --own-view \"I suspect D-7.\" --since-snapshot prev.json\n"
+                         "python -m portfolio solution.json --ask \"...\" --narrate export   # prompt bundle; return path: llm check"),
+            ],
+        },
+    },
     "llm_check": {
         "de": {
             "title": "llm check \u2013 der R\u00fcckweg des Prompt-Exports",

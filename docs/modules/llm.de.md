@@ -127,7 +127,7 @@ benannt; `--clipboard` liest die Antwort aus der Zwischenablage statt aus einer 
   verknüpft. Seit 0.45.0 trägt auch der Bündelkopf diese Prüfsumme; ein nach dem Export
   verändertes Bündel wird gemeldet.
 
-In der Solutions-&-Portfolios-GUI gibt es denselben Schritt als Knopf **KI-Antwort prüfen …**.
+In der Solutions-&-Portfolios-GUI gibt es denselben Schritt als Knopf **KI-Antwort prüfen …**. Für Antworten an das Lagebild (Zweck `d3_question`, seit 0.46.0) läuft zusätzlich der **Zitat-Wächter**: jede Aussage muss einen Pfad des Fakten-Index aus dem Bündel zitieren, jede Zahl aus den zitierten Fakten stammen.
 
 ## Ollama einrichten (der lokale Weg)
 

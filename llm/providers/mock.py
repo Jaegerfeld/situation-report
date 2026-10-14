@@ -66,7 +66,10 @@ class MockProvider:
         prompt gets question-shaped output so the questions guard can
         pass structurally — still deliberately number-free)."""
         english = config.get("lang") == "en"
-        if "remortem" in system:  # Premortem/premortem (D5)
+        if "[S1/" in system:  # D3 question prompt: the only always-valid answer
+            from llm.guard import UNKNOWN_ANSWERS
+            text = UNKNOWN_ANSWERS["en" if english else "de"]
+        elif "remortem" in system:  # Premortem/premortem (D5)
             text = _QUESTIONS_EN if english else _QUESTIONS_DE
         else:
             text = _TEXT_EN if english else _TEXT_DE
