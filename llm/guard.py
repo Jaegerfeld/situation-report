@@ -23,7 +23,7 @@ from __future__ import annotations
 
 import re
 
-from .base import DEPLOYMENT_EXPORT, LlmResult
+from .base import DEPLOYMENT_EXPORT, DEPLOYMENT_EXTERNAL_ANSWER, LlmResult
 from .prompts import PROMPT_VERSION
 
 #: Numbers incl. decimal comma/point and thousands separators (1.234,5).
@@ -98,6 +98,21 @@ def enforce_numbers(generated: str, source: str) -> None:
         raise NumbersGuardError(violations)
 
 
+def question_violations(text: str) -> list[str]:
+    """
+    The questions guard (D5): every "- " list line must end with "?", and
+    at least one question must exist. Returns the offending bullets (empty
+    list = text passes); a text without any bullet yields one marker entry.
+    Headings and plain lines stay allowed — they group the questions.
+    """
+    bullets = [line.strip() for line in text.splitlines()
+               if line.strip().startswith("- ")]
+    offending = [b for b in bullets if not b.rstrip().endswith("?")]
+    if not bullets:
+        return ["<keine Fragen enthalten>"]
+    return offending
+
+
 #: Banner texts per house language ({meta} = model @ deployment, prompt).
 _BANNERS = {
     "de": ("KI-formulierter Entwurf ({meta}) — ungeprüft; vor Verwendung "
@@ -128,6 +143,25 @@ _EXPORT_BANNERS = {
 }
 
 
+_EXTERNAL_ANSWER_BANNERS = {
+    "de": ("Extern erzeugter KI-Entwurf (Modell laut Bediener: {model}; von llm check gegen "
+           "den Contract geprüft) — inhaltlich ungeprüft; vor Verwendung durch einen Menschen "
+           "redigieren und freigeben."),
+    "en": ("Externally produced AI draft (model as stated by the operator: {model}; checked "
+           "against the contract by llm check) — content unreviewed; a human must edit and "
+           "approve before use."),
+    "ro": ("Schiță AI produsă extern (model declarat de operator: {model}; verificată de llm "
+           "check față de contract) — conținut neverificat; un om trebuie să o redacteze și "
+           "să o aprobe."),
+    "pt": ("Rascunho de IA produzido externamente (modelo indicado pelo operador: {model}; "
+           "verificado pelo llm check contra o contrato) — conteúdo não revisto; uma pessoa "
+           "tem de o redigir e aprovar."),
+    "fr": ("Brouillon IA produit à l'extérieur (modèle indiqué par l'opérateur : {model} ; "
+           "vérifié par llm check contre le contrat) — contenu non relu ; une personne doit "
+           "le réviser et l'approuver."),
+}
+
+
 def ai_banner_text(result: LlmResult, lang: str = "de") -> str:
     """
     The mandatory AI label for a draft (Art. 50 — always shown until a
@@ -137,6 +171,9 @@ def ai_banner_text(result: LlmResult, lang: str = "de") -> str:
     if result.deployment_class == DEPLOYMENT_EXPORT:
         return _EXPORT_BANNERS.get(lang, _EXPORT_BANNERS["de"]).format(
             path=result.endpoint or "-")
+    if result.deployment_class == DEPLOYMENT_EXTERNAL_ANSWER:
+        return _EXTERNAL_ANSWER_BANNERS.get(lang, _EXTERNAL_ANSWER_BANNERS["de"]).format(
+            model=result.model or "-")
     meta = (f"{result.model} @ {result.deployment_class}, "
             f"Prompt {PROMPT_VERSION}")
     return _BANNERS.get(lang, _BANNERS["de"]).format(meta=meta)

@@ -105,6 +105,30 @@ Platzhalter-Abschnitt, dessen Banner „Kein Modell aufgerufen“ sagt; der Betr
 führt Provider `export`, Modell `none`. Der Zahlen-Wächter prüft den Platzhalter nicht — er
 gilt der Antwort, die ein Mensch zurückbringt.
 
+## Eine externe Antwort prüfen — der Rückweg (llm check, seit 0.45.0)
+
+Der Export ist ein halber Weg ohne Rückweg. `python -m llm check antwort.md` nimmt die
+Antwort, die ein fremdes Modell zu einem exportierten Bündel erzeugt hat, und lässt die
+Wächter laufen, die ein Entwurf im Werkzeug auch durchlaufen hätte: den **Zahlen-Wächter**
+gegen den Contract im Bündel (jede Zahl der Antwort muss wörtlich in der Eingabe stehen), den
+**Fragen-Wächter** für Red-Team-Antworten (`d5_red_team`: jede Listenzeile eine Frage). Das
+Bündel wird als neuestes `prompt_*.md` neben der Antwort gefunden oder mit `--bundle`
+benannt; `--clipboard` liest die Antwort aus der Zwischenablage statt aus einer Datei.
+
+- **Bestanden:** der Entwurf wird als `<antwort>.checked.md` geschrieben, mit dem Banner
+  „Extern erzeugter KI-Entwurf (Modell laut Bediener: …)“, und geht denselben Redaktionsweg wie
+  jeder Entwurf. `--model` nennt das Modell so, wie du es kennst — das Werkzeug hat es nie
+  gesehen, darum heißt die Betriebsklasse `external_answer`, nicht lokal oder entfernt.
+- **Abgelehnt:** Rückgabewert 2, die Verstöße werden aufgezählt, nichts wird geschrieben.
+  Dieselbe Linie wie bei einem direkten Modellaufruf, dessen Entwurf verworfen wird.
+- **Nachweis:** beide Ausgänge hängen einen Eintrag an `llm_audit.jsonl` neben dem Bündel
+  (Provider `external`, `guard_passed` wahr/falsch). Sein `input_sha256` ist der Hash des
+  Contracts — identisch mit dem des Export-Eintrags, so sind Hin- und Rückweg im Nachweis
+  verknüpft. Seit 0.45.0 trägt auch der Bündelkopf diese Prüfsumme; ein nach dem Export
+  verändertes Bündel wird gemeldet.
+
+In der Solutions-&-Portfolios-GUI gibt es denselben Schritt als Knopf **KI-Antwort prüfen …**.
+
 ## Ollama einrichten (der lokale Weg)
 
 Siehe das Tutorial [Ollama auf Windows 11 installieren](../tutorials/install-ollama.md)

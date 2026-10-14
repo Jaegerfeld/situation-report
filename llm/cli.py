@@ -134,6 +134,49 @@ def run_translate(args: argparse.Namespace) -> int:
     return 0
 
 
+def run_check(args: argparse.Namespace) -> int:
+    """
+    Check an external model's answer against its exported prompt bundle
+    (the return path of the prompt export): numbers guard, questions guard
+    for red-team answers, labelled draft file, audit record. Exit code 2
+    when a guard rejects the answer - nothing is written then.
+    """
+    from .check import MODEL_UNKNOWN, find_bundle, read_clipboard
+    from .check import run_check as _run
+
+    if args.clipboard:
+        answer = read_clipboard()
+        if not answer.strip():
+            print("ERROR: the clipboard is empty.", file=sys.stderr)
+            return 1
+        folder = Path(args.bundle).parent if args.bundle else Path.cwd()
+    else:
+        if not args.answer:
+            print("ERROR: give the answer file or --clipboard.", file=sys.stderr)
+            return 1
+        try:
+            answer = Path(args.answer).read_text(encoding="utf-8")
+        except OSError as exc:
+            print(f"ERROR: {exc}", file=sys.stderr)
+            return 1
+        folder = Path(args.answer).parent
+    bundle = Path(args.bundle) if args.bundle else find_bundle(folder)
+    if bundle is None or not bundle.is_file():
+        print(f"ERROR: no exported prompt bundle (prompt_*.md) found in {folder}; "
+              f"name it with --bundle.", file=sys.stderr)
+        return 1
+    out = Path(args.out) if args.out else (
+        Path(args.answer).with_suffix(Path(args.answer).suffix + ".checked.md")
+        if args.answer else None)
+    try:
+        report = _run(answer, bundle, out_path=out, model=args.model or MODEL_UNKNOWN,
+                      lang=args.lang, log=_print_utf8)
+    except (OSError, ValueError) as exc:
+        print(f"ERROR: {exc}", file=sys.stderr)
+        return 1
+    return 0 if report.passed else 2
+
+
 def main(argv: list[str] | None = None) -> int:
     """Entry point for the llm CLI."""
     parser = argparse.ArgumentParser(
@@ -192,6 +235,29 @@ def main(argv: list[str] | None = None) -> int:
                            help="Ollama address (default: $OLLAMA_HOST, "
                                 "else http://localhost:11434).")
     translate.set_defaults(func=run_translate)
+
+    check = sub.add_parser(
+        "check",
+        help="Check an external model's answer against its exported prompt "
+             "bundle (numbers guard; questions guard for d5_red_team), write "
+             "the labelled draft <answer>.checked.md and an audit record. "
+             "Exit code 2 = rejected, nothing written.")
+    check.add_argument("answer", nargs="?", default=None,
+                       help="File with the model's answer (or use --clipboard).")
+    check.add_argument("--clipboard", action="store_true",
+                       help="Read the answer from the clipboard instead of a file.")
+    check.add_argument("--bundle", default=None, metavar="FILE",
+                       help="The prompt_*.md bundle the answer belongs to "
+                            "(default: newest one next to the answer).")
+    check.add_argument("--model", default=None,
+                       help="Name of the model that produced the answer, as you "
+                            "know it (default: unbekannt). Goes into banner and audit.")
+    check.add_argument("--out", default=None, metavar="FILE",
+                       help="Where to write the labelled draft (default: "
+                            "<answer>.checked.md, or <bundle>.checked.md with --clipboard).")
+    check.add_argument("--lang", default=None, choices=["de", "en", "ro", "pt", "fr"],
+                       help="Banner language (default: the bundle's draft language).")
+    check.set_defaults(func=run_check)
 
     args = parser.parse_args(argv)
     return int(args.func(args))

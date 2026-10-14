@@ -25,7 +25,7 @@ import tkinter as tk
 import webbrowser
 from datetime import date
 from pathlib import Path
-from tkinter import filedialog, messagebox, ttk
+from tkinter import filedialog, messagebox, simpledialog, ttk
 from typing import Any
 
 from .aggregator import (
@@ -239,6 +239,14 @@ _T: dict[str, dict[str, str]] = {
         "dlg_save_onepager": "Einseiter speichern",
         "msg_onepager_done": "Einseiter erzeugt: {path}",
         "msg_onepager_error": "Einseiter fehlgeschlagen: {error}",
+        "btn_check_answer": "KI-Antwort prüfen …",
+        "dlg_open_answer": "Antwort des externen Modells wählen",
+        "dlg_open_bundle": "Zugehöriges Prompt-Bündel wählen (prompt_*.md)",
+        "dlg_model_title": "Modell",
+        "dlg_model_prompt": "Welches Modell hat die Antwort erzeugt? (für Banner und Nachweis)",
+        "msg_check_ok": "Antwort bestanden — Entwurf geschrieben: {path}",
+        "msg_check_failed": "Antwort abgelehnt ({n} Verstoß/Verstöße): {first}",
+        "msg_check_error": "Prüfung fehlgeschlagen: {error}",
         "dlg_save_conference": "Konferenzmappe speichern",
         "msg_conference_building": "Konferenzmappe wird erzeugt …",
         "lbl_draft_place": "Mappen-Entwurf",
@@ -355,6 +363,14 @@ _T: dict[str, dict[str, str]] = {
         "dlg_save_onepager": "Save one-pager",
         "msg_onepager_done": "One-pager written: {path}",
         "msg_onepager_error": "One-pager failed: {error}",
+        "btn_check_answer": "Check AI answer …",
+        "dlg_open_answer": "Choose the external model's answer",
+        "dlg_open_bundle": "Choose the matching prompt bundle (prompt_*.md)",
+        "dlg_model_title": "Model",
+        "dlg_model_prompt": "Which model produced the answer? (for banner and audit)",
+        "msg_check_ok": "Answer passed — draft written: {path}",
+        "msg_check_failed": "Answer rejected ({n} violation(s)): {first}",
+        "msg_check_error": "Check failed: {error}",
         "dlg_save_conference": "Save conference pre-read",
         "msg_conference_building": "Building conference pre-read …",
         "lbl_draft_place": "Pre-read draft",
@@ -471,6 +487,14 @@ _T: dict[str, dict[str, str]] = {
         "dlg_save_onepager": "Salvează pagina",
         "msg_onepager_done": "Pagina creată: {path}",
         "msg_onepager_error": "Pagina a eșuat: {error}",
+        "btn_check_answer": "Verifică răspunsul AI …",
+        "dlg_open_answer": "Alege răspunsul modelului extern",
+        "dlg_open_bundle": "Alege pachetul de prompt potrivit (prompt_*.md)",
+        "dlg_model_title": "Model",
+        "dlg_model_prompt": "Ce model a produs răspunsul? (pentru banner și evidență)",
+        "msg_check_ok": "Răspuns acceptat — schiță scrisă: {path}",
+        "msg_check_failed": "Răspuns respins ({n} abateri): {first}",
+        "msg_check_error": "Verificarea a eșuat: {error}",
         "dlg_save_conference": "Salvează mapa conferinței",
         "msg_conference_building": "Se creează mapa conferinței …",
         "lbl_draft_place": "Schiță mapă",
@@ -587,6 +611,14 @@ _T: dict[str, dict[str, str]] = {
         "dlg_save_onepager": "Guardar página",
         "msg_onepager_done": "Página criada: {path}",
         "msg_onepager_error": "Página falhou: {error}",
+        "btn_check_answer": "Verificar resposta IA …",
+        "dlg_open_answer": "Escolher a resposta do modelo externo",
+        "dlg_open_bundle": "Escolher o pacote de prompt correspondente (prompt_*.md)",
+        "dlg_model_title": "Modelo",
+        "dlg_model_prompt": "Que modelo produziu a resposta? (para banner e registo)",
+        "msg_check_ok": "Resposta aprovada — rascunho escrito: {path}",
+        "msg_check_failed": "Resposta rejeitada ({n} violações): {first}",
+        "msg_check_error": "Verificação falhou: {error}",
         "dlg_save_conference": "Guardar o dossier da conferência",
         "msg_conference_building": "A criar o dossier da conferência …",
         "lbl_draft_place": "Rascunho do dossier",
@@ -703,6 +735,14 @@ _T: dict[str, dict[str, str]] = {
         "dlg_save_onepager": "Enregistrer la page",
         "msg_onepager_done": "Page créée : {path}",
         "msg_onepager_error": "Page échouée : {error}",
+        "btn_check_answer": "Vérifier la réponse IA …",
+        "dlg_open_answer": "Choisir la réponse du modèle externe",
+        "dlg_open_bundle": "Choisir le paquet de prompt correspondant (prompt_*.md)",
+        "dlg_model_title": "Modèle",
+        "dlg_model_prompt": "Quel modèle a produit la réponse ? (pour bannière et traçabilité)",
+        "msg_check_ok": "Réponse acceptée — brouillon écrit : {path}",
+        "msg_check_failed": "Réponse rejetée ({n} infraction(s)) : {first}",
+        "msg_check_error": "Vérification échouée : {error}",
         "dlg_save_conference": "Enregistrer le dossier de conférence",
         "msg_conference_building": "Création du dossier de conférence …",
         "lbl_draft_place": "Brouillon du dossier",
@@ -1412,6 +1452,9 @@ class SolutionManagerApp(tk.Tk):
                         variable=self._kata).pack(side="right", padx=(0, 2))
         ttk.Button(btns, text=self._tr("btn_onepager"),
                    command=self._onepager).pack(side="right", padx=(0, 6))
+        # llm check (0.45.0): the return path of the prompt export
+        ttk.Button(btns, text=self._tr("btn_check_answer"),
+                   command=self._check_answer).pack(side="right", padx=(0, 6))
         ttk.Button(btns, text=self._tr("btn_delta"), command=self._delta).pack(
             side="right", padx=(0, 6))
         ttk.Button(btns, text=self._tr("btn_snapshot"), command=self._snapshot).pack(
@@ -1773,6 +1816,53 @@ class SolutionManagerApp(tk.Tk):
                 msg = self._tr("msg_onepager_done").format(path=path)
             except Exception as exc:
                 msg = self._tr("msg_onepager_error").format(error=exc)
+            self.after(0, lambda: self._status.set(msg))
+
+        threading.Thread(target=worker, daemon=True).start()
+
+    def _check_answer(self) -> None:
+        """
+        Return path of the prompt export (llm check, 0.45.0): pick the answer
+        an external model produced, find the exported bundle next to it (or
+        ask for it), ask which model it was, run the guards. Pass: labelled
+        draft next to the answer; reject: nothing written, violations in the
+        status line. Both are recorded in the operator evidence.
+        """
+        from llm.check import MODEL_UNKNOWN, find_bundle, run_check
+        answer_path = filedialog.askopenfilename(
+            title=self._tr("dlg_open_answer"),
+            filetypes=[("Markdown / Text", "*.md *.txt"), ("Alle Dateien", "*.*")])
+        if not answer_path:
+            return
+        folder = Path(answer_path).parent
+        bundle = find_bundle(folder)
+        if bundle is None:
+            picked = filedialog.askopenfilename(
+                title=self._tr("dlg_open_bundle"), initialdir=str(folder),
+                filetypes=[("Prompt-Bündel", "prompt_*.md"), ("Markdown", "*.md")])
+            if not picked:
+                return
+            bundle = Path(picked)
+        model = simpledialog.askstring(self._tr("dlg_model_title"), self._tr("dlg_model_prompt"),
+                                       initialvalue=MODEL_UNKNOWN, parent=self)
+        if model is None:
+            return
+        self._status.set(self._tr("msg_generating"))
+        self.update_idletasks()
+        out = Path(answer_path).with_suffix(Path(answer_path).suffix + ".checked.md")
+
+        def worker() -> None:
+            try:
+                answer = Path(answer_path).read_text(encoding="utf-8")
+                report = run_check(answer, bundle, out_path=out, model=model or MODEL_UNKNOWN,
+                                   lang=self._lang, log=lambda *_: None)
+                if report.passed:
+                    msg = self._tr("msg_check_ok").format(path=report.written)
+                else:
+                    msg = self._tr("msg_check_failed").format(
+                        n=len(report.violations), first=report.violations[0])
+            except Exception as exc:
+                msg = self._tr("msg_check_error").format(error=exc)
             self.after(0, lambda: self._status.set(msg))
 
         threading.Thread(target=worker, daemon=True).start()

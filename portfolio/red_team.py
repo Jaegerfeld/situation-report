@@ -70,11 +70,10 @@ def enforce_questions(text: str) -> None:
     least one question must exist. Headings/plain lines stay allowed
     (grouping per entry ID), statements-as-bullets are discarded.
     """
-    bullets = [line.strip() for line in text.splitlines()
-               if line.strip().startswith("- ")]
-    offending = [b for b in bullets if not b.rstrip().endswith("?")]
-    if offending or not bullets:
-        raise QuestionsOnlyError(offending or ["<keine Fragen enthalten>"])
+    from llm.guard import question_violations
+    offending = question_violations(text)
+    if offending:
+        raise QuestionsOnlyError(offending)
 
 
 def run_red_team(
