@@ -5,6 +5,27 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [0.47.0] – 2026-10-14
+
+### Added
+- **Noise-Audit-Unterstützung (Roadmap D7).** `--ask "Frage" --noise 5` stellt dieselbe Frage
+  fünfmal in variierter Formulierung gegen **denselben Stand** (Lauf 1 unverändert, dann eigene
+  Varianten aus `--noise-variants`, dann feste Rahmen je Sprache — kein Modell paraphrasiert). Weil
+  jede D3-Antwort ihre Pfade zitieren muss, wird die Streuung deterministisch gemessen:
+  **Zitier-Konsistenz** (mittlere paarweise Jaccard-Ähnlichkeit der zitierten Pfadmengen, 0–100),
+  **Kern** (von der Mehrheit zitiert), **Streuung** (nur eine Antwort, Aussagen markiert),
+  **Zahlen-Abweichungen** je Pfad, Quoten „keine Angabe“ und „verworfen“. Verworfene Antworten
+  zählen als Streuung und werden nicht wiederholt. `--views DATEI` listet Einschätzungen des Stabs
+  (eine je Absatz) neben dem KI-Kern — ohne Score, das Urteil über Menschen bleibt menschlich.
+  Protokoll `<config>_<datum>.noise.md` mit Lauf-Tabelle, Maßen, allen Antworten samt Banner, Stand
+  und Index-Prüfsumme; jeder Lauf trägt seinen `d3_question`-Nachweis. GUI: Feld **Wiederholungen**
+  im Dialog „Lagebild befragen …“ (> 1 startet das Audit). Der Export-Provider ist hier bewusst nicht
+  zulässig (keine Antworten, nichts zu vergleichen). Neu `portfolio/noise.py`, Tests
+  `tests/portfolio/unit/test_noise.py`. Doku: mkdocs portfolio DE/EN, Portfolio-Manual 5.20 (fünf
+  Sprachen), Onepager „Noise-Audit“ DE/EN, Roadmap D7 ✅ — damit ist Phase D bis auf D4-Rest komplett.
+
+---
+
 ## [0.46.0] – 2026-10-14
 
 ### Added

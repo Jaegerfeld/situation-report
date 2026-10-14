@@ -259,6 +259,8 @@ _T: dict[str, dict[str, str]] = {
         "msg_ask_rejected": "Antwort verworfen — {n} Verstoß/Verstöße gegen Zitierpflicht oder Zahlen: {first}",
         "msg_ask_error": "Frage fehlgeschlagen: {error}",
         "msg_ask_empty": "Bitte eine Frage eingeben.",
+        "lbl_ask_repeats": "Wiederholungen (1 = Frage, > 1 = Noise-Audit)",
+        "msg_noise_done": "Noise-Audit geschrieben: {path} — Konsistenz {score}, verworfen {rejected} %, keine Angabe {unknown} %",
         "dlg_save_conference": "Konferenzmappe speichern",
         "msg_conference_building": "Konferenzmappe wird erzeugt …",
         "lbl_draft_place": "Mappen-Entwurf",
@@ -395,6 +397,8 @@ _T: dict[str, dict[str, str]] = {
         "msg_ask_rejected": "Answer discarded — {n} violation(s) of citation or numbers: {first}",
         "msg_ask_error": "Question failed: {error}",
         "msg_ask_empty": "Please enter a question.",
+        "lbl_ask_repeats": "Repeats (1 = question, > 1 = noise audit)",
+        "msg_noise_done": "Noise audit written: {path} — consistency {score}, rejected {rejected} %, no information {unknown} %",
         "dlg_save_conference": "Save conference pre-read",
         "msg_conference_building": "Building conference pre-read …",
         "lbl_draft_place": "Pre-read draft",
@@ -531,6 +535,8 @@ _T: dict[str, dict[str, str]] = {
         "msg_ask_rejected": "Răspuns respins — {n} abateri de la citare sau numere: {first}",
         "msg_ask_error": "Întrebarea a eșuat: {error}",
         "msg_ask_empty": "Introduceți o întrebare.",
+        "lbl_ask_repeats": "Repetări (1 = întrebare, > 1 = audit de zgomot)",
+        "msg_noise_done": "Audit de zgomot scris: {path} — consistență {score}, respinse {rejected} %, fără informații {unknown} %",
         "dlg_save_conference": "Salvează mapa conferinței",
         "msg_conference_building": "Se creează mapa conferinței …",
         "lbl_draft_place": "Schiță mapă",
@@ -667,6 +673,8 @@ _T: dict[str, dict[str, str]] = {
         "msg_ask_rejected": "Resposta rejeitada — {n} violações de citação ou números: {first}",
         "msg_ask_error": "A pergunta falhou: {error}",
         "msg_ask_empty": "Introduza uma pergunta.",
+        "lbl_ask_repeats": "Repetições (1 = pergunta, > 1 = auditoria de ruído)",
+        "msg_noise_done": "Auditoria de ruído escrita: {path} — consistência {score}, rejeitadas {rejected} %, sem informação {unknown} %",
         "dlg_save_conference": "Guardar o dossier da conferência",
         "msg_conference_building": "A criar o dossier da conferência …",
         "lbl_draft_place": "Rascunho do dossier",
@@ -803,6 +811,8 @@ _T: dict[str, dict[str, str]] = {
         "msg_ask_rejected": "Réponse rejetée — {n} infraction(s) à la citation ou aux nombres : {first}",
         "msg_ask_error": "La question a échoué : {error}",
         "msg_ask_empty": "Saisissez une question.",
+        "lbl_ask_repeats": "Répétitions (1 = question, > 1 = audit de bruit)",
+        "msg_noise_done": "Audit de bruit écrit : {path} — cohérence {score}, rejetées {rejected} %, sans information {unknown} %",
         "dlg_save_conference": "Enregistrer le dossier de conférence",
         "msg_conference_building": "Création du dossier de conférence …",
         "lbl_draft_place": "Brouillon du dossier",
@@ -1914,6 +1924,12 @@ class SolutionManagerApp(tk.Tk):
         own_label.pack(fill="x", padx=10)
         own_view.pack(fill="x", padx=10)
         toggle()
+        # D7 (0.47.0): > 1 repeats turn the question into a noise audit
+        repeats_row = tk.Frame(win)
+        repeats_row.pack(fill="x", padx=10, pady=(8, 0))
+        tk.Label(repeats_row, text=self._tr("lbl_ask_repeats")).pack(side="left")
+        repeats = tk.StringVar(value="1")
+        ttk.Spinbox(repeats_row, from_=1, to=20, width=4, textvariable=repeats).pack(side="left", padx=(6, 0))
         status = tk.StringVar(value="")
         answer_box = tk.Text(win, height=14, width=90, wrap="word", state="disabled", bg="#f7f7f7")
 
@@ -1929,9 +1945,14 @@ class SolutionManagerApp(tk.Tk):
                 status.set(self._tr("msg_ask_empty"))
                 return
             own = own_view.get("1.0", "end").strip() if hygiene.get() else ""
+            try:
+                reps = max(1, int(repeats.get() or "1"))
+            except ValueError:
+                reps = 1
+            suffix = ".noise.md" if reps > 1 else ".ask.md"
             path = filedialog.asksaveasfilename(
                 parent=win, title=self._tr("dlg_save_ask"), defaultextension=".md",
-                initialfile=f"{cfg.name}_Frage_{date.today().isoformat()}.ask.md",
+                initialfile=f"{cfg.name}_{'Noise' if reps > 1 else 'Frage'}_{date.today().isoformat()}{suffix}",
                 filetypes=[("Markdown", "*.md")])
             if not path:
                 return
@@ -1946,12 +1967,22 @@ class SolutionManagerApp(tk.Tk):
                     from llm.guard import CitationGuardError, NumbersGuardError
 
                     from .ask import run_ask
+                    from .noise import run_noise
                     try:
-                        res = run_ask(cfg, q, Path(path), provider_id=provider, lang=lang,
-                                      own_view=own, llm_model=llm_model, llm_base_url=llm_base_url,
-                                      log=lambda *_: None)
-                        text = f"{res.banner}\n\n{res.answer}"
-                        msg = self._tr("msg_ask_done").format(path=path)
+                        if reps > 1:
+                            rep = run_noise(cfg, q, Path(path), n=reps, provider_id=provider, lang=lang,
+                                            llm_model=llm_model, llm_base_url=llm_base_url,
+                                            log=lambda *_: None)
+                            text = Path(path).read_text(encoding="utf-8")
+                            msg = self._tr("msg_noise_done").format(
+                                path=path, score=rep.consistency, rejected=rep.rejected_rate,
+                                unknown=rep.unknown_rate)
+                        else:
+                            res = run_ask(cfg, q, Path(path), provider_id=provider, lang=lang,
+                                          own_view=own, llm_model=llm_model, llm_base_url=llm_base_url,
+                                          log=lambda *_: None)
+                            text = f"{res.banner}\n\n{res.answer}"
+                            msg = self._tr("msg_ask_done").format(path=path)
                     except CitationGuardError as exc:
                         text = "\n".join(exc.violations)
                         msg = self._tr("msg_ask_rejected").format(

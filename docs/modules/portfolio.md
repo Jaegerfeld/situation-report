@@ -429,6 +429,20 @@ The GUI button **Ask the picture …** opens a dialog with the question, the own
 purpose `d3_question`; exit code 3 when the answer is discarded. The answer explains, it never
 recommends.
 
+## Noise audit — how loud is the model? (D7, since 0.47.0)
+
+`--ask "question" --noise 5` asks the same question five times in varied phrasings (run 1 is the
+unchanged question, then your own variants from `--noise-variants`, then fixed frames such as
+"In short: …") against the **same stand**. Because every D3 answer must cite its paths, the spread
+is measured deterministically, with no second model judging similarity: **citation consistency**
+(mean pairwise Jaccard similarity of the cited path sets, 0–100), the **core** (paths the majority
+cites), the **scatter** (paths only one answer cites, with the statements marked), **number
+conflicts** per path, and the rates of "no information" and rejected answers. A rejected answer is
+not retried — it counts as spread. `--views FILE` lists staff assessments (one per paragraph) next
+to the AI core, without any scoring. The protocol goes to `<config>_<date>.noise.md`; the GUI dialog
+**Ask the picture …** has a **Repeats** field (> 1 runs the audit). The spread is a finding about the
+model and the question, not a judgement about the situation.
+
 ## Solution areas & recurrence per seam (optional, P5)
 
 `"solution_areas": "solution_areas.json"` renders the **solution-area register**: dynamic
