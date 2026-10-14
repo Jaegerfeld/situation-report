@@ -181,6 +181,20 @@ def _governance_facts(prefix: str, governance: dict[str, list[dict[str, Any]]],
                                   shown, key, as_of, source))
         if register == "solution_areas" and entries:
             facts += _seam_facts(prefix, entries, as_of)
+        facts += _count_facts(prefix, register, entries, as_of)
+    return facts
+
+
+def _count_facts(prefix: str, register: str, entries: list[dict[str, Any]], as_of: str) -> list[Fact]:
+    """Head counts per register and per status value — the numbers a decision point can watch."""
+    from .exec_summary import _REGISTER_STATUS_FIELDS
+
+    facts = [Fact(f"{prefix}/governance.{register}.count", str(len(entries)), "entries", as_of, "")]
+    status_field = _REGISTER_STATUS_FIELDS.get(register, "status")
+    counts = Counter(sanitize_text(e.get(status_field, ""), 40) for e in entries if e.get(status_field))
+    for status, n in sorted(counts.items()):
+        facts.append(Fact(f"{prefix}/governance.{register}.count({status})", str(n),
+                          f"entries with {status_field} = {status}", as_of, ""))
     return facts
 
 

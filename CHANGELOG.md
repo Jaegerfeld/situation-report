@@ -5,6 +5,30 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [0.48.0] – 2026-10-14
+
+### Added
+- **Wecker-Register (Roadmap D4, Schritt 1).** Muster M4: Frühindikator + Schwelle + vereinbarte
+  Reaktion. Neues optionales Register `decision_points.json` (Config-Feld `decision_points`,
+  zwölftes Feld im Datenquellen-Dialog): je Wecker eine **Kennzahl als Fakten-Pfad** des
+  D3-Index (`S1/units(ART Alpha-3).p85_ct`, `D/total.open` mit `"unit": "%"` relativ zum Vorstand,
+  `S1/governance.dependencies.count(blocked)`, `S1/pressure.cross_vs` für den P4-Druck), Vergleich,
+  Schwelle, Frage, vereinbarte Reaktion, Team. `portfolio/decision_points.py` wertet gegen den
+  Stand aus und zeigt **alle vier Zustände** — ausgelöst (hervorgehoben), unterschwellig, nicht
+  vereinbart (keine Schwelle: weckt nie), nicht berechenbar (Pfad fehlt). Die Regeln von P4
+  gelten: das Werkzeug erfindet keine Schwelle, rechnet keine Priorität, empfiehlt nichts.
+  Report-Block nach dem P4-Wecker (HTML + PDF-Tabelle), Snapshot (neuntes Governance-Register,
+  auf dem eingefrorenen Stand bewertet), Delta-Briefing (`triggered` = Verschlechterung, `below` =
+  Verbesserung), Exec-Summary-Kopfzahlen, CLI `--alarms DATEI` (mit `--ask-snapshot` /
+  `--since-snapshot`). Der Fakten-Index trägt jetzt **Registerzählungen** (`….count`,
+  `….count(status)`), damit sich Zählungen wecken und erfragen lassen. Demo-Szenario: Alpha mit
+  vier Weckern (DP-A1 ausgelöst, DP-A2 relativ, DP-A3 unterschwellig, DP-A4 ohne Schwelle), Beta
+  mit einem. Tests `tests/portfolio/unit/test_decision_points.py`. Doku: mkdocs portfolio DE/EN,
+  Portfolio-Manual 5.21 (fünf Sprachen, Registerzahl zwölf), Onepager „Wecker-Register“ DE/EN,
+  Roadmap D4 Schritt 1. Schritt 2 (Statistik-Hinweise, KI-Erklärschicht, Einseiter) folgt.
+
+---
+
 ## [0.47.0] – 2026-10-14
 
 ### Added

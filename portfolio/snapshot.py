@@ -110,7 +110,8 @@ def _governance_dict(
     Collect the governance registers into snapshot entries.
 
     Seven since 12.10.2026: flow problems (B6) and SLOs (C1) joined the
-    original five; eight since 13.10.2026 with the solution areas (P5). Flow problems carry no owner or raiser here — the
+    original five; eight since 13.10.2026 with the solution areas (P5); nine
+    since 14.10.2026 with the evaluated decision points (D4). Flow problems carry no owner or raiser here — the
     snapshot feeds the LLM contracts, and those name teams, never persons;
     an SLO's status is derived centrally (slo_config), never stored.
     """
@@ -186,7 +187,7 @@ def build_snapshot(
     qualities: list[SourceQuality] = []
     pooled = build_pooled_report_data(config, log=log, quality_sink=qualities)
     units = load_comparison_units(config, log=log)
-    return Snapshot(
+    snapshot = Snapshot(
         name=config.name,
         kind=config.kind,
         as_of=as_of,
@@ -198,6 +199,24 @@ def build_snapshot(
         sources=[_quality_dict(q, as_of) for q in qualities],
         governance=_governance_dict(config, log),
     )
+    # D4: the alarm register is evaluated on the frozen stand itself (no
+    # previous stand here - D/... points read "not computable" in a snapshot).
+    snapshot.governance["decision_points"] = _decision_point_entries(config, snapshot, log)
+    return snapshot
+
+
+def _decision_point_entries(config: SolutionConfig, snapshot: Snapshot,
+                            log: Callable[[str], None]) -> list[dict[str, Any]]:
+    from .aggregator import evaluate_decision_points
+    from .facts import sanitize_text
+
+    entries = []
+    for label, r in evaluate_decision_points(config, snapshot=snapshot, log=log):
+        entries.append({"id": r.point.point_id, "title": r.point.title, "metric": r.point.metric,
+                        "status": r.status, "value": r.shown_value, "threshold": r.shown_threshold,
+                        "question": sanitize_text(r.point.question), "team": r.point.team,
+                        "solution": label})
+    return entries
 
 
 def snapshot_to_dict(snapshot: Snapshot) -> dict[str, Any]:

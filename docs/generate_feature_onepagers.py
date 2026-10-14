@@ -139,6 +139,74 @@ ONEPAGERS: dict[str, dict[str, dict]] = {
             ],
         },
     },
+    "decision_points": {
+        "de": {
+            "title": "Wecker-Register (D4)",
+            "tagline": "14.10.2026 \u00b7 Der Stab vereinbart, welche Kennzahl ab welchem Wert welche "
+                       "Frage auf die Tagesordnung bringt \u2013 das Werkzeug pr\u00fcft, es erfindet nichts.",
+            "sections": [
+                ("h", "Worum geht es?"),
+                ("p", "Ein Lagebild voller Kennzahlen weckt niemanden. Ein Wecker tut es \u2013 wenn "
+                      "vorher vereinbart ist, ab wann er klingelt und was dann passiert. Der "
+                      "Entscheidungspunkt-Wecker f\u00fcr Cross-VS-Druck (P4) war die erste Instanz; "
+                      "jetzt gibt es das Register f\u00fcr jede Kennzahl."),
+                ("h", "Was es tut"),
+                ("li", "Je Wecker: Kennzahl als Fakten-Pfad, Vergleich, Schwelle, Frage, vereinbarte "
+                       "Reaktion, Team \u2013 alles, was sich fragen l\u00e4sst, l\u00e4sst sich wecken"),
+                ("li", "Vier Zust\u00e4nde, alle sichtbar: ausgel\u00f6st, unterschwellig, nicht "
+                       "vereinbart, nicht berechenbar"),
+                ("li", "Steht im Report, im Snapshot und im Delta (\u201eneu ausgel\u00f6st\u201c); "
+                       "--alarms schreibt das Protokoll"),
+                ("li", "Relative Ver\u00e4nderungen (unit %) zum Vorstand, Registerz\u00e4hlungen je "
+                       "Status, der P4-Druck als Pfad"),
+                ("h", "Drei Entscheidungen"),
+                ("p", "<b>Ohne Schwelle kein Alarm.</b> Ein Wecker ohne vereinbarte Schwelle wird "
+                      "gezeigt, weckt aber nie \u2013 die Schwelle geh\u00f6rt ins Ritual, nicht in einen "
+                      "Vorgabewert."),
+                ("p", "<b>Unterschwellig bleibt sichtbar.</b> Ein Indikator, der nur bei schlechten "
+                      "Werten erscheint, lehrt seine Leser, Abwesenheit als \u201enicht gerechnet\u201c "
+                      "zu deuten."),
+                ("p", "<b>Keine Priorit\u00e4t, keine Empfehlung.</b> Die Reihenfolge ist der Zustand; "
+                      "was aus einem ausgel\u00f6sten Wecker folgt, steht in der vereinbarten Reaktion "
+                      "\u2013 geschrieben vom Stab, nicht vom Werkzeug."),
+                ("h", "So benutzt du es"),
+                ("code", "solution.json: \"decision_points\": \"registers/decision_points.json\"\n"
+                         "python -m portfolio solution.json --output report.html\n"
+                         "python -m portfolio solution.json --alarms wecker.md --since-snapshot prev.json"),
+            ],
+        },
+        "en": {
+            "title": "Alarm Register (D4)",
+            "tagline": "14 Oct 2026 \u00b7 The staff agrees which metric from which value puts which "
+                       "question on the agenda \u2013 the tool checks, it invents nothing.",
+            "sections": [
+                ("h", "What is it?"),
+                ("p", "A picture full of metrics wakes nobody. An alarm does \u2013 when it was agreed "
+                      "beforehand when it rings and what happens then. The decision-point alarm for "
+                      "cross-value-stream pressure (P4) was the first instance; now there is a "
+                      "register for any metric."),
+                ("h", "What it does"),
+                ("li", "Per point: metric as a fact path, comparison, threshold, question, agreed "
+                       "reaction, team \u2013 whatever can be asked can be alarmed"),
+                ("li", "Four states, all visible: triggered, below threshold, not agreed, not computable"),
+                ("li", "Appears in the report, the snapshot and the delta ('newly triggered'); "
+                       "--alarms writes the protocol"),
+                ("li", "Relative changes (unit %) to the previous stand, register counts per status, "
+                       "the P4 pressure as a path"),
+                ("h", "Three decisions"),
+                ("p", "<b>No threshold, no alarm.</b> A point without an agreed threshold is shown but "
+                      "never alarms \u2013 the threshold belongs in the ritual, not in a default."),
+                ("p", "<b>Below threshold stays visible.</b> An indicator that appears only for bad "
+                      "values teaches its readers to read absence as 'not computed'."),
+                ("p", "<b>No priority, no recommendation.</b> The order is the state; what follows from "
+                      "a triggered point is the agreed reaction \u2013 written by the staff, not the tool."),
+                ("h", "How to use it"),
+                ("code", "solution.json: \"decision_points\": \"registers/decision_points.json\"\n"
+                         "python -m portfolio solution.json --output report.html\n"
+                         "python -m portfolio solution.json --alarms points.md --since-snapshot prev.json"),
+            ],
+        },
+    },
     "noise": {
         "de": {
             "title": "Noise-Audit (D7)",

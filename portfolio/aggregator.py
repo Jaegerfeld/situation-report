@@ -27,6 +27,7 @@ import json
 from collections.abc import Callable
 from datetime import date
 from pathlib import Path
+from typing import Any
 
 from build_reports.export import _build_combined_html, export_pdf
 from build_reports.filters import FilterConfig, apply_filters
@@ -76,6 +77,8 @@ from .decision_point import (
     decision_point_figure,
     render_decision_point_html,
 )
+from .decision_points import PointResult, evaluate_points
+from .decision_points_config import DecisionPoint, load_decision_points
 from .dependency_config import Dependency, load_dependencies
 from .dora_config import load_delivery
 from .flow_problems_config import FlowProblem, load_flow_problems
@@ -100,6 +103,7 @@ from .summary import (
     assess_quality,
     capability_figure,
     compute_summary,
+    decision_points_figure,
     decisions_figure,
     dependency_figure,
     dora_figure,
@@ -107,6 +111,7 @@ from .summary import (
     nfr_figure,
     quality_figure,
     render_capabilities_html,
+    render_decision_points_html,
     render_decisions_html,
     render_dependencies_html,
     render_dora_html,
@@ -849,6 +854,53 @@ def _collect_harmonisation(
     return entries
 
 
+def _collect_decision_points(
+    config: SolutionConfig,
+    log: Callable[[str], None] = print,
+) -> list[tuple[str, DecisionPoint]]:
+    """Collect agreed decision points (D4) — broken or missing files are logged and skipped."""
+    entries: list[tuple[str, DecisionPoint]] = []
+    for label, sub in _governance_sources(config, log):
+        if not sub.decision_points:
+            continue
+        try:
+            register = load_decision_points(
+                resolve_config_path(sub.base_dir, sub.decision_points, log))
+        except (OSError, ValueError, json.JSONDecodeError) as exc:
+            log(f"  WARNING [{label}]: decision-points file skipped ({exc})")
+            continue
+        entries.extend((label, point) for point in register.points)
+    return entries
+
+
+def evaluate_decision_points(
+    config: SolutionConfig,
+    pressure: DependencyPressure | None = None,
+    prev_snapshot: Any = None,
+    snapshot: Any = None,
+    log: Callable[[str], None] = print,
+) -> list[tuple[str, PointResult]]:
+    """
+    The alarm register against the stand: builds the fact index of the live
+    stand (or the given snapshot) and evaluates every agreed point. The P4
+    pressure enters as S1/pressure.cross_vs. Empty register → empty list.
+    """
+    from .decision_points import PRESSURE_PATH
+    from .facts import build_fact_index
+    from .snapshot import build_snapshot
+
+    points = _collect_decision_points(config, log=log)
+    if not points:
+        return []
+    quiet: Callable[[str], None] = lambda m: None  # noqa: E731
+    snap = snapshot or build_snapshot(config, log=quiet)
+    index = build_fact_index(snap, prev=prev_snapshot)
+    extra = {PRESSURE_PATH: float(pressure.value)} if pressure is not None and pressure.applicable else {}
+    labels = {p.point_id: label for label, p in points}
+    results = evaluate_points([p for _, p in points], index, extra)
+    return [(labels[r.point.point_id], r) for r in results]
+
+
 def _collect_solution_areas(
     config: SolutionConfig,
     log: Callable[[str], None] = print,
@@ -1118,6 +1170,8 @@ def render_html(
                                     lang=lang)
     pressure = _collect_dependency_pressure(config, log=log)
     decision_point = render_decision_point_html(pressure, lang=lang)
+    alarms = render_decision_points_html(
+        evaluate_decision_points(config, pressure=pressure, log=log), lang=lang)
     decisions = render_decisions_html(_collect_decisions(config, log=log),
                                       lang=lang)
     flow = render_flow_problems_html(_collect_flow_problems(config, log=log),
@@ -1132,7 +1186,7 @@ def render_html(
     # The key goes above the first shaded table, not at the end: a reader who
     # meets a coloured cell should already have seen what the colour means.
     tables = (summary + quality + caps + roam + nfr + deps
-              + decision_point + decisions + flow + areas + themes + slo + dora)
+              + decision_point + alarms + decisions + flow + areas + themes + slo + dora)
     key = render_legend_key_html(lang) if tables else ""
     return html.replace("<body>", "<body>" + key + tables, 1)
 
@@ -1207,6 +1261,9 @@ def _governance_figures(config: SolutionConfig, lang: str,
     pressure = _collect_dependency_pressure(config, log=log)
     if pressure.applicable:
         extra.append(decision_point_figure(pressure, lang=lang))
+    alarm_entries = evaluate_decision_points(config, pressure=pressure, log=log)
+    if alarm_entries:
+        extra.append(decision_points_figure(alarm_entries, lang=lang))
     log_entries = _collect_decisions(config, log=log)
     if log_entries:
         extra.append(decisions_figure(log_entries, lang=lang))

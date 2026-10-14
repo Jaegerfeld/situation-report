@@ -382,6 +382,12 @@ def build_parser() -> argparse.ArgumentParser:
                              "next to the AI core without any scoring.")
     parser.add_argument("--noise-output", type=Path, default=None, dest="noise_output",
                         metavar="FILE", help="With --noise: where the .noise.md goes.")
+    parser.add_argument("--alarms", type=Path, default=None, metavar="FILE",
+                        help="D4 (0.48.0): evaluate the config's decision-point register "
+                             "(agreed thresholds on fact paths) against the stand and write "
+                             "the protocol to this Markdown file - all four states visible. "
+                             "--ask-snapshot picks a saved stand, --since-snapshot makes D/... "
+                             "points computable.")
     parser.add_argument("--conference-draft", choices=("file", "inline"),
                         default="file", dest="conference_draft",
                         help="With --conference and --narrate (D8): where the "
@@ -539,6 +545,27 @@ def _run_noise(args: argparse.Namespace, config: Any, snap: Any, prev: Any) -> N
         webbrowser.open(Path(output).resolve().as_uri())
 
 
+def _run_alarms(args: argparse.Namespace) -> None:
+    """D4: the alarm register against the stand, as a deterministic protocol."""
+    from .aggregator import _collect_dependency_pressure, evaluate_decision_points
+    from .decision_points import points_to_markdown
+    from .facts import build_fact_index
+    from .snapshot import build_snapshot, load_snapshot
+
+    config = load_solution_config(args.config)
+    snap = (load_snapshot(args.ask_snapshot) if getattr(args, "ask_snapshot", None)
+            else build_snapshot(config, as_of=args.as_of, target_ct=args.target_ct, log=lambda m: None))
+    prev = load_snapshot(args.since_snapshot) if getattr(args, "since_snapshot", None) else None
+    pressure = _collect_dependency_pressure(config, log=lambda m: None)
+    results = evaluate_decision_points(config, pressure=pressure, prev_snapshot=prev, snapshot=snap)
+    index = build_fact_index(snap, prev=prev)
+    args.alarms.parent.mkdir(parents=True, exist_ok=True)
+    args.alarms.write_text(points_to_markdown([r for _, r in results], index, lang=args.llm_lang),
+                           encoding="utf-8")
+    triggered = sum(1 for _, r in results if r.status == "triggered")
+    print(f"Decision points written: {args.alarms} ({len(results)} points, {triggered} triggered)")
+
+
 def _run_side_outputs(args: argparse.Namespace) -> bool:
     """
     Snapshot, red team, question, one-pager and conference pre-read, in that
@@ -559,12 +586,14 @@ def _run_side_outputs(args: argparse.Namespace) -> bool:
                      llm_base_url=args.llm_base_url)
     if args.ask:
         _run_ask(args)
+    if getattr(args, "alarms", None):
+        _run_alarms(args)
     if args.onepager:
         _run_onepager(args)
     if args.conference:
         _run_conference(args)
     ran_any = bool(args.snapshot or args.red_team or args.ask or args.onepager
-                   or args.conference)
+                   or args.conference or getattr(args, "alarms", None))
     return ran_any and not report_requested
 
 

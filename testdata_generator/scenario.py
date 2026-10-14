@@ -64,6 +64,11 @@ from portfolio.decision_config import (
     LogEntry,
     save_decisions,
 )
+from portfolio.decision_points_config import (
+    DecisionPoint,
+    DecisionPointRegister,
+    save_decision_points,
+)
 from portfolio.dependency_config import (
     DEP_AT_RISK,
     DEP_BLOCKED,
@@ -541,6 +546,47 @@ def _beta_themes(story: str = STORY_NOW) -> ThemesRegister:
     )
 
 
+def _alpha_decision_points(reference: date) -> DecisionPointRegister:
+    """
+    Alpha's agreed alarms (D4): one triggered (Alpha-3's P85 above the agreed
+    30 days), one relative change that needs a previous stand, one below
+    threshold (blocked dependencies), one not agreed yet (no threshold).
+    """
+    agreed = reference - timedelta(days=14)
+    return DecisionPointRegister(points=[
+        DecisionPoint("DP-A1", "P85 cycle time of Alpha-3 above the agreed 30 days",
+                      "S1/units(ART Alpha-3).p85_ct", ">=", 30.0, "",
+                      question="Cut the scope of Alpha-3 in the next PI?",
+                      reaction="Lead team of Alpha-3 brings a proposal to the next VSC",
+                      team="ART Alpha-3", agreed_on=agreed),
+        DecisionPoint("DP-A2", "Open items grow faster than 10 % between stands",
+                      "D/total.open", ">=", 10.0, "%",
+                      question="Introduce a WIP limit at solution level?",
+                      reaction="Solution train engineer prepares a WIP proposal",
+                      team="Solution Alpha", agreed_on=agreed),
+        DecisionPoint("DP-A3", "Two or more dependencies blocked",
+                      "S1/governance.dependencies.count(blocked)", ">=", 2.0, "",
+                      question="Escalate the blocked seams to the VSC?",
+                      reaction="Dependency owners report within two days",
+                      team="Solution Alpha", agreed_on=agreed),
+        DecisionPoint("DP-A4", "Median cycle time of the solution",
+                      "S1/total.median_ct", ">=", None, "",
+                      question="Which median would make us act?",
+                      reaction="Threshold still to be agreed in the next VSC",
+                      team="Solution Alpha"),
+    ])
+
+
+def _beta_decision_points(reference: date) -> DecisionPointRegister:
+    """One agreed point in Beta, below threshold."""
+    return DecisionPointRegister(points=[
+        DecisionPoint("DP-B1", "Solution grows beyond 500 items in the window",
+                      "S1/total.items", ">=", 500.0, "",
+                      question="Split the solution?", reaction="Architecture board reviews the cut",
+                      team="Solution Beta", agreed_on=reference - timedelta(days=30)),
+    ])
+
+
 def _alpha_solution_areas(reference: date, story: str = STORY_NOW) -> SolutionAreaRegister:
     """
     Solution areas of Alpha: the same seam Alpha-1 × Alpha-3 opened a third
@@ -981,6 +1027,7 @@ def build_portfolio_scenario(
             "flow_problems": _alpha_flow_problems(reference),
             "themes": _alpha_themes(story),
             "solution_areas": _alpha_solution_areas(reference, story),
+            "decision_points": _alpha_decision_points(reference),
         },
         "beta": {
             "risks": _beta_risks(reference, story),
@@ -993,6 +1040,7 @@ def build_portfolio_scenario(
             "flow_problems": _beta_flow_problems(reference),
             "themes": _beta_themes(story),
             "solution_areas": _beta_solution_areas(reference),
+            "decision_points": _beta_decision_points(reference),
         },
     }
     savers = {"risks": save_risks, "nfr": save_nfr,
@@ -1000,7 +1048,8 @@ def build_portfolio_scenario(
               "dependencies": save_dependencies,
               "decisions": save_decisions, "slo": save_slo,
               "dora": save_delivery, "flow_problems": save_flow_problems,
-              "themes": save_themes, "solution_areas": save_solution_areas}
+              "themes": save_themes, "solution_areas": save_solution_areas,
+              "decision_points": save_decision_points}
     register_paths: dict[str, Path] = {}
     for solution_key, regs in anchor_registers.items():
         populate_registers(
@@ -1038,7 +1087,7 @@ def build_portfolio_scenario(
     _registers = {r: f"registers/{r}.json"
                   for r in ("risks", "nfr", "capabilities", "dependencies",
                             "decisions", "slo", "dora", "flow_problems",
-                            "themes", "solution_areas")}
+                            "themes", "solution_areas", "decision_points")}
     solution_alpha = out / "solutions" / "alpha" / "solution.json"
     save_solution_config(solution_alpha, SolutionConfig(
         name="Solution Alpha", members=members["alpha"],
@@ -1093,7 +1142,8 @@ def build_portfolio_scenario(
         "                              nfr.json, capabilities.json,",
         "                              dependencies.json, decisions.json,",
         "                              slo.json, dora.json, flow_problems.json,",
-        "                              themes.json, solution_areas.json)",
+        "                              themes.json, solution_areas.json,",
+        "                              decision_points.json)",
         "    workflows/  raw/  pi_config.json",
         "    snapshots/                snapshot_prev.json, snapshot_now.json",
         "",
@@ -1150,6 +1200,10 @@ def build_portfolio_scenario(
         "  Theme; die Roadmap-Matrix zeigt Trains × P1·P2·Y1·Y2·Y3. Im",
         "  Delta-Briefing: EP-A9 verlor sein Theme, EP-B2 wurde von P2 nach",
         "  P1 gezogen („updated roadmaps\").",
+        "- **Entscheidungspunkte / Wecker (D4)**: `registers/decision_points.json`;",
+        "  DP-A1 (P85 von Alpha-3 über 30 Tagen) ist ausgelöst, DP-A2 (offene Items",
+        "  +10 % zum Vorstand) braucht den Vorstand, DP-A3 (zwei blockierte",
+        "  Abhängigkeiten) ist unterschwellig, DP-A4 hat noch keine Schwelle.",
         "- **Solution Areas & Rekurrenz (P5)**: `registers/solution_areas.json`;",
         "  die Naht Alpha-1 × Alpha-3 öffnete zum dritten Mal eine Area für",
         "  dasselbe Thema (test environment) — das EA-Signal: Schnitt oder",
@@ -1217,6 +1271,8 @@ def build_portfolio_scenario(
             "flow_alpha": flow_alpha, "flow_beta": flow_beta,
             "themes_alpha": themes_alpha, "themes_beta": themes_beta,
             "areas_alpha": areas_alpha, "areas_beta": areas_beta,
+            "points_alpha": register_paths["decision_points_alpha"],
+            "points_beta": register_paths["decision_points_beta"],
             "slo_alpha": slo_alpha, "slo_beta": slo_beta,
             "dora_alpha": dora_alpha, "dora_beta": dora_beta,
             "snapshot_prev": snapshot_prev, "snapshot_now": snapshot_now,

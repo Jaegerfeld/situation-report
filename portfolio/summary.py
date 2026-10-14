@@ -31,6 +31,8 @@ from portfolio.decision_config import (
     KIND_DECISION,
     LogEntry,
 )
+from portfolio.decision_points import PointResult, count_by_status
+from portfolio.decision_points_config import DP_TRIGGERED
 from portfolio.dependency_config import (
     DEP_BLOCKED,
     DEP_DONE,
@@ -2242,6 +2244,84 @@ def flow_problems_figure(
         cells=dict(values=columns, align="left", fill_color=fills),
     ))
     fig.update_layout(title=_flow_title(entries, title or t("flow.heading", lang), lang),
+                      title_font_size=14, margin=dict(t=40, b=10))
+    return fig
+
+
+# ---------------------------------------------------------------------------
+# Decision points: the alarm register (D4)
+# ---------------------------------------------------------------------------
+
+def _dp2_title(entries: list[tuple[str, PointResult]], title: str, lang: str = DEFAULT_LANG) -> str:
+    c = count_by_status([r for _, r in entries])
+    return t("dp2.title", lang, title=title, n=len(entries), triggered=c["triggered"],
+             below=c["below"], not_agreed=c["not_agreed"], nc=c["not_computable"])
+
+
+def _dp2_headers(lang: str = DEFAULT_LANG) -> list[str]:
+    return [t("dp2.col.point", lang), t("dp2.col.metric", lang), t("dp2.col.value", lang),
+            t("dp2.col.threshold", lang), t("dp2.col.state", lang), t("dp2.col.question", lang),
+            t("dp2.col.reaction", lang)]
+
+
+def _dp2_rows(entries: list[tuple[str, PointResult]], lang: str = DEFAULT_LANG
+              ) -> list[tuple[PointResult, list[str]]]:
+    rows = []
+    for label, r in entries:
+        state = t(f"dp2.state.{r.status}", lang) + (f" ({r.note})" if r.note else "")
+        rows.append((r, [f"[{label}] {r.point.point_id} {r.point.title}", r.point.metric,
+                         r.shown_value, r.shown_threshold, state, r.point.question or "–",
+                         r.point.reaction or "–"]))
+    return rows
+
+
+def render_decision_points_html(
+    entries: list[tuple[str, PointResult]],
+    title: str | None = None,
+    lang: str = DEFAULT_LANG,
+) -> str:
+    """
+    The alarm register (D4): every agreed decision point against the stand,
+    all four states visible — triggered first, the triggered cell shaded.
+    No threshold is invented, no priority computed, no recommendation made.
+    """
+    if not entries:
+        return ""
+    head = "".join(f"<th>{_html.escape(h)}</th>" for h in _dp2_headers(lang))
+    rows = ""
+    for r, cells in _dp2_rows(entries, lang):
+        tds = []
+        for col, c in enumerate(cells):
+            if col == 4 and r.status == DP_TRIGGERED:
+                tds.append(f"<td style='background:{_OVERDUE_COLOR};font-weight:700'>{_html.escape(c)}</td>")
+            else:
+                tds.append(f"<td>{_html.escape(c)}</td>")
+        rows += f"<tr>{''.join(tds)}</tr>"
+    heading = _dp2_title(entries, title or t("dp2.heading", lang), lang)
+    legend = _legend_line(_legend_flag(t("dp2.col.state", lang), _OVERDUE_COLOR,
+                                       t("legend.dp2_triggered", lang)))
+    return (f"<h2 class='metric-heading'>{_html.escape(heading)}</h2>"
+            f"<table class='sr-summary'><tr>{head}</tr>{rows}</table>{legend}")
+
+
+def decision_points_figure(
+    entries: list[tuple[str, PointResult]],
+    title: str | None = None,
+    lang: str = DEFAULT_LANG,
+):
+    """The alarm register as a plotly Table figure (PDF)."""
+    import plotly.graph_objects as go
+
+    rows = _dp2_rows(entries, lang)
+    headers = _dp2_headers(lang)
+    columns = [[cells[c] for _, cells in rows] for c in range(len(headers))]
+    fills: list[list[str]] = [["white"] * len(rows) for _ in headers]
+    fills[4] = [_OVERDUE_COLOR if r.status == DP_TRIGGERED else "white" for r, _ in rows]
+    fig = go.Figure(go.Table(
+        header=dict(values=headers, fill_color="#f2f2f2", align="left"),
+        cells=dict(values=columns, align="left", fill_color=fills),
+    ))
+    fig.update_layout(title=_dp2_title(entries, title or t("dp2.heading", lang), lang),
                       title_font_size=14, margin=dict(t=40, b=10))
     return fig
 

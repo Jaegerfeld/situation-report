@@ -32,10 +32,10 @@ from .summary import _legend_flag, _legend_line
 
 #: Governance status values that count as a worsening when entered.
 _BAD_STATES = {"blocked", "violated", "critical", "invalidated", "owned",
-               "breached"}
+               "breached", "triggered"}
 #: Governance status values that count as an improvement when entered.
 _GOOD_STATES = {"done", "met", "in_place", "resolved", "mitigated", "ok",
-                "confirmed", "accepted", "on_track"}
+                "confirmed", "accepted", "on_track", "below"}
 
 _RED = "#f8d7da"
 _GREEN = "#e6f4e6"
@@ -285,7 +285,7 @@ def compute_delta(prev: Snapshot, now: Snapshot) -> DeltaReport:
             now.governance.get(section, []), prev.as_of, now.as_of)
         for section in ("risks", "dependencies", "nfr", "runway",
                         "capabilities", "decisions", "epics",
-                        "flow_problems", "slo", "solution_areas")
+                        "flow_problems", "slo", "solution_areas", "decision_points")
     }
 
     completed_delta = (int(now.total.get("completed", 0))
@@ -334,6 +334,7 @@ _SECTION_TITLES = {
     "flow_problems": "Flow problems (impediment backlog)",
     "slo": "SLOs",
     "solution_areas": "Solution areas (seams)",
+    "decision_points": "Decision points (alarm register)",
 }
 
 

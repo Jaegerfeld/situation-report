@@ -456,6 +456,32 @@ Stabs (eine je Absatz) neben dem KI-Kern, ohne Bewertung. Das Protokoll geht nac
 `<config>_<datum>.noise.md`; der GUI-Dialog **Lagebild befragen …** hat ein Feld **Wiederholungen**
 (> 1 startet das Audit). Die Streuung ist ein Befund über Modell und Frage, kein Urteil über die Lage.
 
+## Entscheidungspunkte — das Wecker-Register (D4, seit 0.48.0)
+
+`"decision_points": "decision_points.json"` rendert das **Wecker-Register** (Muster M4:
+Frühindikator + Schwelle + vereinbarte Reaktion). Jeder Wecker nennt eine **Kennzahl als
+Fakten-Pfad** des Frage-Index (`S1/units(ART Alpha-3).p85_ct`, `D/total.open` mit `"unit": "%"` für
+die relative Veränderung zum Vorstand, `S1/governance.dependencies.count(blocked)`,
+`S1/pressure.cross_vs` für den P4-Druck), einen Vergleich (`>=`, `<=`, `>`, `<`), die vereinbarte
+`threshold`, die `question`, die der Wecker auf die Tagesordnung bringt, die vereinbarte `reaction`
+und das `team`. Der Report prüft jeden Wecker gegen den Stand und zeigt **alle vier Zustände**:
+ausgelöst (hervorgehoben), unterschwellig, nicht vereinbart (keine Schwelle — weckt nie), nicht
+berechenbar (Pfad fehlt, z. B. `D/…` ohne Vorstand). Das Werkzeug erfindet keine Schwelle, rechnet
+keine Priorität und spricht keine Empfehlung aus — die Regeln von P4. Die ausgewerteten Wecker
+stehen im Snapshot (neuntes Governance-Register) und im Delta-Briefing („neu ausgelöst");
+`--alarms DATEI` schreibt ein Protokoll, mit `--since-snapshot` werden die `D/…`-Wecker berechenbar.
+Wecker lassen sich in D3 erfragen (`S1/governance.decision_points(DP-1).status`).
+
+```json
+{"schema": 1, "points": [
+  {"id": "DP-1", "title": "P85 von Alpha-3 über den vereinbarten 30 Tagen",
+   "metric": "S1/units(ART Alpha-3).p85_ct", "op": ">=", "threshold": 30,
+   "question": "Scope von Alpha-3 im nächsten PI kürzen?",
+   "reaction": "Lead-Team bringt Vorschlag in die nächste VSC", "team": "ART Alpha-3",
+   "agreed_on": "2026-09-30"}
+]}
+```
+
 ## Solution Areas & Rekurrenz je Naht (optional, P5)
 
 `"solution_areas": "solution_areas.json"` rendert das **Solution-Area-Register**: dynamische
