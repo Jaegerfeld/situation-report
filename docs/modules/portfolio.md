@@ -408,6 +408,27 @@ python -m portfolio portfolio.json --onepager kata.html --kata
 GUI: button **One-pager …** in the manager window; column 2 uses the snapshot last written in
 this session.
 
+## Asking the situational picture (D3, since 0.46.0)
+
+`--ask "question"` asks **one question about one stand**. The stand (live from the config, or a
+saved snapshot via `--ask-snapshot`) is flattened into a **fact index**: every number and every
+register entry gets a path such as `S1/total.median_ct`, `S1/units(ART Alpha-2).open` or
+`S1/governance.dependencies(D-7).status`; with `--since-snapshot` the earlier stand (`S0/…`) and
+the changes (`D/…`) join, a connected harmonisation workspace adds `H/…`. The index is the model's
+only context — no vector store, no retrieval, no external sources — and the **citation guard**
+discards any answer in which a statement lacks a path citation, cites a path that does not exist,
+or carries a number the cited facts do not contain. "The situational picture holds no information
+on that." is the one permitted uncited sentence. Owner and other person fields never enter the
+index (enforced by test); free text from registers is marked as data and shortened.
+
+Decision hygiene (principle 7): `--own-view "…"` records your own assessment **before** the
+answer; it is shown next to the answer in `<config>_<date>.ask.md` and never sent to the model.
+The GUI button **Ask the picture …** opens a dialog with the question, the own-assessment field
+(on by default, a preference of this machine) and the answer. Provider as everywhere (`--narrate`;
+`export` writes the prompt bundle, and `llm check` then verifies the citations too); audit
+purpose `d3_question`; exit code 3 when the answer is discarded. The answer explains, it never
+recommends.
+
 ## Solution areas & recurrence per seam (optional, P5)
 
 `"solution_areas": "solution_areas.json"` renders the **solution-area register**: dynamic

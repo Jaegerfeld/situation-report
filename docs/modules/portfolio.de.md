@@ -417,6 +417,27 @@ python -m portfolio portfolio.json --onepager kata.html --kata
 GUI: Knopf **Einseiter …** im Manager-Fenster; Spalte 2 nutzt den zuletzt in dieser Sitzung
 geschriebenen Snapshot.
 
+## Das Lagebild befragen (D3, seit 0.46.0)
+
+`--ask "Frage"` stellt **eine Frage an einen Stand**. Der Stand (live aus der Config oder ein
+gespeicherter Snapshot über `--ask-snapshot`) wird zum **Fakten-Index** abgeflacht: jede Zahl und
+jeder Registereintrag bekommt einen Pfad wie `S1/total.median_ct`, `S1/units(ART Alpha-2).open`
+oder `S1/governance.dependencies(D-7).status`; mit `--since-snapshot` kommen der Vorstand (`S0/…`)
+und die Veränderungen (`D/…`) dazu, ein angebundener Harmonisierungs-Arbeitsbereich liefert `H/…`.
+Der Index ist der einzige Kontext des Modells — kein Vektorspeicher, kein Retriever, keine
+Fremdquellen — und der **Zitat-Wächter** verwirft jede Antwort, in der eine Aussage ohne
+Pfad-Zitat steht, ein nicht existierender Pfad zitiert wird oder eine Zahl nicht aus den zitierten
+Fakten stammt. „Dazu liegt im Lagebild keine Angabe vor." ist der einzige erlaubte Satz ohne Zitat.
+Owner- und andere Personenfelder kommen nie in den Index (per Test erzwungen); Freitexte aus
+Registern sind als Daten gekennzeichnet und gekürzt.
+
+Entscheidungshygiene (Prinzip 7): `--own-view "…"` hält deine eigene Einschätzung **vor** der
+Antwort fest; sie steht in `<config>_<datum>.ask.md` neben der Antwort und geht nie ans Modell. Der
+GUI-Knopf **Lagebild befragen …** öffnet einen Dialog mit Frage, Einschätzungsfeld (standardmäßig
+an, eine Präferenz dieses Rechners) und Antwort. Provider wie überall (`--narrate`; `export`
+schreibt das Prompt-Bündel, `llm check` prüft dann auch die Zitate); Nachweis-Zweck `d3_question`;
+Rückgabewert 3, wenn die Antwort verworfen wird. Die Antwort erklärt, sie empfiehlt nie.
+
 ## Solution Areas & Rekurrenz je Naht (optional, P5)
 
 `"solution_areas": "solution_areas.json"` rendert das **Solution-Area-Register**: dynamische

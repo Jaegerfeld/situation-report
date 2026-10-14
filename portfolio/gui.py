@@ -247,6 +247,18 @@ _T: dict[str, dict[str, str]] = {
         "msg_check_ok": "Antwort bestanden — Entwurf geschrieben: {path}",
         "msg_check_failed": "Antwort abgelehnt ({n} Verstoß/Verstöße): {first}",
         "msg_check_error": "Prüfung fehlgeschlagen: {error}",
+        "btn_ask": "Lagebild befragen …",
+        "dlg_ask_title": "Lagebild befragen (D3)",
+        "lbl_ask_question": "Frage an den aktuellen Stand",
+        "chk_ask_hygiene": "Eigene Einschätzung zuerst (Entscheidungshygiene)",
+        "lbl_ask_own_view": "Meine Einschätzung — bevor die KI antwortet (geht nicht ans Modell)",
+        "btn_ask_run": "Fragen",
+        "dlg_save_ask": "Antwort speichern",
+        "msg_ask_running": "Frage läuft — Fakten-Index wird gebaut, Modell antwortet …",
+        "msg_ask_done": "Antwort geschrieben (Entwurf): {path}",
+        "msg_ask_rejected": "Antwort verworfen — {n} Verstoß/Verstöße gegen Zitierpflicht oder Zahlen: {first}",
+        "msg_ask_error": "Frage fehlgeschlagen: {error}",
+        "msg_ask_empty": "Bitte eine Frage eingeben.",
         "dlg_save_conference": "Konferenzmappe speichern",
         "msg_conference_building": "Konferenzmappe wird erzeugt …",
         "lbl_draft_place": "Mappen-Entwurf",
@@ -371,6 +383,18 @@ _T: dict[str, dict[str, str]] = {
         "msg_check_ok": "Answer passed — draft written: {path}",
         "msg_check_failed": "Answer rejected ({n} violation(s)): {first}",
         "msg_check_error": "Check failed: {error}",
+        "btn_ask": "Ask the picture …",
+        "dlg_ask_title": "Ask the situational picture (D3)",
+        "lbl_ask_question": "Question about the current stand",
+        "chk_ask_hygiene": "Own assessment first (decision hygiene)",
+        "lbl_ask_own_view": "My assessment — before the AI answers (never sent to the model)",
+        "btn_ask_run": "Ask",
+        "dlg_save_ask": "Save answer",
+        "msg_ask_running": "Asking — building the fact index, model answering …",
+        "msg_ask_done": "Answer written (draft): {path}",
+        "msg_ask_rejected": "Answer discarded — {n} violation(s) of citation or numbers: {first}",
+        "msg_ask_error": "Question failed: {error}",
+        "msg_ask_empty": "Please enter a question.",
         "dlg_save_conference": "Save conference pre-read",
         "msg_conference_building": "Building conference pre-read …",
         "lbl_draft_place": "Pre-read draft",
@@ -495,6 +519,18 @@ _T: dict[str, dict[str, str]] = {
         "msg_check_ok": "Răspuns acceptat — schiță scrisă: {path}",
         "msg_check_failed": "Răspuns respins ({n} abateri): {first}",
         "msg_check_error": "Verificarea a eșuat: {error}",
+        "btn_ask": "Întreabă tabloul …",
+        "dlg_ask_title": "Întreabă tabloul situației (D3)",
+        "lbl_ask_question": "Întrebare despre starea actuală",
+        "chk_ask_hygiene": "Propria evaluare întâi (igiena deciziei)",
+        "lbl_ask_own_view": "Evaluarea mea — înainte de răspunsul AI (nu ajunge la model)",
+        "btn_ask_run": "Întreabă",
+        "dlg_save_ask": "Salvează răspunsul",
+        "msg_ask_running": "Întrebare în curs — se construiește indexul, modelul răspunde …",
+        "msg_ask_done": "Răspuns scris (schiță): {path}",
+        "msg_ask_rejected": "Răspuns respins — {n} abateri de la citare sau numere: {first}",
+        "msg_ask_error": "Întrebarea a eșuat: {error}",
+        "msg_ask_empty": "Introduceți o întrebare.",
         "dlg_save_conference": "Salvează mapa conferinței",
         "msg_conference_building": "Se creează mapa conferinței …",
         "lbl_draft_place": "Schiță mapă",
@@ -619,6 +655,18 @@ _T: dict[str, dict[str, str]] = {
         "msg_check_ok": "Resposta aprovada — rascunho escrito: {path}",
         "msg_check_failed": "Resposta rejeitada ({n} violações): {first}",
         "msg_check_error": "Verificação falhou: {error}",
+        "btn_ask": "Perguntar ao quadro …",
+        "dlg_ask_title": "Perguntar ao quadro de situação (D3)",
+        "lbl_ask_question": "Pergunta sobre o estado atual",
+        "chk_ask_hygiene": "Avaliação própria primeiro (higiene de decisão)",
+        "lbl_ask_own_view": "A minha avaliação — antes da resposta da IA (não vai ao modelo)",
+        "btn_ask_run": "Perguntar",
+        "dlg_save_ask": "Guardar resposta",
+        "msg_ask_running": "Pergunta em curso — a construir o índice, o modelo responde …",
+        "msg_ask_done": "Resposta escrita (rascunho): {path}",
+        "msg_ask_rejected": "Resposta rejeitada — {n} violações de citação ou números: {first}",
+        "msg_ask_error": "A pergunta falhou: {error}",
+        "msg_ask_empty": "Introduza uma pergunta.",
         "dlg_save_conference": "Guardar o dossier da conferência",
         "msg_conference_building": "A criar o dossier da conferência …",
         "lbl_draft_place": "Rascunho do dossier",
@@ -743,6 +791,18 @@ _T: dict[str, dict[str, str]] = {
         "msg_check_ok": "Réponse acceptée — brouillon écrit : {path}",
         "msg_check_failed": "Réponse rejetée ({n} infraction(s)) : {first}",
         "msg_check_error": "Vérification échouée : {error}",
+        "btn_ask": "Interroger le tableau …",
+        "dlg_ask_title": "Interroger le tableau de situation (D3)",
+        "lbl_ask_question": "Question sur l'état actuel",
+        "chk_ask_hygiene": "Mon évaluation d'abord (hygiène décisionnelle)",
+        "lbl_ask_own_view": "Mon évaluation — avant la réponse de l'IA (jamais envoyée au modèle)",
+        "btn_ask_run": "Interroger",
+        "dlg_save_ask": "Enregistrer la réponse",
+        "msg_ask_running": "Question en cours — construction de l'index, le modèle répond …",
+        "msg_ask_done": "Réponse écrite (brouillon) : {path}",
+        "msg_ask_rejected": "Réponse rejetée — {n} infraction(s) à la citation ou aux nombres : {first}",
+        "msg_ask_error": "La question a échoué : {error}",
+        "msg_ask_empty": "Saisissez une question.",
         "dlg_save_conference": "Enregistrer le dossier de conférence",
         "msg_conference_building": "Création du dossier de conférence …",
         "lbl_draft_place": "Brouillon du dossier",
@@ -1455,6 +1515,9 @@ class SolutionManagerApp(tk.Tk):
         # llm check (0.45.0): the return path of the prompt export
         ttk.Button(btns, text=self._tr("btn_check_answer"),
                    command=self._check_answer).pack(side="right", padx=(0, 6))
+        # D3 (0.46.0): ask one question about the stand, answers cite fact paths
+        ttk.Button(btns, text=self._tr("btn_ask"),
+                   command=self._ask_dialog).pack(side="right", padx=(0, 6))
         ttk.Button(btns, text=self._tr("btn_delta"), command=self._delta).pack(
             side="right", padx=(0, 6))
         ttk.Button(btns, text=self._tr("btn_snapshot"), command=self._snapshot).pack(
@@ -1819,6 +1882,93 @@ class SolutionManagerApp(tk.Tk):
             self.after(0, lambda: self._status.set(msg))
 
         threading.Thread(target=worker, daemon=True).start()
+
+    def _ask_dialog(self) -> None:
+        """
+        D3: ask one question about the current stand. The dialog takes the
+        question and - decision hygiene, principle 7 - the asker's own
+        assessment first (default on, a preference of this machine); the
+        assessment never reaches the model. The answer is shown in the
+        dialog and written as <name>_Frage_<date>.ask.md.
+        """
+        cfg = self._build_config()
+        if cfg is None:
+            return
+        win = tk.Toplevel(self)
+        win.title(self._tr("dlg_ask_title"))
+        win.transient(self)
+        tk.Label(win, text=self._tr("lbl_ask_question"), anchor="w").pack(fill="x", padx=10, pady=(10, 2))
+        question = tk.Text(win, height=3, width=90, wrap="word")
+        question.pack(fill="x", padx=10)
+        hygiene = tk.BooleanVar(value=_load_pref("ask_hygiene", "1") != "0")
+        own_label = tk.Label(win, text=self._tr("lbl_ask_own_view"), anchor="w")
+        own_view = tk.Text(win, height=3, width=90, wrap="word")
+
+        def toggle(*_: object) -> None:
+            state = "normal" if hygiene.get() else "disabled"
+            own_view.configure(state=state, bg="white" if hygiene.get() else "#eeeeee")
+            _save_pref("ask_hygiene", "1" if hygiene.get() else "0")
+
+        ttk.Checkbutton(win, text=self._tr("chk_ask_hygiene"), variable=hygiene,
+                        command=toggle).pack(anchor="w", padx=10, pady=(8, 2))
+        own_label.pack(fill="x", padx=10)
+        own_view.pack(fill="x", padx=10)
+        toggle()
+        status = tk.StringVar(value="")
+        answer_box = tk.Text(win, height=14, width=90, wrap="word", state="disabled", bg="#f7f7f7")
+
+        def show(text: str) -> None:
+            answer_box.configure(state="normal")
+            answer_box.delete("1.0", "end")
+            answer_box.insert("1.0", text)
+            answer_box.configure(state="disabled")
+
+        def run() -> None:
+            q = question.get("1.0", "end").strip()
+            if not q:
+                status.set(self._tr("msg_ask_empty"))
+                return
+            own = own_view.get("1.0", "end").strip() if hygiene.get() else ""
+            path = filedialog.asksaveasfilename(
+                parent=win, title=self._tr("dlg_save_ask"), defaultextension=".md",
+                initialfile=f"{cfg.name}_Frage_{date.today().isoformat()}.ask.md",
+                filetypes=[("Markdown", "*.md")])
+            if not path:
+                return
+            provider = self._llm_provider.get() or "ollama"
+            llm_model, llm_base_url = self._llm_config()
+            self._remember_llm_choice()
+            status.set(self._tr("msg_ask_running"))
+            lang = self._lang if self._lang in ("de", "en") else "en"
+
+            def worker() -> None:
+                try:
+                    from llm.guard import CitationGuardError, NumbersGuardError
+
+                    from .ask import run_ask
+                    try:
+                        res = run_ask(cfg, q, Path(path), provider_id=provider, lang=lang,
+                                      own_view=own, llm_model=llm_model, llm_base_url=llm_base_url,
+                                      log=lambda *_: None)
+                        text = f"{res.banner}\n\n{res.answer}"
+                        msg = self._tr("msg_ask_done").format(path=path)
+                    except CitationGuardError as exc:
+                        text = "\n".join(exc.violations)
+                        msg = self._tr("msg_ask_rejected").format(
+                            n=len(exc.violations), first=exc.violations[0])
+                    except NumbersGuardError as exc:
+                        text = "\n".join(exc.violations)
+                        msg = self._tr("msg_ask_rejected").format(
+                            n=len(exc.violations), first=exc.violations[0])
+                except Exception as exc:
+                    text, msg = "", self._tr("msg_ask_error").format(error=exc)
+                self.after(0, lambda: (show(text), status.set(msg), self._status.set(msg)))
+
+            threading.Thread(target=worker, daemon=True).start()
+
+        ttk.Button(win, text=self._tr("btn_ask_run"), command=run).pack(anchor="e", padx=10, pady=8)
+        answer_box.pack(fill="both", expand=True, padx=10, pady=(0, 6))
+        tk.Label(win, textvariable=status, fg="#2980b9", anchor="w").pack(fill="x", padx=10, pady=(0, 10))
 
     def _check_answer(self) -> None:
         """

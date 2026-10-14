@@ -5,6 +5,34 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [0.46.0] – 2026-10-14
+
+### Added
+- **Befragbares Lagebild (Roadmap D3).** `python -m portfolio solution.json --ask "Frage"` stellt
+  eine Frage an **einen Stand** des Lagebilds. Der Stand (live oder `--ask-snapshot`) wird zum
+  **Fakten-Index** (`portfolio/facts.py`): Kennzahlen, Quell-Konfidenz und alle Governance-Register
+  als adressierbare Fakten mit Pfaden wie `S1/total.median_ct` oder
+  `S1/governance.dependencies(D-7).status`; mit `--since-snapshot` kommen `S0/…` und `D/…` dazu, mit
+  Harmonisierungs-Arbeitsbereich `H/…`. Der Index ist der einzige Kontext des Modells — kein
+  Vektorspeicher, kein Retriever, keine Fremdquellen. Der neue **Zitat-Wächter**
+  (`llm/guard.py::citation_violations`) verwirft jede Antwort, in der eine Aussage ohne Pfad-Zitat
+  steht, ein unbekannter Pfad zitiert wird oder eine Zahl nicht aus den zitierten Fakten stammt;
+  „Dazu liegt im Lagebild keine Angabe vor.“ ist der erlaubte Satz ohne Zitat. Personenfelder
+  kommen nie in den Index (Test), Freitexte aus Registern sind als Daten gekennzeichnet und gekürzt
+  (R2). **Hygiene-Vorgabe (Prinzip 7):** `--own-view` bzw. das Einschätzungsfeld im neuen
+  GUI-Dialog **„Lagebild befragen …“** hält die eigene Einschätzung vor der Antwort fest — sie
+  steht in `<config>_<datum>.ask.md` neben der Antwort und geht nie ans Modell (Präferenz
+  `ask_hygiene`, Standard an). Prompt `question_system_prompt` v1 (DE/EN), Nachweis-Zweck
+  `d3_question`, Rückgabewert 3 bei verworfener Antwort. `llm check` prüft bei `d3_question` auch
+  die Zitate; der Mock antwortet mit dem Unbekannt-Satz. Vorarbeit: DSK-Orientierungshilfe RAG
+  (10/2025) gelesen — D3 liegt außerhalb ihres engen Geltungsbereichs (Vektordatenbank) und
+  erfüllt ihre Empfehlungen (Wissen aus Referenzdaten, Modell nur Sprache, Quellen dokumentiert).
+  Tests `tests/portfolio/unit/test_facts.py`, `test_ask.py`, `tests/llm/unit/test_citation_guard.py`.
+  Doku: mkdocs portfolio DE/EN, llm DE/EN, Portfolio-Manual 5.19 (fünf Sprachen), Onepager
+  „Befragbares Lagebild“ DE/EN, Roadmap D3 ✅.
+
+---
+
 ## [0.45.0] – 2026-10-14
 
 ### Added

@@ -31,7 +31,13 @@ from pathlib import Path
 
 from .audit import AUDIT_FILENAME, append_audit
 from .base import DEPLOYMENT_EXTERNAL_ANSWER, LlmResult
-from .guard import ai_banner_text, question_violations, verify_numbers
+from .guard import (
+    ai_banner_text,
+    citation_violations,
+    parse_fact_lines,
+    question_violations,
+    verify_numbers,
+)
 
 #: Provider id written to the audit trail for answers the tool never requested.
 PROVIDER_EXTERNAL = "external"
@@ -41,6 +47,8 @@ MODEL_UNKNOWN = "unbekannt"
 BUNDLE_GLOB = "prompt_*.md"
 #: Audit purposes whose answers must consist of questions only (D5).
 QUESTION_PURPOSES = ("d5_red_team",)
+#: Audit purposes whose answers must cite fact paths (D3).
+CITATION_PURPOSES = ("d3_question",)
 #: Suffix of the file llm check writes next to the answer.
 CHECKED_SUFFIX = ".checked.md"
 
@@ -158,16 +166,18 @@ class CheckReport:
     model: str = MODEL_UNKNOWN
     number_violations: list[str] = field(default_factory=list)
     question_violations: list[str] = field(default_factory=list)
+    citation_violations: list[str] = field(default_factory=list)
     written: Path | None = None
 
     @property
     def passed(self) -> bool:
-        return not self.number_violations and not self.question_violations
+        return not (self.number_violations or self.question_violations or self.citation_violations)
 
     @property
     def violations(self) -> list[str]:
         return ([f"Zahl nicht im Contract: {n}" for n in self.number_violations]
-                + [f"Keine Frage: {line}" for line in self.question_violations])
+                + [f"Keine Frage: {line}" for line in self.question_violations]
+                + [f"Zitat: {line}" for line in self.citation_violations])
 
     def result(self) -> LlmResult:
         """The answer dressed as an LlmResult for banner and audit."""
@@ -187,6 +197,8 @@ def check_answer(answer: str, bundle: Bundle, model: str = MODEL_UNKNOWN) -> Che
     report.number_violations = verify_numbers(answer, bundle.contract)
     if bundle.purpose in QUESTION_PURPOSES:
         report.question_violations = question_violations(answer)
+    if bundle.purpose in CITATION_PURPOSES:
+        report.citation_violations = citation_violations(answer, parse_fact_lines(bundle.contract))
     return report
 
 

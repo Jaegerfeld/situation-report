@@ -789,6 +789,15 @@ def content_de(st: dict) -> list:
            "EA-Signal: Value-Stream-Schnitt oder Architektur prüfen, nicht die Teams. "
            "Erscheint in Report, Konferenzmappe (Input 2), Snapshot/Delta, Einseiter.", st),
         _SP(6),
+        _H2("5.19  Das Lagebild befragen (D3)", st), _hr(st),
+        _P("Eine Frage an einen Stand: <font name='Courier'>--ask \"Frage\"</font> oder der Knopf "
+           "„Lagebild befragen …“. Der Stand wird zum Fakten-Index mit Pfaden (z. B. "
+           "<font name='Courier'>S1/total.median_ct</font>); er ist der einzige Kontext des "
+           "Modells. Jede Aussage der Antwort muss einen Pfad zitieren, jede Zahl aus den "
+           "zitierten Fakten stammen — sonst verwirft der Zitat-Wächter die Antwort. „Dazu "
+           "liegt im Lagebild keine Angabe vor.“ ist erlaubt. Eigene Einschätzung vor der "
+           "Antwort (Entscheidungshygiene), nie ans Modell. Keine Personen, keine Empfehlung.", st),
+        _SP(6),
         _H1("6. Kommandozeile (CLI)", st), _hr(st),
         _P("Für Automatisierung und reproduzierbare Reports:", st),
         _CD("python -m portfolio meine_solution.json --output report.html", st),
@@ -1330,6 +1339,15 @@ def content_en(st: dict) -> list:
            "the value-stream cut or the architecture, not the teams. Appears in the "
            "report, the conference pre-read (input 2), snapshot/delta, one-pager.", st),
         _SP(6),
+        _H2("5.19  Asking the situational picture (D3)", st), _hr(st),
+        _P("One question about one stand: <font name='Courier'>--ask \"question\"</font> or "
+           "the button 'Ask the picture …'. The stand becomes a fact index with paths (e.g. "
+           "<font name='Courier'>S1/total.median_ct</font>), the model's only context. Every "
+           "statement must cite a path, every number must come from the cited facts — "
+           "otherwise the citation guard discards the answer. 'The situational picture holds "
+           "no information on that.' is permitted. Own assessment before the answer "
+           "(decision hygiene), never sent to the model. No persons, no recommendation.", st),
+        _SP(6),
         _H1("6. Command line (CLI)", st), _hr(st),
         _P("For automation and reproducible reports:", st),
         _CD("python -m portfolio my_solution.json --output report.html", st),
@@ -1825,6 +1843,14 @@ def content_ro(st: dict) -> list:
            "scurta, cel putin doi participanti, date de deschidere/inchidere) este grupat "
            "per cusatura; acelasi motiv de doua ori este evidentiat, de la trei ori este "
            "semnalul EA: verificati taietura value stream sau arhitectura, nu echipele.", st),
+        _SP(6),
+        _H2("5.19  Intrebarea tabloului situatiei (D3)", st), _hr(st),
+        _P("O intrebare despre o stare: <font name='Courier'>--ask</font> sau butonul "
+           "'Intreaba tabloul …'. Starea devine un index de fapte cu cai (de ex. "
+           "<font name='Courier'>S1/total.median_ct</font>), singurul context al modelului. "
+           "Fiecare afirmatie trebuie sa citeze o cale, fiecare numar trebuie sa provina din "
+           "faptele citate — altfel paznicul citarii respinge raspunsul. Propria evaluare "
+           "inainte de raspuns, niciodata trimisa modelului. Fara persoane, fara recomandari.", st),
         _SP(6),
         _H1("6. Linia de comanda (CLI)", st), _hr(st),
         _P("Pentru automatizare si rapoarte reproductibile:", st),
@@ -2326,6 +2352,14 @@ def content_pt(st: dict) -> list:
            "pelo menos dois participantes, datas de abertura/fecho) e agrupado por "
            "costura; o mesmo motivo duas vezes e destacado, a partir de tres vezes e o "
            "sinal EA: verificar o corte de value stream ou a arquitetura, nao as equipas.", st),
+        _SP(6),
+        _H2("5.19  Perguntar ao quadro de situacao (D3)", st), _hr(st),
+        _P("Uma pergunta sobre um estado: <font name='Courier'>--ask</font> ou o botao "
+           "'Perguntar ao quadro …'. O estado torna-se um indice de factos com caminhos (p. ex. "
+           "<font name='Courier'>S1/total.median_ct</font>), o unico contexto do modelo. Cada "
+           "afirmacao tem de citar um caminho, cada numero tem de vir dos factos citados — caso "
+           "contrario o guarda de citacao rejeita a resposta. Avaliacao propria antes da "
+           "resposta, nunca enviada ao modelo. Sem pessoas, sem recomendacao.", st),
         _SP(6),
         _H1("6. Linha de comandos (CLI)", st), _hr(st),
         _P("Para automacao e relatorios reproduziveis:", st),
@@ -2849,6 +2883,14 @@ def content_fr(st: dict) -> list:
            "par couture ; le meme motif deux fois est mis en evidence, a partir de trois "
            "fois c'est le signal EA : verifier la decoupe value stream ou l'architecture, "
            "pas les equipes.", st),
+        _SP(6),
+        _H2("5.19  Interroger le tableau de situation (D3)", st), _hr(st),
+        _P("Une question sur un etat : <font name='Courier'>--ask</font> ou le bouton "
+           "'Interroger le tableau …'. L'etat devient un index de faits avec chemins (p. ex. "
+           "<font name='Courier'>S1/total.median_ct</font>), seul contexte du modele. Chaque "
+           "affirmation doit citer un chemin, chaque nombre doit provenir des faits cites — sinon "
+           "le garde de citation rejette la reponse. Evaluation propre avant la reponse, jamais "
+           "envoyee au modele. Pas de personnes, pas de recommandation.", st),
         _SP(6),
         _H1("6. Ligne de commande (CLI)", st), _hr(st),
         _P("Pour l'automatisation et des rapports reproductibles :", st),
