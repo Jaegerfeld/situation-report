@@ -438,6 +438,20 @@ an, eine Präferenz dieses Rechners) und Antwort. Provider wie überall (`--narr
 schreibt das Prompt-Bündel, `llm check` prüft dann auch die Zitate); Nachweis-Zweck `d3_question`;
 Rückgabewert 3, wenn die Antwort verworfen wird. Die Antwort erklärt, sie empfiehlt nie.
 
+## Noise-Audit — wie laut ist das Modell? (D7, seit 0.47.0)
+
+`--ask "Frage" --noise 5` stellt dieselbe Frage fünfmal in variierter Formulierung (Lauf 1 die
+unveränderte Frage, dann eigene Varianten aus `--noise-variants`, dann feste Rahmen wie „Kurz
+gefasst: …") gegen **denselben Stand**. Weil jede D3-Antwort ihre Pfade zitieren muss, wird die
+Streuung deterministisch gemessen, ohne zweites Modell: **Zitier-Konsistenz** (mittlere paarweise
+Jaccard-Ähnlichkeit der zitierten Pfadmengen, 0–100), der **Kern** (Pfade, die die Mehrheit zitiert),
+die **Streuung** (Pfade, die nur eine Antwort zitiert, mit markierten Aussagen),
+**Zahlen-Abweichungen** je Pfad sowie die Quoten „keine Angabe" und „verworfen". Eine verworfene
+Antwort wird nicht wiederholt — sie zählt als Streuung. `--views DATEI` listet Einschätzungen des
+Stabs (eine je Absatz) neben dem KI-Kern, ohne Bewertung. Das Protokoll geht nach
+`<config>_<datum>.noise.md`; der GUI-Dialog **Lagebild befragen …** hat ein Feld **Wiederholungen**
+(> 1 startet das Audit). Die Streuung ist ein Befund über Modell und Frage, kein Urteil über die Lage.
+
 ## Solution Areas & Rekurrenz je Naht (optional, P5)
 
 `"solution_areas": "solution_areas.json"` rendert das **Solution-Area-Register**: dynamische

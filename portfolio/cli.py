@@ -367,6 +367,21 @@ def build_parser() -> argparse.ArgumentParser:
                         dest="ask_scope", help="With --ask: which facts enter the index.")
     parser.add_argument("--ask-output", type=Path, default=None, dest="ask_output",
                         metavar="FILE", help="With --ask: where the .ask.md goes.")
+    parser.add_argument("--noise", type=int, default=0, metavar="N",
+                        help="D7 (0.47.0): with --ask, ask the question N times in varied "
+                             "phrasings against the same stand and write a noise-audit protocol "
+                             "(citation consistency, core and scattered citations, number "
+                             "conflicts, unknown/rejected rates) to <config>_<date>.noise.md. "
+                             "Rejected answers count as spread. Default 5 when given without "
+                             "a value is not possible - name N explicitly.")
+    parser.add_argument("--noise-variants", type=Path, default=None, dest="noise_variants",
+                        metavar="FILE", help="With --noise: your own phrasings, one per line "
+                                              "(used before the built-in frames).")
+    parser.add_argument("--views", type=Path, default=None, metavar="FILE",
+                        help="With --noise: staff assessments, one per paragraph - listed "
+                             "next to the AI core without any scoring.")
+    parser.add_argument("--noise-output", type=Path, default=None, dest="noise_output",
+                        metavar="FILE", help="With --noise: where the .noise.md goes.")
     parser.add_argument("--conference-draft", choices=("file", "inline"),
                         default="file", dest="conference_draft",
                         help="With --conference and --narrate (D8): where the "
@@ -488,6 +503,9 @@ def _run_ask(args: argparse.Namespace) -> None:
     config = load_solution_config(args.config)
     snap = load_snapshot(args.ask_snapshot) if args.ask_snapshot else None
     prev = load_snapshot(args.since_snapshot) if args.since_snapshot else None
+    if getattr(args, "noise", 0) and args.noise > 1:
+        _run_noise(args, config, snap, prev)
+        return
     output = args.ask_output or args.config.with_name(
         f"{args.config.stem}_{date.today().isoformat()}.ask.md")
     try:
@@ -501,6 +519,24 @@ def _run_ask(args: argparse.Namespace) -> None:
         sys.exit(3)
     if args.browser and res.written:
         webbrowser.open(res.written.resolve().as_uri())
+
+
+def _run_noise(args: argparse.Namespace, config: Any, snap: Any, prev: Any) -> None:
+    """D7: the same question N times, spread of the cited facts as a protocol."""
+    from .noise import read_variants, read_views, run_noise
+
+    output = getattr(args, "noise_output", None) or args.config.with_name(
+        f"{args.config.stem}_{date.today().isoformat()}.noise.md")
+    variants = read_variants(args.noise_variants) if getattr(args, "noise_variants", None) else []
+    views = read_views(args.views) if getattr(args, "views", None) else []
+    rep = run_noise(config, args.ask, output, n=args.noise, provider_id=args.narrate or "ollama",
+                    lang=args.llm_lang, snapshot=snap, prev_snapshot=prev, reference=args.as_of,
+                    target_ct=args.target_ct, scope=args.ask_scope, extra_variants=variants,
+                    views=views, llm_model=args.llm_model, llm_base_url=args.llm_base_url)
+    print(f"Noise audit: {len(rep.runs)} runs, consistency {rep.consistency}, "
+          f"rejected {rep.rejected_rate} %, unknown {rep.unknown_rate} %")
+    if args.browser:
+        webbrowser.open(Path(output).resolve().as_uri())
 
 
 def _run_side_outputs(args: argparse.Namespace) -> bool:

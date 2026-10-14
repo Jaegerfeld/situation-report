@@ -139,6 +139,67 @@ ONEPAGERS: dict[str, dict[str, dict]] = {
             ],
         },
     },
+    "noise": {
+        "de": {
+            "title": "Noise-Audit (D7)",
+            "tagline": "14.10.2026 \u00b7 Dieselbe Frage f\u00fcnfmal \u2013 wie sehr streut das Modell, bevor "
+                       "man seiner Antwort traut?",
+            "sections": [
+                ("h", "Worum geht es?"),
+                ("p", "Ein Sprachmodell antwortet auf dieselbe Frage nicht zweimal gleich. Wer eine "
+                      "Antwort als objektiv nimmt, importiert diese Streuung als Scheinobjektivit\u00e4t. "
+                      "Das Noise-Audit macht die Lautst\u00e4rke des Modells messbar \u2013 am eigenen Lagebild."),
+                ("h", "Was es tut"),
+                ("li", "Stellt die Frage n-mal in variierter Formulierung gegen denselben Fakten-Index "
+                       "(Lauf 1 unver\u00e4ndert, dann eigene Varianten, dann feste Rahmen)"),
+                ("li", "Misst aus den Zitaten: Konsistenz 0\u2013100 (Jaccard), Kern (Mehrheit), Streuung "
+                       "(nur eine Antwort), Zahlen-Abweichungen je Pfad"),
+                ("li", "Z\u00e4hlt \u201ekeine Angabe\u201c und verworfene Antworten als Quoten \u2013 "
+                       "verworfen wird nicht wiederholt"),
+                ("li", "Listet Einsch\u00e4tzungen des Stabs daneben, ohne Score"),
+                ("h", "Drei Entscheidungen"),
+                ("p", "<b>Kein zweites Modell.</b> Die \u00c4hnlichkeit wird aus den zitierten Pfaden "
+                      "gerechnet, nicht von einer KI gesch\u00e4tzt \u2013 sonst misst man deren Streuung mit."),
+                ("p", "<b>Verworfen z\u00e4hlt.</b> F\u00e4llt das Modell bei einer Umformulierung aus dem "
+                      "Contract, ist das ein Befund, kein Ausrei\u00dfer, den man wegwiederholt."),
+                ("p", "<b>Befund, kein Urteil.</b> Das Protokoll sagt nicht \u201ezu hoch\u201c. Was aus der "
+                      "Streuung folgt \u2013 Modell wechseln, Frage sch\u00e4rfen, deterministisch bleiben "
+                      "\u2013 entscheidet der Mensch."),
+                ("h", "So benutzt du es"),
+                ("code", "python -m portfolio solution.json --ask \"Welche Abh\u00e4ngigkeit ist \u00fcberf\u00e4llig?\" --noise 5 --narrate ollama\n"
+                         "python -m portfolio solution.json --ask \"...\" --noise 7 --noise-variants varianten.txt --views stab.txt"),
+            ],
+        },
+        "en": {
+            "title": "Noise Audit (D7)",
+            "tagline": "14 Oct 2026 \u00b7 The same question five times \u2013 how much does the model "
+                       "scatter before you trust its answer?",
+            "sections": [
+                ("h", "What is it?"),
+                ("p", "A language model does not answer the same question the same way twice. Taking "
+                      "one answer as objective imports that spread as false objectivity. The noise audit "
+                      "makes the model's loudness measurable \u2013 on your own situational picture."),
+                ("h", "What it does"),
+                ("li", "Asks the question n times in varied phrasings against the same fact index (run 1 "
+                       "unchanged, then your variants, then fixed frames)"),
+                ("li", "Measures from the citations: consistency 0\u2013100 (Jaccard), core (majority), "
+                       "scatter (one answer only), number conflicts per path"),
+                ("li", "Counts 'no information' and rejected answers as rates \u2013 rejected is not retried"),
+                ("li", "Lists staff assessments next to it, unscored"),
+                ("h", "Three decisions"),
+                ("p", "<b>No second model.</b> Similarity is computed from the cited paths, not estimated "
+                      "by an AI \u2013 otherwise you measure its spread too."),
+                ("p", "<b>Rejected counts.</b> When a rephrasing makes the model fall out of the contract, "
+                      "that is a finding, not an outlier to retry away."),
+                ("p", "<b>Finding, not judgement.</b> The protocol never says 'too high'. What follows from "
+                      "the spread \u2013 switch model, sharpen the question, stay deterministic \u2013 is a "
+                      "human decision."),
+                ("h", "How to use it"),
+                ("code", "python -m portfolio solution.json --ask \"Which dependency is overdue?\" --noise 5 --narrate ollama --llm-lang en\n"
+                         "python -m portfolio solution.json --ask \"...\" --noise 7 --noise-variants variants.txt --views staff.txt"),
+            ],
+        },
+    },
     "ask": {
         "de": {
             "title": "Befragbares Lagebild (D3)",

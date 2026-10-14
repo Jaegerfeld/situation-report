@@ -798,6 +798,14 @@ def content_de(st: dict) -> list:
            "liegt im Lagebild keine Angabe vor.“ ist erlaubt. Eigene Einschätzung vor der "
            "Antwort (Entscheidungshygiene), nie ans Modell. Keine Personen, keine Empfehlung.", st),
         _SP(6),
+        _H2("5.20  Noise-Audit (D7)", st), _hr(st),
+        _P("<font name='Courier'>--ask \"Frage\" --noise 5</font> oder Feld „Wiederholungen“ im "
+           "Frage-Dialog: dieselbe Frage mehrfach in variierter Formulierung gegen denselben Stand. "
+           "Gemessen wird die Streuung der zitierten Pfade — Zitier-Konsistenz (0–100), Kern, "
+           "Streuung, Zahlen-Abweichungen, Quoten „keine Angabe“ und „verworfen“. Verworfene "
+           "Antworten zählen als Streuung. Einschätzungen des Stabs stehen daneben, ohne Bewertung. "
+           "Die Streuung ist ein Befund über das Modell, kein Urteil über die Lage.", st),
+        _SP(6),
         _H1("6. Kommandozeile (CLI)", st), _hr(st),
         _P("Für Automatisierung und reproduzierbare Reports:", st),
         _CD("python -m portfolio meine_solution.json --output report.html", st),
@@ -1348,6 +1356,14 @@ def content_en(st: dict) -> list:
            "no information on that.' is permitted. Own assessment before the answer "
            "(decision hygiene), never sent to the model. No persons, no recommendation.", st),
         _SP(6),
+        _H2("5.20  Noise audit (D7)", st), _hr(st),
+        _P("<font name='Courier'>--ask \"question\" --noise 5</font> or the Repeats field of the "
+           "question dialog: the same question several times in varied phrasings against the same "
+           "stand. Measured is the spread of the cited paths — citation consistency (0–100), core, "
+           "scatter, number conflicts, rates of 'no information' and 'rejected'. Rejected answers "
+           "count as spread. Staff assessments are listed next to it, unscored. The spread is a "
+           "finding about the model, not a judgement about the situation.", st),
+        _SP(6),
         _H1("6. Command line (CLI)", st), _hr(st),
         _P("For automation and reproducible reports:", st),
         _CD("python -m portfolio my_solution.json --output report.html", st),
@@ -1851,6 +1867,14 @@ def content_ro(st: dict) -> list:
            "Fiecare afirmatie trebuie sa citeze o cale, fiecare numar trebuie sa provina din "
            "faptele citate — altfel paznicul citarii respinge raspunsul. Propria evaluare "
            "inainte de raspuns, niciodata trimisa modelului. Fara persoane, fara recomandari.", st),
+        _SP(6),
+        _H2("5.20  Audit de zgomot (D7)", st), _hr(st),
+        _P("<font name='Courier'>--ask --noise 5</font> sau campul Repetari din dialogul de intrebare: "
+           "aceeasi intrebare de mai multe ori, formulata variat, pe aceeasi stare. Se masoara "
+           "dispersia cailor citate — consistenta citarii (0–100), nucleu, dispersie, conflicte de "
+           "numere, ratele 'fara informatii' si 'respins'. Raspunsurile respinse conteaza ca "
+           "dispersie. Evaluarile echipei stau alaturi, fara punctaj. Dispersia este o constatare "
+           "despre model, nu o judecata despre situatie.", st),
         _SP(6),
         _H1("6. Linia de comanda (CLI)", st), _hr(st),
         _P("Pentru automatizare si rapoarte reproductibile:", st),
@@ -2360,6 +2384,14 @@ def content_pt(st: dict) -> list:
            "afirmacao tem de citar um caminho, cada numero tem de vir dos factos citados — caso "
            "contrario o guarda de citacao rejeita a resposta. Avaliacao propria antes da "
            "resposta, nunca enviada ao modelo. Sem pessoas, sem recomendacao.", st),
+        _SP(6),
+        _H2("5.20  Auditoria de ruido (D7)", st), _hr(st),
+        _P("<font name='Courier'>--ask --noise 5</font> ou o campo Repeticoes do dialogo de pergunta: "
+           "a mesma pergunta varias vezes, com formulacoes variadas, sobre o mesmo estado. Mede-se a "
+           "dispersao dos caminhos citados — consistencia de citacao (0–100), nucleo, dispersao, "
+           "conflitos de numeros, taxas de 'sem informacao' e 'rejeitada'. Respostas rejeitadas "
+           "contam como dispersao. As avaliacoes da equipa ficam ao lado, sem pontuacao. A dispersao "
+           "e um achado sobre o modelo, nao um juizo sobre a situacao.", st),
         _SP(6),
         _H1("6. Linha de comandos (CLI)", st), _hr(st),
         _P("Para automacao e relatorios reproduziveis:", st),
@@ -2891,6 +2923,14 @@ def content_fr(st: dict) -> list:
            "affirmation doit citer un chemin, chaque nombre doit provenir des faits cites — sinon "
            "le garde de citation rejette la reponse. Evaluation propre avant la reponse, jamais "
            "envoyee au modele. Pas de personnes, pas de recommandation.", st),
+        _SP(6),
+        _H2("5.20  Audit de bruit (D7)", st), _hr(st),
+        _P("<font name='Courier'>--ask --noise 5</font> ou le champ Repetitions du dialogue de question : "
+           "la meme question plusieurs fois, formulee differemment, sur le meme etat. On mesure la "
+           "dispersion des chemins cites — coherence des citations (0–100), noyau, dispersion, "
+           "conflits de nombres, taux 'sans information' et 'rejetee'. Les reponses rejetees "
+           "comptent comme dispersion. Les evaluations de l'equipe figurent a cote, sans note. La "
+           "dispersion est un constat sur le modele, pas un jugement sur la situation.", st),
         _SP(6),
         _H1("6. Ligne de commande (CLI)", st), _hr(st),
         _P("Pour l'automatisation et des rapports reproductibles :", st),
