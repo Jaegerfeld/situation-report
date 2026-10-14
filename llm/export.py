@@ -20,6 +20,7 @@
 
 from __future__ import annotations
 
+import hashlib
 from datetime import datetime
 from pathlib import Path
 
@@ -28,24 +29,30 @@ BUNDLE_SCHEMA = "prompt-export/1"
 _HEAD = {
     "de": (
         "# Prompt-Export — {purpose} — {stamp}\n\n"
-        "Erzeugt von SituationReport ({schema}). Kein Modell wurde aufgerufen.\n\n"
+        "Erzeugt von SituationReport ({schema}). Kein Modell wurde aufgerufen.\n"
+        "Prüfsumme der Eingabe (SHA-256): {sha}\n\n"
         "**So geht es weiter:** (1) Den Abschnitt „Systemprompt“ als Systemanweisung des "
         "Modells setzen. (2) Den Abschnitt „Eingabe“ als Nutzer-Nachricht senden — er ist "
         "der vollständige Contract, mehr darf das Modell nicht wissen. (3) Die Antwort in "
         "die Entwurfsdatei neben der Ausgabe einfügen (`{draft}`) und wie jeden KI-Entwurf "
         "redigieren, bevor sie verwendet wird. Zahlen in der Antwort müssen wörtlich in der "
-        "Eingabe stehen — ein Modell, das rechnet, ist hier falsch.\n\n"
+        "Eingabe stehen — ein Modell, das rechnet, ist hier falsch. (4) Oder die Antwort mit "
+        "`python -m llm check antwort.md` gegen dieses Bündel prüfen lassen: der Zahlen-Wächter "
+        "läuft, der Entwurf wird gekennzeichnet geschrieben und im Nachweis festgehalten.\n\n"
         "Sprache des Entwurfs: {lang}.\n"
     ),
     "en": (
         "# Prompt export — {purpose} — {stamp}\n\n"
-        "Produced by SituationReport ({schema}). No model was called.\n\n"
+        "Produced by SituationReport ({schema}). No model was called.\n"
+        "Input checksum (SHA-256): {sha}\n\n"
         "**Next steps:** (1) Use the section “System prompt” as the model's system "
         "instruction. (2) Send the section “Input” as the user message — it is the complete "
         "contract, the model must know nothing beyond it. (3) Paste the answer into the "
         "draft file next to the output (`{draft}`) and edit it like every AI draft before "
         "use. Numbers in the answer must appear verbatim in the input — a model that "
-        "computes is wrong here.\n\n"
+        "computes is wrong here. (4) Or let `python -m llm check answer.md` check the answer "
+        "against this bundle: the numbers guard runs, the draft is written with its label and "
+        "recorded in the operator evidence.\n\n"
         "Draft language: {lang}.\n"
     ),
 }
@@ -62,10 +69,13 @@ def build_bundle(system: str, prompt: str, purpose: str, lang: str = "de",
     key = "de" if lang == "de" else "en"
     stamp = stamp or datetime.now()
     head = _HEAD[key].format(purpose=purpose, stamp=stamp.strftime("%Y-%m-%d %H:%M"),
-                             schema=BUNDLE_SCHEMA, draft=draft_name, lang=lang)
+                             schema=BUNDLE_SCHEMA, draft=draft_name, lang=lang,
+                             sha=hashlib.sha256(prompt.encode("utf-8")).hexdigest())
     sys_h, in_h = _SECTIONS[key]
+    # The contract goes in VERBATIM (no strip): llm check hashes it again and the
+    # audit record of the export hashed exactly this text — the two must agree.
     return (f"{head}\n{sys_h}\n\n```text\n{system.strip()}\n```\n\n"
-            f"{in_h}\n\n```markdown\n{prompt.strip()}\n```\n")
+            f"{in_h}\n\n```markdown\n{prompt}\n```\n")
 
 
 def bundle_filename(purpose: str, stamp: datetime | None = None) -> str:

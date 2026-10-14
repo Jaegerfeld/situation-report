@@ -104,6 +104,30 @@ draft. The page carries a placeholder section whose banner says "No model called
 operator evidence records provider `export`, model `none`. The numbers guard does not judge
 the placeholder — it is for the answer, which a human brings back.
 
+## Checking an external answer — the return path (llm check, since 0.45.0)
+
+The export is half a road without a way back. `python -m llm check answer.md` takes the
+answer a foreign model produced to an exported bundle and runs the guards an in-tool draft
+would have faced: the **numbers guard** against the contract in the bundle (every number in
+the answer must occur verbatim in the input), the **questions guard** for red-team answers
+(`d5_red_team`: every list line a question). The bundle is found automatically as the newest
+`prompt_*.md` next to the answer, or named with `--bundle`; `--clipboard` reads the answer
+from the clipboard instead of a file.
+
+- **Pass:** the draft is written as `<answer>.checked.md` with the banner "Externally produced
+  AI draft (model as stated by the operator: …)" and goes through the same human editing as
+  every draft. `--model` names the model the way you know it — the tool never saw it, so the
+  deployment class is `external_answer`, not local or remote.
+- **Reject:** exit code 2, the violations are listed, nothing is written. The same line as a
+  direct model call whose draft is discarded.
+- **Evidence:** both outcomes append one record to `llm_audit.jsonl` next to the bundle
+  (provider `external`, `guard_passed` true/false). Its `input_sha256` is the hash of the
+  contract — identical to the export record's, so outward and return path are linked in the
+  audit trail. Since 0.45.0 the bundle head also carries that checksum; a bundle edited after
+  export is reported.
+
+The Solutions & Portfolios GUI has the same step as the button **Check AI answer …**.
+
 ## Setting up Ollama (the local path)
 
 See the tutorial [Install Ollama on Windows 11](../tutorials/install-ollama.md)

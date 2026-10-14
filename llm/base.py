@@ -35,6 +35,9 @@ DEPLOYMENT_EXTERNAL = "external_api"
 DEPLOYMENT_MOCK = "mock"
 #: No model at all: the prompt bundle was written to a file (provider "export").
 DEPLOYMENT_EXPORT = "export"
+#: An answer a human brought back from a model the tool never called
+#: (llm check, 0.45.0): address unknown, model name as the operator says.
+DEPLOYMENT_EXTERNAL_ANSWER = "external_answer"
 
 
 def classify_endpoint(url: str) -> str:

@@ -139,6 +139,75 @@ ONEPAGERS: dict[str, dict[str, dict]] = {
             ],
         },
     },
+    "llm_check": {
+        "de": {
+            "title": "llm check \u2013 der R\u00fcckweg des Prompt-Exports",
+            "tagline": "14.10.2026 \u00b7 Eine fremde Antwort darf erst in den Report, wenn sie "
+                       "dieselben W\u00e4chter bestanden hat wie ein Entwurf aus dem Werkzeug.",
+            "sections": [
+                ("h", "Worum geht es?"),
+                ("p", "Seit 0.42.0 l\u00e4sst sich an jeder KI-Stelle der Prompt exportieren und auf "
+                      "einem anderen Rechner oder Modell ausf\u00fchren. Die Antwort kam bisher von "
+                      "Hand zur\u00fcck \u2013 ungepr\u00fcft. Der Export war ein halber Weg. "
+                      "llm check ist der R\u00fcckweg."),
+                ("h", "Was es tut"),
+                ("li", "Liest die Antwort aus Datei oder Zwischenablage und findet das passende "
+                       "Prompt-B\u00fcndel (neuestes prompt_*.md daneben oder --bundle)"),
+                ("li", "Zahlen-W\u00e4chter gegen den Contract im B\u00fcndel; Fragen-W\u00e4chter f\u00fcr "
+                       "Red-Team-Antworten"),
+                ("li", "Bestanden: Entwurf mit Banner \u201eExtern erzeugter KI-Entwurf\u201c als "
+                       "<antwort>.checked.md; abgelehnt: nichts geschrieben, R\u00fcckgabewert 2"),
+                ("li", "Nachweis-Eintrag mit demselben Eingabe-Hash wie der Export \u2013 Hin- und "
+                       "R\u00fcckweg sind im Audit verkn\u00fcpft"),
+                ("h", "Drei Entscheidungen"),
+                ("p", "<b>Ablehnen statt markieren.</b> Eine erfundene Zahl kommt nicht durch, "
+                      "auch nicht mit Warnhinweis. Dieselbe Linie wie beim direkten Modellaufruf."),
+                ("p", "<b>Ehrliche Betriebsklasse.</b> Das Werkzeug hat das Modell nie gesehen. "
+                      "Darum hei\u00dft die Klasse external_answer, und der Modellname kommt vom "
+                      "Bediener \u2013 Kennzeichnung folgt dem, was man wei\u00df (D9)."),
+                ("p", "<b>Pr\u00fcfsumme im B\u00fcndel.</b> Der Contract steht w\u00f6rtlich im B\u00fcndel, "
+                      "sein Hash im Kopf. Ein nach dem Export ver\u00e4ndertes B\u00fcndel wird gemeldet."),
+                ("h", "So benutzt du es"),
+                ("code", "python -m portfolio solution.json --narrate export --output report.html\n"
+                         "# ... Prompt anderswo ausf\u00fchren, Antwort als antwort.md speichern ...\n"
+                         "python -m llm check antwort.md --model \"gpt-irgendwas\"\n"
+                         "python -m llm check --clipboard --bundle prompt_d2_narration_20261014-0900.md"),
+            ],
+        },
+        "en": {
+            "title": "llm check \u2013 the return path of the prompt export",
+            "tagline": "14 Oct 2026 \u00b7 A foreign answer enters the report only after passing the "
+                       "same guards as a draft produced inside the tool.",
+            "sections": [
+                ("h", "What is it?"),
+                ("p", "Since 0.42.0 every AI step can export its prompt to be run on another "
+                      "machine or model. The answer came back by hand \u2013 unchecked. The export "
+                      "was half a road. llm check is the way back."),
+                ("h", "What it does"),
+                ("li", "Reads the answer from a file or the clipboard and finds the matching "
+                       "bundle (newest prompt_*.md next to it, or --bundle)"),
+                ("li", "Numbers guard against the contract in the bundle; questions guard for "
+                       "red-team answers"),
+                ("li", "Pass: draft with the banner 'Externally produced AI draft' as "
+                       "<answer>.checked.md; reject: nothing written, exit code 2"),
+                ("li", "Audit record with the same input hash as the export \u2013 outward and "
+                       "return path are linked in the evidence"),
+                ("h", "Three decisions"),
+                ("p", "<b>Reject, do not flag.</b> An invented number does not get through, not "
+                      "even with a warning. The same line as a direct model call."),
+                ("p", "<b>An honest deployment class.</b> The tool never saw the model, so the "
+                      "class is external_answer and the model name comes from the operator \u2013 "
+                      "labelling follows what is known (D9)."),
+                ("p", "<b>Checksum in the bundle.</b> The contract sits verbatim in the bundle, its "
+                      "hash in the head. A bundle edited after export is reported."),
+                ("h", "How to use it"),
+                ("code", "python -m portfolio solution.json --narrate export --output report.html\n"
+                         "# ... run the prompt elsewhere, save the answer as answer.md ...\n"
+                         "python -m llm check answer.md --model \"gpt-something\"\n"
+                         "python -m llm check --clipboard --bundle prompt_d2_narration_20261014-0900.md"),
+            ],
+        },
+    },
     "solution_areas": {
         "de": {
             "title": "Solution Areas & Rekurrenz je Naht",

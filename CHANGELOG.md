@@ -5,6 +5,30 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [0.45.0] – 2026-10-14
+
+### Added
+- **`llm check` — der Rückweg des Prompt-Exports.** Seit 0.42.0 lässt sich an jeder
+  KI-Stelle der Prompt exportieren statt ein Modell zu rufen; die Antwort kam bisher ungeprüft
+  von Hand zurück. `python -m llm check antwort.md` (oder `--clipboard`) prüft die Antwort
+  eines fremden Modells gegen den Contract im exportierten Bündel: **Zahlen-Wächter** immer,
+  **Fragen-Wächter** für Red-Team-Antworten (`d5_red_team`). Bestanden wird der Entwurf als
+  `<antwort>.checked.md` geschrieben, mit neuem Banner „Extern erzeugter KI-Entwurf (Modell
+  laut Bediener: …)“ in fünf Sprachen und der neuen Betriebsklasse `external_answer` — das
+  Werkzeug hat das Modell nie gesehen, der Name kommt über `--model`. Abgelehnt wird nichts
+  geschrieben (Rückgabewert 2), dieselbe Linie wie beim verworfenen Modellaufruf. Beide
+  Ausgänge landen im Betreiber-Nachweis mit **demselben Eingabe-Hash wie der Export-Eintrag**,
+  so sind Hin- und Rückweg verknüpft; dafür trägt der Bündelkopf jetzt eine Prüfsumme des
+  Contracts und das Bündel enthält den Contract wörtlich (kein `strip`). Das Bündel wird als
+  neuestes `prompt_*.md` neben der Antwort gefunden oder mit `--bundle` benannt. GUI: Knopf
+  **„KI-Antwort prüfen …“** in Solutions & Portfolios (Datei wählen, Modell nennen, Ergebnis
+  in der Statuszeile). Der Fragen-Wächter wohnt jetzt in `llm/guard.py`
+  (`question_violations`); `portfolio.red_team` nutzt ihn. Neu `llm/check.py`, Tests
+  `tests/llm/unit/test_check.py`. Doku: mkdocs llm DE/EN, Portfolio-Manual (KI-Absatz, fünf
+  Sprachen), Onepager „llm check“ DE/EN.
+
+---
+
 ## [0.44.0] – 2026-10-13
 
 ### Added
