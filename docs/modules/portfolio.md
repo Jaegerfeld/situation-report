@@ -447,6 +447,31 @@ to the AI core, without any scoring. The protocol goes to `<config>_<date>.noise
 **Ask the picture …** has a **Repeats** field (> 1 runs the audit). The spread is a finding about the
 model and the question, not a judgement about the situation.
 
+## Decision points — the alarm register (D4, since 0.48.0)
+
+`"decision_points": "decision_points.json"` renders the **alarm register** (pattern M4: early
+indicator + threshold + agreed reaction). Each point names a **metric as a fact path** of the
+question index (`S1/units(ART Alpha-3).p85_ct`, `D/total.open` with `"unit": "%"` for the relative
+change to the previous stand, `S1/governance.dependencies.count(blocked)`, `S1/pressure.cross_vs` for
+the P4 pressure), a comparison (`>=`, `<=`, `>`, `<`), the agreed `threshold`, the `question` the
+alarm puts on the agenda, the agreed `reaction` and the `team`. The report evaluates every point
+against the stand and shows **all four states**: triggered (shaded), below threshold, not agreed
+(no threshold — never alarms), not computable (path missing, e.g. `D/…` without a previous stand).
+The tool invents no threshold, computes no priority and makes no recommendation — the rules of P4.
+The evaluated points join the snapshot (ninth governance register) and the delta briefing ("newly
+triggered"); `--alarms FILE` writes a protocol, with `--since-snapshot` the `D/…` points become
+computable. Points can be asked about in D3 (`S1/governance.decision_points(DP-1).status`).
+
+```json
+{"schema": 1, "points": [
+  {"id": "DP-1", "title": "P85 of Alpha-3 above the agreed 30 days",
+   "metric": "S1/units(ART Alpha-3).p85_ct", "op": ">=", "threshold": 30,
+   "question": "Cut the scope of Alpha-3 in the next PI?",
+   "reaction": "Lead team brings a proposal to the next VSC", "team": "ART Alpha-3",
+   "agreed_on": "2026-09-30"}
+]}
+```
+
 ## Solution areas & recurrence per seam (optional, P5)
 
 `"solution_areas": "solution_areas.json"` renders the **solution-area register**: dynamic

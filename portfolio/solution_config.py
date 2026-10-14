@@ -197,6 +197,8 @@ class SolutionConfig:
                     pre-read as an annex. "" means none.
         solution_areas: Optional path to a solution-area register JSON (P5,
                     recurrence per seam); "" means no register.
+        decision_points: Optional path to the alarm register JSON (D4,
+                    agreed decision points); "" means none.
         language:   Report language ("de"/"en"/"ro"/"pt"/"fr"), or None to
                     follow whoever calls: the GUI passes its own language, the
                     CLI falls back to English. Set it only to pin a report to
@@ -229,6 +231,7 @@ class SolutionConfig:
     themes: str = ""
     harmonisation: str = ""
     solution_areas: str = ""
+    decision_points: str = ""
     conference_date: date | None = None
     language: str | None = None
     #: Folder of the file this config was loaded from (set by
@@ -404,6 +407,7 @@ def parse_solution_config(data: dict[str, Any]) -> SolutionConfig:
         themes=str(data.get("themes", "")).strip(),
         harmonisation=str(data.get("harmonisation", "")).strip(),
         solution_areas=str(data.get("solution_areas", "")).strip(),
+        decision_points=str(data.get("decision_points", "")).strip(),
     )
 
 
@@ -481,7 +485,7 @@ def to_dict(config: SolutionConfig) -> dict[str, Any]:
         }
     for register in ("risks", "nfr", "capabilities", "dependencies",
                      "decisions", "slo", "dora", "flow_problems", "themes",
-                     "harmonisation", "solution_areas"):
+                     "harmonisation", "solution_areas", "decision_points"):
         value = getattr(config, register)
         if value:
             out[register] = value

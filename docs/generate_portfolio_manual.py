@@ -351,10 +351,10 @@ def content_de(st: dict) -> list:
             ["Speichern", "Die Konfiguration als JSON sichern (= wiederverwendbares "
                           "Template)."],
             ["Laden", "Eine gespeicherte Konfiguration öffnen."],
-            ["Datenquellen …", "Dialog mit den elf Register-Pfaden der "
+            ["Datenquellen …", "Dialog mit den zwölf Register-Pfaden der "
                                "Solution (Risiken, NFR, Capabilities, "
                                "Dependencies, Decisions, SLO, DORA, "
-                               "Flussprobleme, Themes, Harmonisierungs-Ordner, Solution Areas) samt Status je Feld "
+                               "Flussprobleme, Themes, Harmonisierungs-Ordner, Solution Areas, Wecker) samt Status je Feld "
                                "(gefunden/leer/FEHLT). „Aus Datenraum "
                                "übernehmen …“ füllt die Felder per "
                                "Konvention aus registers/; beim Portfolio "
@@ -806,6 +806,15 @@ def content_de(st: dict) -> list:
            "Antworten zählen als Streuung. Einschätzungen des Stabs stehen daneben, ohne Bewertung. "
            "Die Streuung ist ein Befund über das Modell, kein Urteil über die Lage.", st),
         _SP(6),
+        _H2("5.21  Entscheidungspunkte — das Wecker-Register (D4)", st), _hr(st),
+        _P("Der Stab vereinbart im Ritual, welche Kennzahl ab welchem Wert welche Frage "
+           "auf die Tagesordnung bringt (<font name='Courier'>decision_points.json</font>: "
+           "Kennzahl als Fakten-Pfad, Vergleich, Schwelle, Frage, vereinbarte Reaktion, Team). "
+           "Der Report zeigt alle vier Zustände: ausgelöst, unterschwellig, nicht vereinbart, "
+           "nicht berechenbar. Ohne Schwelle weckt nichts; das Werkzeug erfindet keine "
+           "Schwellen und empfiehlt nichts. Wecker stehen im Snapshot und Delta; "
+           "<font name='Courier'>--alarms DATEI</font> schreibt das Protokoll.", st),
+        _SP(6),
         _H1("6. Kommandozeile (CLI)", st), _hr(st),
         _P("Für Automatisierung und reproduzierbare Reports:", st),
         _CD("python -m portfolio meine_solution.json --output report.html", st),
@@ -923,10 +932,10 @@ def content_en(st: dict) -> list:
             ["Report mode", "Pooled or Comparison (see section 5)."],
             ["Save", "Save the configuration as JSON (= a reusable template)."],
             ["Load", "Open a saved configuration."],
-            ["Data sources …", "Dialog with the solution's eleven register "
+            ["Data sources …", "Dialog with the solution's twelve register "
                                "paths (risks, NFR, capabilities, "
                                "dependencies, decisions, SLO, DORA, flow "
-                               "problems, themes, harmonisation folder, solution areas) plus a per-field status "
+                               "problems, themes, harmonisation folder, solution areas, decision points) plus a per-field status "
                                "(found/empty/MISSING). 'Take from data "
                                "folder …' fills the fields by convention "
                                "from registers/; for a portfolio the "
@@ -1364,6 +1373,15 @@ def content_en(st: dict) -> list:
            "count as spread. Staff assessments are listed next to it, unscored. The spread is a "
            "finding about the model, not a judgement about the situation.", st),
         _SP(6),
+        _H2("5.21  Decision points — the alarm register (D4)", st), _hr(st),
+        _P("The staff agrees in the ritual which metric from which value puts which question "
+           "on the agenda (<font name='Courier'>decision_points.json</font>: metric as a fact "
+           "path, comparison, threshold, question, agreed reaction, team). The report shows all "
+           "four states: triggered, below threshold, not agreed, not computable. Without a "
+           "threshold nothing alarms; the tool invents no thresholds and recommends nothing. "
+           "Points join snapshot and delta; <font name='Courier'>--alarms FILE</font> writes "
+           "the protocol.", st),
+        _SP(6),
         _H1("6. Command line (CLI)", st), _hr(st),
         _P("For automation and reproducible reports:", st),
         _CD("python -m portfolio my_solution.json --output report.html", st),
@@ -1479,7 +1497,7 @@ def content_ro(st: dict) -> list:
             ["Mod raport", "Pooled sau Comparison (vezi sectiunea 5)."],
             ["Salveaza", "Salvati configuratia ca JSON (= template reutilizabil)."],
             ["Incarca", "Deschideti o configuratie salvata."],
-            ["Surse de date …", "Dialog cu cele unsprezece cai de registre ale "
+            ["Surse de date …", "Dialog cu cele douasprezece cai de registre ale "
                                "solutiei (riscuri, NFR, capabilities, "
                                "dependente, decizii, SLO, DORA, probleme "
                                "de flux, teme, folderul de armonizare) plus status per camp "
@@ -1876,6 +1894,13 @@ def content_ro(st: dict) -> list:
            "dispersie. Evaluarile echipei stau alaturi, fara punctaj. Dispersia este o constatare "
            "despre model, nu o judecata despre situatie.", st),
         _SP(6),
+        _H2("5.21  Puncte de decizie — registrul de alarme (D4)", st), _hr(st),
+        _P("Echipa convine in ritual ce indicator, de la ce valoare, aduce ce intrebare pe "
+           "ordinea de zi (<font name='Courier'>decision_points.json</font>: indicator ca "
+           "o cale de fapte, comparatie, prag, intrebare, reactie convenita, echipa). Raportul "
+           "arata toate cele patru stari: declansat, sub prag, neconvenit, necalculabil. Fara "
+           "prag nimic nu alarmeaza; instrumentul nu inventeaza praguri si nu recomanda nimic.", st),
+        _SP(6),
         _H1("6. Linia de comanda (CLI)", st), _hr(st),
         _P("Pentru automatizare si rapoarte reproductibile:", st),
         _CD("python -m portfolio solutia_mea.json --output report.html", st),
@@ -1992,7 +2017,7 @@ def content_pt(st: dict) -> list:
             ["Modo de relatorio", "Pooled ou Comparison (ver seccao 5)."],
             ["Guardar", "Guardar a configuracao como JSON (= template reutilizavel)."],
             ["Carregar", "Abrir uma configuracao guardada."],
-            ["Fontes de dados …", "Dialogo com os onze caminhos de "
+            ["Fontes de dados …", "Dialogo com os doze caminhos de "
                                "registos da solution (riscos, NFR, "
                                "capabilities, dependencias, decisoes, "
                                "SLO, DORA, problemas de fluxo, temas, pasta de harmonizacao) e "
@@ -2393,6 +2418,13 @@ def content_pt(st: dict) -> list:
            "contam como dispersao. As avaliacoes da equipa ficam ao lado, sem pontuacao. A dispersao "
            "e um achado sobre o modelo, nao um juizo sobre a situacao.", st),
         _SP(6),
+        _H2("5.21  Pontos de decisao — o registo de alarmes (D4)", st), _hr(st),
+        _P("A equipa acorda no ritual que indicador, a partir de que valor, poe que pergunta na "
+           "agenda (<font name='Courier'>decision_points.json</font>: indicador como caminho de "
+           "factos, comparacao, limiar, pergunta, reacao acordada, equipa). O relatorio mostra os "
+           "quatro estados: disparado, abaixo do limiar, nao acordado, nao calculavel. Sem limiar "
+           "nada dispara; a ferramenta nao inventa limiares e nao recomenda nada.", st),
+        _SP(6),
         _H1("6. Linha de comandos (CLI)", st), _hr(st),
         _P("Para automacao e relatorios reproduziveis:", st),
         _CD("python -m portfolio a_minha_solucao.json --output report.html", st),
@@ -2509,7 +2541,7 @@ def content_fr(st: dict) -> list:
             ["Mode de rapport", "Pooled ou Comparison (voir section 5)."],
             ["Enregistrer", "Enregistrer la configuration en JSON (= template reutilisable)."],
             ["Charger", "Ouvrir une configuration enregistree."],
-            ["Sources de donnees …", "Dialogue avec les onze chemins de "
+            ["Sources de donnees …", "Dialogue avec les douze chemins de "
                                "registres de la solution (risques, NFR, "
                                "capabilities, dependances, decisions, "
                                "SLO, DORA, problemes de flux, themes, dossier d'harmonisation) et "
@@ -2931,6 +2963,14 @@ def content_fr(st: dict) -> list:
            "conflits de nombres, taux 'sans information' et 'rejetee'. Les reponses rejetees "
            "comptent comme dispersion. Les evaluations de l'equipe figurent a cote, sans note. La "
            "dispersion est un constat sur le modele, pas un jugement sur la situation.", st),
+        _SP(6),
+        _H2("5.21  Points de decision — le registre d'alarmes (D4)", st), _hr(st),
+        _P("L'equipe convient dans le rituel quel indicateur, a partir de quelle valeur, met "
+           "quelle question a l'ordre du jour (<font name='Courier'>decision_points.json</font> : "
+           "indicateur comme chemin de faits, comparaison, seuil, question, reaction convenue, "
+           "equipe). Le rapport montre les quatre etats : declenche, sous le seuil, non convenu, "
+           "non calculable. Sans seuil rien ne se declenche ; l'outil n'invente pas de seuils "
+           "et ne recommande rien.", st),
         _SP(6),
         _H1("6. Ligne de commande (CLI)", st), _hr(st),
         _P("Pour l'automatisation et des rapports reproductibles :", st),
