@@ -410,6 +410,10 @@ this session.
 
 ## Asking the situational picture (D3, since 0.46.0)
 
+Step-by-step introduction with screenshots, real outputs and troubleshooting:
+[tutorial "Asking the situational picture"](../tutorials/ask-the-picture.md)
+(PDF: [DE](../ask_Tutorial_DE.pdf) / [EN](../ask_Tutorial_EN.pdf)).
+
 `--ask "question"` asks **one question about one stand**. The stand (live from the config, or a
 saved snapshot via `--ask-snapshot`) is flattened into a **fact index**: every number and every
 register entry gets a path such as `S1/total.median_ct`, `S1/units(ART Alpha-2).open` or

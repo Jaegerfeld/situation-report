@@ -419,6 +419,10 @@ geschriebenen Snapshot.
 
 ## Das Lagebild befragen (D3, seit 0.46.0)
 
+Schritt-für-Schritt-Einführung mit Bildschirmfotos, echten Ausgaben und Fehlerbildern:
+[Tutorial „Das Lagebild befragen"](../tutorials/ask-the-picture.md)
+(PDF: [DE](../ask_Tutorial_DE.pdf) / [EN](../ask_Tutorial_EN.pdf)).
+
 `--ask "Frage"` stellt **eine Frage an einen Stand**. Der Stand (live aus der Config oder ein
 gespeicherter Snapshot über `--ask-snapshot`) wird zum **Fakten-Index** abgeflacht: jede Zahl und
 jeder Registereintrag bekommt einen Pfad wie `S1/total.median_ct`, `S1/units(ART Alpha-2).open`
