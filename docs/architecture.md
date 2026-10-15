@@ -290,6 +290,7 @@ C4Component
 | `snapshot.py` / `delta.py` | Report snapshot (eight governance registers) and delta briefing |
 | `exec_summary.py` / `red_team.py` / `conference_draft.py` | AI contracts (D1, D5, D8) — numbers come from the snapshot, never from the model |
 | `onepager.py` | One-pager (P6): deterministic reading of the same collectors; decision points only, no recommendations |
+| `briefing.py` | Spoken briefing draft (M6): the one-pager's cells as citable facts `E/…` plus the fact index; guarded like D3/D4; own file, page stays AI-free |
 | `report_texts.py` | All report texts in five languages |
 
 ---

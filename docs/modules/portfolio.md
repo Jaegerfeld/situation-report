@@ -408,6 +408,30 @@ python -m portfolio portfolio.json --onepager kata.html --kata
 GUI: button **One-pager …** in the manager window; column 2 uses the snapshot last written in
 this session.
 
+### Spoken briefing draft — the AI reading of the one-pager (M6, since 0.50.0)
+
+`--onepager page.html --narrate PROVIDER` additionally writes a **speaker's note**
+`page.html.briefing.md` (German: `.vortrag.md`): the AI-drafted spoken briefing of about 90 seconds,
+8 to 12 sentences in a fixed order — BLUF first, then the four dimensions (where do we stand, what
+has changed), then the decisions needed *named only*, finally data confidence (cells rated low or
+missing). The model's contract is the **one-pager itself as citable facts** (`E/bluf`, `E/meta`,
+`E/flow.q1` … `E/dependencies.q3`, `E/<dimension>.decide`) plus the fact index of the stand
+(`S1/S0/D`). The same guards as D3/D4 apply through `llm.narrate`: numbers guard, citation guard per
+statement, banner, operator evidence with purpose `m6_briefing`; provider free, `export` included. A
+discarded draft stops nothing — the one-pager stands, the file names the reason.
+
+The one-pager page itself stays **byte-identical and AI-free**; its footer remains true. Guardrail of
+pattern M6, written as the first line of the file: *draft, not the briefing* — the presenter checks,
+cuts, delivers and signs responsible. Not included on purpose: no translation of the note, no noise
+audit over drafts, no recommendation or option in the draft.
+
+```bash
+python -m portfolio portfolio.json --onepager page.html --since-snapshot snapshots/snapshot_prev.json --narrate ollama
+python -m portfolio portfolio.json --onepager page.html --narrate export      # prompt bundle, back via llm check
+```
+
+GUI: the box **AI narration (draft)** also applies to the **One-pager …** button (never to the kata).
+
 ## Asking the situational picture (D3, since 0.46.0)
 
 Step-by-step introduction with screenshots, real outputs and troubleshooting:
@@ -597,6 +621,7 @@ portfolio/
 ├── red_team.py        Red-team questions (D5) against the contract
 ├── conference_draft.py AI draft for the conference pre-read (D8): file or inline
 ├── onepager.py        Situation-briefing one-pager (P6): 4 × 3, BLUF, kata mode
+├── briefing.py        Spoken briefing draft (M6): one-pager cells as facts E/…, cited, guarded
 ├── report_texts.py    Report texts in five languages (t(key, lang))
 ├── gui.py             Solutions & Portfolios GUI (data-source dialog with eleven registers)
 ├── aggregator.py      Record-level pooling + rendering (HTML/PDF/conference pre-read)

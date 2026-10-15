@@ -582,7 +582,7 @@ ONEPAGERS: dict[str, dict[str, dict]] = {
                       "lesen."),
                 ("p", "<b>BLUF aus Vorlagen.</b> Der erste Satz nennt die gr\u00f6\u00dfte "
                       "Abweichung mit ihren Zahlen \u2013 Headline-Kata nach Hohpe, ohne KI. "
-                      "Die KI-Lesart (M6) kommt sp\u00e4ter obenauf."),
+                      "Die KI-Lesart (M6) liegt seit v0.50.0 als Sprechzettel daneben."),
                 ("h", "So benutzt du es"),
                 ("code", "python -m portfolio portfolio.json --onepager seite.html "
                          "--since-snapshot snapshots/snapshot_prev.json\n"
@@ -621,11 +621,83 @@ ONEPAGERS: dict[str, dict[str, dict]] = {
                       "read four cells."),
                 ("p", "<b>BLUF from templates.</b> The first sentence names the largest "
                       "deviation with its numbers \u2013 headline kata after Hohpe, no AI. The "
-                      "AI reading (M6) comes on top later."),
+                      "AI reading (M6) sits beside it as a speaker's note since v0.50.0."),
                 ("h", "How to use it"),
                 ("code", "python -m portfolio portfolio.json --onepager page.html "
                          "--since-snapshot snapshots/snapshot_prev.json\n"
                          "python -m portfolio portfolio.json --onepager kata.html --kata"),
+            ],
+        },
+    },
+    "situation_briefing": {
+        "de": {
+            "title": "Lagevortrag-Entwurf (M6)",
+            "tagline": "15.10.2026 \u00b7 Die KI spricht den Einseiter aus \u2013 mit Zitat, ohne "
+                       "Urteil; der Vortragende k\u00fcrzt und verantwortet.",
+            "sections": [
+                ("h", "Worum geht es?"),
+                ("p", "Der Einseiter zeigt die Lage auf einer Seite. Wer sie vortr\u00e4gt, braucht "
+                      "einen ersten Satzentwurf \u2013 und darf ihn nicht verlesen. Muster M6 der "
+                      "KI-Schrift: KI entwirft den BLUF-Vortrag, der Mensch pr\u00fcft, k\u00fcrzt, "
+                      "tr\u00e4gt vor. Entwurf ist nicht Vortrag."),
+                ("h", "Was es tut"),
+                ("li", "--onepager seite.html --narrate PROVIDER schreibt neben die Seite einen "
+                       "Sprechzettel seite.html.vortrag.md: 8 bis 12 S\u00e4tze, rund 90 Sekunden"),
+                ("li", "Feste Reihenfolge: BLUF, vier Dimensionen (wo stehen wir, was hat sich "
+                       "ge\u00e4ndert), Entscheidungsbedarf nur genannt, Datenvertrauen"),
+                ("li", "Contract = die Zellen des Einseiters als zitierbare Fakten E/\u2026 plus "
+                       "der Fakten-Index des Stands; jede Aussage zitiert, jede Zahl belegt"),
+                ("li", "Dieselben W\u00e4chter wie D3/D4, Nachweis-Zweck m6_briefing; verworfen "
+                       "hei\u00dft: Einseiter steht, Datei nennt den Grund"),
+                ("h", "Drei Entscheidungen"),
+                ("p", "<b>Eigene Datei, Seite KI-frei.</b> Der Einseiter bleibt byte-gleich; sein "
+                      "Footer \u201eohne KI-Anteil\u201c bleibt wahr. Der Sprechzettel beginnt mit "
+                      "dem Satz, dass er nicht der Vortrag ist."),
+                ("p", "<b>Die Folie aussprechen, kein zweites Lagebild.</b> Die Zellen selbst sind "
+                      "zitierbar \u2013 der Entwurf belegt, was auf der Folie steht, und holt "
+                      "Tiefe aus dem Fakten-Index."),
+                ("p", "<b>Kein Urteil, keine Option.</b> Spalte 3 wird w\u00f6rtlich genannt; was "
+                      "folgt, sagt der Vortragende. Bewusst nicht: \u00dcbersetzung, Noise-Audit, "
+                      "Empfehlung."),
+                ("h", "So benutzt du es"),
+                ("code", "python -m portfolio portfolio.json --onepager seite.html "
+                         "--since-snapshot snapshots/snapshot_prev.json --narrate ollama\n"
+                         "python -m portfolio portfolio.json --onepager seite.html --narrate export"),
+            ],
+        },
+        "en": {
+            "title": "Spoken Briefing Draft (M6)",
+            "tagline": "15 Oct 2026 \u00b7 The AI speaks the one-pager \u2013 cited, without "
+                       "judgement; the presenter cuts and signs responsible.",
+            "sections": [
+                ("h", "What is it?"),
+                ("p", "The one-pager shows the situation on one page. Whoever presents it needs a "
+                      "first draft of the words \u2013 and must not read it aloud. Pattern M6 of "
+                      "the AI paper: the AI drafts the BLUF briefing, the human checks, cuts, "
+                      "delivers. A draft is not the briefing."),
+                ("h", "What it does"),
+                ("li", "--onepager page.html --narrate PROVIDER writes a speaker's note "
+                       "page.html.briefing.md next to the page: 8 to 12 sentences, about 90 seconds"),
+                ("li", "Fixed order: BLUF, four dimensions (where do we stand, what has changed), "
+                       "decisions needed named only, data confidence"),
+                ("li", "Contract = the one-pager's cells as citable facts E/\u2026 plus the fact "
+                       "index of the stand; every statement cited, every number backed"),
+                ("li", "Same guards as D3/D4, evidence purpose m6_briefing; discarded means: the "
+                       "one-pager stands, the file names the reason"),
+                ("h", "Three decisions"),
+                ("p", "<b>Own file, page AI-free.</b> The one-pager stays byte-identical; its footer "
+                      "'no AI involved' stays true. The note opens with the sentence that it is not "
+                      "the briefing."),
+                ("p", "<b>Speak the slide, do not build a second picture.</b> The cells themselves "
+                      "are citable \u2013 the draft backs what the slide shows and takes depth "
+                      "from the fact index."),
+                ("p", "<b>No judgement, no option.</b> Column 3 is named verbatim; what follows is "
+                      "the presenter's. Not included on purpose: translation, noise audit, "
+                      "recommendation."),
+                ("h", "How to use it"),
+                ("code", "python -m portfolio portfolio.json --onepager page.html "
+                         "--since-snapshot snapshots/snapshot_prev.json --narrate ollama\n"
+                         "python -m portfolio portfolio.json --onepager page.html --narrate export"),
             ],
         },
     },

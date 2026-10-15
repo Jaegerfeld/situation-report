@@ -5,6 +5,33 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [0.50.0] – 2026-10-15
+
+### Added
+- **Lagevortrag-Entwurf — die KI-Lesart des Einseiters (Muster M6).** `--onepager DATEI --narrate
+  PROVIDER` schreibt neben den Einseiter einen **Sprechzettel** `DATEI.vortrag.md` (EN:
+  `.briefing.md`): den KI-formulierten Entwurf des gesprochenen Lagevortrags von rund 90 Sekunden,
+  8 bis 12 Sätze in fester Reihenfolge — BLUF, die vier Dimensionen (wo stehen wir, was hat sich
+  geändert), Entscheidungsbedarf nur genannt, Datenvertrauen. `portfolio/briefing.py` baut den
+  Contract aus den **Zellen des Einseiters als zitierbaren Fakten** (neue Pfadfamilie `E/…`: `E/bluf`,
+  `E/meta`, `E/<dimension>.<frage>`, `E/<dimension>.decide`) und dem Fakten-Index des Stands
+  (`S1/S0/D`); Prompt `briefing_system_prompt` v1 (DE/EN). Dieselben Wächter wie D3/D4 über
+  `llm.narrate`: Zahlen-Wächter, **Zitat-Wächter je Aussage** (kennt jetzt `E/`), Banner, Nachweis
+  mit Zweck `m6_briefing`; Provider frei, auch `export`. Ein verworfener Entwurf bricht nichts ab:
+  der Einseiter steht, die Datei nennt den Grund. **Die Einseiter-Seite bleibt byte-gleich und
+  KI-frei** (Leitplanke M6: Entwurf ≠ Vortrag — der Vortragende prüft, kürzt, trägt vor und
+  zeichnet verantwortlich; die Datei sagt das in der ersten Zeile). GUI: der Haken „KI-Narration
+  (Entwurf)" wirkt auch beim Knopf „Einseiter …" (nie beim Kata). Tests
+  `tests/portfolio/unit/test_briefing.py`. Doku: mkdocs portfolio DE/EN, Portfolio-Manual 5.22
+  (fünf Sprachen), Onepager „Lagevortrag-Entwurf" DE/EN, Roadmap P6/M6.
+
+### Fixed
+- `llm check` prüfte auf dem Rückweg nur `d3_question` auf Zitate; D4-Erklärungen aus dem
+  Export-Weg (`d4_anomaly`) bekamen nur den Zahlen-Wächter. Jetzt stehen `d4_anomaly` und
+  `m6_briefing` in `CITATION_PURPOSES`.
+
+---
+
 ## [0.49.0] – 2026-10-14
 
 ### Added
