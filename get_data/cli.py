@@ -30,6 +30,7 @@ from .client import (
     JiraConfig,
     fetch_to_file,
 )
+from .minimise import check_keep, minimise_file
 from .validate import validate_export_file
 
 
@@ -41,6 +42,11 @@ def run_fetch(args: argparse.Namespace) -> int:
               f"set it to your Jira API token (never pass tokens as "
               f"command-line arguments).", file=sys.stderr)
         return 1
+    try:
+        keep = check_keep(tuple(args.keep or ()))
+    except ValueError as exc:
+        print(f"ERROR: {exc}", file=sys.stderr)
+        return 1
     config = JiraConfig(
         base_url=args.url,
         token=token,
@@ -51,12 +57,31 @@ def run_fetch(args: argparse.Namespace) -> int:
         email=args.email or "",
         max_issues=args.max_issues,
     )
+    if keep:
+        config.fields = tuple(dict.fromkeys(config.fields + keep))
     try:
-        count = fetch_to_file(config, Path(args.output))
+        count = fetch_to_file(config, Path(args.output), keep=keep)
     except (ValueError, RuntimeError) as exc:
         print(f"ERROR: {exc}", file=sys.stderr)
         return 1
     print(f"{count} issues written to {args.output}")
+    return 0
+
+
+def run_minimise(args: argparse.Namespace) -> int:
+    """Minimise a manual export (R1); the original file stays untouched."""
+    try:
+        target, report = minimise_file(Path(args.file), args.output,
+                                       tuple(args.keep or ()))
+    except (ValueError, OSError) as exc:
+        print(f"ERROR: {exc}", file=sys.stderr)
+        return 1
+    for line in report.lines():
+        print(line)
+    print(f"Minimised export written to {target}")
+    if report.persons_total:
+        print(f"NOTE: the original {args.file} still holds person data - "
+              f"delete it once the minimised file is checked.")
     return 0
 
 
@@ -106,12 +131,27 @@ def main(argv: list[str] | None = None) -> int:
                        help="Safety cap on fetched issues (default: 10000).")
     fetch.add_argument("--output", required=True, type=Path,
                        help="Destination JSON file (transform_data input).")
+    fetch.add_argument("--keep", nargs="+", default=None, metavar="FIELD",
+                       help="Extra non-person issue fields to fetch and keep "
+                            "(e.g. summary labels). The export is always "
+                            "minimised: person fields never reach the file.")
     fetch.set_defaults(func=run_fetch)
 
     check = sub.add_parser(
         "check", help="Validate an existing manual export JSON.")
     check.add_argument("file", type=Path, help="Export JSON to validate.")
     check.set_defaults(func=run_check)
+
+    minimise = sub.add_parser(
+        "minimise", help="Reduce a manual export to the fields transform_data "
+                         "reads and anonymise persons in the changelog (R1).")
+    minimise.add_argument("file", type=Path, help="Export JSON to minimise.")
+    minimise.add_argument("--output", type=Path, default=None,
+                          help="Target file (default: <name>_min.json next to "
+                               "the source; the original stays untouched).")
+    minimise.add_argument("--keep", nargs="+", default=None, metavar="FIELD",
+                          help="Extra non-person issue fields to keep.")
+    minimise.set_defaults(func=run_minimise)
 
     args = parser.parse_args(argv)
     return int(args.func(args))

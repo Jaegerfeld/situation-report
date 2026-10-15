@@ -38,6 +38,7 @@ from .client import (
     JiraConfig,
     fetch_to_file,
 )
+from .minimise import minimise_file
 from .validate import validate_export_file
 
 LANG_DE = "de"
@@ -87,6 +88,11 @@ _T: dict[str, dict[str, str]] = {
         "btn_fetch": "Abrufen",
         "lbl_export_file": "Export-Datei (JSON)",
         "btn_check": "Prüfen",
+        "btn_minimise": "Minimieren",
+        "log_min_started": "--- Export wird minimiert (Personendaten entfernt) ---",
+        "log_min_done": "--- Fertig: {} Issues → {} ---",
+        "log_min_original": "Hinweis: das Original {} enthält weiterhin Personendaten — "
+                            "löschen, sobald die minimierte Datei geprüft ist.",
         "lbl_log": "Log",
         "log_fetch_started": "--- Jira-Abruf gestartet ---",
         "log_fetch_done": "--- Fertig: {} Issues → {} ---",
@@ -123,6 +129,11 @@ _T: dict[str, dict[str, str]] = {
         "btn_fetch": "Fetch",
         "lbl_export_file": "Export file (JSON)",
         "btn_check": "Check",
+        "btn_minimise": "Minimise",
+        "log_min_started": "--- Minimising export (person data removed) ---",
+        "log_min_done": "--- Done: {} issues → {} ---",
+        "log_min_original": "Note: the original {} still holds person data — "
+                            "delete it once the minimised file is checked.",
         "lbl_log": "Log",
         "log_fetch_started": "--- Jira fetch started ---",
         "log_fetch_done": "--- Done: {} issues → {} ---",
@@ -270,8 +281,13 @@ class _App:
             row=0, column=1, sticky="ew", padx=(4, 0))
         ttk.Button(exp, text="…", width=4, command=self._browse_export).grid(
             row=0, column=2, padx=(2, 0))
-        self._btn_check = ttk.Button(exp, text="", command=self._check)
-        self._btn_check.grid(row=1, column=0, columnspan=3, pady=(8, 2))
+        btn_f = ttk.Frame(exp)
+        btn_f.grid(row=1, column=0, columnspan=3, pady=(8, 2))
+        self._btn_check = ttk.Button(btn_f, text="", command=self._check)
+        self._btn_check.pack(side="left", padx=(0, 8))
+        # R1: reduce a manual export to what the pipeline reads, persons anonymised
+        self._btn_minimise = ttk.Button(btn_f, text="", command=self._minimise)
+        self._btn_minimise.pack(side="left")
 
         self._progress = ttk.Progressbar(frame, mode="indeterminate")
         self._progress.grid(row=4, column=0, columnspan=3, sticky="ew",
@@ -299,6 +315,7 @@ class _App:
         self._export_frame.configure(text=self._t("mode_export"))
         self._btn_fetch.configure(text=self._t("btn_fetch"))
         self._btn_check.configure(text=self._t("btn_check"))
+        self._btn_minimise.configure(text=self._t("btn_minimise"))
         self._log_frame.configure(text=self._t("lbl_log"))
         self._hint.configure(text=self._t("hint_paths"))
         self._menubar.entryconfigure(1, label=self._t("menu_help"))
@@ -342,6 +359,7 @@ class _App:
         state = "disabled" if running else "normal"
         self._btn_fetch.configure(state=state)
         self._btn_check.configure(state=state)
+        self._btn_minimise.configure(state=state)
         if running:
             self._progress.grid()
             self._progress.start(10)
@@ -415,6 +433,36 @@ class _App:
                 self._set_running(False)
 
             self._root.after(0, report)
+
+        threading.Thread(target=_do, daemon=True).start()
+
+    def _minimise(self) -> None:
+        """R1: write <name>_min.json next to the selected export (background)."""
+        if self._running:
+            return
+        export = self._var_export.get().strip()
+        if not export:
+            self._log_msg(self._t("err_no_file"))
+            return
+        self._set_running(True)
+        self._log_msg(self._t("log_min_started"))
+
+        def _do() -> None:
+            try:
+                target, report = minimise_file(Path(export))
+                lines = report.lines() + [
+                    self._t("log_min_done").format(report.issues, target)]
+                if report.persons_total:
+                    lines.append(self._t("log_min_original").format(export))
+            except (ValueError, OSError) as exc:
+                lines = [self._t("log_error").format(exc)]
+
+            def report_lines() -> None:
+                for line in lines:
+                    self._log_msg(line)
+                self._set_running(False)
+
+            self._root.after(0, report_lines)
 
         threading.Thread(target=_do, daemon=True).start()
 

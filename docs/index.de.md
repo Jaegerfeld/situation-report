@@ -19,7 +19,7 @@ Toolsuite für das Lagebild auf Portfolio- und Solution-Ebene: Flow-Metriken aus
 | [`portfolio`](modules/portfolio.md) | Aggregierte Large-Solution- & Portfolio-Reports über mehrere ARTs — Governance-Register, Konferenzmappe, Delta-Briefing, Einseiter | verfügbar (Alpha) |
 | [`helper`](modules/helper.md) | JSON-Dateien zusammenführen (Jira-Paginierung) | verfügbar (Alpha) |
 | [`testdata_generator`](modules/testdata_generator.md) | Generierung synthetischer Testdaten — Realismus-Regler, Fortschreibung eines Datensatzes, Lernen aus echten Übergängen | verfügbar (Beta) |
-| [`get_data`](modules/get_data.md) | Datenabruf aus Jira — REST oder Export-Validierung | verfügbar (Alpha) |
+| [`get_data`](modules/get_data.md) | Datenabruf aus Jira — REST oder Export-Validierung, Personendaten an der Quelle minimiert | verfügbar (Alpha) |
 | [`sources`](modules/sources.md) | Steckbare externe Metrik-Quellen (SLO, DORA, Qualität) | verfügbar (Alpha) |
 | [`llm`](modules/llm.md) | Steckbare KI-Narration (lokal Ollama, Claude-API, Prompt-Export, mock) | verfügbar (Alpha) |
 | [`simulate`](modules/simulate.md) | Simulationen und Vorhersagemodelle | verfügbar (Alpha) |
