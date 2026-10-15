@@ -5,6 +5,31 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [0.51.0] – 2026-10-15
+
+### Added
+- **Datenminimierung ab Quelle (Rechts-Kandidat R1, nach Rohrlich „KI und Recht", B.9).** Kein Modul
+  der Pipeline liest ein Personenfeld — trotzdem lagen bisher Autoren (Name, E-Mail, Konto-ID,
+  Avatar) in jedem Changelog-Eintrag und beim manuellen Export auch Assignee, Reporter, Creator und
+  Kommentare auf der Platte. Neu `get_data/minimise.py`: ein Export wird auf die **Allowlist** der
+  Felder reduziert, die transform_data liest (`project`, `issuetype`, `status`, `created`,
+  `resolution`, `components`); der **Changelog bleibt vollständig** — jede Historie, jedes Item —,
+  nur die Personen darin werden anonymisiert: der Autor wird der feste Platzhalter `anonymised`
+  (kein Pseudonym je Person, das bliebe personenbezogen), Items zu Personenfeldern behalten den
+  Feldnamen und verlieren die Werte, Items zu Freitextfeldern verlieren ihre Textwerte. Der
+  **REST-Abruf minimiert immer** (kein Opt-out; `--keep FELD` holt zusätzliche Nicht-Personenfelder,
+  Personenfelder sind nicht behaltbar; `summary` ist nicht mehr Standardfeld). Für den manuellen
+  Export: Unterbefehl **`python -m get_data minimise EXPORT.json`** schreibt `<name>_min.json`
+  neben das Original (das bleibt stehen, der Log mahnt zum Löschen), **`check` warnt**, wenn ein
+  Export Personendaten trägt, GUI-Knopf **Minimieren** neben **Prüfen** (DE/EN). Ein Report zählt,
+  was entfernt wurde. **Contract-Test:** der Testdatensatz roh und minimiert liefert identische
+  Kennzahlen in transform_data. Doku: mkdocs get_data DE/EN mit **Hinweis zur Rechtsgrundlage**
+  (Einschätzung, keine Rechtsberatung), Manual Kapitel 2.1 (fünf Sprachen), Onepager
+  „Datenminimierung ab Quelle" DE/EN, Roadmap C3/R1. Entscheidungen Robert 15.10.2026: Allowlist,
+  Changelog anonymisieren statt kürzen, kein Opt-out, neue Datei statt Überschreiben.
+
+---
+
 ## [0.50.0] – 2026-10-15
 
 ### Added

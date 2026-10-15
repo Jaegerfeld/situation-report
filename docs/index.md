@@ -19,7 +19,7 @@ Toolsuite for the situational picture at portfolio and solution level: flow metr
 | [`portfolio`](modules/portfolio.md) | Aggregated Large-Solution & Portfolio reports across several ARTs — governance registers, conference pre-read, delta briefing, one-pager | available (Alpha) |
 | [`helper`](modules/helper.md) | Merge JSON files (Jira pagination) | available (Alpha) |
 | [`testdata_generator`](modules/testdata_generator.md) | Generate synthetic test data — realism knobs, continuation of a data set, learning from real transitions | available (Beta) |
-| [`get_data`](modules/get_data.md) | Retrieve data from Jira — REST or export validation | available (Alpha) |
+| [`get_data`](modules/get_data.md) | Retrieve data from Jira — REST or export validation, person data minimised at the source | available (Alpha) |
 | [`sources`](modules/sources.md) | Pluggable external metric sources (SLO, DORA, quality) | available (Alpha) |
 | [`llm`](modules/llm.md) | Pluggable AI narration (local Ollama, Claude API, prompt export, mock) | available (Alpha) |
 | [`simulate`](modules/simulate.md) | Simulations and prediction models | available (Alpha) |

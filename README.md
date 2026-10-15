@@ -1,6 +1,6 @@
 # situation-report
 
-**Version 0.50.0** ![Coverage](docs/coverage.svg)
+**Version 0.51.0** ![Coverage](docs/coverage.svg)
 
 Toolsuite for the situational picture at portfolio and solution level: flow metrics from Jira, governance registers, Value-Stream-Conference preparation, forecasts and AI-drafted narration — running locally on your own machine.
 
@@ -45,7 +45,7 @@ The software is the tool; the **memoranda (Denkschriften)** are its conceptual f
 | [`portfolio`](https://jaegerfeld.github.io/situation-report/modules/portfolio/) | Aggregated Large-Solution & Portfolio reports across several ARTs — governance registers, conference pre-read, delta briefing, one-pager | available (Alpha) |
 | [`helper`](https://jaegerfeld.github.io/situation-report/modules/helper/) | Helper tools (JSON Merger) | available (Alpha) |
 | [`testdata_generator`](https://jaegerfeld.github.io/situation-report/modules/testdata_generator/) | Generate synthetic test data — realism knobs, continuation of a data set, learning from real transitions | available (Beta) |
-| [`get_data`](https://jaegerfeld.github.io/situation-report/modules/get_data/) | Retrieve data from Jira — REST or export validation | available (Alpha) |
+| [`get_data`](https://jaegerfeld.github.io/situation-report/modules/get_data/) | Retrieve data from Jira — REST or export validation, person data minimised at the source | available (Alpha) |
 | [`sources`](https://jaegerfeld.github.io/situation-report/modules/sources/) | Pluggable external metric sources (SLO, DORA, quality) | available (Alpha) |
 | [`llm`](https://jaegerfeld.github.io/situation-report/modules/llm/) | Pluggable AI narration (local Ollama, Claude API, prompt export, mock) | available (Alpha) |
 | [`simulate`](https://jaegerfeld.github.io/situation-report/modules/simulate/) | Simulations and forecasting models | available (Alpha) |

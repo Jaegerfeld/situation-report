@@ -701,6 +701,81 @@ ONEPAGERS: dict[str, dict[str, dict]] = {
             ],
         },
     },
+    "data_minimisation": {
+        "de": {
+            "title": "Datenminimierung ab Quelle (R1)",
+            "tagline": "15.10.2026 \u00b7 Das Lagebild kennt Teams, keine Personen \u2013 jetzt "
+                       "schon in der Rohdatei, nicht erst im Report.",
+            "sections": [
+                ("h", "Worum geht es?"),
+                ("p", "Kein Modul der Pipeline liest ein Personenfeld. Trotzdem lagen in jedem "
+                      "Jira-Export Autoren mit Name und E-Mail in jedem Changelog-Eintrag, beim "
+                      "manuellen Export dazu Assignee, Reporter und Kommentare. Rohrlich (\u201eKI "
+                      "und Recht\u201c) verl\u00e4ngert unsere Regel vom Output auf den Input: "
+                      "Datenminimierung so fr\u00fch wie m\u00f6glich."),
+                ("h", "Was es tut"),
+                ("li", "Allowlist: nur die sieben Felder, die transform_data liest; --keep f\u00fcr "
+                       "weitere Felder ohne Personenbezug"),
+                ("li", "Changelog bleibt vollst\u00e4ndig \u2013 jede Historie, jedes Item; Autoren "
+                       "werden ein fester Platzhalter, Personen-Items verlieren die Werte, "
+                       "Freitext-Items die Texte"),
+                ("li", "REST-Abruf minimiert immer; manueller Export \u00fcber python -m get_data "
+                       "minimise, check warnt, GUI-Knopf Minimieren"),
+                ("li", "Report, was entfernt wurde; Contract-Test: roh und minimiert gleiche "
+                       "Kennzahlen"),
+                ("h", "Drei Entscheidungen"),
+                ("p", "<b>Allowlist statt Denylist.</b> Eine Liste bekannter Personenfelder "
+                      "\u00fcbersieht Custom Fields und Freitexte mit Namen. Was nicht gebraucht "
+                      "wird, f\u00e4llt."),
+                ("p", "<b>Anonymisieren, nicht pseudonymisieren.</b> Ein Pseudonym je Person "
+                      "bliebe personenbezogen. Der Platzhalter ist f\u00fcr alle gleich \u2013 die "
+                      "Transitionen bleiben trotzdem l\u00fcckenlos."),
+                ("p", "<b>Kein Opt-out beim Abruf.</b> Es gibt keinen Zweck der Pipeline, der "
+                      "Personen braucht. Die Rechtsgrundlage ersetzt das nicht \u2013 die Doku "
+                      "sagt das als Einsch\u00e4tzung, nicht als Rechtsrat."),
+                ("h", "So benutzt du es"),
+                ("code", "python -m get_data fetch --url https://firma.atlassian.net "
+                         "--project ART_A --email name@firma.de --output ART_A.json\n"
+                         "python -m get_data minimise ART_A_merged.json   # -> ART_A_merged_min.json"),
+            ],
+        },
+        "en": {
+            "title": "Data Minimisation at the Source (R1)",
+            "tagline": "15 Oct 2026 \u00b7 The picture knows teams, not persons \u2013 now already "
+                       "in the raw file, not only in the report.",
+            "sections": [
+                ("h", "What is it?"),
+                ("p", "No module of the pipeline reads a person field. Yet every Jira export "
+                      "carried authors with name and e-mail in every changelog entry, and the "
+                      "manual export added assignee, reporter and comments. Rohrlich (\u201cKI "
+                      "und Recht\u201d) extends our rule from the output to the input: minimise "
+                      "data as early as possible."),
+                ("h", "What it does"),
+                ("li", "Allowlist: only the seven fields transform_data reads; --keep for further "
+                       "fields without personal reference"),
+                ("li", "The changelog stays complete \u2013 every history, every item; authors "
+                       "become a constant placeholder, person items lose their values, free-text "
+                       "items their texts"),
+                ("li", "The REST fetch always minimises; manual exports via python -m get_data "
+                       "minimise, check warns, GUI button Minimise"),
+                ("li", "A report of what was removed; contract test: raw and minimised give the "
+                       "same figures"),
+                ("h", "Three decisions"),
+                ("p", "<b>Allowlist, not denylist.</b> A list of known person fields misses custom "
+                      "fields and free text with names. What is not needed falls."),
+                ("p", "<b>Anonymise, do not pseudonymise.</b> A per-person pseudonym would still "
+                      "be personal data. The placeholder is the same for everyone \u2013 the "
+                      "transitions stay gapless all the same."),
+                ("p", "<b>No opt-out on fetch.</b> No purpose of the pipeline needs persons. This "
+                      "does not replace the legal basis \u2013 the docs say so as an assessment, "
+                      "not as legal advice."),
+                ("h", "How to use it"),
+                ("code", "python -m get_data fetch --url https://company.atlassian.net "
+                         "--project ART_A --email name@company.com --output ART_A.json\n"
+                         "python -m get_data minimise ART_A_merged.json   # -> ART_A_merged_min.json"),
+            ],
+        },
+    },
     "prompt_export": {
         "de": {
             "title": "Prompt-Export statt Modellaufruf",

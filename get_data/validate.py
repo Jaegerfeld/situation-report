@@ -114,6 +114,15 @@ def validate_export(data: Any) -> ExportCheck:
             f"{len(issues)} issues — follow-up pages are missing. Fetch the "
             f"remaining pages and merge them (python -m helper ...).")
 
+    from .minimise import person_field_hits
+    hits = person_field_hits(issues)
+    if hits:
+        found = ", ".join(f"{name} ({n})" for name, n in sorted(hits.items()))
+        check.warnings.append(
+            f"Export holds person data the pipeline never reads: {found} — "
+            f"run 'python -m get_data minimise <file>' (R1, data minimisation "
+            f"at the source).")
+
     return check
 
 

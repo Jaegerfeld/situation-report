@@ -38,9 +38,10 @@ AUTH_CLOUD = "cloud"    # Basic auth: email + API token (Jira Cloud)
 AUTH_BEARER = "bearer"  # Bearer PAT (Jira Server / Data Center)
 AUTH_MODES = (AUTH_CLOUD, AUTH_BEARER)
 
-#: Fields transform_data needs (manual section 1.4), plus helpful optionals.
+#: Fields transform_data needs (manual section 1.4) - nothing else (R1: data
+#: minimisation at the source; extra non-person fields via --keep).
 DEFAULT_FIELDS = ("issuetype", "created", "status", "project",
-                  "summary", "resolution")
+                  "resolution", "components")
 
 _PAGE_SIZE_V3 = 100    # hard API limit per request (v3)
 _PAGE_SIZE_V2 = 1000   # v2 supports up to 1000 per request
@@ -247,14 +248,24 @@ def fetch_to_file(
     config: JiraConfig,
     output: Path,
     log: Callable[[str], None] = print,
+    keep: tuple[str, ...] = (),
 ) -> int:
     """
-    Fetch issues and write the export JSON to ``output``.
+    Fetch issues, minimise them (R1) and write the export JSON to ``output``.
+
+    The file never holds person data: issue fields are reduced to what
+    transform_data reads (plus ``keep``), the changelog stays complete with
+    its persons anonymised. There is no opt-out.
 
     Returns:
         Number of issues written.
     """
+    from .minimise import minimise_export
+
     data = fetch_issues(config, log=log)
+    data, report = minimise_export(data, keep)
+    for line in report.lines():
+        log(line)
     target = Path(output)
     target.parent.mkdir(parents=True, exist_ok=True)
     target.write_text(json.dumps(data, indent=2, ensure_ascii=False),

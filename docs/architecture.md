@@ -39,7 +39,7 @@ C4Container
     System_Ext(jira, "Jira", "Issue tracking system")
 
     System_Boundary(sr, "SituationReport") {
-        Container(get_data, "get_data", "Python", "Fetches Jira issues via REST API, or validates a manual export")
+        Container(get_data, "get_data", "Python", "Fetches Jira issues via REST API or validates a manual export; minimises person data at the source (R1)")
         Container(helper, "helper", "Python · tkinter", "Merges multiple paginated Jira JSON files into one")
         Container(transform_data, "transform_data", "Python · tkinter", "Reads JSON export + workflow definition, computes stage times, writes XLSX files")
         Container(build_reports, "build_reports", "Python · tkinter · Plotly", "Reads XLSX, filters issues, computes flow metrics, exports HTML/PDF")

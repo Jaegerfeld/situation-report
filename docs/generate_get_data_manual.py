@@ -496,6 +496,22 @@ def content_de(st: dict) -> list:
                  "JIRA_TOKEN), die GUI hält es nur im Speicher.", st),
               SP(6),
 
+              H2("2.1  Datenminimierung ab Quelle (R1)", st),
+              P("Kein Modul der Pipeline liest ein Personenfeld — transform_data braucht nur "
+                "Projekt, Issue-Typ, Status, Erstelldatum, Komponenten, Resolution und aus dem "
+                "Changelog Zeitpunkt und Status-Übergänge. Deshalb <b>minimiert der REST-Abruf "
+                "jeden Export</b>: Issue-Felder nach Allowlist (<font name='Courier'>--keep</font> "
+                "ergänzt Felder ohne Personenbezug), der Changelog bleibt vollständig, nur die "
+                "Personen darin werden anonymisiert (Autor = fester Platzhalter, Personen-Items "
+                "ohne Werte, Freitext-Items ohne Texte). Für den manuellen Export: "
+                "<font name='Courier'>python -m get_data minimise EXPORT.json</font> schreibt "
+                "EXPORT_min.json neben das Original; <font name='Courier'>check</font> warnt, "
+                "wenn Personendaten vorhanden sind; GUI-Knopf „Minimieren“.", st),
+              HI("Rechtsgrundlage (Einschätzung, keine Rechtsberatung): Die Aggregation ist selbst "
+                 "eine Verarbeitung nach DSGVO (i. d. R. berechtigtes Interesse, Art. 6 Abs. 1 "
+                 "lit. f). Die Minimierung senkt Umfang und Risiko, ersetzt die Rechtsgrundlage "
+                 "aber nicht; prüfen Sie, ob eine Datenschutz-Folgenabschätzung nötig ist.", st),
+              SP(6),
               H1("3  Kennzahlen-Quellen verwalten (sources)", st), HR(),
               P("Neben den Jira-Rohdaten holt SituationReport auch externe "
                 "Kennzahlen (SLO/SLI, DORA, Code-Qualität) — über das "
@@ -842,6 +858,22 @@ def content_en(st: dict) -> list:
                  "JIRA_TOKEN), the GUI keeps it in memory only.", st),
               SP(6),
 
+              H2("2.1  Data minimisation at the source (R1)", st),
+              P("No module of the pipeline reads a person field - transform_data only needs "
+                "project, issue type, status, created date, components, resolution and, from "
+                "the changelog, timestamps and status transitions. Therefore the <b>REST fetch "
+                "minimises every export</b>: issue fields by allowlist (<font name='Courier'>"
+                "--keep</font> adds fields without personal reference), the changelog stays "
+                "complete, only the persons in it are anonymised (author = constant placeholder, "
+                "person items without values, free-text items without texts). For manual "
+                "exports: <font name='Courier'>python -m get_data minimise EXPORT.json</font> "
+                "writes EXPORT_min.json next to the original; <font name='Courier'>check</font> "
+                "warns when person data is present; GUI button Minimise.", st),
+              HI("Legal basis (an assessment, not legal advice): aggregation is itself a "
+                 "processing operation under the GDPR (usually legitimate interest, Art. 6(1)(f)). "
+                 "Minimisation lowers amount and risk but does not replace the legal basis; check "
+                 "whether a data-protection impact assessment is required.", st),
+              SP(6),
               H1("3  Managing metric sources (sources)", st), HR(),
               P("Besides the raw Jira data, SituationReport also fetches "
                 "external metrics (SLO/SLI, DORA, code quality) — via the "
@@ -1181,6 +1213,22 @@ def content_ro(st: dict) -> list:
                  "JIRA_TOKEN), GUI îl ține doar în memorie.", st),
               SP(6),
 
+              H2("2.1  Minimizarea datelor la sursă (R1)", st),
+              P("Niciun modul al pipeline-ului nu citește un câmp de persoană - transform_data "
+                "are nevoie doar de proiect, tip, stare, dată de creare, componente, rezoluție și, "
+                "din changelog, de momente și tranziții de stare. De aceea <b>preluarea REST "
+                "minimizează fiecare export</b>: câmpuri după allowlist (<font name='Courier'>"
+                "--keep</font> adaugă câmpuri fără referință la persoane), changelog-ul rămâne "
+                "complet, doar persoanele din el sunt anonimizate (autor = substituent constant, "
+                "elemente de persoană fără valori, elemente text fără texte). Pentru exportul "
+                "manual: <font name='Courier'>python -m get_data minimise EXPORT.json</font> "
+                "scrie EXPORT_min.json lângă original; <font name='Courier'>check</font> "
+                "avertizează când există date personale; buton GUI Minimizare.", st),
+              HI("Temei juridic (evaluare, nu consultanță juridică): agregarea este ea însăși o "
+                 "prelucrare conform GDPR (de regulă interes legitim, art. 6 alin. 1 lit. f). "
+                 "Minimizarea reduce volumul și riscul, dar nu înlocuiește temeiul juridic; "
+                 "verificați dacă este necesară o evaluare a impactului.", st),
+              SP(6),
               H1("3  Gestionarea surselor de metrici (sources)", st), HR(),
               P("Pe lângă datele brute din Jira, SituationReport preia și "
                 "metrici externe (SLO/SLI, DORA, calitatea codului) — prin "
@@ -1496,6 +1544,22 @@ def content_pt(st: dict) -> list:
                  "mantém-no apenas em memória.", st),
               SP(6),
 
+              H2("2.1  Minimização de dados na fonte (R1)", st),
+              P("Nenhum módulo do pipeline lê um campo de pessoa - o transform_data só precisa "
+                "de projeto, tipo, estado, data de criação, componentes, resolução e, do "
+                "changelog, de instantes e transições de estado. Por isso a <b>recolha REST "
+                "minimiza cada export</b>: campos por allowlist (<font name='Courier'>--keep"
+                "</font> acrescenta campos sem referência a pessoas), o changelog fica completo, "
+                "só as pessoas nele são anonimizadas (autor = marcador constante, itens de pessoa "
+                "sem valores, itens de texto sem textos). Para o export manual: "
+                "<font name='Courier'>python -m get_data minimise EXPORT.json</font> escreve "
+                "EXPORT_min.json ao lado do original; <font name='Courier'>check</font> avisa "
+                "quando há dados pessoais; botão GUI Minimizar.", st),
+              HI("Base jurídica (avaliação, não aconselhamento jurídico): a agregação é em si um "
+                 "tratamento segundo o RGPD (em regra interesse legítimo, art. 6.º n.º 1 al. f). "
+                 "A minimização reduz volume e risco mas não substitui a base jurídica; verifique "
+                 "se é necessária uma avaliação de impacto.", st),
+              SP(6),
               H1("3  Gerir fontes de métricas (sources)", st), HR(),
               P("Além dos dados brutos do Jira, o SituationReport também "
                 "recolhe métricas externas (SLO/SLI, DORA, qualidade do "
@@ -1811,6 +1875,23 @@ def content_fr(st: dict) -> list:
                  "par défaut), la GUI le garde uniquement en mémoire.", st),
               SP(6),
 
+              H2("2.1  Minimisation des données à la source (R1)", st),
+              P("Aucun module du pipeline ne lit un champ de personne - transform_data n'a "
+                "besoin que du projet, du type, du statut, de la date de création, des "
+                "composants, de la résolution et, dans le changelog, des instants et transitions "
+                "de statut. C'est pourquoi la <b>récupération REST minimise chaque export</b> : "
+                "champs selon une liste blanche (<font name='Courier'>--keep</font> ajoute des "
+                "champs sans référence à des personnes), le changelog reste complet, seules les "
+                "personnes y sont anonymisées (auteur = marqueur constant, éléments de personne "
+                "sans valeurs, éléments de texte libre sans textes). Pour l'export manuel : "
+                "<font name='Courier'>python -m get_data minimise EXPORT.json</font> écrit "
+                "EXPORT_min.json à côté de l'original ; <font name='Courier'>check</font> "
+                "avertit si des données personnelles sont présentes ; bouton GUI Minimiser.", st),
+              HI("Base juridique (appréciation, pas un conseil juridique) : l'agrégation est "
+                 "elle-même un traitement au sens du RGPD (en général l'intérêt légitime, "
+                 "art. 6 par. 1 let. f). La minimisation réduit le volume et le risque mais ne "
+                 "remplace pas la base juridique ; vérifiez si une analyse d'impact est requise.", st),
+              SP(6),
               H1("3  Gérer les sources de métriques (sources)", st), HR(),
               P("Outre les données brutes de Jira, SituationReport "
                 "récupère aussi des métriques externes (SLO/SLI, DORA, "
