@@ -35,7 +35,8 @@ def _sha256(text: str) -> str:
 
 
 def append_audit(path: Path, result: LlmResult, source_text: str,
-                 purpose: str, guard_passed: bool) -> None:
+                 purpose: str, guard_passed: bool,
+                 contract_warnings: int = 0) -> None:
     """
     Append one operator-evidence record (JSONL) for an LLM call.
 
@@ -45,8 +46,10 @@ def append_audit(path: Path, result: LlmResult, source_text: str,
         source_text: The deterministic input (hashed, never stored).
         purpose:     What the call was for (e.g. "d2_narration").
         guard_passed: Whether the numbers guard accepted the output.
+        contract_warnings: Contract lines that read like instructions
+                     (Leitplanke e) - recorded when > 0.
     """
-    record = {
+    record: dict[str, object] = {
         "ts": datetime.now().isoformat(timespec="seconds"),
         "purpose": purpose,
         "provider": result.provider_id,
@@ -58,6 +61,8 @@ def append_audit(path: Path, result: LlmResult, source_text: str,
         "duration_s": round(result.duration_s, 2),
         "guard_passed": guard_passed,
     }
+    if contract_warnings:
+        record["contract_warnings"] = contract_warnings
     if result.endpoint:
         # Normalised the way resolve_base_url does, so "box:11434/" and
         # "http://box:11434" hash alike and a check by the operator succeeds.

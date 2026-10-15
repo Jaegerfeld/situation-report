@@ -31,6 +31,8 @@ from datetime import date
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
+from llm.guard import text_as_data as _data
+
 from .report_texts import DEFAULT_LANG, t
 
 if TYPE_CHECKING:  # pragma: no cover - nur fuer Typen
@@ -129,8 +131,9 @@ def conference_contracts(
     in2 = head + ["## Part: Input 2 - impediment backlog and governance",
                   f"- flow problems: {len(flow)} ({_counts(flow, 'status')})",
                   f"- flow problems unresolved for 3 or more conferences: {len(survived)}"]
-    in2 += [f"  - {p.title} (conferences {p.conferences}, value streams "
-            f"{', '.join(p.value_streams)})" for p in survived]
+    # Leitplanke (e): titles and names from the registers are data, never instructions
+    in2 += [f"  - {_data(p.title)} (conferences {p.conferences}, value streams "
+            f"{', '.join(_data(v, 60) for v in p.value_streams)})" for p in survived]
     in2 += [f"- cross-value-stream problems: {len(cross)}",
             f"- ROAM risks: {len(risks)} ({_counts(risks, 'roam')})",
             f"- dependencies: {len(deps)} ({_counts(deps, 'status')})"]
@@ -143,11 +146,11 @@ def conference_contracts(
     slos = [s for _, s in _collect_slo(config, log=quiet)]
     in3 = head + ["## Part: Input 3 - business objectives",
                   f"- capabilities: {len(caps)} ({_counts(caps, 'health')})"]
-    in3 += [f"  - {c.title}: {c.health}" for c in caps if str(c.health) != "ok"]
+    in3 += [f"  - {_data(c.title)}: {c.health}" for c in caps if str(c.health) != "ok"]
     in3 += [f"- SLOs: {len(slos)} services"]
     for s in slos:
         sli = f"{_fmt(s.sli_pct)} %" if s.sli_pct is not None else "no indicator"
-        in3.append(f"  - {s.service}: target {_fmt(s.target_pct)} %, current {sli}")
+        in3.append(f"  - {_data(s.service, 80)}: target {_fmt(s.target_pct)} %, current {sli}")
 
     # Input 4 - roadmap & themes
     themes, epics = _collect_themes(config, log=quiet)
@@ -161,7 +164,7 @@ def conference_contracts(
                   f"- epics: {len(epic_list)} ({_counts(epic_list, 'status')}); "
                   f"by horizon: {_counts(epic_list, 'horizon')}",
                   f"- epics without a strategic theme: {len(zombies)}"]
-    in4 += [f"  - {e.title} ({e.train}, {e.horizon})" for e in zombies]
+    in4 += [f"  - {_data(e.title)} ({_data(e.train, 60)}, {e.horizon})" for e in zombies]
 
     intro = head + ["## Part: Introduction over all four inputs",
                     "### Current data", _metric_line(snap.total),

@@ -316,7 +316,7 @@ C4Component
 | `base.py` | Provider protocol, `LlmResult`, deployment classes (local · remote · export · mock) |
 | `providers/*.py` | Backends: `ollama` (local), `claude` (API), `export` (writes the prompt bundle instead of calling a model), `mock` |
 | `narrate.py` | One entry point for every AI purpose: contract in, draft out, guards applied |
-| `guard.py` | Numbers guard (no figure that is not in the contract) and the labelling banner (Art. 50) |
+| `guard.py` | Numbers guard (no figure that is not in the contract), citation guard, `text_as_data` and the instruction-smell warning (guardrail e), labelling banner (Art. 50) |
 | `audit.py` | Operator record: one JSONL line per call (purpose, provider, model, address, hashes) |
 | `prompts.py` | Versioned system prompts per purpose (exec summary, narration, red team, translation, conference draft, harmonisation reading) |
 | `export.py` | Prompt bundle (`build_bundle`, `write_bundle`, clipboard) for a model run on another machine |

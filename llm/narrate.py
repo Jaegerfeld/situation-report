@@ -20,13 +20,13 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
 from .audit import append_audit
 from .base import DEPLOYMENT_EXPORT, LlmResult, discover_providers
-from .guard import NumbersGuardError, ai_banner_text, enforce_numbers
+from .guard import NumbersGuardError, ai_banner_text, enforce_numbers, instruction_smells
 from .prompts import DEFAULT_LANG, narration_system_prompt
 
 
@@ -36,6 +36,8 @@ class Narration:
     text: str
     banner: str
     result: LlmResult
+    #: Contract lines that read like instructions (Leitplanke e) - a warning, not a verdict.
+    warnings: list[str] = field(default_factory=list)
 
 
 def narrate(
@@ -84,6 +86,10 @@ def narrate(
     cfg.setdefault("purpose", purpose)
     if audit_path is not None:
         cfg.setdefault("export_dir", str(Path(audit_path).parent))
+    # Leitplanke (e): free text that reads like an instruction is noted, not
+    # removed - the contract stays data, the evidence records the count.
+    smells = instruction_smells(source_text)
+    cfg.setdefault("contract_warnings", len(smells))
     system = (system_prompt if system_prompt is not None
               else narration_system_prompt(lang))
     result = provider.complete(system, source_text, cfg)
@@ -96,10 +102,10 @@ def narrate(
     except NumbersGuardError:
         if audit_path is not None:
             append_audit(audit_path, result, source_text, purpose,
-                         guard_passed=False)
+                         guard_passed=False, contract_warnings=len(smells))
         raise
     if audit_path is not None:
         append_audit(audit_path, result, source_text, purpose,
-                     guard_passed=True)
-    return Narration(text=result.text,
-                     banner=ai_banner_text(result, lang), result=result)
+                     guard_passed=True, contract_warnings=len(smells))
+    return Narration(text=result.text, banner=ai_banner_text(result, lang),
+                     result=result, warnings=smells)

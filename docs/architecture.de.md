@@ -316,7 +316,7 @@ C4Component
 | `base.py` | Provider-Protokoll, `LlmResult`, Betriebsklassen (lokal · entfernt · Export · Attrappe) |
 | `providers/*.py` | Backends: `ollama` (lokal), `claude` (API), `export` (schreibt das Prompt-Paket statt ein Modell zu rufen), `mock` |
 | `narrate.py` | Ein Einstieg für jeden KI-Zweck: Contract rein, Entwurf raus, Wächter angewandt |
-| `guard.py` | Zahlen-Wächter (keine Zahl, die nicht im Contract steht) und Kennzeichnungs-Banner (Art. 50) |
+| `guard.py` | Zahlen-Wächter (keine Zahl, die nicht im Contract steht), Zitat-Wächter, `text_as_data` und Geruchs-Warnung (Leitplanke e), Kennzeichnungs-Banner (Art. 50) |
 | `audit.py` | Betreiber-Nachweis: eine JSONL-Zeile je Aufruf (Zweck, Anbieter, Modell, Adresse, Hashes) |
 | `prompts.py` | Versionierte Systemprompts je Zweck (Exec Summary, Narration, Red Team, Übersetzung, Mappen-Entwurf, Harmonisierungs-Lesart) |
 | `export.py` | Prompt-Paket (`build_bundle`, `write_bundle`, Zwischenablage) für einen Modelllauf auf einem anderen Rechner |
