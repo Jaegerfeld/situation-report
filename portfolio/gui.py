@@ -239,6 +239,7 @@ _T: dict[str, dict[str, str]] = {
         "chk_kata": "Kata",
         "dlg_save_onepager": "Einseiter speichern",
         "msg_onepager_done": "Einseiter erzeugt: {path}",
+        "msg_briefing_done": "Einseiter erzeugt: {path} · Sprechzettel (Entwurf): {briefing}",
         "msg_onepager_error": "Einseiter fehlgeschlagen: {error}",
         "btn_check_answer": "KI-Antwort prüfen …",
         "dlg_open_answer": "Antwort des externen Modells wählen",
@@ -378,6 +379,7 @@ _T: dict[str, dict[str, str]] = {
         "chk_kata": "Kata",
         "dlg_save_onepager": "Save one-pager",
         "msg_onepager_done": "One-pager written: {path}",
+        "msg_briefing_done": "One-pager written: {path} · briefing draft: {briefing}",
         "msg_onepager_error": "One-pager failed: {error}",
         "btn_check_answer": "Check AI answer …",
         "dlg_open_answer": "Choose the external model's answer",
@@ -517,6 +519,7 @@ _T: dict[str, dict[str, str]] = {
         "chk_kata": "Kata",
         "dlg_save_onepager": "Salvează pagina",
         "msg_onepager_done": "Pagina creată: {path}",
+        "msg_briefing_done": "Pagina creată: {path} · schiță de prezentare: {briefing}",
         "msg_onepager_error": "Pagina a eșuat: {error}",
         "btn_check_answer": "Verifică răspunsul AI …",
         "dlg_open_answer": "Alege răspunsul modelului extern",
@@ -656,6 +659,7 @@ _T: dict[str, dict[str, str]] = {
         "chk_kata": "Kata",
         "dlg_save_onepager": "Guardar página",
         "msg_onepager_done": "Página criada: {path}",
+        "msg_briefing_done": "Página criada: {path} · rascunho do briefing: {briefing}",
         "msg_onepager_error": "Página falhou: {error}",
         "btn_check_answer": "Verificar resposta IA …",
         "dlg_open_answer": "Escolher a resposta do modelo externo",
@@ -795,6 +799,7 @@ _T: dict[str, dict[str, str]] = {
         "chk_kata": "Kata",
         "dlg_save_onepager": "Enregistrer la page",
         "msg_onepager_done": "Page créée : {path}",
+        "msg_briefing_done": "Page créée : {path} · brouillon d'exposé : {briefing}",
         "msg_onepager_error": "Page échouée : {error}",
         "btn_check_answer": "Vérifier la réponse IA …",
         "dlg_open_answer": "Choisir la réponse du modèle externe",
@@ -1879,7 +1884,13 @@ class SolutionManagerApp(tk.Tk):
         if not path:
             return
         prev_path = getattr(self, "_last_snapshot_path", None)
-        self._status.set(self._tr("msg_generating"))
+        # M6: the AI box also drafts the spoken briefing next to the page (never for the kata)
+        narrate_with = self._llm_provider.get() if self._narrate.get() and not kata else None
+        llm_model, llm_base_url = self._llm_config()
+        draft_lang = self._lang if self._lang in ("de", "en") else "en"
+        if narrate_with:
+            self._remember_llm_choice()
+        self._status.set(self._tr("msg_narrate_running" if narrate_with else "msg_generating"))
         self.update_idletasks()
 
         def worker() -> None:
@@ -1890,8 +1901,17 @@ class SolutionManagerApp(tk.Tk):
                 lang = cfg.language or self._lang
                 page = build_onepager(cfg, lang=lang, prev_snapshot=prev, log=lambda *_: None)
                 Path(path).write_text(render_onepager_html(page, lang, kata=kata), encoding="utf-8")
-                webbrowser.open(Path(path).resolve().as_uri())
                 msg = self._tr("msg_onepager_done").format(path=path)
+                if narrate_with:
+                    from llm.audit import AUDIT_FILENAME
+
+                    from .briefing import write_briefing
+                    target, _draft = write_briefing(
+                        page, cfg, Path(path), provider_id=narrate_with, lang=draft_lang,
+                        prev_snapshot=prev, llm_model=llm_model, llm_base_url=llm_base_url,
+                        audit_path=Path(path).parent / AUDIT_FILENAME, log=lambda *_: None)
+                    msg = self._tr("msg_briefing_done").format(path=path, briefing=target.name)
+                webbrowser.open(Path(path).resolve().as_uri())
             except Exception as exc:
                 msg = self._tr("msg_onepager_error").format(error=exc)
             self.after(0, lambda: self._status.set(msg))

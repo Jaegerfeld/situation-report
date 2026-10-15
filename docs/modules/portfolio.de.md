@@ -417,6 +417,31 @@ python -m portfolio portfolio.json --onepager kata.html --kata
 GUI: Knopf **Einseiter …** im Manager-Fenster; Spalte 2 nutzt den zuletzt in dieser Sitzung
 geschriebenen Snapshot.
 
+### Lagevortrag-Entwurf — die KI-Lesart des Einseiters (M6, seit 0.50.0)
+
+`--onepager seite.html --narrate PROVIDER` schreibt zusätzlich einen **Sprechzettel**
+`seite.html.vortrag.md` (Englisch: `.briefing.md`): den KI-formulierten Entwurf des gesprochenen
+Lagevortrags von rund 90 Sekunden, 8 bis 12 Sätze in fester Reihenfolge — zuerst der BLUF, dann die
+vier Dimensionen (wo stehen wir, was hat sich geändert), dann der Entscheidungsbedarf *nur genannt*,
+zuletzt das Datenvertrauen (Zellen mit Konfidenz niedrig oder fehlt). Der Contract des Modells ist
+der **Einseiter selbst als zitierbare Fakten** (`E/bluf`, `E/meta`, `E/flow.q1` …
+`E/dependencies.q3`, `E/<dimension>.decide`) plus der Fakten-Index des Stands (`S1/S0/D`). Es gelten
+dieselben Wächter wie bei D3/D4 über `llm.narrate`: Zahlen-Wächter, Zitat-Wächter je Aussage, Banner,
+Betreiber-Nachweis mit Zweck `m6_briefing`; Provider frei, auch `export`. Ein verworfener Entwurf
+bricht nichts ab — der Einseiter steht, die Datei nennt den Grund.
+
+Die Einseiter-Seite selbst bleibt **byte-gleich und KI-frei**; ihr Footer bleibt wahr. Leitplanke des
+Musters M6, als erste Zeile der Datei: *Entwurf, nicht der Vortrag* — der Vortragende prüft, kürzt,
+trägt vor und zeichnet verantwortlich. Bewusst nicht: keine Übersetzung des Sprechzettels, kein
+Noise-Audit über Entwürfe, keine Empfehlung oder Option im Entwurf.
+
+```bash
+python -m portfolio portfolio.json --onepager seite.html --since-snapshot snapshots/snapshot_prev.json --narrate ollama
+python -m portfolio portfolio.json --onepager seite.html --narrate export      # Prompt-Bündel, zurück über llm check
+```
+
+GUI: der Haken **KI-Narration (Entwurf)** wirkt auch beim Knopf **Einseiter …** (nie beim Kata).
+
 ## Das Lagebild befragen (D3, seit 0.46.0)
 
 Schritt-für-Schritt-Einführung mit Bildschirmfotos, echten Ausgaben und Fehlerbildern:
@@ -609,6 +634,7 @@ portfolio/
 ├── red_team.py        Red-Team-Fragen (D5) gegen den Contract
 ├── conference_draft.py KI-Entwurf für die Konferenzmappe (D8): Datei oder inline
 ├── onepager.py        Lagevortrag-Einseiter (P6): 4 × 3, BLUF, Kata-Modus
+├── briefing.py        Lagevortrag-Entwurf (M6): Einseiter-Zellen als Fakten E/…, zitiert, bewacht
 ├── report_texts.py    Report-Texte in fünf Sprachen (t(key, lang))
 ├── gui.py             Solutions-&-Portfolios-GUI (Datenquellen-Dialog mit elf Registern)
 ├── aggregator.py      Zusammenführung auf Datensatz-Ebene + Rendering (HTML/PDF/Konferenzmappe)

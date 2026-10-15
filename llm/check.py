@@ -47,8 +47,8 @@ MODEL_UNKNOWN = "unbekannt"
 BUNDLE_GLOB = "prompt_*.md"
 #: Audit purposes whose answers must consist of questions only (D5).
 QUESTION_PURPOSES = ("d5_red_team",)
-#: Audit purposes whose answers must cite fact paths (D3).
-CITATION_PURPOSES = ("d3_question",)
+#: Audit purposes whose answers must cite fact paths (D3, D4 explanations, M6 briefing).
+CITATION_PURPOSES = ("d3_question", "d4_anomaly", "m6_briefing")
 #: Suffix of the file llm check writes next to the answer.
 CHECKED_SUFFIX = ".checked.md"
 

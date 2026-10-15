@@ -820,6 +820,18 @@ def content_de(st: dict) -> list:
            "<font name='Courier'>--narrate</font> ergänzt je ausgelöstem Wecker eine zitierte "
            "KI-Erklärung ohne Empfehlung. Ausgelöste Wecker führen den Einseiter an.", st),
         _SP(6),
+        _H2("5.22  Lagevortrag-Entwurf — die KI-Lesart des Einseiters (M6)", st), _hr(st),
+        _P("<font name='Courier'>--onepager seite.html --narrate PROVIDER</font> schreibt neben den "
+           "Einseiter einen Sprechzettel <font name='Courier'>seite.html.vortrag.md</font>: den "
+           "KI-Entwurf des gesprochenen Vortrags (8 bis 12 Sätze, rund 90 Sekunden) in fester "
+           "Reihenfolge — BLUF, vier Dimensionen, Entscheidungsbedarf nur genannt, Datenvertrauen. "
+           "Der Contract sind die Zellen des Einseiters als zitierbare Fakten (E/…) plus der "
+           "Fakten-Index; Zahlen- und Zitat-Wächter wie bei D3/D4, Nachweis-Zweck m6_briefing. "
+           "Die Einseiter-Seite bleibt unverändert und KI-frei; die Datei beginnt mit dem Satz, dass "
+           "sie ein Entwurf und nicht der Vortrag ist — der Vortragende kürzt und verantwortet. "
+           "Ein verworfener Entwurf lässt den Einseiter stehen. GUI: der Haken KI-Narration wirkt "
+           "auch beim Knopf Einseiter … (nie beim Kata).", st),
+        _SP(6),
         _H1("6. Kommandozeile (CLI)", st), _hr(st),
         _P("Für Automatisierung und reproduzierbare Reports:", st),
         _CD("python -m portfolio meine_solution.json --output report.html", st),
@@ -1392,6 +1404,18 @@ def content_en(st: dict) -> list:
            "<font name='Courier'>--narrate</font> adds a cited AI explanation per triggered "
            "point, without recommendation. Triggered points lead the one-pager.", st),
         _SP(6),
+        _H2("5.22  Spoken briefing draft — the AI reading of the one-pager (M6)", st), _hr(st),
+        _P("<font name='Courier'>--onepager page.html --narrate PROVIDER</font> writes a speaker's "
+           "note <font name='Courier'>page.html.briefing.md</font> next to the one-pager: the AI "
+           "draft of the spoken briefing (8 to 12 sentences, about 90 seconds) in a fixed order - "
+           "BLUF, four dimensions, decisions needed named only, data confidence. The contract is "
+           "the one-pager's cells as citable facts (E/...) plus the fact index; numbers and citation "
+           "guards as in D3/D4, evidence purpose m6_briefing. The one-pager page stays unchanged "
+           "and AI-free; the file opens with the sentence that it is a draft, not the briefing - "
+           "the presenter cuts and signs responsible. A discarded draft leaves the one-pager "
+           "standing. GUI: the AI narration box also applies to the One-pager ... button (never "
+           "to the kata).", st),
+        _SP(6),
         _H1("6. Command line (CLI)", st), _hr(st),
         _P("For automation and reproducible reports:", st),
         _CD("python -m portfolio my_solution.json --output report.html", st),
@@ -1915,6 +1939,17 @@ def content_ro(st: dict) -> list:
            "de la mediana istoricului; indiciile sunt candidati, nu alarme. "
            "<font name='Courier'>--narrate</font> adauga o explicatie AI citata per punct "
            "declansat, fara recomandare.", st),
+        _SP(6),
+        _H2("5.22  Schita de prezentare — lectura AI a paginii (M6)", st), _hr(st),
+        _P("<font name='Courier'>--onepager pagina.html --narrate PROVIDER</font> scrie langa "
+           "pagina o nota pentru vorbitor <font name='Courier'>pagina.html.briefing.md</font>: "
+           "schita AI a prezentarii vorbite (8-12 propozitii, circa 90 de secunde) in ordine fixa - "
+           "BLUF, patru dimensiuni, deciziile necesare doar numite, increderea in date. Contractul "
+           "sunt celulele paginii ca fapte citabile (E/...) plus indexul de fapte; gardienii de "
+           "numere si de citate ca la D3/D4, scop m6_briefing. Pagina ramane neschimbata si fara "
+           "AI; fisierul incepe cu propozitia ca este o schita, nu prezentarea - prezentatorul "
+           "scurteaza si raspunde. O schita respinsa lasa pagina in picioare. GUI: caseta AI "
+           "actioneaza si asupra butonului O pagina ... (niciodata la kata).", st),
         _SP(6),
         _H1("6. Linia de comanda (CLI)", st), _hr(st),
         _P("Pentru automatizare si rapoarte reproductibile:", st),
@@ -2444,6 +2479,17 @@ def content_pt(st: dict) -> list:
            "da mediana do seu historico; indicios sao candidatos, nunca alarmes. "
            "<font name='Courier'>--narrate</font> acrescenta uma explicacao de IA citada por "
            "ponto disparado, sem recomendacao.", st),
+        _SP(6),
+        _H2("5.22  Rascunho do briefing falado — a leitura de IA da pagina (M6)", st), _hr(st),
+        _P("<font name='Courier'>--onepager pagina.html --narrate PROVIDER</font> escreve ao lado "
+           "da pagina uma nota para o orador <font name='Courier'>pagina.html.briefing.md</font>: "
+           "o rascunho de IA do briefing falado (8 a 12 frases, cerca de 90 segundos) em ordem "
+           "fixa - BLUF, quatro dimensoes, decisoes necessarias apenas nomeadas, confianca nos "
+           "dados. O contrato sao as celulas da pagina como factos citaveis (E/...) mais o indice "
+           "de factos; guardas de numeros e de citacoes como em D3/D4, finalidade m6_briefing. A "
+           "pagina fica inalterada e sem IA; o ficheiro comeca com a frase de que e um rascunho, "
+           "nao o briefing - o apresentador corta e assume. Um rascunho rejeitado deixa a pagina "
+           "de pe. GUI: a caixa de IA atua tambem no botao Uma pagina ... (nunca no kata).", st),
         _SP(6),
         _H1("6. Linha de comandos (CLI)", st), _hr(st),
         _P("Para automacao e relatorios reproduziveis:", st),
@@ -2996,6 +3042,18 @@ def content_fr(st: dict) -> list:
            "3 MAD de la mediane de leur historique ; des indices sont des candidats, jamais des "
            "alarmes. <font name='Courier'>--narrate</font> ajoute une explication IA citee par "
            "point declenche, sans recommandation.", st),
+        _SP(6),
+        _H2("5.22  Brouillon d'expose — la lecture IA de la page (M6)", st), _hr(st),
+        _P("<font name='Courier'>--onepager page.html --narrate PROVIDER</font> ecrit a cote de la "
+           "page une note d'orateur <font name='Courier'>page.html.briefing.md</font> : le "
+           "brouillon IA de l'expose parle (8 a 12 phrases, environ 90 secondes) dans un ordre "
+           "fixe - BLUF, quatre dimensions, decisions requises seulement nommees, confiance dans "
+           "les donnees. Le contrat est constitue des cellules de la page comme faits citables "
+           "(E/...) plus l'index des faits ; gardiens des nombres et des citations comme en D3/D4, "
+           "finalite m6_briefing. La page reste inchangee et sans IA ; le fichier commence par la "
+           "phrase qu'il est un brouillon, pas l'expose - le presentateur coupe et assume. Un "
+           "brouillon rejete laisse la page en place. GUI : la case IA agit aussi sur le bouton "
+           "Une page ... (jamais pour le kata).", st),
         _SP(6),
         _H1("6. Ligne de commande (CLI)", st), _hr(st),
         _P("Pour l'automatisation et des rapports reproductibles :", st),

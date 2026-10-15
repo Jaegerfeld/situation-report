@@ -122,8 +122,9 @@ UNKNOWN_ANSWERS = {
     "pt": "O quadro de situação não contém informação sobre isso.",
     "fr": "Le tableau de situation ne contient aucune information à ce sujet.",
 }
-#: A citation: [S1/total.median_ct], [S0/...], [D/...], [H/...] - keys use parentheses.
-CITATION_RE = re.compile(r"\[((?:S0|S1|D|H)/[^\]\n]+)\]")
+#: A citation: [S1/total.median_ct], [S0/...], [D/...], [H/...], [E/...] (one-pager
+#: cells, M6) - keys use parentheses.
+CITATION_RE = re.compile(r"\[((?:S0|S1|D|H|E)/[^\]\n]+)\]")
 #: A fact line of the contract: "- [path] label = value (as of ...; source)".
 FACT_LINE_RE = re.compile(r"^- \[([^\]\n]+)\] (.*)$", re.M)
 _SENTENCE_SPLIT_RE = re.compile(r"(?<=[.!?])\s+(?=[A-ZÄÖÜ„\"(\[])")

@@ -499,6 +499,17 @@ def _run_onepager(args: argparse.Namespace) -> None:
     args.onepager.write_text(render_onepager_html(page, lang, kata=args.kata),
                              encoding="utf-8")
     print(f"One-pager written: {args.onepager}" + (" (kata)" if args.kata else ""))
+    if getattr(args, "narrate", None) and not args.kata:
+        # M6: the spoken-briefing draft as its own file - the page stays AI-free.
+        from llm.audit import AUDIT_FILENAME
+
+        from .briefing import write_briefing
+        target, draft = write_briefing(
+            page, config, args.onepager, provider_id=args.narrate, lang=args.llm_lang,
+            prev_snapshot=prev, target_ct=args.target_ct, llm_model=args.llm_model,
+            llm_base_url=args.llm_base_url, audit_path=args.onepager.parent / AUDIT_FILENAME)
+        state = "discarded" if draft.rejected else ("exported" if draft.exported else "draft")
+        print(f"Briefing {state} (for human editing): {target}")
     if args.browser:
         webbrowser.open(args.onepager.resolve().as_uri())
 

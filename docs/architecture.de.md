@@ -290,6 +290,7 @@ C4Component
 | `snapshot.py` / `delta.py` | Report-Snapshot (acht Governance-Register) und Delta-Briefing |
 | `exec_summary.py` / `red_team.py` / `conference_draft.py` | KI-Contracts (D1, D5, D8) — Zahlen kommen aus dem Snapshot, nie aus dem Modell |
 | `onepager.py` | Einseiter (P6): deterministische Lesung derselben Collector; nur Entscheidungspunkte, keine Empfehlungen |
+| `briefing.py` | Lagevortrag-Entwurf (M6): die Zellen des Einseiters als zitierbare Fakten `E/…` plus Fakten-Index; bewacht wie D3/D4; eigene Datei, Seite bleibt KI-frei |
 | `report_texts.py` | Alle Report-Texte in fünf Sprachen |
 
 ---
