@@ -55,7 +55,8 @@ class ExportProvider:
         directory = Path(config.get("export_dir") or ".")
         draft_name = str(config.get("draft_name") or "<ausgabe>.narration.md")
         text = build_bundle(system, prompt, purpose, lang=str(config.get("lang", "de")),
-                            draft_name=draft_name)
+                            draft_name=draft_name,
+                            warnings=int(config.get("contract_warnings") or 0))
         path = write_bundle(directory, purpose, text)
         copied = copy_to_clipboard(text) if config.get("clipboard", True) else False
         clip = (_CLIP if copied else _NOCLIP)[lang]

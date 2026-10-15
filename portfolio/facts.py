@@ -53,12 +53,9 @@ _CONTROL_RE = re.compile(r"[\x00-\x08\x0b-\x1f\x7f]")
 
 
 def sanitize_text(text: Any, limit: int = TEXT_LIMIT) -> str:
-    """Free text as data: one line, no control characters, bounded length."""
-    s = _CONTROL_RE.sub("", str(text)).replace("\r", " ").replace("\n", " ")
-    s = re.sub(r"\s+", " ", s).strip().replace("[", "(").replace("]", ")")
-    if len(s) > limit:
-        s = s[: limit - 1].rstrip() + "…"
-    return s
+    """Free text as data (Leitplanke e) — the one encapsulation lives in llm.guard."""
+    from llm.guard import text_as_data
+    return text_as_data(text, limit)
 
 
 def _key(raw: Any) -> str:

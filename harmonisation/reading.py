@@ -67,9 +67,11 @@ def matrix_to_markdown(ws: Workspace, today: date | None = None) -> str:
         f"answers (high/medium/low); spread is highest minus lowest assessment.",
         "",
     ]
+    from llm.guard import text_as_data
     for p in ws.processes:
-        brands = f" (brands: {', '.join(p.brands)})" if p.brands else ""
-        lines.append(f"## {p.name}{brands}")
+        # Leitplanke (e): process names, brands and the board's depth are data, never instructions
+        brands = f" (brands: {', '.join(text_as_data(b, 60) for b in p.brands)})" if p.brands else ""
+        lines.append(f"## {text_as_data(p.name, 120)}{brands}")
         for d in ws.catalogue.dimensions:
             c = cells[p.id][d.id]
             if c.score is None:
@@ -85,7 +87,7 @@ def matrix_to_markdown(ws: Workspace, today: date | None = None) -> str:
         else:
             text = f"- board decision: {dec.decision}"
             if dec.depth:
-                text += f' (depth: "{dec.depth}")'
+                text += f' (depth: "{text_as_data(dec.depth)}")'
             if dec.day:
                 text += f" on {dec.day.isoformat()}"
             lines.append(text)

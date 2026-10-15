@@ -55,7 +55,9 @@ def _fmt(value: Any) -> str:
 
 
 def _metric_line(row: dict[str, Any]) -> str:
-    return (f"- {row.get('label', '?')}: items {row.get('items')}, "
+    from llm.guard import text_as_data
+    # Leitplanke (e): unit labels come from source systems - data, never instructions
+    return (f"- {text_as_data(row.get('label', '?'), 80)}: items {row.get('items')}, "
             f"completed {row.get('completed')}, open {row.get('open')}, "
             f"median CT {_fmt(row.get('median_ct'))} d, "
             f"P85 {_fmt(row.get('p85_ct'))} d, "
@@ -84,9 +86,10 @@ def summary_to_markdown(snap: Snapshot) -> str:
     ]
     lines += [_metric_line(u) for u in snap.units]
     if snap.sources:
+        from llm.guard import text_as_data
         lines += ["", "## Source confidence"]
         lines += [
-            f"- {s.get('label', '?')}: {s.get('confidence', '?')}"
+            f"- {text_as_data(s.get('label', '?'), 80)}: {s.get('confidence', '?')}"
             + (f" (data as of {s.get('data_as_of')})"
                if s.get("data_as_of") else "")
             for s in snap.sources

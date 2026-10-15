@@ -30,6 +30,52 @@ from .prompts import PROMPT_VERSION
 #: Numbers incl. decimal comma/point and thousands separators (1.234,5).
 _NUMBER_RE = re.compile(r"\d+(?:[.,]\d+)*")
 
+# ---------------------------------------------------------------------------
+# Leitplanke (e): free text from source systems is DATA, never an instruction
+# ---------------------------------------------------------------------------
+#: Default bound for one free-text value inside a contract.
+TEXT_LIMIT = 160
+_CONTROL_RE = re.compile(r"[\x00-\x08\x0b-\x1f\x7f]")
+_HEADING_RE = re.compile(r"^(#{1,6})(?=\s|$)")
+#: Phrases that make a free text look like an instruction to the model.
+INSTRUCTION_SMELL_RE = re.compile(
+    r"(ignor(?:e|ier\w*)\s+(?:all|alle|previous|prior|vorherige\w*|die\s+regeln|the\s+rules)"
+    r"|system\s*-?\s*prompt|you\s+are\s+now|du\s+bist\s+(?:jetzt|ab\s+jetzt)|answer\s+with"
+    r"|antworte\s+(?:mit|nur)|forget\s+(?:all|your|the)|vergiss\s+(?:alle|deine|die)"
+    r"|new\s+instructions?|neue\s+anweisung\w*|disregard)",
+    re.IGNORECASE)
+
+
+def text_as_data(text: object, limit: int = TEXT_LIMIT) -> str:
+    """
+    Encapsulate free text from a source system before it enters a contract.
+
+    One line, no control characters, square brackets become round ones (a
+    title can never fake a fact citation), a leading Markdown heading is
+    defused (it must not open a new contract section), bounded length with
+    an ellipsis. Does not rewrite words: what the text says stays data.
+    """
+    raw = _CONTROL_RE.sub("", str(text)).replace("\r", "\n")
+    # defuse per ORIGINAL line - a heading only works at a line start
+    lines = [_HEADING_RE.sub(lambda m: "＃" * len(m.group(1)), ln.strip()) for ln in raw.split("\n")]
+    s = re.sub(r"\s+", " ", " ".join(lines)).strip().replace("[", "(").replace("]", ")")
+    if len(s) > limit:
+        s = s[: limit - 1].rstrip() + "…"
+    return s
+
+
+def instruction_smells(contract: str) -> list[str]:
+    """
+    Contract lines whose text reads like an instruction to the model
+    ("ignore all rules", "system prompt", "you are now", ...).
+
+    A warning, never a verdict: a flow problem titled "ignore previous build
+    failures" is legitimate data. Callers log the hits and record their
+    count in the operator evidence; the hard guards still apply.
+    """
+    return [line.strip() for line in contract.splitlines()
+            if INSTRUCTION_SMELL_RE.search(line)]
+
 
 def _canonical(number: str) -> str:
     """

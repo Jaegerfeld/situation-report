@@ -97,7 +97,7 @@ class TestPrompts:
         assert "verbatim" in en and "never persons" in en
         # Unbekannte Sprache fällt auf den Standard (Deutsch) zurück.
         assert narration_system_prompt("fr") == de
-        assert PROMPT_VERSION == "v1"
+        assert PROMPT_VERSION == "v2"
 
 
 class TestNumbersGuard:

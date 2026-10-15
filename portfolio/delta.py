@@ -396,9 +396,10 @@ def _unit_rows_html(deltas: list[UnitDelta]) -> str:
 
 
 def _entry_line(entry: dict) -> str:
-    src = entry.get("solution", "")
+    from llm.guard import text_as_data
+    src = text_as_data(entry.get("solution", ""), 80)
     prefix = f"[{src}] " if src else ""
-    return f"{prefix}{entry.get('id', '')}: {entry.get('title', '')}"
+    return f"{prefix}{text_as_data(entry.get('id', ''), 40)}: {text_as_data(entry.get('title', ''))}"
 
 
 def render_delta_html(delta: DeltaReport, lang: str = DEFAULT_LANG) -> str:
@@ -544,10 +545,13 @@ def _section_markdown(section: str, sd: SectionDelta) -> list[str]:
     """Markdown lines for one governance section (empty section → none)."""
     if sd.empty:
         return []
+    from llm.guard import text_as_data
     lines = [f"## {_SECTION_TITLES[section]}"]
     for c in sd.changed:
-        src = f"[{c.solution}] " if c.solution else ""
-        lines.append(f"- {src}{c.entry_id}: {c.title} — {_change_text(c)}")
+        # Leitplanke (e): register titles are data, never instructions
+        src = f"[{text_as_data(c.solution, 80)}] " if c.solution else ""
+        lines.append(f"- {src}{text_as_data(c.entry_id, 40)}: {text_as_data(c.title)} — "
+                     f"{text_as_data(_change_text(c))}")
     lines.extend(f"- newly overdue: {_entry_line(e)}" for e in sd.newly_overdue)
     lines.extend(f"- new: {_entry_line(e)}" for e in sd.added)
     lines.extend(f"- removed: {_entry_line(e)}" for e in sd.removed)
