@@ -211,6 +211,43 @@ def run_approve(args: argparse.Namespace) -> int:
     return 0
 
 
+def run_literacy(args: argparse.Namespace) -> int:
+    """
+    AI literacy record (R4, Art. 4 AI Act): build the Markdown report from an
+    ai_literacy.json log - status per team, measures, needs picture from the
+    operator evidence, offer per topic. Exit code 2 when a team is due for a
+    refresh or has no measure at all. --example writes a sample log instead.
+    """
+    import json
+    from datetime import date
+
+    from .literacy import example_log
+    from .literacy import run_literacy as _run
+
+    path = Path(args.log)
+    if args.example:
+        if path.exists() and not args.force:
+            print(f"ERROR: {path} exists - use --force to overwrite.", file=sys.stderr)
+            return 1
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(json.dumps(example_log(), indent=2, ensure_ascii=False), encoding="utf-8")
+        _print_utf8(f"example log written: {path}")
+        return 0
+    try:
+        as_of = date.fromisoformat(args.as_of) if args.as_of else None
+        since = date.fromisoformat(args.since) if args.since else None
+        text, rc = _run(path, as_of=as_of, audit_path=Path(args.audit) if args.audit else None,
+                        since=since, output=Path(args.output) if args.output else None, lang=args.lang)
+    except (OSError, ValueError, json.JSONDecodeError) as exc:
+        print(f"ERROR: {exc}", file=sys.stderr)
+        return 1
+    if args.output:
+        _print_utf8(f"literacy report written: {args.output}" + (" (a team is due or has no measure)" if rc else ""))
+    else:
+        _print_utf8(text)
+    return rc
+
+
 def main(argv: list[str] | None = None) -> int:
     """Entry point for the llm CLI."""
     parser = argparse.ArgumentParser(
@@ -310,6 +347,27 @@ def main(argv: list[str] | None = None) -> int:
     approve.add_argument("--show", action="store_true",
                          help="Only print the file's AI markers, change nothing.")
     approve.set_defaults(func=run_approve)
+
+    literacy = sub.add_parser(
+        "literacy",
+        help="AI literacy record (R4, Art. 4 AI Act): report from an ai_literacy.json log - "
+             "status per team (current / refresh due / no measure), measures, needs picture "
+             "from the operator evidence (--audit), offer per topic. Exit code 2 = a team is "
+             "due or without measure. --example writes a sample log.")
+    literacy.add_argument("log", help="The ai_literacy.json log (teams and counts, never names).")
+    literacy.add_argument("--as-of", default=None, dest="as_of", metavar="DATE",
+                          help="Reference date (default: today).")
+    literacy.add_argument("--audit", default=None, metavar="FILE",
+                          help="Operator evidence (llm_audit.jsonl) for the needs picture.")
+    literacy.add_argument("--since", default=None, metavar="DATE",
+                          help="Count only evidence records from this date on.")
+    literacy.add_argument("--output", default=None, metavar="FILE",
+                          help="Write the Markdown report here (default: print).")
+    literacy.add_argument("--lang", default="de", choices=["de", "en"], help="Report language.")
+    literacy.add_argument("--example", action="store_true",
+                          help="Write an example log to LOG and exit.")
+    literacy.add_argument("--force", action="store_true", help="With --example: overwrite an existing file.")
+    literacy.set_defaults(func=run_literacy)
 
     args = parser.parse_args(argv)
     return int(args.func(args))
