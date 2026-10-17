@@ -132,7 +132,7 @@ class TestBannerAndText:
     def test_checked_text_is_banner_plus_answer(self) -> None:
         report = check_answer("Antwort 12.", Bundle("d2_narration", "de", "S", "12"), model="m1")
         text = checked_text(report)
-        assert text.startswith("> Extern erzeugter KI-Entwurf (Modell laut Bediener: m1")
+        assert text.startswith("<!-- sr-ai-draft {") and "\n> Extern erzeugter KI-Entwurf (Modell laut Bediener: m1" in text
         assert text.endswith("\n\nAntwort 12.\n")
 
 
@@ -146,7 +146,7 @@ class TestRunCheck:
         report = run_check("Abgeschlossen 12 -> 34, Median 39 Tage.", bundle, model="llama-x",
                            log=lambda m: None)
         assert report.passed and report.written == bundle.with_suffix(".checked.md")
-        assert report.written.read_text(encoding="utf-8").startswith("> Extern erzeugter KI-Entwurf")
+        assert "\n> Extern erzeugter KI-Entwurf" in report.written.read_text(encoding="utf-8")
         records = [json.loads(line) for line in (out / AUDIT_FILENAME).read_text(encoding="utf-8").splitlines()]
         export_rec, check_rec = records[-2], records[-1]
         assert export_rec["provider"] == "export" and check_rec["provider"] == PROVIDER_EXTERNAL
@@ -199,7 +199,7 @@ class TestCli:
         monkeypatch.setattr(check_mod, "read_clipboard", lambda: "Median 39 Tage, 12 -> 34.")
         assert main(["check", "--clipboard", "--bundle", str(bundle), "--lang", "en"]) == 0
         text = bundle.with_suffix(".checked.md").read_text(encoding="utf-8")
-        assert text.startswith("> Externally produced AI draft")
+        assert "\n> Externally produced AI draft" in text
         monkeypatch.setattr(check_mod, "read_clipboard", lambda: "")
         assert main(["check", "--clipboard", "--bundle", str(bundle)]) == 1
 

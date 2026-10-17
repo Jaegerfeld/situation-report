@@ -24,6 +24,7 @@
 from __future__ import annotations
 
 import hashlib
+import json
 from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
@@ -31,7 +32,7 @@ from typing import Any
 
 from llm.audit import append_audit
 from llm.base import DEPLOYMENT_EXPORT, provider_config
-from llm.guard import NumbersGuardError, citation_violations, parse_fact_lines
+from llm.guard import NumbersGuardError, ai_marker, citation_violations, parse_fact_lines
 from llm.narrate import narrate
 from llm.prompts import briefing_system_prompt
 
@@ -83,6 +84,7 @@ class Briefing:
     contract: str = ""
     page_facts: int = 0
     index_facts: int = 0
+    marker: str = ""                     # machine-readable AI marker (R3), JSON
 
     @property
     def ok(self) -> bool:
@@ -158,6 +160,8 @@ def draft_briefing(
         return out
     out.text, out.banner = narration.text, narration.banner
     out.model, out.deployment_class = narration.result.model, narration.result.deployment_class
+    out.marker = json.dumps(ai_marker(narration.result, PURPOSE, lang), ensure_ascii=False,
+                            sort_keys=True)
     out.exported = narration.result.deployment_class == DEPLOYMENT_EXPORT
     if not out.exported:
         violations = citation_violations(narration.text, parse_fact_lines(contract))
@@ -176,7 +180,8 @@ def briefing_to_markdown(b: Briefing, op: OnePager, page_path: Path | str, lang:
     if b.rejected:
         lines += [f"_{_t(lang, 'rejected', reason=b.rejected)}_", ""]
     else:
-        lines += [f"> {b.banner}", "", b.text.strip(), ""]
+        lines += ([f"<!-- sr-ai-draft {b.marker} -->"] if b.marker else []) + [
+            f"> {b.banner}", "", b.text.strip(), ""]
     prev = op.prev_as_of.isoformat() if op.prev_as_of else _t(lang, "none")
     lines += ["---",
               f"{_t(lang, 'basis')}: {_t(lang, 'page')} `{Path(page_path).name}` · {_t(lang, 'stand')} "

@@ -185,7 +185,8 @@ def attach_exec_summary(
                 raise
             log("  numbers guard rejected the draft — retrying once")
             continue
+        from llm.guard import add_ai_meta
         section = narration_html_section(
-            narration, title="Executive Summary (Entwurf)")
-        return insert_after_summary(html_doc, section), narration
+            narration, title="Executive Summary (Entwurf)", purpose="d1_exec_summary")
+        return add_ai_meta(insert_after_summary(html_doc, section)), narration
     raise AssertionError("unreachable")  # pragma: no cover

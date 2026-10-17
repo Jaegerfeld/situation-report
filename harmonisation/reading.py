@@ -23,7 +23,6 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from datetime import date
-from html import escape
 from pathlib import Path
 from typing import Any
 
@@ -101,11 +100,8 @@ def reading_html_section(narration: Any, title: str) -> str:
     the same markup as the portfolio drafts, so the labeling reads alike
     across modules.
     """
-    return (f"<h2>{escape(title)}</h2>"
-            "<p style='background:#fff3cd;border:1px solid #d0a900;"
-            "padding:6px 10px;font-weight:600'>🤖 "
-            f"{escape(narration.banner)}</p>"
-            f"<p>{escape(narration.text)}</p>")
+    from llm.guard import ai_html_section
+    return ai_html_section(narration, PURPOSE, title)
 
 
 def insert_after_first_table(html_doc: str, section_html: str) -> str:
@@ -167,11 +163,13 @@ def attach_reading(
                 raise
             log("  numbers guard rejected the draft - retrying once")
             continue
+        from llm.guard import add_ai_meta
         section = reading_html_section(narration, reading_title(lang))
-        return insert_after_first_table(html_doc, section), narration
+        return add_ai_meta(insert_after_first_table(html_doc, section)), narration
     raise AssertionError("unreachable")  # pragma: no cover
 
 
-def reading_markdown(narration: Any, title: str) -> str:
-    """The editing file: banner first, then the draft."""
-    return f"# {title}\n\n> {narration.banner}\n\n{narration.text}\n"
+def reading_markdown(narration: Any, title: str, lang: str = "de") -> str:
+    """The editing file: title, machine-readable marker, banner, then the draft."""
+    from llm.guard import draft_markdown
+    return f"# {title}\n\n{draft_markdown(narration, PURPOSE, lang)}"

@@ -5,6 +5,32 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [0.53.0] – 2026-10-17
+
+### Added
+- **Maschinenlesbarer KI-Marker und Freigabe (Rechts-Kandidat R3, Leitplanke a; nach Rohrlich B.4 /
+  Verhaltenskodex Transparenz).** Jeder KI-Entwurf trägt neben dem sichtbaren Banner einen Marker
+  aus einer Quelle (`llm/guard.py::ai_marker`, Schema `sr-ai-draft/1`) mit denselben Feldern wie der
+  Betreiber-Nachweis: Zweck, Provider, Modell, Deployment-Klasse, Prompt-Version, SHA-256 der
+  Ausgabe, Zeit, Sprache, `reviewed`. In **HTML** umschließt eine `<section class="sr-ai-draft"
+  data-ai-…>` Überschrift, Banner und Text (`ai_html_section` ersetzt die drei bisherigen Kopien in
+  Report, Konferenzmappe und Harmonisierungs-Lesart); der Report-`<head>` nennt die Zahl der Entwürfe
+  (`<meta name="sr-ai-drafts">`). In **Markdown** steht der Marker als Kommentarzeile
+  `<!-- sr-ai-draft {…} -->` vor dem Banner (`ai_markdown_head`/`draft_markdown`) — in allen
+  Entwurfsdateien: D1, D2, D3, D4, D5, D6, D7, D8, M6, P3, `llm check`. Renderer zeigen den
+  Kommentar nicht, Werkzeuge lesen ihn (`read_markers`). **Neu `python -m llm approve DATEI --by
+  TEAM`:** prüft über den Hash, ob der Entwurf redigiert wurde (unredigiert → Rückgabe 3, mit
+  `--as-is` erzwingbar), setzt den Marker auf `reviewed: true` mit Team, Datum und `edited`, ersetzt
+  die Banner-Zeile durch „Freigegeben durch TEAM am DATUM — KI-Entwurf, redaktionell geprüft (Art. 50
+  Abs. 4 KI-VO)" in der Sprache des Entwurfs (fünf Sprachen) und schreibt einen Nachweis-Eintrag
+  `purpose: approval` mit Entwurfs- und Freigabe-Hash. `--show` zeigt nur die Marker. Nur
+  Markdown-Dateien (HTML-Reports werden neu erzeugt); `--by` ist ein **Team**, keine Person
+  (Leitplanke b). Tests `tests/llm/unit/test_ai_marker.py`. Doku: Roadmap Leitplanke (a), mkdocs
+  llm DE/EN, Architektur, Onepager „KI-Marker und Freigabe" DE/EN. Entscheidungen Robert
+  17.10.2026: JSON-Kommentar + data-Attribute, eine Quelle, `approve` jetzt, nur Markdown.
+
+---
+
 ## [0.52.0] – 2026-10-15
 
 ### Added

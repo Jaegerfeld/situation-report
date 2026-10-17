@@ -53,7 +53,7 @@ def _attach(html: str, contract: str, output: Path, lang: str, narrate_with: str
         log(f"WARNING: AI reading skipped - {exc}")
         return html, False
     draft = output.with_name(output.stem + ".reading.md")
-    draft.write_text(reading_markdown(narration, reading_title(lang)), encoding="utf-8")
+    draft.write_text(reading_markdown(narration, reading_title(lang), lang), encoding="utf-8")
     log(f"draft: {draft}")
     return html, True
 

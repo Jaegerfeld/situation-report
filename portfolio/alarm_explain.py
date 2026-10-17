@@ -20,13 +20,14 @@
 
 from __future__ import annotations
 
+import json
 from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
 
 from llm.audit import append_audit
 from llm.base import DEPLOYMENT_EXPORT, provider_config
-from llm.guard import NumbersGuardError, citation_violations, parse_fact_lines
+from llm.guard import NumbersGuardError, ai_marker, citation_violations, parse_fact_lines
 from llm.narrate import narrate
 from llm.prompts import alarm_system_prompt
 
@@ -46,6 +47,7 @@ class Explanation:
     banner: str = ""
     rejected: str = ""
     exported: bool = False
+    marker: str = ""                     # machine-readable AI marker (R3), JSON
 
     @property
     def ok(self) -> bool:
@@ -127,6 +129,8 @@ def explain_triggered(
             continue
         exp.text, exp.banner = narration.text, narration.banner
         exp.exported = narration.result.deployment_class == DEPLOYMENT_EXPORT
+        exp.marker = json.dumps(ai_marker(narration.result, PURPOSE, lang), ensure_ascii=False,
+                                sort_keys=True)
         if not exp.exported:
             violations = citation_violations(narration.text, parse_fact_lines(contract))
             if violations:
@@ -155,6 +159,7 @@ def explanations_to_markdown(results: list[PointResult], explanations: dict[str,
         elif exp.rejected:
             lines.append("_" + ("Erklärung verworfen: " if de else "explanation discarded: ") + exp.rejected + "_")
         else:
-            lines += [f"> {exp.banner}", "", exp.text.strip()]
+            lines += ([f"<!-- sr-ai-draft {exp.marker} -->"] if exp.marker else []) + [
+                f"> {exp.banner}", "", exp.text.strip()]
         lines.append("")
     return "\n".join(lines)

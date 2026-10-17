@@ -121,6 +121,7 @@ class Run:
     answer: str = ""
     banner: str = ""
     model: str = ""
+    result: Any = None                    # the LlmResult (for the AI marker, R3)
     rejected: str = ""                    # guard message when discarded
     cited: set[str] = field(default_factory=set)
     numbers_by_path: dict[str, set[str]] = field(default_factory=dict)
@@ -261,6 +262,7 @@ def run_noise_audit(
                                           audit_path=audit_path, llm_model=llm_model,
                                           llm_base_url=llm_base_url, log=quiet)
             run.answer, run.banner, run.model = res.answer, res.banner, res.result.model
+            run.result = res.result
             index = index or res.index
             analyse_answer(run)
         except (CitationGuardError, NumbersGuardError) as exc:
@@ -310,7 +312,10 @@ def noise_to_markdown(rep: NoiseReport, lang: str = "de") -> str:
     for i, r in enumerate(rep.runs, start=1):
         lines += [f"### {_t(k, 'run')} {i} — {r.variant}", ""]
         if r.valid:
-            lines += [f"> {r.banner}", "", r.answer.strip(), ""]
+            from llm.guard import ai_markdown_head
+            head = (ai_markdown_head(r.result, r.banner, "d3_question", k) if r.result is not None
+                    else f"> {r.banner}")
+            lines += [head, "", r.answer.strip(), ""]
         else:
             lines += [f"_{_t(k, 'rejected')}: {r.rejected}_", ""]
     lines += ["---", f"{_t(k, 'stand')}: S1 = {rep.index.as_of}"

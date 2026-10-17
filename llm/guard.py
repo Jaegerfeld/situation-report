@@ -64,6 +64,107 @@ def text_as_data(text: object, limit: int = TEXT_LIMIT) -> str:
     return s
 
 
+# ---------------------------------------------------------------------------
+# Leitplanke (a), machine-readable: the AI-draft marker (R3)
+# ---------------------------------------------------------------------------
+MARKER_SCHEMA = "sr-ai-draft/1"
+MARKER_RE = re.compile(r"<!--\s*sr-ai-draft\s+(\{.*?\})\s*-->")
+_META_RE = re.compile(r'<meta name="sr-ai-drafts" content="\d+">')
+_SECTION_CLASS = "sr-ai-draft"
+
+
+def ai_marker(result: LlmResult, purpose: str, lang: str = "de",
+              generated: str | None = None) -> dict[str, object]:
+    """
+    The machine-readable marker of one AI draft: the same facts as the
+    operator evidence (purpose, provider, model, deployment class, prompt
+    version, hash of the output) plus the review state. No full texts.
+    """
+    import hashlib
+    from datetime import datetime
+
+    return {
+        "schema": MARKER_SCHEMA, "ai_draft": True, "purpose": purpose,
+        "provider": result.provider_id, "model": result.model,
+        "deployment_class": result.deployment_class, "prompt_version": PROMPT_VERSION,
+        "output_sha256": hashlib.sha256(result.text.encode("utf-8")).hexdigest(),
+        "generated": generated or datetime.now().isoformat(timespec="seconds"),
+        "lang": lang, "reviewed": False,
+    }
+
+
+def marker_comment(marker: Mapping[str, object]) -> str:
+    """The Markdown form: one HTML comment, invisible in renderers, readable by tools."""
+    import json
+    return f"<!-- sr-ai-draft {json.dumps(dict(marker), ensure_ascii=False, sort_keys=True)} -->"
+
+
+def ai_markdown_head(result: LlmResult, banner: str, purpose: str, lang: str = "de") -> str:
+    """Marker comment plus the visible banner line - the head of every draft file."""
+    return f"{marker_comment(ai_marker(result, purpose, lang))}\n> {banner}"
+
+
+def draft_markdown(narration: object, purpose: str, lang: str = "de") -> str:
+    """The whole editing file of a plain draft: marker, banner, blank line, text."""
+    result: LlmResult = narration.result
+    banner: str = narration.banner
+    return f"{ai_markdown_head(result, banner, purpose, lang)}\n\n{result.text}\n"
+
+
+def ai_html_section(narration: object, purpose: str, title: str = "", lang: str = "de",
+                    heading_style: str = "") -> str:
+    """
+    The labelled draft block for an HTML page: a <section> carrying the
+    marker as data attributes, the heading, the mandatory banner (Art. 50)
+    and the text. One markup for every draft kind and module.
+    """
+    import html as _html
+
+    result: LlmResult = narration.result
+    banner: str = narration.banner
+    m = ai_marker(result, purpose, lang)
+    attrs = (f'class="{_SECTION_CLASS}" data-ai-draft="true" data-ai-schema="{MARKER_SCHEMA}" '
+             f'data-ai-purpose="{_html.escape(purpose)}" data-ai-provider="{_html.escape(str(m["provider"]))}" '
+             f'data-ai-model="{_html.escape(str(m["model"]))}" '
+             f'data-ai-deployment="{_html.escape(str(m["deployment_class"]))}" '
+             f'data-ai-prompt="{PROMPT_VERSION}" data-ai-sha256="{m["output_sha256"]}" '
+             f'data-ai-generated="{m["generated"]}" data-ai-reviewed="false"')
+    style = f" style='{heading_style}'" if heading_style else ""
+    heading = f"<h2{style}>{_html.escape(title)}</h2>" if title else ""
+    return (f"<section {attrs}>{heading}"
+            "<p style='background:#fff3cd;border:1px solid #d0a900;"
+            "padding:6px 10px;font-weight:600'>🤖 "
+            f"{_html.escape(banner)}</p>"
+            f"<p>{_html.escape(result.text)}</p></section>")
+
+
+def add_ai_meta(html_doc: str) -> str:
+    """Count the AI-draft sections of a page and state the number in its <head>."""
+    n = html_doc.count(f'class="{_SECTION_CLASS}"')
+    doc = _META_RE.sub("", html_doc)
+    if not n:
+        return doc
+    tag = f'<meta name="sr-ai-drafts" content="{n}">'
+    for anchor in ("<head>", "<head "):
+        pos = doc.find(anchor)
+        if pos != -1:
+            end = doc.find(">", pos) + 1
+            return doc[:end] + tag + doc[end:]
+    return tag + doc
+
+
+def read_markers(text: str) -> list[dict[str, object]]:
+    """Every marker comment in a Markdown file, in order (empty when none)."""
+    import json
+    out: list[dict[str, object]] = []
+    for m in MARKER_RE.finditer(text):
+        try:
+            out.append(json.loads(m.group(1)))
+        except json.JSONDecodeError:
+            continue
+    return out
+
+
 def instruction_smells(contract: str) -> list[str]:
     """
     Contract lines whose text reads like an instruction to the model

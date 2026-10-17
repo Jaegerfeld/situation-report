@@ -153,6 +153,41 @@ benannt; `--clipboard` liest die Antwort aus der Zwischenablage statt aus einer 
 
 In der Solutions-&-Portfolios-GUI gibt es denselben Schritt als Knopf **KI-Antwort prüfen …**. Für Antworten an das Lagebild (Zweck `d3_question`, seit 0.46.0) läuft zusätzlich der **Zitat-Wächter**: jede Aussage muss einen Pfad des Fakten-Index aus dem Bündel zitieren, jede Zahl aus den zitierten Fakten stammen.
 
+## Maschinenlesbarer Marker und Freigabe (R3, seit 0.53.0)
+
+Der sichtbare Banner ist für Menschen. Seit 0.53.0 trägt jeder KI-Entwurf zusätzlich einen
+**maschinenlesbaren Marker** mit denselben Fakten wie der Betreiber-Nachweis — Zweck, Provider,
+Modell, Deployment-Klasse, Prompt-Version, SHA-256 der Ausgabe, Zeit, Sprache, Prüfstand —, damit
+ein Skript oder ein Dokumentensystem einen KI-Absatz vom deterministischen Text unterscheiden kann,
+ohne den Banner-Wortlaut zu kennen.
+
+- **HTML:** der Entwurf steht in `<section class="sr-ai-draft" data-ai-draft="true"
+  data-ai-purpose="…" data-ai-model="…" data-ai-deployment="…" data-ai-prompt="v2"
+  data-ai-sha256="…" data-ai-reviewed="false">`; der `<head>` der Seite nennt die Zahl in
+  `<meta name="sr-ai-drafts" content="n">`. Ein Block für alle Module (Report, Konferenzmappe,
+  Harmonisierungs-Lesart).
+- **Markdown:** eine Kommentarzeile `<!-- sr-ai-draft {"schema": "sr-ai-draft/1", …} -->` steht vor
+  dem Banner in jeder Entwurfsdatei (`.exec_summary.md`, `.narration.md`, `.ask.md`, `.red_team.md`,
+  `.vortrag.md`, `.reading.md`, `.checked.md`, …). Renderer verbergen sie, Werkzeuge lesen sie
+  (`llm.guard.read_markers`).
+- **Freigabe:** `python -m llm approve entwurf.md --by "Stab Alpha"` setzt den Marker auf
+  `reviewed: true` mit Team, Datum und der Angabe, ob redigiert wurde (Hash des Texts unter dem
+  Banner gegen die Ausgabe des Modells), ersetzt den Banner durch die Freigabe-Zeile — *Freigegeben
+  durch … am … — KI-Entwurf, redaktionell geprüft (Art. 50 Abs. 4 KI-VO)* — in der Sprache des
+  Entwurfs und hängt einen Nachweis-Eintrag `purpose: approval` mit beiden Hashes an. Ein
+  unredigierter Entwurf gibt Rückgabewert 3, bis `--as-is` bestätigt. `--show` zeigt nur die Marker.
+  Nur Markdown-Dateien — HTML-Reports werden neu erzeugt, nicht redigiert. `--by` nennt ein
+  **Team**, nie eine Person.
+
+```bash
+python -m llm approve report.html.exec_summary.md --by "Stab Alpha" --note "VSC 30.10.2026"
+python -m llm approve report.html.exec_summary.md --show
+```
+
+Bewusst nicht: keine Signatur und kein Wasserzeichen (der Verhaltenskodex Transparenz adressiert
+Anbieter generativer Systeme; das Werkzeug ist Betreiber und kennzeichnet Entwürfe, keine
+Veröffentlichungen), kein Marker im PDF (der KI-Haken wirkt nicht auf PDF), kein Lesen fremder Marker.
+
 ## Ollama einrichten (der lokale Weg)
 
 Siehe das Tutorial [Ollama auf Windows 11 installieren](../tutorials/install-ollama.md)

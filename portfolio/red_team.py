@@ -128,7 +128,7 @@ def run_red_team(
     from llm.base import DEPLOYMENT_EXPORT
     if narration.result.deployment_class != DEPLOYMENT_EXPORT:
         enforce_questions(narration.text)
-    output.write_text(
-        f"> {narration.banner}\n\n{narration.text}\n", encoding="utf-8")
+    from llm.guard import draft_markdown
+    output.write_text(draft_markdown(narration, "d5_red_team", lang), encoding="utf-8")
     log(f"Red-team question draft (for human moderation): {output}")
     return narration

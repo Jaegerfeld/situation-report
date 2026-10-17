@@ -126,8 +126,9 @@ def run_translate(args: argparse.Namespace) -> int:
         except (ValueError, RuntimeError) as exc:
             print(f"ERROR [{lang}]: {exc}", file=sys.stderr)
             return 1
+        from .guard import draft_markdown
         target = source.with_suffix(source.suffix + f".{lang}.md")
-        target.write_text(f"> {narration.banner}\n\n{narration.text}\n",
+        target.write_text(draft_markdown(narration, "d6_translation", lang),
                           encoding="utf-8")
         _print_utf8(f"{lang}: {target}")
     _print_utf8(f"audit: {audit}")
@@ -175,6 +176,39 @@ def run_check(args: argparse.Namespace) -> int:
         print(f"ERROR: {exc}", file=sys.stderr)
         return 1
     return 0 if report.passed else 2
+
+
+def run_approve(args: argparse.Namespace) -> int:
+    """
+    Approve an AI draft file (R3): the marker turns to reviewed (team, date,
+    edited yes/no), the banner becomes the approval line, the operator
+    evidence records the release. Exit code 3 when the draft was never
+    edited and --as-is is missing - nothing is written then.
+    """
+    from .approve import RC_UNEDITED, approve_file, marker_summary
+
+    path = Path(args.file)
+    if args.show:
+        try:
+            _print_utf8(marker_summary(path))
+        except OSError as exc:
+            print(f"ERROR: {exc}", file=sys.stderr)
+            return 1
+        return 0
+    if not args.by:
+        print("ERROR: give the approving team with --by (teams, never persons).", file=sys.stderr)
+        return 1
+    try:
+        report = approve_file(path, args.by, note=args.note or "", as_is=args.as_is,
+                              audit_path=Path(args.audit) if args.audit else None)
+    except (OSError, ValueError) as exc:
+        print(f"ERROR: {exc}", file=sys.stderr)
+        return 1
+    for line in report.messages:
+        _print_utf8(line)
+    if not report.reviewed_by:
+        return RC_UNEDITED
+    return 0
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -258,6 +292,24 @@ def main(argv: list[str] | None = None) -> int:
     check.add_argument("--lang", default=None, choices=["de", "en", "ro", "pt", "fr"],
                        help="Banner language (default: the bundle's draft language).")
     check.set_defaults(func=run_check)
+
+    approve = sub.add_parser(
+        "approve",
+        help="Approve an AI draft file (R3): marker -> reviewed by TEAM, banner -> "
+             "approval line (Art. 50(4)), audit record. Exit code 3 = the draft was "
+             "never edited; confirm with --as-is.")
+    approve.add_argument("file", help="The Markdown draft (.exec_summary.md, .narration.md, "
+                                      ".ask.md, .checked.md, ...).")
+    approve.add_argument("--by", default=None, metavar="TEAM",
+                         help="The approving team (never a person).")
+    approve.add_argument("--note", default=None, help="Optional short note stored in the marker.")
+    approve.add_argument("--as-is", action="store_true", dest="as_is",
+                         help="Approve although the text was not edited since the model wrote it.")
+    approve.add_argument("--audit", default=None, metavar="FILE",
+                         help="Operator evidence file (default: llm_audit.jsonl next to the draft).")
+    approve.add_argument("--show", action="store_true",
+                         help="Only print the file's AI markers, change nothing.")
+    approve.set_defaults(func=run_approve)
 
     args = parser.parse_args(argv)
     return int(args.func(args))

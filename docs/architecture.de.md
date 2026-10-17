@@ -316,8 +316,9 @@ C4Component
 | `base.py` | Provider-Protokoll, `LlmResult`, Betriebsklassen (lokal · entfernt · Export · Attrappe) |
 | `providers/*.py` | Backends: `ollama` (lokal), `claude` (API), `export` (schreibt das Prompt-Paket statt ein Modell zu rufen), `mock` |
 | `narrate.py` | Ein Einstieg für jeden KI-Zweck: Contract rein, Entwurf raus, Wächter angewandt |
-| `guard.py` | Zahlen-Wächter (keine Zahl, die nicht im Contract steht), Zitat-Wächter, `text_as_data` und Geruchs-Warnung (Leitplanke e), Kennzeichnungs-Banner (Art. 50) |
-| `audit.py` | Betreiber-Nachweis: eine JSONL-Zeile je Aufruf (Zweck, Anbieter, Modell, Adresse, Hashes) |
+| `guard.py` | Zahlen-Wächter (keine Zahl, die nicht im Contract steht), Zitat-Wächter, `text_as_data` und Geruchs-Warnung (Leitplanke e), Kennzeichnungs-Banner (Art. 50) und maschinenlesbarer KI-Marker `sr-ai-draft/1` (R3) |
+| `audit.py` | Betreiber-Nachweis: eine JSONL-Zeile je Aufruf (Zweck, Anbieter, Modell, Adresse, Hashes) und je Freigabe |
+| `approve.py` | Freigabe eines Markdown-Entwurfs (R3): Marker → geprüft durch Team, Banner → Freigabe-Zeile, Nachweis-Eintrag |
 | `prompts.py` | Versionierte Systemprompts je Zweck (Exec Summary, Narration, Red Team, Übersetzung, Mappen-Entwurf, Harmonisierungs-Lesart) |
 | `export.py` | Prompt-Paket (`build_bundle`, `write_bundle`, Zwischenablage) für einen Modelllauf auf einem anderen Rechner |
 | `translate.py` | Report-Übersetzung (D6) durch dieselben Wächter |

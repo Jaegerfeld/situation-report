@@ -151,6 +151,39 @@ from the clipboard instead of a file.
 
 The Solutions & Portfolios GUI has the same step as the button **Check AI answer …**. For answers to the situational picture (purpose `d3_question`, since 0.46.0) the check also runs the **citation guard**: every statement must cite a fact path of the bundle's index and every number must come from the cited facts.
 
+## Machine-readable marker and approval (R3, since 0.53.0)
+
+The visible banner is for people. Since 0.53.0 every AI draft also carries a **machine-readable
+marker** with the same facts as the operator evidence — purpose, provider, model, deployment class,
+prompt version, SHA-256 of the output, time, language, review state — so a script or a document
+system can tell an AI paragraph from deterministic text without knowing the banner wording.
+
+- **HTML:** the draft sits in `<section class="sr-ai-draft" data-ai-draft="true" data-ai-purpose="…"
+  data-ai-model="…" data-ai-deployment="…" data-ai-prompt="v2" data-ai-sha256="…"
+  data-ai-reviewed="false">`; the page's `<head>` states the count in
+  `<meta name="sr-ai-drafts" content="n">`. One block for every module (report, conference pre-read,
+  harmonisation reading).
+- **Markdown:** a comment line `<!-- sr-ai-draft {"schema": "sr-ai-draft/1", …} -->` precedes the
+  banner in every draft file (`.exec_summary.md`, `.narration.md`, `.ask.md`, `.red_team.md`,
+  `.vortrag.md`, `.reading.md`, `.checked.md`, …). Renderers hide it, tools read it
+  (`llm.guard.read_markers`).
+- **Approval:** `python -m llm approve draft.md --by "Staff Alpha"` turns the marker to
+  `reviewed: true` with team, date and whether the text was edited (the hash of the text under the
+  banner against the model's output), replaces the banner with the approval line — *Approved by …
+  on … — AI draft, editorially reviewed (Art. 50(4) AI Act)* — in the draft's language, and appends
+  an evidence record `purpose: approval` with both hashes. An unedited draft returns exit code 3
+  until you confirm with `--as-is`. `--show` only prints the markers. Markdown files only — HTML
+  reports are regenerated, not edited. `--by` names a **team**, never a person.
+
+```bash
+python -m llm approve report.html.exec_summary.md --by "Staff Alpha" --note "VSC 2026-10-30"
+python -m llm approve report.html.exec_summary.md --show
+```
+
+Not done on purpose: no signature or watermark (the transparency code of practice addresses
+providers of generative systems; this tool is a deployer and labels drafts, not publications), no
+marker in PDF output (the AI switch does not act on PDF), no reading of foreign markers.
+
 ## Setting up Ollama (the local path)
 
 See the tutorial [Install Ollama on Windows 11](../tutorials/install-ollama.md)
