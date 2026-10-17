@@ -776,6 +776,72 @@ ONEPAGERS: dict[str, dict[str, dict]] = {
             ],
         },
     },
+    "ai_marker": {
+        "de": {
+            "title": "KI-Marker und Freigabe (R3)",
+            "tagline": "17.10.2026 \u00b7 Der Banner ist f\u00fcr Menschen, der Marker f\u00fcr "
+                       "Werkzeuge \u2013 und die Freigabe wird ein Eintrag, kein Satz.",
+            "sections": [
+                ("h", "Worum geht es?"),
+                ("p", "Jeder KI-Entwurf trug den sichtbaren Hinweis (Leitplanke a). Maschinenlesbar "
+                      "war nichts: Ein Skript konnte einen KI-Absatz nicht vom deterministischen "
+                      "Text unterscheiden. Und \u201ebis zur Freigabe\u201c war ein Satz \u2013 "
+                      "nichts hielt fest, wer freigab und ob redigiert wurde."),
+                ("h", "Was es tut"),
+                ("li", "Marker sr-ai-draft/1 mit den Feldern des Nachweises: Zweck, Modell, "
+                       "Deployment-Klasse, Prompt-Version, Hash der Ausgabe, Zeit, gepr\u00fcft"),
+                ("li", "HTML: data-Attribute am Entwurfsblock, Z\u00e4hler im head; Markdown: "
+                       "Kommentarzeile vor dem Banner \u2013 in allen Entwurfsdateien"),
+                ("li", "python -m llm approve DATEI --by TEAM: Hash zeigt, ob redigiert wurde; "
+                       "Marker auf gepr\u00fcft, Banner wird Freigabe-Zeile (Art. 50 Abs. 4), "
+                       "Nachweis-Eintrag"),
+                ("li", "Unredigiert: R\u00fcckgabe 3, nur mit --as-is durch"),
+                ("h", "Drei Entscheidungen"),
+                ("p", "<b>Eine Quelle.</b> Marker, HTML-Block und Markdown-Kopf kommen aus "
+                      "llm/guard.py; drei Kopien und zw\u00f6lf Stellen wurden Aufrufe."),
+                ("p", "<b>Freigabe jetzt.</b> Erst mit llm approve ist \u201ebis zur "
+                      "Freigabe\u201c ein Zustand mit Team, Datum und Nachweis."),
+                ("p", "<b>Betreiber, nicht Anbieter.</b> Keine Signatur, kein Wasserzeichen \u2013 "
+                      "der Kodex adressiert Anbieter generativer Systeme. Wir kennzeichnen "
+                      "Entw\u00fcrfe, keine Ver\u00f6ffentlichungen."),
+                ("h", "So benutzt du es"),
+                ("code", "python -m llm approve report.html.exec_summary.md --by \"Stab Alpha\"\n"
+                         "python -m llm approve report.html.exec_summary.md --show"),
+            ],
+        },
+        "en": {
+            "title": "AI Marker and Approval (R3)",
+            "tagline": "17 Oct 2026 \u00b7 The banner is for people, the marker for tools \u2013 "
+                       "and approval becomes a record, not a sentence.",
+            "sections": [
+                ("h", "What is it?"),
+                ("p", "Every AI draft carried the visible notice (guardrail a). Nothing was "
+                      "machine-readable: a script could not tell an AI paragraph from deterministic "
+                      "text. And 'until approval' was a sentence \u2013 nothing recorded who "
+                      "approved and whether the text was edited."),
+                ("h", "What it does"),
+                ("li", "Marker sr-ai-draft/1 with the evidence fields: purpose, model, deployment "
+                       "class, prompt version, output hash, time, reviewed"),
+                ("li", "HTML: data attributes on the draft block, counter in head; Markdown: comment "
+                       "line before the banner \u2013 in every draft file"),
+                ("li", "python -m llm approve FILE --by TEAM: the hash shows whether the text was "
+                       "edited; marker to reviewed, banner becomes the approval line (Art. 50(4)), "
+                       "evidence record"),
+                ("li", "Unedited: exit code 3, only --as-is passes"),
+                ("h", "Three decisions"),
+                ("p", "<b>One source.</b> Marker, HTML block and Markdown head come from "
+                      "llm/guard.py; three copies and twelve sites became calls."),
+                ("p", "<b>Approval now.</b> Only with llm approve does 'until approval' become a "
+                      "state with team, date and evidence."),
+                ("p", "<b>Deployer, not provider.</b> No signature, no watermark \u2013 the code of "
+                      "practice addresses providers of generative systems. We label drafts, not "
+                      "publications."),
+                ("h", "How to use it"),
+                ("code", "python -m llm approve report.html.exec_summary.md --by \"Staff Alpha\"\n"
+                         "python -m llm approve report.html.exec_summary.md --show"),
+            ],
+        },
+    },
     "text_as_data": {
         "de": {
             "title": "Freitexte sind Daten (Leitplanke e)",

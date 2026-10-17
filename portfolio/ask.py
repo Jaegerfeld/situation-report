@@ -32,7 +32,7 @@ from typing import Any
 
 from llm.audit import AUDIT_FILENAME, append_audit
 from llm.base import DEPLOYMENT_EXPORT, LlmResult, provider_config
-from llm.guard import CitationGuardError, citation_violations
+from llm.guard import CitationGuardError, ai_markdown_head, citation_violations
 from llm.narrate import narrate
 from llm.prompts import question_system_prompt
 
@@ -159,7 +159,7 @@ def ask_to_markdown(res: AskResult, lang: str = "de") -> str:
     lines = [f"# {_t(key, 'title')} — {res.index.name} ({res.index.as_of})", "",
              f"**{_t(key, 'question')}:** {res.question}", "",
              f"**{_t(key, 'own')}:** {res.own_view or _t(key, 'skipped')}", "",
-             f"> {res.banner}", "",
+             ai_markdown_head(res.result, res.banner, PURPOSE, key), "",
              f"## {_t(key, 'answer')}", "", res.answer.strip(), "", "---",
              f"{_t(key, 'stand')}: S1 = {res.index.as_of}"
              + (f", S0 = {res.index.prev_as_of}" if res.index.prev_as_of else "")

@@ -240,24 +240,23 @@ def part_title(part: str, lang: str) -> str:
     return t("vsc.draft.part", lang, input=t(f"vsc.{part}", lang))
 
 
-def draft_html_section(narration: Any, title: str) -> str:
-    """Banner (Art. 50) plus text — the same markup as every other draft."""
-    return (f"<div class='sr-draft'><h2 style='font-size:1.05rem;margin:14px 0 4px'>"
-            f"{_html.escape(title)}</h2>"
-            "<p style='background:#fff3cd;border:1px solid #d0a900;"
-            "padding:6px 10px;font-weight:600'>🤖 "
-            f"{_html.escape(narration.banner)}</p>"
-            f"<p>{_html.escape(narration.text)}</p></div>")
+def draft_html_section(narration: Any, title: str, lang: str = DEFAULT_LANG) -> str:
+    """Banner (Art. 50) plus text — the same marked-up block as every other draft (R3)."""
+    from llm.guard import ai_html_section
+    return ai_html_section(narration, PURPOSE, title, lang,
+                           heading_style="font-size:1.05rem;margin:14px 0 4px")
 
 
 def draft_to_markdown(draft: ConferenceDraft, lang: str = DEFAULT_LANG) -> str:
-    """The editing file: every drafted part with its banner, failures named."""
+    """The editing file: every drafted part with marker and banner, failures named."""
+    from llm.guard import ai_markdown_head
     lines = [f"# {t('vsc.draft.file_title', lang)}", ""]
     for part in PARTS:
         narration = draft.parts.get(part)
         if narration is None:
             continue
-        lines += [f"## {part_title(part, lang)}", "", f"> {narration.banner}", "",
+        lines += [f"## {part_title(part, lang)}", "",
+                  ai_markdown_head(narration.result, narration.banner, PURPOSE, lang), "",
                   narration.text, ""]
     for part, reason in draft.failures.items():
         lines.append(f"<!-- {part_title(part, lang)}: {t('vsc.draft.failed', lang)} {reason} -->")
@@ -274,7 +273,7 @@ def insert_inline(html_doc: str, draft: ConferenceDraft, lang: str = DEFAULT_LAN
     out = html_doc
     intro = draft.parts.get(PART_INTRO)
     if intro is not None:
-        section = draft_html_section(intro, part_title(PART_INTRO, lang))
+        section = draft_html_section(intro, part_title(PART_INTRO, lang), lang)
         marker = out.find("<h1 style='font-size:1.25rem")
         if marker == -1:
             marker = out.find("</body>")
@@ -288,5 +287,6 @@ def insert_inline(html_doc: str, draft: ConferenceDraft, lang: str = DEFAULT_LAN
         if pos == -1:
             continue
         pos += len(anchor)
-        out = out[:pos] + draft_html_section(narration, part_title(part, lang)) + out[pos:]
-    return out
+        out = out[:pos] + draft_html_section(narration, part_title(part, lang), lang) + out[pos:]
+    from llm.guard import add_ai_meta
+    return add_ai_meta(out)

@@ -1805,10 +1805,12 @@ class SolutionManagerApp(tk.Tk):
                             llm_model=llm_model, llm_base_url=llm_base_url,
                             audit_path=out_path.parent / AUDIT_FILENAME,
                             log=lambda *_: None)
+                        from llm.guard import draft_markdown
                         draft = out_path.with_suffix(
                             out_path.suffix + ".exec_summary.md")
                         draft.write_text(
-                            f"> {narration.banner}\n\n{narration.text}\n",
+                            draft_markdown(narration, "d1_exec_summary",
+                                           self._lang if self._lang in ("de", "en") else "en"),
                             encoding="utf-8")
                     except Exception as exc:
                         # Saubere Degradation: Report ohne Entwurf schreiben —
@@ -2326,9 +2328,10 @@ class SolutionManagerApp(tk.Tk):
                         text, lang, provider_id=provider,
                         config=provider_config(llm_model, llm_base_url),
                         audit_path=src_path.parent / AUDIT_FILENAME)
+                    from llm.guard import draft_markdown
                     src_path.with_suffix(
                         src_path.suffix + f".{lang}.md").write_text(
-                        f"> {narration.banner}\n\n{narration.text}\n",
+                        draft_markdown(narration, "d6_translation", lang),
                         encoding="utf-8")
                 msg = self._tr("msg_translate_done").format(
                     langs=", ".join(langs))

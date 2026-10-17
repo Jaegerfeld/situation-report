@@ -204,8 +204,11 @@ def check_answer(answer: str, bundle: Bundle, model: str = MODEL_UNKNOWN) -> Che
 
 def checked_text(report: CheckReport, lang: str | None = None) -> str:
     """Banner plus the answer — the draft file a human then edits."""
-    banner = ai_banner_text(report.result(), lang or report.bundle.lang)
-    return f"> {banner}\n\n{report.answer.strip()}\n"
+    from .guard import ai_markdown_head
+    result = report.result()
+    lang = lang or report.bundle.lang
+    banner = ai_banner_text(result, lang)
+    return f"{ai_markdown_head(result, banner, report.bundle.purpose, lang)}\n\n{report.answer.strip()}\n"
 
 
 def record_check(report: CheckReport, audit_path: Path) -> None:

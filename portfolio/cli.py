@@ -120,20 +120,17 @@ def run_solution_report(
 
 
 def narration_html_section(narration: Any,
-                           title: str = "Narration (Entwurf)") -> str:
+                           title: str = "Narration (Entwurf)",
+                           purpose: str = "d2_narration") -> str:
     """
     The labeled draft block for a report page: mandatory AI banner
-    (Art. 50 labeling) plus the draft text. Shared by CLI and GUI — and
-    by every draft kind (D2 narration, D1 executive summary) — so the
-    labeling can never diverge between paths.
+    (Art. 50 labeling) plus the draft text — since R3 inside a <section>
+    that carries the machine-readable marker. Shared by CLI and GUI and
+    by every draft kind, so the labeling can never diverge between paths.
     """
-    import html as _html
+    from llm.guard import ai_html_section
 
-    return (f"<h2>{_html.escape(title)}</h2>"
-            "<p style='background:#fff3cd;border:1px solid #d0a900;"
-            "padding:6px 10px;font-weight:600'>🤖 "
-            f"{_html.escape(narration.banner)}</p>"
-            f"<p>{_html.escape(narration.text)}</p>")
+    return ai_html_section(narration, purpose, title)
 
 
 def run_delta_briefing(
@@ -197,11 +194,13 @@ def run_delta_briefing(
                             audit_path=audit_path)
         log(f"  audit: {audit_path}")
 
+    from llm.guard import add_ai_meta, draft_markdown
+
     def _md_with_narration() -> str:
         if narration is None:
             return delta_md
         return (delta_md + "\n\n## Narration (Entwurf)\n"
-                f"> {narration.banner}\n\n{narration.text}\n")
+                + draft_markdown(narration, "d2_narration", llm_lang))
 
     if output is None:
         text = _md_with_narration()
@@ -217,16 +216,15 @@ def run_delta_briefing(
     else:
         html_doc = render_delta_html(delta, lang=lang)
         if narration is not None:
-            html_doc = html_doc.replace(
+            html_doc = add_ai_meta(html_doc.replace(
                 "</body></html>",
-                narration_html_section(narration) + "</body></html>", 1)
+                narration_html_section(narration) + "</body></html>", 1))
         output.write_text(html_doc, encoding="utf-8")
         if open_browser:
             webbrowser.open(output.resolve().as_uri())
     if narration is not None and output is not None:
         draft = output.with_suffix(output.suffix + ".narration.md")
-        draft.write_text(
-            f"> {narration.banner}\n\n{narration.text}\n", encoding="utf-8")
+        draft.write_text(draft_markdown(narration, "d2_narration", llm_lang), encoding="utf-8")
         log(f"Narration draft (for human editing): {draft}")
     if translate_langs and output is not None:
         from llm.audit import AUDIT_FILENAME
@@ -243,9 +241,8 @@ def run_delta_briefing(
                 audit_path=audit_path)
             target = output.with_suffix(
                 output.suffix + f"{infix}.{lang}.md")
-            target.write_text(
-                f"> {translated.banner}\n\n{translated.text}\n",
-                encoding="utf-8")
+            target.write_text(draft_markdown(translated, "d6_translation", lang),
+                              encoding="utf-8")
             log(f"Translation ({lang}): {target}")
     elif translate_langs:
         log("Hint: --translate needs --output; nothing was translated.")
@@ -726,10 +723,12 @@ def _attach_report_exec_summary(args: argparse.Namespace,
         llm_base_url=args.llm_base_url,
         audit_path=audit_path, as_of=args.as_of,
         target_ct=args.target_ct)
+    from llm.guard import draft_markdown
+
     args.output.write_text(html, encoding="utf-8")
     draft = args.output.with_suffix(
         args.output.suffix + ".exec_summary.md")
-    draft.write_text(f"> {narration.banner}\n\n{narration.text}\n",
+    draft.write_text(draft_markdown(narration, "d1_exec_summary", args.llm_lang),
                      encoding="utf-8")
     print(f"Executive-summary draft (for human editing): {draft}")
     if args.translate_langs:
@@ -742,9 +741,8 @@ def _attach_report_exec_summary(args: argparse.Namespace,
                 audit_path=audit_path)
             target = args.output.with_suffix(
                 args.output.suffix + f".exec_summary.{lang}.md")
-            target.write_text(
-                f"> {translated.banner}\n\n{translated.text}\n",
-                encoding="utf-8")
+            target.write_text(draft_markdown(translated, "d6_translation", lang),
+                              encoding="utf-8")
             print(f"Translation ({lang}): {target}")
     print(f"  audit: {audit_path}")
     if args.browser:

@@ -230,13 +230,13 @@ class TestOutputs:
         i1 = out.index("Input 1 · Aktuelle Daten</h1>")
         assert out.index("KI-Entwurf · Input 1", i1) < out.index("<p>d</p>")
         assert "KI-Entwurf · Input 3" not in out            # kein Block, kein Anker
-        assert out.count("sr-draft") == 4
+        assert out.count('class="sr-ai-draft"') == 4
         assert "KI-formulierter Entwurf" in out              # Banner reist mit
 
     def test_inline_without_anchors_appends_intro_only(self, contracts) -> None:
         draft = draft_conference(contracts, "mock", log=lambda m: None)
         out = insert_inline("<html><body></body></html>", draft, "de")
-        assert out.count("sr-draft") == 1 and "KI-Entwurf · Einleitung" in out
+        assert out.count('class="sr-ai-draft"') == 1 and "KI-Entwurf · Einleitung" in out
 
     def test_empty_draft_leaves_the_page_untouched(self) -> None:
         page = "<html><body><h1 style='font-size:1.25rem'>x</h1></body></html>"

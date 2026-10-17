@@ -285,12 +285,12 @@ class TestConferenceDraft:
 
     def test_without_narrate_nothing_changes(self, monkeypatch, tmp_path, fake_config):
         html, md = self._run(monkeypatch, tmp_path, fake_config, [])
-        assert "sr-draft" not in html and md == ""
+        assert "sr-ai-draft" not in html and md == ""
 
     def test_default_place_is_the_file_only(self, monkeypatch, tmp_path, fake_config):
         html, md = self._run(monkeypatch, tmp_path, fake_config, ["--narrate", "mock",
                                                                   "--llm-lang", "en"])
-        assert "sr-draft" not in html                       # Mappe bleibt deterministisch
+        assert "sr-ai-draft" not in html                       # Mappe bleibt deterministisch
         assert md.startswith("# Conference pre-read — AI drafts for editing")
         assert "## AI draft · Introduction" in md and "## AI draft · Input 1" in md
         assert (tmp_path / "llm_audit.jsonl").exists()
@@ -299,7 +299,7 @@ class TestConferenceDraft:
         html, md = self._run(monkeypatch, tmp_path, fake_config,
                              ["--narrate", "mock", "--llm-lang", "en",
                               "--conference-draft", "inline"])
-        assert html.count("sr-draft") == 2
+        assert html.count('class="sr-ai-draft"') == 2
         assert html.index("AI draft · Introduction") < html.index("Input 1 · Current data</h1>")
         assert md                                            # die Datei gibt es trotzdem
 
