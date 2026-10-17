@@ -184,6 +184,37 @@ Not done on purpose: no signature or watermark (the transparency code of practic
 providers of generative systems; this tool is a deployer and labels drafts, not publications), no
 marker in PDF output (the AI switch does not act on PDF), no reading of foreign markers.
 
+## AI literacy record — Art. 4 AI Act (R4, since 0.54.0)
+
+The operator evidence says which AI function ran when and with which model. It does not say whether
+the people operating those functions were enabled to do so — Art. 4 AI Act asks deployers for
+measures that ensure sufficient AI literacy, and the supervisory guidance (BNetzA note, June 2025)
+recommends documenting them: kind, scope, participants, refreshed regularly. `llm literacy` is that
+record — on the operator's level, not inside the situational picture.
+
+- **Log `ai_literacy.json`** (schema 1): operator, teams, `refresh_months` (default 12), measures with
+  date, title, kind (workshop · training · briefing · self_study · pilot), duration, **participant
+  count**, teams, topics (labeling · citation · approval · limits · data · export · prompting), module,
+  materials, `attendance_ref` into the HR system. **Teams and counts, never names** — person fields are
+  refused on load.
+- **Report** (`python -m llm literacy ai_literacy.json [--as-of DATE] [--audit llm_audit.jsonl]
+  [--since DATE] [--output report.md] [--lang de|en]`): status per team (*current* · *refresh due* ·
+  *no measure*; due = last measure + refresh months), the measures table, the **needs picture** from
+  the operator evidence (AI purposes used → topics they presuppose; topics used but covered by no
+  measure are named as a hint, not a verdict), and the offer per topic (Curriculum module 7, tutorials,
+  manuals). Exit code 2 when a team is due or has no measure — usable as a reminder in CI.
+  `--example` writes a sample log.
+
+```bash
+python -m llm literacy ai_literacy.json --example
+python -m llm literacy ai_literacy.json --audit reports/llm_audit.jsonl --since 2026-01-01 --output literacy.md
+```
+
+An assessment, not legal advice: Art. 4 does not name the documentation explicitly; it is the
+supervisor's recommendation and, in doubt, the only proof. Not done on purpose: no GUI, no competence
+score or test of knowledge, no reminders by mail, no register inside the portfolio report (training is
+operator data, not situation data), no link between persons and purposes.
+
 ## Setting up Ollama (the local path)
 
 See the tutorial [Install Ollama on Windows 11](../tutorials/install-ollama.md)

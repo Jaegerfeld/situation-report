@@ -188,6 +188,37 @@ Bewusst nicht: keine Signatur und kein Wasserzeichen (der Verhaltenskodex Transp
 Anbieter generativer Systeme; das Werkzeug ist Betreiber und kennzeichnet Entwürfe, keine
 Veröffentlichungen), kein Marker im PDF (der KI-Haken wirkt nicht auf PDF), kein Lesen fremder Marker.
 
+## KI-Kompetenz-Log — Art. 4 KI-VO (R4, seit 0.54.0)
+
+Der Betreiber-Nachweis sagt, welche KI-Funktion wann mit welchem Modell lief. Er sagt nicht, ob die
+Menschen, die diese Funktionen bedienen, dafür befähigt wurden — Art. 4 KI-VO verlangt vom Betreiber
+Maßnahmen für ausreichende KI-Kompetenz, und die Aufsicht (BNetzA-Hinweispapier, Juni 2025) empfiehlt,
+sie zu dokumentieren: Art, Umfang, Teilnehmende, regelmäßig aufgefrischt. `llm literacy` ist dieser
+Nachweis — auf Betreiber-Ebene, nicht im Lagebild.
+
+- **Log `ai_literacy.json`** (Schema 1): Betreiber, Teams, `refresh_months` (Standard 12), Maßnahmen
+  mit Datum, Titel, Art (workshop · training · briefing · self_study · pilot), Dauer,
+  **Teilnehmerzahl**, Teams, Themen (labeling · citation · approval · limits · data · export ·
+  prompting), Modul, Material, `attendance_ref` ins HR-System. **Teams und Zahlen, nie Namen** —
+  Personenfelder werden beim Laden abgewiesen.
+- **Bericht** (`python -m llm literacy ai_literacy.json [--as-of DATUM] [--audit llm_audit.jsonl]
+  [--since DATUM] [--output bericht.md] [--lang de|en]`): Stand je Team (*aktuell* · *auffrischen
+  fällig* · *keine Maßnahme*; Fälligkeit = letzte Maßnahme + Auffrischungsfrist), Maßnahmen-Tabelle,
+  **Bedarfsbild aus dem Betreiber-Nachweis** (genutzte KI-Zwecke → vorausgesetzte Themen; genutzte,
+  aber von keiner Maßnahme abgedeckte Themen als Hinweis, keine Bewertung) und das Angebot je Thema
+  (Curriculum-Modul 7, Tutorials, Manuals). Rückgabe 2, wenn ein Team fällig oder ohne Maßnahme ist —
+  als Erinnerung in CI nutzbar. `--example` schreibt ein Beispiel-Log.
+
+```bash
+python -m llm literacy ai_literacy.json --example
+python -m llm literacy ai_literacy.json --audit reports/llm_audit.jsonl --since 2026-01-01 --output kompetenz.md
+```
+
+Einschätzung, keine Rechtsberatung: Art. 4 nennt die Dokumentation nicht ausdrücklich; sie ist
+Empfehlung der Aufsicht und im Zweifel der einzige Beleg. Bewusst nicht: keine GUI, kein
+Kompetenz-Score oder Wissenstest, keine Erinnerungen per Mail, kein Register im Portfolio-Report
+(Schulungen sind Betreiber-, keine Lage-Daten), keine Verknüpfung Person ↔ Zweck.
+
 ## Ollama einrichten (der lokale Weg)
 
 Siehe das Tutorial [Ollama auf Windows 11 installieren](../tutorials/install-ollama.md)

@@ -319,6 +319,7 @@ C4Component
 | `guard.py` | Numbers guard (no figure that is not in the contract), citation guard, `text_as_data` and the instruction-smell warning (guardrail e), labelling banner (Art. 50) and the machine-readable AI marker `sr-ai-draft/1` (R3) |
 | `audit.py` | Operator record: one JSONL line per call (purpose, provider, model, address, hashes) and per approval |
 | `approve.py` | Approval of a Markdown draft (R3): marker → reviewed by team, banner → approval line, evidence record |
+| `literacy.py` | AI literacy record (R4, Art. 4): `ai_literacy.json` → status per team, needs picture from the evidence, offer per topic |
 | `prompts.py` | Versioned system prompts per purpose (exec summary, narration, red team, translation, conference draft, harmonisation reading) |
 | `export.py` | Prompt bundle (`build_bundle`, `write_bundle`, clipboard) for a model run on another machine |
 | `translate.py` | Report translation (D6) through the same guards |
