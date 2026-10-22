@@ -5,6 +5,28 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [0.54.0] – 2026-10-17
+
+### Added
+- **KI-Kompetenz-Log nach Art. 4 KI-VO (Rechts-Kandidat R4; nach Rohrlich B.5 / BNetzA-Hinweispapier
+  „KI-Kompetenzen nach Artikel 4").** Der Betreiber-Nachweis sagte, welche KI-Funktion wann lief —
+  nicht, ob die Teams dafür befähigt wurden. Neu `llm/literacy.py` + **`python -m llm literacy
+  LOG.json`**: ein kleines Log `ai_literacy.json` (Schema 1: Betreiber, Teams, `refresh_months`,
+  Maßnahmen mit Datum, Titel, Art, Dauer, **Teilnehmerzahl**, Teams, Themen aus sieben Kompetenzthemen,
+  Modul, Material, Beleg im HR-System) und daraus der **Nachweis-Bericht** in Markdown: Stand je Team
+  (aktuell · auffrischen fällig · keine Maßnahme, Fälligkeit = letzte Maßnahme + Auffrischungsfrist),
+  Maßnahmen-Tabelle, **Bedarfsbild aus dem Betreiber-Nachweis** (`--audit llm_audit.jsonl`: genutzte
+  KI-Zwecke → vorausgesetzte Themen; nicht abgedeckte Themen als Hinweis, keine Bewertung), Angebot je
+  Thema (Curriculum-Modul 7, Tutorials, Manuals). **Teams und Zahlen, keine Namen** (Leitplanke b):
+  Personenfelder werden beim Laden abgewiesen, `attendance_ref` zeigt ins HR-System. `--example`
+  schreibt ein Beispiel-Log; Rückgabe 2, wenn ein Team fällig oder ohne Maßnahme ist. Freitexte laufen
+  durch `text_as_data`. Der Bericht sagt „Einschätzung, keine Rechtsberatung". Tests
+  `tests/llm/unit/test_literacy.py`. Doku: Roadmap Leitplanke (c) ergänzt, mkdocs llm DE/EN,
+  Architektur, Onepager „KI-Kompetenz-Log" DE/EN. Entscheidungen Robert 17.10.2026: Betreiber-Ebene
+  statt Portfolio-Register, Teams statt Namen, Fälligkeit 12 Monate, Bedarfsbild aus dem Nachweis.
+
+---
+
 ## [0.53.0] – 2026-10-17
 
 ### Added

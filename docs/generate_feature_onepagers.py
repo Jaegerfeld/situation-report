@@ -776,6 +776,74 @@ ONEPAGERS: dict[str, dict[str, dict]] = {
             ],
         },
     },
+    "ai_literacy": {
+        "de": {
+            "title": "KI-Kompetenz-Log (Art. 4, R4)",
+            "tagline": "17.10.2026 \u00b7 Der Nachweis wusste, welche KI lief \u2013 jetzt auch, ob "
+                       "die Teams daf\u00fcr bef\u00e4higt wurden.",
+            "sections": [
+                ("h", "Worum geht es?"),
+                ("p", "Art. 4 KI-VO verlangt vom Betreiber Ma\u00dfnahmen f\u00fcr ausreichende "
+                      "KI-Kompetenz; die Aufsicht empfiehlt, sie zu dokumentieren: Art, Umfang, "
+                      "Teilnehmende, regelm\u00e4\u00dfig aufgefrischt. Inhaltlich gab es alles "
+                      "(Kompetenzfeld 7, Curriculum-Modul 7, Tutorials) \u2013 es fehlte der Ort, an "
+                      "dem steht, dass und wann ein Team geschult wurde."),
+                ("h", "Was es tut"),
+                ("li", "ai_literacy.json: je Ma\u00dfnahme Datum, Titel, Art, Dauer, Teilnehmerzahl, "
+                       "Teams, Themen, Modul, Material, Beleg im HR-System"),
+                ("li", "python -m llm literacy: Stand je Team (aktuell, auffrischen f\u00e4llig, "
+                       "keine Ma\u00dfnahme), Ma\u00dfnahmen-Tabelle, Angebot je Thema"),
+                ("li", "--audit: Bedarfsbild aus dem Betreiber-Nachweis \u2013 genutzte KI-Zwecke "
+                       "und die Themen, die sie voraussetzen; L\u00fccken als Hinweis"),
+                ("li", "R\u00fcckgabe 2, wenn ein Team f\u00e4llig ist \u2013 als Erinnerung in CI "
+                       "nutzbar; --example schreibt ein Beispiel-Log"),
+                ("h", "Drei Entscheidungen"),
+                ("p", "<b>Betreiber-Ebene, kein Register im Lagebild.</b> Schulungen sind "
+                      "Betreiber-Daten. Das Lagebild berichtet nicht \u00fcber die Qualifikation "
+                      "seiner Leser."),
+                ("p", "<b>Teams und Zahlen, keine Namen.</b> Personenfelder werden abgewiesen; der "
+                      "Beleg zeigt ins HR-System (Leitplanke b)."),
+                ("p", "<b>Einsch\u00e4tzung, keine Rechtsberatung.</b> Art. 4 nennt die Dokumentation "
+                      "nicht ausdr\u00fccklich; sie ist Empfehlung der Aufsicht und im Zweifel der "
+                      "einzige Beleg."),
+                ("h", "So benutzt du es"),
+                ("code", "python -m llm literacy ai_literacy.json --example\n"
+                         "python -m llm literacy ai_literacy.json --audit llm_audit.jsonl --output kompetenz.md"),
+            ],
+        },
+        "en": {
+            "title": "AI Literacy Record (Art. 4, R4)",
+            "tagline": "17 Oct 2026 \u00b7 The evidence knew which AI ran \u2013 now also whether the "
+                       "teams were enabled to use it.",
+            "sections": [
+                ("h", "What is it?"),
+                ("p", "Art. 4 AI Act asks deployers for measures that ensure sufficient AI literacy; "
+                      "the supervisor recommends documenting them: kind, scope, participants, "
+                      "refreshed regularly. The content existed (competence field 7, curriculum "
+                      "module 7, tutorials) \u2013 the place to record that and when a team was "
+                      "trained was missing."),
+                ("h", "What it does"),
+                ("li", "ai_literacy.json: per measure date, title, kind, duration, participant count, "
+                       "teams, topics, module, materials, reference into the HR system"),
+                ("li", "python -m llm literacy: status per team (current, refresh due, no measure), "
+                       "measures table, offer per topic"),
+                ("li", "--audit: needs picture from the operator evidence \u2013 AI purposes used and "
+                       "the topics they presuppose; gaps as a hint"),
+                ("li", "Exit code 2 when a team is due \u2013 usable as a reminder in CI; --example "
+                       "writes a sample log"),
+                ("h", "Three decisions"),
+                ("p", "<b>Operator level, no register in the picture.</b> Training is operator data. "
+                      "The situational picture does not report on the qualification of its readers."),
+                ("p", "<b>Teams and counts, no names.</b> Person fields are refused; the reference "
+                      "points into the HR system (guardrail b)."),
+                ("p", "<b>An assessment, not legal advice.</b> Art. 4 does not name the documentation "
+                      "explicitly; it is the supervisor's recommendation and, in doubt, the only proof."),
+                ("h", "How to use it"),
+                ("code", "python -m llm literacy ai_literacy.json --example\n"
+                         "python -m llm literacy ai_literacy.json --audit llm_audit.jsonl --output literacy.md"),
+            ],
+        },
+    },
     "ai_marker": {
         "de": {
             "title": "KI-Marker und Freigabe (R3)",
