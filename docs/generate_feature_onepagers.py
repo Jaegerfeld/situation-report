@@ -776,6 +776,80 @@ ONEPAGERS: dict[str, dict[str, dict]] = {
             ],
         },
     },
+    "legal_status": {
+        "de": {
+            "title": "Rechtsstand 10/2026 (R5)",
+            "tagline": "23.10.2026 \u00b7 Wer pr\u00fcft uns, welche Fristen gelten, welche Rolle "
+                       "wir haben \u2013 Einsch\u00e4tzung, keine Rechtsberatung.",
+            "sections": [
+                ("h", "Worum geht es?"),
+                ("p", "Die Rechts-Pr\u00fcfbox der KI-Denkschrift und die Leitplanken der Roadmap "
+                      "trugen den Stand August 2026. Seitdem ist der Digital Omnibus in Kraft, "
+                      "Deutschland hat ein KI-Gesetz, die Haftungsrichtlinie ist vom Tisch, und "
+                      "die Kommission hat Art. 50 konkretisiert. Vier Punkte, einmal sauber."),
+                ("h", "Was sich ge\u00e4ndert hat"),
+                ("li", "Digital Omnibus (27.07.2026): Hochrisiko-Fristen auf 02.12.2027 und "
+                       "02.08.2028 verschoben \u2013 Art. 50 unver\u00e4ndert seit 02.08.2026. "
+                       "Fristen verschoben hei\u00dft nicht Pflichten weg."),
+                ("li", "KI-MIG (29.07.2026): Bundesnetzagentur ist Marktaufsicht, Anlauf- und "
+                       "Beschwerdestelle; Bu\u00dfgeld ist letztes Mittel nach Anordnung"),
+                ("li", "KI-Haftungsrichtlinie fallengelassen: Haftung l\u00e4uft \u00fcber "
+                       "Produkthaftung, Software ist Produkt \u2013 wer das Werkzeug kommerziell "
+                       "einbettet oder ver\u00e4ndert, pr\u00fcft auch Art. 25 (Rollenwechsel)"),
+                ("li", "Registrierungs-Nuance (Art. 49 Abs. 2): eine Ausnahme bei Anhang III Nr. 4 ist "
+                       "zu dokumentieren und zu registrieren \u2013 Prinzip 6 meidet den "
+                       "Anwendungsbereich stattdessen"),
+                ("h", "Was das f\u00fcr die Software hei\u00dft"),
+                ("p", "<b>Alles schon gebaut.</b> Art. 4 \u2192 llm literacy (R4); Art. 50 \u2192 "
+                      "Banner, Marker, llm approve (R3); Anhang III \u2192 Teams statt Personen bis in "
+                      "die Rohdatei (R1); Quelltexte sind Daten (R2). Der Rechtsstand best\u00e4tigt "
+                      "die Architektur, er \u00e4ndert sie nicht."),
+                ("p", "<b>Die Denkschrift folgt sp\u00e4ter.</b> Die Pr\u00fcfbox-Erg\u00e4nzung "
+                      "liegt als v2.3-Kandidat bereit; ver\u00f6ffentlicht wird nach dem "
+                      "n\u00e4chsten Core-Group-Termin."),
+                ("p", "<b>Einsch\u00e4tzung, keine Rechtsberatung.</b> Jeder Absatz tr\u00e4gt den "
+                      "Vermerk; vor der Einf\u00fchrung juristisch pr\u00fcfen."),
+                ("h", "Wo es steht"),
+                ("code", "docs/portfolio_roadmap_solution-lagebild.md  # Rechtliche Leitplanken, Nachtrag 10/2026\n"
+                         "docs/modules/llm.de.md                        # Rechtsrahmen des Moduls (Tabelle)"),
+            ],
+        },
+        "en": {
+            "title": "Legal Status 10/2026 (R5)",
+            "tagline": "23 Oct 2026 \u00b7 Who supervises us, which deadlines apply, which role we "
+                       "hold \u2013 an assessment, not legal advice.",
+            "sections": [
+                ("h", "What is it?"),
+                ("p", "The legal check box of the AI memorandum and the roadmap guardrails carried the "
+                      "status of August 2026. Since then the Digital Omnibus is in force, Germany has "
+                      "an AI act, the liability directive is off the table, and the Commission has "
+                      "specified Art. 50. Four points, once and clean."),
+                ("h", "What changed"),
+                ("li", "Digital Omnibus (27 Jul 2026): high-risk deadlines moved to 2 Dec 2027 and "
+                       "2 Aug 2028 \u2013 Art. 50 unchanged since 2 Aug 2026. Deferred deadlines do "
+                       "not mean dropped duties."),
+                ("li", "KI-MIG (29 Jul 2026): the Bundesnetzagentur is market surveillance, contact "
+                       "and complaints authority; fines are the last resort after orders"),
+                ("li", "AI Liability Directive dropped: liability runs through product liability, "
+                       "software is a product \u2013 whoever embeds or modifies the tool commercially "
+                       "also checks Art. 25 (change of role)"),
+                ("li", "Registration nuance (Art. 49(2)): an exemption under Annex III No. 4 must be "
+                       "documented and registered \u2013 principle 6 avoids the scope instead"),
+                ("h", "What it means for the software"),
+                ("p", "<b>All built already.</b> Art. 4 \u2192 llm literacy (R4); Art. 50 \u2192 "
+                      "banner, marker, llm approve (R3); Annex III \u2192 teams not persons down to the "
+                      "raw file (R1); source text is data (R2). The legal status confirms the "
+                      "architecture, it does not change it."),
+                ("p", "<b>The memorandum follows later.</b> The check-box addendum is ready as a v2.3 "
+                      "candidate; publication after the next core-group meeting."),
+                ("p", "<b>An assessment, not legal advice.</b> Every paragraph carries the note; check "
+                      "with counsel before rollout."),
+                ("h", "Where it lives"),
+                ("code", "docs/portfolio_roadmap_solution-lagebild.md  # legal guardrails, addendum 10/2026\n"
+                         "docs/modules/llm.md                           # legal frame of the module (table)"),
+            ],
+        },
+    },
     "ai_literacy": {
         "de": {
             "title": "KI-Kompetenz-Log (Art. 4, R4)",

@@ -215,6 +215,26 @@ supervisor's recommendation and, in doubt, the only proof. Not done on purpose: 
 score or test of knowledge, no reminders by mail, no register inside the portfolio report (training is
 operator data, not situation data), no link between persons and purposes.
 
+## Legal frame of the module (status 10/2026 — an assessment, not legal advice)
+
+What the AI layer does is shaped by the EU AI Act and its German implementation. One table so that a
+deployer sees which duty is met where. Legal status 23 October 2026; check with counsel before rollout.
+
+| Duty / norm | What the module does | Since / source |
+|---|---|---|
+| **Art. 4 — AI literacy** of the deployer's staff | `llm literacy` records measures per team, refresh due dates, needs picture from the evidence (R4) | in force since 02.02.2025; BNetzA guidance note 06/2025 |
+| **Art. 50(1)/(4) — transparency** of AI output; exemption only under editorial responsibility | visible banner on every draft, machine-readable marker `sr-ai-draft/1`, `llm approve` records the release (R3); numbers, citation and questions guards | in force since 02.08.2026; Commission guidelines on Art. 50 of 20.07.2026; code of practice on transparency final 10.06.2026 |
+| **Annex III No. 4 — high-risk** (performance/behaviour of employees); **Art. 6(3)/Art. 49(2)** — an exemption must be documented and registered | principle 6 "teams, not persons" is enforced in the core and, since R1, in the raw file (`get_data minimise`) — the module avoids the scope instead of claiming an exemption | high-risk duties deferred by the Digital Omnibus (in force 27.07.2026) to 02.12.2027 (Annex III) / 02.08.2028 (Annex I) |
+| **Art. 25 — change of role** (deployer becomes provider when the system is rebranded, substantially modified or repurposed) | the AI layer stays optional and replaceable behind the deterministic core; the user brings model and key | note for forks and commercial embedding |
+| **Liability** | the AI Liability Directive was dropped; liability runs through the reformed **Product Liability** regime — software counts as a product | a documentation matter for whoever embeds or modifies the tool commercially |
+| **Supervision in Germany** | — | **KI-MIG** in force since 29.07.2026: the Bundesnetzagentur is market-surveillance, contact and complaints authority (BaFin for financial AI; data-protection authorities for GDPR); fines are the last resort after orders and warnings |
+| **Guardrail (e) — source text is data** | `text_as_data` in every contract, data rule in every prompt, instruction-smell warning (R2) | BSI risk taxonomy for generative AI; Rohrlich 2026 |
+
+Sources: Verordnung (EU) 2024/1689; Rohrlich, *KI und Recht* (2026), ch. 5; KI-MIG
+(gesetze-im-internet.de); BNetzA pages on AI competence and governance; the project's own
+reading notes in the memoranda series. Not done on purpose: no legal opinion, no assessment of a
+deployer's liability, no watermarking (a provider duty under the code of practice).
+
 ## Setting up Ollama (the local path)
 
 See the tutorial [Install Ollama on Windows 11](../tutorials/install-ollama.md)
