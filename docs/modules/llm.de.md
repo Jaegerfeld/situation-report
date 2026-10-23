@@ -219,6 +219,27 @@ Empfehlung der Aufsicht und im Zweifel der einzige Beleg. Bewusst nicht: keine G
 Kompetenz-Score oder Wissenstest, keine Erinnerungen per Mail, kein Register im Portfolio-Report
 (Schulungen sind Betreiber-, keine Lage-Daten), keine Verknüpfung Person ↔ Zweck.
 
+## Rechtsrahmen des Moduls (Stand 10/2026 — Einschätzung, keine Rechtsberatung)
+
+Was die KI-Schicht tut, ist von der KI-Verordnung und ihrer deutschen Durchführung geprägt. Eine
+Tabelle, damit ein Betreiber sieht, welche Pflicht wo erfüllt wird. Rechtsstand 23. Oktober 2026; vor
+der Einführung juristisch prüfen.
+
+| Pflicht / Norm | Was das Modul dazu tut | Seit / Quelle |
+|---|---|---|
+| **Art. 4 — KI-Kompetenz** der Beschäftigten des Betreibers | `llm literacy` dokumentiert Maßnahmen je Team, Fälligkeiten, Bedarfsbild aus dem Nachweis (R4) | in Kraft seit 02.02.2025; BNetzA-Hinweispapier 06/2025 |
+| **Art. 50 Abs. 1/4 — Transparenz** von KI-Ausgaben; Ausnahme nur bei redaktioneller Verantwortung | sichtbarer Banner an jedem Entwurf, maschinenlesbarer Marker `sr-ai-draft/1`, `llm approve` protokolliert die Freigabe (R3); Zahlen-, Zitat- und Fragen-Wächter | in Kraft seit 02.08.2026; Leitlinien der Kommission zu Art. 50 vom 20.07.2026; Verhaltenskodex Transparenz final 10.06.2026 |
+| **Anhang III Nr. 4 — Hochrisiko** (Leistung/Verhalten Beschäftigter); **Art. 6 Abs. 3 / Art. 49 Abs. 2** — eine Ausnahme ist zu begründen, zu dokumentieren und zu registrieren | Prinzip 6 „Teams, keine Personen" wird im Kern erzwungen und seit R1 schon in der Rohdatei (`get_data minimise`) — das Modul meidet den Anwendungsbereich, statt eine Ausnahme zu reklamieren | Hochrisiko-Pflichten durch den Digital Omnibus (in Kraft 27.07.2026) verschoben auf 02.12.2027 (Anhang III) / 02.08.2028 (Anhang I) |
+| **Art. 25 — Rollenwechsel** (der Betreiber wird Anbieter, wenn er das System umbrandet, wesentlich verändert oder umwidmet) | die KI-Schicht bleibt optional und austauschbar hinter dem deterministischen Kern; der Nutzer bringt Modell und Schlüssel mit | Hinweis für Forks und kommerzielle Einbettung |
+| **Haftung** | die KI-Haftungsrichtlinie wurde fallengelassen; Haftung läuft über das reformierte **Produkthaftungsrecht** — Software gilt als Produkt | eine Doku-Frage für alle, die das Werkzeug kommerziell einbetten oder verändern |
+| **Aufsicht in Deutschland** | — | **KI-MIG** in Kraft seit 29.07.2026: die Bundesnetzagentur ist Marktüberwachungs-, Anlauf- und Beschwerdestelle (BaFin für Finanz-KI; Datenschutzbehörden für die DSGVO); Bußgeld ist letztes Mittel nach Anordnung und Verwarnung |
+| **Leitplanke (e) — Quelltexte sind Daten** | `text_as_data` in jedem Contract, Daten-Regel in jedem Prompt, Geruchs-Warnung (R2) | BSI-Risikotaxonomie generative KI; Rohrlich 2026 |
+
+Quellen: Verordnung (EU) 2024/1689; Rohrlich, *KI und Recht* (2026), Kap. 5; KI-MIG
+(gesetze-im-internet.de); BNetzA-Seiten zu KI-Kompetenz und Governance; die Lesenotizen der
+Denkschriften-Reihe. Bewusst nicht: kein Rechtsgutachten, keine Bewertung der Haftungslage eines
+Betreibers, kein Wasserzeichen (Anbieterpflicht nach dem Kodex).
+
 ## Ollama einrichten (der lokale Weg)
 
 Siehe das Tutorial [Ollama auf Windows 11 installieren](../tutorials/install-ollama.md)

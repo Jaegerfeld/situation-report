@@ -5,6 +5,22 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [Unreleased]
+
+### Docs
+- **Rechtsstand 10/2026 (Rechts-Kandidat R5, reine Doku — kein Release).** Roadmap-Block „Rechtliche
+  Leitplanken für Phase D" auf den Stand 23.10.2026: Digital Omnibus in Kraft (Hochrisiko-Fristen
+  02.12.2027/02.08.2028, Art. 50 unverändert seit 02.08.2026), KI-MIG in Kraft (Bundesnetzagentur als
+  Marktüberwachung), KI-Haftungsrichtlinie fallengelassen (Produkthaftung, Software ist Produkt; Hinweis
+  für Forks und Art. 25), Registrierungs-Nuance Art. 49 Abs. 2 (Prinzip 6 meidet den Anwendungsbereich,
+  Leitplanke b geschärft), Transparenz-Kodex und Art.-50-Leitlinien als Grundlage von R3/R4. mkdocs llm
+  DE/EN: Tabelle „Rechtsrahmen des Moduls" (Norm → was das Modul tut → Quelle). Onepager „Rechtsstand
+  10/2026" DE/EN. Alles als Einschätzung gekennzeichnet, keine Rechtsberatung. Die Prüfbox-Ergänzung für
+  die KI-Denkschrift liegt als v2.3-Kandidat im Arbeitsstand bereit (Beschluss 31.08.2026: neue Fassung
+  erst nach dem nächsten Core-Group-Termin). Quellen: Rohrlich 2026, Online-Recherche 08/2026.
+
+---
+
 ## [0.54.0] – 2026-10-17
 
 ### Added
