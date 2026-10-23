@@ -42,7 +42,20 @@ ablesbar sind. Erste Fassung 14.10.2026 nach vier eigenmächtigen Releases (v0.4
   CHANGELOG, Roadmap, Onepager DE/EN über `docs/generate_feature_onepagers.py`.
 - Erzeugte PDFs nach dem Bau per pypdf-Textsuche prüfen.
 
-## 5. Veröffentlichte Texte
+## 5. UX-Arbeit (Beta-Phase, seit 23.10.2026)
+
+- Die UX-Überarbeitung läuft auf dem Branch `beta/ux-redesign`, bis Robert etwas anderes sagt.
+  Inventur und Vorschläge: `docs/beta/`.
+- Jede Änderung an etwas, das ein Mensch sieht oder bedient (Fenster, Dialog, Report, Einseiter),
+  beginnt mit dem **UX read** aus dem Skill `ux-preflight` (Nutzer und Ziel, primäre Aktion, drei bis
+  sechs Gesetze als konkrete Vorgaben, Zustände) **vor dem ersten Edit** und endet mit dem UX check.
+- Befunde nur mit Beleg (`file:line` oder gemessener Wert) aus `ux-audit`, abgelegt unter
+  `docs/beta/audits/`; Umsetzung über `ux-fix` nur für Befunde, die Robert freigegeben hat.
+- Die Laws-of-UX-Skills liegen auf Nutzer-Ebene (`~/.claude/skills/`), sind proprietär und kommen
+  **nie ins Repo**; Ergebnisse tragen die Credit-Zeile „Based on Laws of UX by Jon Yablonski,
+  lawsofux.com. Published by Pip Decks."
+
+## 6. Veröffentlichte Texte
 
 - Herkunft aus dem Praxis-Workshop nur als „Praxis-Workshop" oder „Workshop-Analyse" nennen —
   nie Ort und Datum, nie Kundennamen.
