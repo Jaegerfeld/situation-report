@@ -82,6 +82,7 @@ nav:
     - Attach a data source: tutorials/attach-a-source.md
     - Install Ollama (Windows 11): tutorials/install-ollama.md
     - Ask the situational picture (D3): tutorials/ask-the-picture.md
+    - A demo data room in one minute: tutorials/demo-data-room.md
   - Memoranda: denkschriften/index.md
   - Architecture: architecture.md
   - Development: development.md
