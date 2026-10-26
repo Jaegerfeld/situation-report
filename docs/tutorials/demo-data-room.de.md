@@ -52,6 +52,10 @@ Netz ist nichts erreichbar. Beenden mit Strg+C im Fenster, aus dem du gestartet 
 Die Oberfläche ist Deutsch oder Englisch (`--lang de`); mit `--no-browser` druckt der
 Generator nur den Link, mit `--port 8765` nimmt er einen festen Port.
 
+Ohne Kommandozeile: im Launcher (`SituationReport.bat`) die Karte **„Datenraum (Browser)"**
+starten; im tragbaren Paket liegt dafür auch `DatenraumBrowser.bat` (macOS/Linux:
+`DatenraumBrowser.command` / `.sh`).
+
 ### 2.2 Schritt 1 — Szenario
 
 ![Schritt 1: Vorlage, Ereignisse und Struktur](../beta/testdaten-generator_web_schritt1.jpg)
