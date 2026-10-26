@@ -54,6 +54,7 @@ Analysten bleibt als eigener Weg erhalten.
     sources.json                    ← Config, die `python -m sources fetch` auf diese Dateien zeigt
   harmonisation/                    ← NEU: Katalog, 2–3 Bewertungen je E2E-Prozess, Board-Entscheidungen, Vorstand
   snapshots/ snapshot_<datum>.json ×N  ← NEU: Reihe (Standard 6 Stände = 6 Konferenzen), prev/now als Aliasse
+  deltas/    delta_<n>-<n+1>.html/.md ×(N−1)  ← NEU: Delta-Briefings aller Folgepaare, fertig gerendert
   operator/ ai_literacy.json · llm_audit.jsonl · prompt_<zweck>_*.md   ← NEU: Betreiber-Ebene (R3/R4, Export-Weg)
 ```
 
@@ -76,6 +77,13 @@ Stand 1 … N im Konferenzrhythmus (Standard 14 Tage, 6 Stände). Jeder Stand = 
 Snapshot + Fortschreibung der Rohdaten (heutige `scenario_continue`-Mechanik, N-fach). Damit laufen
 D2 (Delta zwischen beliebigen Ständen), D4 Schritt 2 (Hinweise ab 4 Ständen), die Wecker-Historie
 und der Lernpfad „sechs Konferenzen" ohne Handarbeit.
+
+**Delta-Stände (Ergänzung Robert, 26.10.2026):** Der Datenraum bringt die Delta-Briefings **aller
+Folgepaare** (1 → 2 … N−1 → N) fertig gerendert mit (`deltas/`, HTML + Markdown), und die Ergebniskarte
+hat einen Vergleichswähler für **beliebige** Stände (z. B. 1 → 6 über das ganze Quartal). Die Ereignisse
+der Geschichte sind so gelegt, dass jedes Folgepaar etwas zeigt — Verschlechterung, Verbesserung,
+Neuzugang, Überfälliges —, in der README je Paar ein Satz, was zu sehen ist. Wecker-Historie und
+Auffälligkeits-Hinweise lesen dieselbe Reihe.
 
 ### 3.4 Provider-Rohdaten (die Lücke)
 Je Provider ein Writer, der **das Format des Systems** erzeugt (nicht unser Register), so dass die
@@ -104,8 +112,8 @@ Standardwerten, nicht in Feldern), Feedback/Doherty (Fortschritt je Artefakt, Ab
 | Schritt | Inhalt | Prototyp |
 |---|---|---|
 | 1 Szenario | Vorlage wählen (Ruhig · **Standard-Lage** empfohlen · Eskalation · Erholung · Eigene), darunter die Ereignisse der Vorlage als Liste mit Zeitpunkt und Schalter; rechts die Struktur (Portfolio → 2 Solutions → 6 ARTs) mit Namen, änderbar | `Main.dc.html` |
-| 2 Umfang & Quellen | Stände (Schieber 2–12, Standard 6, Rhythmus 14 Tage), Umfang s/m/l, Realismus 0–100, Seed, Sprache; Provider-Checkliste (Prometheus, GitHub, GitLab, SonarQube, CSV, Datei; Harmonisierung; Betreiber-Ebene) — alles an, Details einklappbar | `Umfang.dc.html` |
-| 3 Erzeugen | Zielordner, Knopf „Datenraum erzeugen"; Fortschritt als Artefakt-Liste mit Häkchen und Zeit; Ergebniskarte: Zahlen (Vorgänge, Register, Stände, Provider), Geschichte in drei Sätzen, Aktionen „Report öffnen · Konferenzmappe · Delta Stand 5→6 · Einseiter · Lagebild befragen · im Portfolio-Manager öffnen" | `Ergebnis.dc.html` |
+| 2 Umfang & Quellen | Stände (Schieber 2–12, Standard 6, Rhythmus 14 Tage; Schalter „Delta-Briefings für alle Folgepaare erzeugen"), Umfang s/m/l, Realismus 0–100, Seed, Sprache; Provider-Checkliste (Prometheus, GitHub, GitLab, SonarQube, CSV, Datei; Harmonisierung; Betreiber-Ebene) — alles an, Details einklappbar | `Umfang.dc.html` |
+| 3 Erzeugen | Zielordner, Knopf „Datenraum erzeugen"; Fortschritt als Artefakt-Liste mit Häkchen und Zeit; Ergebniskarte: Zahlen (Vorgänge, Register, Stände, Provider), Geschichte in drei Sätzen, Aktionen „Report öffnen · Konferenzmappe · Delta 5→6 · Einseiter · Lagebild befragen · im Portfolio-Manager öffnen"; Vergleichswähler Stand a → b für jedes Paar | `Ergebnis.dc.html` |
 | ART-Werkzeug | Eigener Reiter „Ein ART" mit dem heutigen Generator (Muster, Lernen, Fortschreiben) — für RTE und Analysten, nicht im Hauptweg | später |
 
 ## 5. Entscheidungen (meine Empfehlung jeweils zuerst)
