@@ -106,6 +106,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   Dienstschicht `dataspace.py`; `--lang`, `--port`, `--no-browser`. Das tkinter-Fenster bleibt
   erreichbar (`python -m testdata_generator` ohne Argumente). UX read nach `ux-preflight` im
   Kopf von `page.py`.
+- **Tutorial „Demo-Datenraum in einer Minute" (Beta-Schnitt 4).** Schritt-für-Schritt-Seite
+  `docs/tutorials/demo-data-room(.de).md` in der Art des Tutorials „Lagebild befragen": die Minute
+  in der Browser-Oberfläche mit Screenshots, dasselbe auf der Kommandozeile (Tabelle Oberfläche ↔
+  Schalter), was im Ordner liegt, Geschichte wählen (vier Vorlagen, Ereignisse, Fenster), Struktur
+  ändern, Stände und Delta-Briefings, Provider-Rohdaten ohne Netz, KI-Entwürfe üben, Fortschreiben,
+  Fehlerbilder, Befehle auf einen Blick. PDF DE/EN (`dataspace_Tutorial_DE/EN.pdf`) über
+  `docs/generate_dataspace_tutorial.py`, das den Markdown→PDF-Konverter des Ask-Tutorials nutzt.
+  Verlinkt im mkdocs-Menü und im Modul testdata_generator.
 
 ### Fixed
 - **Delta-Briefing (HTML): vier Register-Abschnitte ohne Überschrift.** Die HTML-Seite kannte keine

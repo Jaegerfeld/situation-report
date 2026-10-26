@@ -16,6 +16,9 @@ suitable for development, testing, and demonstrations without real Jira data.
 | Português (PT) | [Manual do Utilizador](../testdata_generator_ManualUtilizador.pdf) |
 | Français (FR) | [Manuel d'utilisation](../testdata_generator_ManuelUtilisateur.pdf) |
 
+Step by step: [tutorial "A demo data room in one minute"](../tutorials/demo-data-room.md)
+(PDF: [DE](../dataspace_Tutorial_DE.pdf) / [EN](../dataspace_Tutorial_EN.pdf)).
+
 ---
 
 ## Interface
