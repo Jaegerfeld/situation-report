@@ -3,7 +3,7 @@
 # Repository:     https://github.com/Jaegerfeld/situation-report
 # KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
 # Erstellt:       03.09.2026
-# Geändert:       03.09.2026
+# Geändert:       26.10.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
@@ -47,7 +47,8 @@ class GitlabDoraSource:
         Fetch all four DORA metrics for one project/group.
 
         Config: {"base_url", "project_id", "unit"?, "token_env"?,
-                 "window_days"?}. Requires GitLab Ultimate (the API tier).
+                 "window_days"?, "as_of"? (ISO date anchoring the window
+                 instead of today)}. Requires GitLab Ultimate (the API tier).
         """
         base_url = str(config.get("base_url", "")).rstrip("/")
         project_id = str(config.get("project_id", ""))
@@ -57,7 +58,13 @@ class GitlabDoraSource:
         token = token_from_env(config, "GITLAB_TOKEN")
         headers = {"PRIVATE-TOKEN": token} if token else {}
         window_days = int(config.get("window_days", 30))
-        since = (date.today() - timedelta(days=window_days)).isoformat()
+        raw_as_of = str(config.get("as_of", "") or "")
+        try:
+            anchor = date.fromisoformat(raw_as_of) if raw_as_of else date.today()
+        except ValueError as exc:
+            raise RuntimeError(
+                f"GitLab source: 'as_of' must be an ISO date, got {raw_as_of!r}.") from exc
+        since = (anchor - timedelta(days=window_days)).isoformat()
         project = urllib.parse.quote(project_id, safe="")
 
         record = DoraRecord(

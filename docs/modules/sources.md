@@ -67,6 +67,31 @@ consumed = (100−SLI)/(100−target), at risk below 25 % remaining) and
 **Delivery Performance (DORA) & Code Quality** (per-metric tiers at the
 published DORA thresholds, unit tier = worst metric; quality table below).
 
+## Replay and `as_of` (beta, since step 1c)
+
+A source config may carry `"replay": "<file>.json"`: the provider is then
+served from recorded responses instead of HTTP — the file holds the
+system's own response bodies, addressed by URL path and distinguishing
+query parameters (time-window parameters such as `since` or `start_date`
+are ignored):
+
+```json
+{"schema": 1, "system": "github",
+ "responses": [{"path": "/repos/demo/alpha-1/deployments",
+                "params": {"environment": "production"}, "body": [...]}]}
+```
+
+`sources.http.get_json` asks the active replay first, so the providers
+stay untouched and read exactly what they would read live; a request the
+file does not cover is an error that names the request. `replay` and `path`
+resolve relative to the config file when they do not exist from the working
+directory, so a demo data room runs from anywhere. GitHub and GitLab also
+accept `"as_of": "YYYY-MM-DD"` and anchor their window at that day instead
+of today — reproducible fetches, and the way the generator's data rooms
+keep their deployments inside the window. The testdata generator writes
+such replay files for every demo solution (module testdata_generator,
+"Provider raw data").
+
 ## Tutorial
 
 New to this? The step-by-step tutorial **[Attaching your own data
