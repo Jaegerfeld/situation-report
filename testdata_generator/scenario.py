@@ -156,6 +156,7 @@ from .generator import (
     GeneratorConfig,
     generate,
 )
+from .source_inputs import write_source_inputs
 from .story import (
     ROLE_OUTLIER_ART,
     ROLE_WEAK_SOURCE_ART,
@@ -1175,7 +1176,8 @@ def _write_pi_config(path: Path, reference: date, window_days: int) -> None:
 
 def _readme_text(spec: PortfolioSpec, story_data: Story, seed: int,
                  reference: date, scale: str,
-                 stand_dates: list[date] | None = None) -> str:
+                 stand_dates: list[date] | None = None,
+                 sources_info: dict[str, dict[str, Any]] | None = None) -> str:
     """The README of one portfolio data room, told from structure and story."""
     first_art = spec.arts[0]
     workflow_label = {WORKFLOW_CLASSIC: "klassischer Workflow (Default-Pfad)",
@@ -1204,6 +1206,8 @@ def _readme_text(spec: PortfolioSpec, story_data: Story, seed: int,
         "    snapshots/                snapshot_<nn>_<datum>.json je Stand, stands.json,",
         "                              snapshot_prev/now.json = die letzten beiden",
         "    deltas/                   delta_<nn>-<nn+1>.md/.html je Folgepaar",
+        "    sources/<name>/           Provider-Rohdaten (Replay-Dateien im Systemformat)",
+        "                              + sources-Configs je Solution",
         "",
         "## Struktur",
         "",
@@ -1251,6 +1255,32 @@ def _readme_text(spec: PortfolioSpec, story_data: Story, seed: int,
                          f" (`snapshots/{_snapshot_name(k, day)}`){marker}")
         lines += ["", "Delta-Briefings: " + ", ".join(
             f"`deltas/delta_{k:02d}-{k + 1:02d}.html`" for k in range(1, len(stand_dates)))]
+    if sources_info:
+        lines += ["", "## Quellen (Provider-Rohdaten, Weg 2)", "",
+                  "Je Solution liegen unter `sources/<name>/` die Rohdaten, wie die Systeme sie",
+                  "liefern würden — Prometheus-Instant-Queries, GitHub-Deployments/PRs/Issues",
+                  "oder GitLab-DORA-Tageswerte, SonarQube-Measures, eine SLO-CSV — als",
+                  "Replay-Dateien, dazu die passenden `sources`-Configs. `python -m sources",
+                  "fetch` läuft darauf ohne Netz (`\"replay\"` in der Config) und liefert, was",
+                  "auch in `registers/` steht; GitHub-DORA kommt näherungsweise (Zählungen),",
+                  "GitLab exakt. Pfade in den Configs gelten relativ zur Config-Datei.", ""]
+        for key, info in sources_info.items():
+            if not info.get("configs"):
+                lines.append(f"- `{key}`: keine Register mit Einträgen — keine Rohdaten.")
+                continue
+            provider = info.get("dora_provider")
+            lines.append(f"- `{key}`: " + ", ".join(sorted(info["configs"]))
+                         + (f" (DORA über {provider})" if provider else ""))
+        first = next((k for k, i in sources_info.items() if i.get("configs")), None)
+        if first:
+            lines += ["", "```bash",
+                      f"python -m sources fetch --kind slo --config sources/{first}/slo_sources.json "
+                      f"--output sources/{first}/fetched_slo.json",
+                      f"python -m sources fetch --kind dora --config sources/{first}/dora_sources.json "
+                      f"--output sources/{first}/fetched_dora.json",
+                      f"python -m sources fetch --kind quality --config sources/{first}/quality_sources.json "
+                      f"--output sources/{first}/fetched_quality.json",
+                      "```"]
     lines += [
         "",
         "## Weitere Wege",
@@ -1474,10 +1504,12 @@ def _build_portfolio(
     second_names = (_names(spec.solutions[1], tags[spec.solutions[1].short])
                     if len(spec.solutions) > 1 else None)
     register_paths: dict[str, Path] = {}
+    registers_by_key: dict[str, dict[str, object]] = {}
     for index, solution in enumerate(spec.solutions):
         names = _names(solution, tags[solution.short])
         regs = _anchor_registers(index, names, host_names, second_names,
                                  reference, story)
+        registers_by_key[solution.key] = regs
         populate_registers(
             regs, solution.key,
             art_names=[m.name for m in members[solution.key]],
@@ -1521,9 +1553,14 @@ def _build_portfolio(
 
     stand_dates = [reference - timedelta(days=STAND_INTERVAL_DAYS * (stands - k))
                    for k in range(1, stands + 1)]
+    sources_info: dict[str, dict[str, Any]] = {}
+    if story == STORY_NOW:
+        # E4: Provider-Rohdaten in Systemformaten + sources-Configs je Solution.
+        sources_info = write_source_inputs(out, spec, registers_by_key, reference, log)
     readme = out / "README.md"
     readme.write_text(_readme_text(spec, story_data, seed, reference, scale,
-                                   stand_dates if story == STORY_NOW else []),
+                                   stand_dates if story == STORY_NOW else [],
+                                   sources_info),
                       encoding="utf-8")
 
     snapshot_prev = out / "snapshots" / "snapshot_prev.json"
@@ -1540,6 +1577,7 @@ def _build_portfolio(
         "snapshot_prev": snapshot_prev, "snapshot_now": snapshot_now,
         "stands": series["stands"], "snapshots": series["snapshots"],
         "deltas": series["deltas"],
+        "sources": sources_info,
         "solutions": solution_paths,
     }
     for key, cfg_path in solution_paths.items():

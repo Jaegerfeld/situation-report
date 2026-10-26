@@ -3,7 +3,7 @@
 # Repository:     https://github.com/Jaegerfeld/situation-report
 # KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
 # Erstellt:       03.09.2026
-# Geändert:       03.09.2026
+# Geändert:       26.10.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
@@ -22,6 +22,8 @@ import os
 import urllib.error
 import urllib.request
 from typing import Any
+
+from .replay import active as active_replay
 
 _TIMEOUT_SECONDS = 60
 
@@ -48,10 +50,16 @@ def get_json(url: str, headers: dict[str, str], source_name: str) -> Any:
         headers:     Extra headers (e.g. Authorization) — never logged.
         source_name: Human name for error messages (e.g. "Prometheus").
 
+    Inside ``sources.replay.activated(...)`` the recorded response is
+    returned instead and no request leaves the machine.
+
     Raises:
         RuntimeError: On HTTP/network/JSON errors, with the corporate
-                      approval hint on 401/403.
+                      approval hint on 401/403; on a replay miss.
     """
+    replay = active_replay()
+    if replay is not None:
+        return replay.lookup(url)
     req = urllib.request.Request(url)
     req.add_header("Accept", "application/json")
     for name, value in headers.items():

@@ -3,7 +3,7 @@
 # Repository:     https://github.com/Jaegerfeld/situation-report
 # KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
 # Erstellt:       03.09.2026
-# Geändert:       03.09.2026
+# Geändert:       26.10.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
@@ -51,7 +51,9 @@ class GithubDoraSource:
         Config: {"owner", "repo", "unit"?, "token_env"? (GITHUB_TOKEN),
                  "window_days"?, "environment"? ("production", "" = all),
                  "incident_label"? ("incident"), "max_deployments"? (50),
-                 "base_url"? (github.com API by default, for GHE)}.
+                 "base_url"? (github.com API by default, for GHE),
+                 "as_of"? (ISO date: evaluate the window as of that day
+                 instead of now — reproducible fetches, demo data rooms)}.
         """
         owner = str(config.get("owner", ""))
         repo = str(config.get("repo", ""))
@@ -63,7 +65,7 @@ class GithubDoraSource:
         headers = dict(_API_HEADERS)
         headers.update(bearer(token_from_env(config, "GITHUB_TOKEN")))
         window_days = int(config.get("window_days", 30))
-        since = datetime.now(UTC) - timedelta(days=window_days)
+        since = _as_of(config) - timedelta(days=window_days)
         environment = str(config.get("environment", "production"))
         repo_url = f"{base_url}/repos/{owner}/{repo}"
 
@@ -162,6 +164,18 @@ class GithubDoraSource:
                 hours.append((closed - created).total_seconds() / 3600)
         log(f"  github: {len(hours)} closed '{label}' issues in window")
         return round(median(hours), 1) if hours else None
+
+
+def _as_of(config: dict[str, Any]) -> datetime:
+    """End of the configured ``as_of`` day (UTC), or now."""
+    raw = str(config.get("as_of", "") or "")
+    if not raw:
+        return datetime.now(UTC)
+    try:
+        day = datetime.fromisoformat(raw)
+    except ValueError as exc:
+        raise RuntimeError(f"GitHub source: 'as_of' must be an ISO date, got {raw!r}.") from exc
+    return datetime(day.year, day.month, day.day, 23, 59, 59, tzinfo=UTC)
 
 
 def _ts(value: Any) -> datetime | None:

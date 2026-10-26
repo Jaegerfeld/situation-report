@@ -37,6 +37,27 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   Verteilung über die Stände kommt mit den Vorlagen in Schnitt 2). Die **Fortschreibung** hängt den
   neuen Stand an die Reihe an und rendert das Delta dazu. README zählt die Stände mit Datum und
   Dateinamen. Schätzung und Kommandozeile nennen Stände und Delta-Briefings.
+- **Provider-Rohdaten in Systemformaten (Beta-Schnitt 1c, Entscheidung E4 vom 26.10.2026).** Die
+  sechs Provider des `sources`-Moduls hatten keine Demo-Eingaben. Neu
+  `testdata_generator/source_inputs.py`: je Solution schreibt der Generator unter
+  `sources/<solution>/`, was die Systeme liefern würden — Prometheus-Instant-Query-Antworten,
+  GitHub-Deployments/-Statuses/-PRs/-Incident-Issues (erste Solution) oder GitLab-DORA-Tageswerte
+  (zweite Solution), SonarQube-Measures, eine SLO-CSV — als **Replay-Dateien** im Format des
+  jeweiligen Systems, dazu die passenden `sources`-Configs (`slo_sources.json`,
+  `slo_sources_csv.json`, `dora_sources.json`, `quality_sources.json`). Die Rohdaten werden aus
+  den Registern abgeleitet, so dass der Provider daraus dieselben Werte rechnet; wo GitHub nur
+  näherungsweise rechnet (Zählungen, Stichprobe von 50 Deployments), nennt `github_expected()`
+  die Werte. **Writer gegen Reader** ist Test: `python -m sources fetch` liest die Rohdaten und
+  das Ergebnis wird mit dem direkt erzeugten Register verglichen (Prometheus, CSV, GitLab,
+  SonarQube exakt; GitHub mit dokumentierter Näherung). Solutions ohne Register-Einträge
+  bekommen keine Rohdaten (Hinweis). README-Abschnitt „Quellen" mit den fetch-Befehlen.
+- **`sources`: Replay und `as_of`.** Neu `sources/replay.py`: eine Quelle mit `"replay":
+  DATEI` wird aus aufgezeichneten Antworten bedient (Treffer über Pfad und Kennparameter,
+  Zeitfenster-Parameter werden ignoriert), `get_json` fragt das aktive Replay vor dem Netz — die
+  Provider bleiben unverändert und lesen exakt das Systemformat. `path` und `replay` in Configs
+  gelten relativ zur Config-Datei, wenn sie vom Arbeitsverzeichnis aus nicht existieren.
+  GitHub und GitLab verstehen `"as_of": DATUM` und verankern ihr Fenster an diesem Tag statt an
+  heute (reproduzierbare Abrufe, Demo-Datenräume mit festem Referenzdatum).
 
 ### Fixed
 - **Delta-Briefing (HTML): vier Register-Abschnitte ohne Überschrift.** Die HTML-Seite kannte keine

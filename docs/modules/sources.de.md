@@ -69,6 +69,31 @@ Performance (DORA) & Code Quality** (Tier je Kennzahl an den
 veröffentlichten DORA-Schwellen, Unit-Tier = schwächste Kennzahl;
 Qualitätstabelle darunter).
 
+## Replay und `as_of` (Beta, seit Schnitt 1c)
+
+Eine Quellen-Config darf `"replay": "<datei>.json"` tragen: der Provider wird
+dann aus aufgezeichneten Antworten bedient statt über HTTP — die Datei hält
+die Antwortkörper des Systems, adressiert über URL-Pfad und Kennparameter
+der Anfrage (Zeitfenster-Parameter wie `since` oder `start_date` werden
+ignoriert):
+
+```json
+{"schema": 1, "system": "github",
+ "responses": [{"path": "/repos/demo/alpha-1/deployments",
+                "params": {"environment": "production"}, "body": [...]}]}
+```
+
+`sources.http.get_json` fragt zuerst das aktive Replay; die Provider bleiben
+unverändert und lesen exakt das, was sie auch live lesen würden. Eine
+Anfrage, die die Datei nicht abdeckt, ist ein Fehler, der die Anfrage nennt.
+`replay` und `path` gelten relativ zur Config-Datei, wenn sie vom
+Arbeitsverzeichnis aus nicht existieren — ein Demo-Datenraum läuft damit
+von überall. GitHub und GitLab verstehen zusätzlich `"as_of": "JJJJ-MM-TT"`
+und verankern ihr Fenster an diesem Tag statt an heute — reproduzierbare
+Abrufe, und der Weg, auf dem die Datenräume des Generators ihre Deployments
+im Fenster halten. Der Testdaten-Generator schreibt solche Replay-Dateien
+für jede Demo-Solution (Modul testdata_generator, „Provider-Rohdaten").
+
 ## Tutorial
 
 Zum ersten Mal? Das Schritt-für-Schritt-Tutorial **[Eine eigene

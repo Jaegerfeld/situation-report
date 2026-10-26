@@ -3,7 +3,7 @@
 # Repository:     https://github.com/Jaegerfeld/situation-report
 # KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
 # Erstellt:       03.09.2026
-# Geändert:       03.09.2026
+# Geändert:       26.10.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
@@ -24,17 +24,22 @@ import sys
 from pathlib import Path
 
 from .base import KINDS, discover_providers, record_to_dict
+from .replay import activated, replay_from_config, resolve_relative
 
 SOURCES_SCHEMA_VERSION = 1
 
 
 def fetch_records(kind: str, source_configs: list[dict],
-                  log=print) -> list[dict]:
+                  log=print, base_dir: Path | None = None) -> list[dict]:
     """
     Fetch and merge records of ``kind`` from one or more source configs.
 
     Each config carries a ``provider`` key; unknown providers or providers
     that cannot deliver the kind raise RuntimeError with the known options.
+    A config with ``"replay": FILE`` is served from that file's recorded
+    responses instead of HTTP (demo data rooms, offline runs); ``replay``
+    and ``path`` resolve relative to ``base_dir`` (the config's folder)
+    when they do not exist from the working directory.
 
     Returns:
         Serialised records (dicts), sources concatenated in config order.
@@ -52,9 +57,14 @@ def fetch_records(kind: str, source_configs: list[dict],
             raise RuntimeError(
                 f"Provider '{provider_id}' delivers "
                 f"{', '.join(provider.kinds)} — not '{kind}'.")
-        log(f"Quelle '{provider_id}' ...")
-        records.extend(record_to_dict(r)
-                       for r in provider.fetch(kind, cfg, log))
+        cfg = dict(cfg)
+        if isinstance(cfg.get("path"), str) and cfg["path"]:
+            cfg["path"] = str(resolve_relative(cfg["path"], base_dir))
+        replay = replay_from_config(cfg, base_dir)
+        log(f"Quelle '{provider_id}'" + (" (Replay, kein Netz) ..." if replay else " ..."))
+        with activated(replay):
+            records.extend(record_to_dict(r)
+                           for r in provider.fetch(kind, cfg, log))
     return records
 
 
@@ -74,7 +84,8 @@ def run_fetch(args: argparse.Namespace) -> int:
         return 1
 
     try:
-        records = fetch_records(args.kind, source_configs)
+        records = fetch_records(args.kind, source_configs,
+                                base_dir=Path(args.config).resolve().parent)
     except RuntimeError as exc:
         print(f"ERROR: {exc}", file=sys.stderr)
         return 1

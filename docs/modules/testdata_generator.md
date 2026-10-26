@@ -239,6 +239,31 @@ events across the stands is what the story templates of step 2 add.
 Continuing a data room (`--continue`) appends the new reference as the next
 stand and renders its delta.
 
+### Provider raw data (beta, step 1c)
+
+Every solution gets a folder `sources/<solution>/` with what the external
+systems would deliver — Prometheus instant-query responses, GitHub
+deployments, statuses, pull requests and incident issues (first solution) or
+GitLab DORA daily values (second solution), SonarQube component measures and
+an SLO CSV — recorded as **replay files** in each system's own format, plus
+the matching `sources` configs (`slo_sources.json`, `slo_sources_csv.json`,
+`dora_sources.json`, `quality_sources.json`). The raw data is derived from
+the registers, so the provider computes the same values back:
+
+```bash
+python -m sources fetch --kind slo --config demo/sources/alpha/slo_sources.json --output fetched_slo.json
+python -m sources fetch --kind dora --config demo/sources/alpha/dora_sources.json --output fetched_dora.json
+```
+
+No network is used (`"replay"` in the config, see the sources module);
+paths resolve relative to the config file. Prometheus, CSV, GitLab and
+SonarQube come out exact; GitHub derives DORA from counts (deployments per
+day = count / window, failure rate over a sample of at most 50 deployments,
+medians of three recorded durations), so small units show coarse steps —
+`github_expected()` names the values it will deliver, and the writer-vs-
+reader test checks exactly that. Solutions whose registers carry no records
+get no raw data (the log and the README say so).
+
 ## Realistic stage paths (since 0.38.0)
 
 A real ART does not walk neatly through every stage. Measured on the real ART_A (458 issues,

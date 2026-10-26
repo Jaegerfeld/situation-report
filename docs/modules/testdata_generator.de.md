@@ -242,6 +242,33 @@ Die Verteilung der Ereignisse über die Stände bringen die Geschichts-Vorlagen
 in Schnitt 2. Die Fortschreibung (`--continue`) hängt das neue Referenzdatum
 als nächsten Stand an und rendert sein Delta.
 
+### Provider-Rohdaten (Beta, Schnitt 1c)
+
+Jede Solution bekommt einen Ordner `sources/<solution>/` mit dem, was die
+externen Systeme liefern würden — Prometheus-Instant-Query-Antworten,
+GitHub-Deployments, -Statuses, -Pull-Requests und -Incident-Issues (erste
+Solution) oder GitLab-DORA-Tageswerte (zweite Solution), SonarQube-Measures
+und eine SLO-CSV — aufgezeichnet als **Replay-Dateien** im Format des
+jeweiligen Systems, dazu die passenden `sources`-Configs (`slo_sources.json`,
+`slo_sources_csv.json`, `dora_sources.json`, `quality_sources.json`). Die
+Rohdaten werden aus den Registern abgeleitet, so dass der Provider daraus
+dieselben Werte zurückrechnet:
+
+```bash
+python -m sources fetch --kind slo --config demo/sources/alpha/slo_sources.json --output fetched_slo.json
+python -m sources fetch --kind dora --config demo/sources/alpha/dora_sources.json --output fetched_dora.json
+```
+
+Dabei geht nichts ins Netz (`"replay"` in der Config, siehe Modul sources);
+Pfade gelten relativ zur Config-Datei. Prometheus, CSV, GitLab und SonarQube
+kommen exakt heraus; GitHub leitet DORA aus Zählungen ab (Deployments je Tag
+= Anzahl / Fenster, Fehlerrate über eine Stichprobe von höchstens 50
+Deployments, Mediane aus drei aufgezeichneten Dauern), kleine Einheiten
+zeigen deshalb grobe Stufen — `github_expected()` nennt die Werte, die der
+Provider liefern wird, und genau das prüft der Test Writer gegen Reader.
+Solutions ohne Register-Einträge bekommen keine Rohdaten (Log und README
+sagen es).
+
 ## Realistische Statuswege (seit 0.38.0)
 
 Ein echter ART läuft nicht brav durch alle Stufen. Gemessen am echten ART_A (458 Vorgänge,
