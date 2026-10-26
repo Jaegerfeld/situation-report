@@ -1,4 +1,4 @@
-# Beta-Vorbereitung · Konzept Testdaten-Generator 3 (Entwurf zur Entscheidung, 26.10.2026)
+# Beta-Vorbereitung · Konzept Testdaten-Generator 3 (entschieden am 26.10.2026)
 
 **Auftrag (Robert, 26.10.2026):** Ziel des Reworks ist eine ansprechende Lösung für Solution- und
 Portfolio-Management, zugleich eine Toolsuite für RTE, Flow-Manager und Analysten. Zum Schulen,
@@ -39,7 +39,8 @@ Analysten bleibt als eigener Weg erhalten.
 ### 3.1 Struktur (fest, benannt, sprechend)
 ```
 <Datenraum>/
-  portfolio.json · solution_alpha.json · solution_beta.json · pi_config.json
+  structure.json · story.json         ← Struktur (E2a) und Geschichte (E2) als Daten
+  portfolio.json · solution_<name>.json ×m · pi_config.json
   README.md                         ← die Geschichte dieses Datenraums, Ereignisse, Seed, Zahlen
   raw/   <ART>_jira.json ×6         ← Jira-Export (Allowlist, Personen anonymisiert wie R1)
   xlsx/  <ART>_IssueTimes/CFD/Transitions ×6
@@ -56,6 +57,7 @@ Analysten bleibt als eigener Weg erhalten.
   snapshots/ snapshot_<datum>.json ×N  ← NEU: Reihe (Standard 6 Stände = 6 Konferenzen), prev/now als Aliasse
   deltas/    delta_<n>-<n+1>.html/.md ×(N−1)  ← NEU: Delta-Briefings aller Folgepaare, fertig gerendert
   operator/ ai_literacy.json · llm_audit.jsonl · prompt_<zweck>_*.md   ← NEU: Betreiber-Ebene (R3/R4, Export-Weg)
+  ai_drafts/ briefing_<stand>.md · ask_*.md   ← nur mit Schalter (F3, standardmäßig aus): Mock-Entwürfe mit Marker, nicht freigegeben
 ```
 
 ### 3.2 Die Geschichte als Daten (`story.json`, wählbar in der Oberfläche)
@@ -150,19 +152,46 @@ Standardwerten, nicht in Feldern), Feedback/Doherty (Fortschritt je Artefakt, Ab
 | 3 Erzeugen | Zielordner, Knopf „Datenraum erzeugen"; Fortschritt als Artefakt-Liste mit Häkchen und Zeit; Ergebniskarte: Zahlen (Vorgänge, Register, Stände, Provider), Geschichte in drei Sätzen, Aktionen „Report öffnen · Konferenzmappe · Delta 5→6 · Einseiter · Lagebild befragen · im Portfolio-Manager öffnen"; Vergleichswähler Stand a → b für jedes Paar | `Ergebnis.dc.html` |
 | ART-Werkzeug | Eigener Reiter „Ein ART" mit dem heutigen Generator (Muster, Lernen, Fortschreiben) — für RTE und Analysten, nicht im Hauptweg | später |
 
-## 5. Entscheidungen (meine Empfehlung jeweils zuerst)
+## 4a. Framework-Frage (Nachtrag zu E6)
 
-- **E1 Datenraum als feste Struktur mit `README.md`-Geschichte** (3.1). *Alternative:* flacher Ordner wie heute.
-- **E2 Geschichte als Daten (`story.json`) mit vier Vorlagen und Ereignis-Schaltern,** Ereignisse an Rollen gebunden. *Alternative:* nur die heutige feste Story.
-- **E2a Struktur als Daten (`structure.json`): beliebig viele Portfolios, Solutions, ARTs; Vorlagen Klein/Standard/Groß/Eigene.** *Alternative:* feste 1·2·3-Struktur mit Namensänderung.
-- **E3 Reihe von Ständen, Standard 6 × 14 Tage.** *Alternative:* prev/now bleiben, Reihe nur per Fortschreiben.
-- **E4 Provider-Rohdaten in Systemformaten + `sources.json`,** damit `sources fetch` im Demo-Datenraum läuft. *Alternative:* Register direkt wie heute (die Provider bleiben ohne Demo).
-- **E5 Drei-Schritte-Oberfläche mit einem Hauptknopf; ART-Generator als eigener Reiter.** *Alternative:* heutiges Fenster erweitern.
-- **E6 Prototyp zuerst im Browser** (Design-Artifact, gemeinsam iterieren), dann tkinter. *Alternative:* direkt bauen.
-- **E7 Reihenfolge der Umsetzung:** (1) Datenmodell + Provider-Writer + Stände-Reihe (CLI, Tests), (2) Story-Vorlagen, (3) Oberfläche nach freigegebenem Prototyp, (4) Tutorial „Datenraum in einer Minute". Jeder Schnitt ein PR auf den Beta-Branch.
-- **Bewusst nicht:** keine Personen, keine Live-Systeme (Prometheus & Co. nur als Dateien), kein Generator für die Denkschriften-Beispiele, keine Zufalls-„Realität" ohne Seed (alles reproduzierbar).
+Das Windows-Release ist heute ein tragbares Bündel (eingebettetes Python 3.11 mit tkinter, openpyxl,
+plotly, kaleido, pypdf, tkcalendar, vorgeladener Chrome für PDF); Linux/macOS installieren dieselben
+Pakete in eine venv. „Ohne große Pakete" begrenzt also, was ins Bündel kommt, nicht, was der Nutzer tut.
 
-## 6. Offene Fragen an Robert
-1. Namen: „Datenraum" (Portfolio-Begriff seit 0.25.0) als Produktwort für das Ergebnis — oder „Demo-Welt"/„Übungslage"?
-2. Sechs Stände als Standard — oder drei (ein PI)?
-3. Soll der Datenraum auch die KI-Entwürfe (Markdown-Dateien mit Marker) enthalten, erzeugt mit dem Mock-Provider, damit Freigabe (`llm approve`) und `llm check` geübt werden können?
+| Option | Zusatzpaket | Läuft wo | Einschätzung |
+|---|---|---|---|
+| tkinter wie heute | keins | überall mit dem Bündel | grobe Gestaltung; jede Oberfläche doppelt (Prototyp + Nachbau) |
+| **Lokaler Server (Standardbibliothek) + Browser des Nutzers** | keins | überall, wo ein Browser ist | Prototyp wird die Oberfläche; Reports und Bedienung in einem Medium |
+| Eingebetteter Webview (pywebview) | ein kleines Paket, System-Webview | Windows sicher, Linux je Distribution | natives Fenster um HTML, weitere Abhängigkeit mit Plattformrisiko |
+| Qt o. ä. | > 100 MB | überall | zu schwer |
+
+Festlegungen für den Kandidaten, falls er gewählt wird: Server nur an die lokale Adresse, zufälliger
+Port, Zufallsschlüssel in der Adresse; Ordnerwahl über Pfadfeld mit Verlauf, „Durchsuchen" über den
+tkinter-Dialog, wo vorhanden (tkinter als Helfer, nicht als Oberfläche); Generator als Pilot, Launcher
+und Portfolio-GUI folgen beim Suite-Umbau. **Risiko (Einschätzung, nicht gemessen):** Firmenrechner
+können lokale Server über Proxy-Regeln oder Richtlinien blocken — früh mit einem Testnutzer auf einem
+Firmenrechner prüfen.
+
+## 5. Entscheidungen (Robert, 26.10.2026, einzeln durchgegangen)
+
+| Nr. | Entscheidung | Festlegungen |
+|---|---|---|
+| E1 | **Datenraum als fester Baum** mit `README.md`-Geschichte (3.1). | Flacher Ordner verworfen. |
+| E2 | **Geschichte als Datei `story.json`,** vier Vorlagen (Ruhig, Standard-Lage, Eskalation, Erholung), Ereignisse einzeln schaltbar, **an Rollen gebunden**. | Schnitt 1 trägt nur die heutige Geschichte als erste Vorlage; die drei weiteren in Schnitt 2. Unplausible Schalterkombinationen werden mit Hinweis durchgelassen. |
+| E2a | **Struktur als Datei `structure.json`:** beliebig viele Portfolios, Solutions, ARTs (k ≥ 1); Vorlagen Klein 1·1·2, Standard 1·2·3, Groß (5 Portfolios), Eigene. | **Workflow je Solution,** nicht je ART. Namen vorgeschlagen und änderbar, Rollen hängen an Positionen. Je Portfolio ein Unterordner mit eigenen Ständen. Ab etwa 30 ARTs oder 5 Portfolios bei Umfang L Warnung, keine Verweigerung. |
+| E3 | **Reihe von Ständen, Standard sechs × 14 Tage,** einstellbar 2–12; Delta-Briefings aller Folgepaare. | Beantwortet zugleich Frage 2. Vorlage Ruhig gibt drei Stände vor. |
+| E4 | **Provider-Rohdaten in Systemformaten + `sources.json`.** | Prüfung eingebaut: Writer schreibt, echter Provider liest, Test vergleicht mit dem direkt erzeugten Register. |
+| E5 | **Drei Schritte, ein Hauptknopf.** ART-Generator als eigener Reiter. | **Zweiter Reiter schrumpft** auf die Funktionen ohne Datenraum-Abdeckung (einzelner Export, Fortschreiben, Lernen) — nach eigenem Audit mit Belegen. |
+| E6 | **Prototyp zuerst im Browser.** | **Framework für die Umsetzung offen:** tkinter ist nicht gesetzt, Robert: „nehmen, was uns am besten dient, losgelöst von Frameworks", Bedingung: lauffähig auf möglichst vielen Rechnern ohne große Pakete. Kandidat laut Abschnitt 4a: lokaler Server aus der Standardbibliothek + Browser des Nutzers. Entscheidung fällt mit Schnitt 3, im Blick auf den anschließenden Umbau der gesamten Suite. Regel für den Prototyp bis dahin: nichts zeigen, was ein Browser ohne Zusatzpaket nicht kann. |
+| E7 | **Reihenfolge:** (1a) Struktur + Datenraum-Baum + Geschichte-Datei, (1b) Stände-Reihe + Deltas, (1c) Provider-Writer mit Prüfung — alle drei über die Kommandozeile, getestet; (2) drei weitere Geschichten; (3) Oberfläche nach freigegebenem Prototyp inkl. Framework-Entscheidung und Reiter-Audit; (4) Tutorial „Demo-Datenraum in einer Minute" mit PDF. | Jeder Schnitt ein PR auf den Beta-Branch, Texte vor Merge zur Freigabe. |
+| F1 | **Name: „Datenraum"** bleibt der Begriff für den Ordner (Portfolio-Modul seit 0.25.0); der Generator erzeugt einen **Demo-Datenraum**. | Ein Satz in der Oberfläche erklärt: vollständiger Datenraum mit erfundenen Teams und einer Geschichte, der sich wie ein echter öffnen lässt. Kein Umbenennen im Portfolio-Modul. |
+| F2 | Sechs Stände als Standard. | Siehe E3. |
+| F3 | **KI-Entwürfe (Mock) als Schalter in Schritt 2, standardmäßig aus.** | Ablage in eigenem Unterordner `ai_drafts/` des Datenraums, damit Eingabe und Ergebnis getrennt bleiben; Entwürfe tragen den Marker und sind nicht freigegeben; darunter absichtlich falsche Zitate zum Üben von `llm check`. |
+
+**Bewusst nicht:** keine Personen, keine Live-Systeme (Prometheus & Co. nur als Dateien), kein Generator
+für die Denkschriften-Beispiele, keine Zufalls-„Realität" ohne Seed (alles reproduzierbar).
+
+## 6. Nächster Schritt
+
+Schnitt 1a (Struktur-Datei, Datenraum-Baum, Geschichte-Datei, CLI, Tests) als erster PR auf
+`beta/ux-redesign`. Prototyp-Stand 7 spiegelt F3 (Hinweistext am Schalter KI-Entwürfe).
