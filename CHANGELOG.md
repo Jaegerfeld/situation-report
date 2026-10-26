@@ -26,6 +26,24 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   `story.json` und eine aus beiden erzählte README. GUI unverändert (Standard-Vorlage); Oberfläche
   folgt in Schnitt 3 nach dem Prototyp. 67 neue Tests, Bestand grün (die Standard-Vorlage erzeugt
   byte-gleiche Register und identische IssueTimes).
+- **Stände-Reihe (Beta-Schnitt 1b, Entscheidung E3 vom 26.10.2026).** Der Datenraum bringt statt
+  zweier Stände eine **Reihe von N Ständen** (Standard 6, einstellbar 2–12, `--stands N`) im
+  14-Tage-Rhythmus mit, der letzte auf dem Referenzdatum: `snapshots/snapshot_<nn>_<datum>.json`
+  je Stand plus `stands.json` (Schema 1: Index, Datum, Datei); `snapshot_prev/now.json` bleiben als
+  Aliasse der letzten beiden Stände (GUI, Tutorials, Fortschreibung unverändert). Jedes Folgepaar
+  liegt als fertiges **Delta-Briefing** unter `deltas/delta_<nn>-<nn+1>.md` und `.html` bei. Jeder
+  frühere Stand ist dieselbe Geschichte zwei Wochen jünger (88 % der Vorgänge je Schritt, Register
+  vor den „jetzt"-Ereignissen; die Wendungen der Standard-Lage schalten mit dem letzten Stand — die
+  Verteilung über die Stände kommt mit den Vorlagen in Schnitt 2). Die **Fortschreibung** hängt den
+  neuen Stand an die Reihe an und rendert das Delta dazu. README zählt die Stände mit Datum und
+  Dateinamen. Schätzung und Kommandozeile nennen Stände und Delta-Briefings.
+
+### Fixed
+- **Delta-Briefing (HTML): vier Register-Abschnitte ohne Überschrift.** Die HTML-Seite kannte keine
+  Titel für Flussprobleme, SLOs, Solution Areas und Entscheidungspunkte und brach mit `KeyError`
+  ab, sobald einer dieser Abschnitte eine Änderung trug — in der Zwei-Stände-Demo unauffällig, in
+  der Stände-Reihe sofort (Wecker-Stände ändern sich zwischen frühen Ständen). Titel in fünf
+  Sprachen ergänzt (`portfolio/report_texts.py`), Regressionstest.
 
 ### Docs
 - **Rechtsstand 10/2026 (Rechts-Kandidat R5, reine Doku — kein Release).** Roadmap-Block „Rechtliche

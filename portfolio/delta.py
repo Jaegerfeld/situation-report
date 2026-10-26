@@ -318,6 +318,10 @@ _SECTION_KEYS = {
     "capabilities": "section.capabilities",
     "decisions": "section.decisions",
     "epics": "section.epics",
+    "flow_problems": "section.flow_problems",
+    "slo": "section.slo",
+    "solution_areas": "section.solution_areas",
+    "decision_points": "section.decision_points",
 }
 
 #: Die Markdown-Fassung bleibt englisch: sie ist der Eingabe-Contract der

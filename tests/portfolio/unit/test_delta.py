@@ -198,6 +198,30 @@ class TestRendering:
         assert "ROAM risks" in html and "R-9" in html
         assert "Dependencies" not in html          # leere Sektion fehlt
 
+    def test_html_titles_every_governance_section(self) -> None:
+        """Regression (Beta 1b): the HTML page lacked titles for four sections
+        and raised KeyError as soon as one of them carried a change."""
+        prev = _snapshot(PREV_DAY)
+        now = _snapshot(NOW_DAY)
+        now.governance = {**now.governance,
+                          "decision_points": [{"id": "DP-1", "title": "P85 above 30 days",
+                                               "status": "triggered", "solution": "S"}],
+                          "slo": [{"id": "Checkout", "title": "availability",
+                                   "status": "breached", "solution": "S"}],
+                          "solution_areas": [{"id": "SA-3", "title": "Third round",
+                                              "status": "open", "solution": "S"}],
+                          "flow_problems": [{"id": "FP-1", "title": "Approvals",
+                                             "status": "open", "conferences": 3,
+                                             "solution": "S"}]}
+        delta = compute_delta(prev, now)
+        assert all(not delta.governance[s].empty
+                   for s in ("decision_points", "slo", "solution_areas", "flow_problems"))
+        html_en = render_delta_html(delta, lang="en")
+        for title in ("Decision points (alarm register)", "SLOs",
+                      "Solution areas (seams)", "Flow problems (impediment backlog)"):
+            assert title in html_en
+        assert "Entscheidungspunkte (Wecker-Register)" in render_delta_html(delta, lang="de")
+
     def test_markdown_contract(self) -> None:
         md = delta_to_markdown(self._story_delta())
         assert md.splitlines()[0] == "# Delta Briefing — Demo"

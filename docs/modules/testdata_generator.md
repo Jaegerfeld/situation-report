@@ -213,6 +213,32 @@ stands and README — every sub-folder is a complete data room; the root
 holds the full `structure.json` and an index README. A picture across
 portfolios is not a feature yet; the data for it is already laid out.
 
+### Series of stands (beta, step 1b)
+
+The data room ships a **series of stands** instead of two: `--stands N`
+(2–12, default 6), two weeks apart, the last one on the reference date.
+Every stand is a snapshot `snapshots/snapshot_<nn>_<date>.json`;
+`snapshots/stands.json` indexes them (index, date, file), and
+`snapshot_prev.json` / `snapshot_now.json` remain copies of the last two —
+the GUI buttons, the tutorials and the continuation keep working unchanged.
+Every consecutive pair comes as a rendered delta briefing under
+`deltas/delta_<nn>-<nn+1>.md` and `.html`, so a training can open stand 1
+and uncover the story stand by stand.
+
+```bash
+python -m testdata_generator --scenario portfolio --stands 6 --output demo/
+python -m portfolio --delta demo/snapshots/snapshot_02_*.json demo/snapshots/snapshot_03_*.json
+```
+
+Each earlier stand is the same story two weeks younger: 88 % of the issues
+per step and the registers before the "now" events. In the standard story
+the turning points (blocked dependency, new risk, overdue runway gap,
+confidence decay of the weak source) switch on with the last stand — the
+earlier deltas show throughput and alarm movements only. Spreading the
+events across the stands is what the story templates of step 2 add.
+Continuing a data room (`--continue`) appends the new reference as the next
+stand and renders its delta.
+
 ## Realistic stage paths (since 0.38.0)
 
 A real ART does not walk neatly through every stage. Measured on the real ART_A (458 issues,

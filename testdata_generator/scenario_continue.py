@@ -3,7 +3,7 @@
 # Repository:     https://github.com/Jaegerfeld/situation-report
 # KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
 # Erstellt:       13.10.2026
-# Geändert:       13.10.2026
+# Geändert:       26.10.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
@@ -111,6 +111,33 @@ def _continue_art(out: Path, solution: SolutionConfig, member, to_date: date,
     return len(records) - before
 
 
+def _append_stand(out: Path, snapshot_now: Path, to_date: date,
+                  log: Callable[[str], None]) -> None:
+    """
+    Series of stands (Beta 1b): if the data room carries ``stands.json``,
+    the new now becomes stand N+1 and the Delta-Briefing N -> N+1 is
+    rendered. Rooms built before the series (no index) are left as they are.
+    """
+    snapshots_dir = out / "snapshots"
+    index_path = snapshots_dir / "stands.json"
+    if not index_path.is_file():
+        return
+    from .scenario import write_stand_delta, write_stands_index
+
+    index = json.loads(index_path.read_text(encoding="utf-8"))
+    entries = [(int(s["index"]), date.fromisoformat(s["as_of"]), str(s["file"]))
+               for s in index.get("stands", [])]
+    if not entries:
+        return
+    k = entries[-1][0] + 1
+    name = f"snapshot_{k:02d}_{to_date.isoformat()}.json"
+    shutil.copyfile(snapshot_now, snapshots_dir / name)
+    entries.append((k, to_date, name))
+    write_stands_index(snapshots_dir, entries)
+    write_stand_delta(snapshots_dir, out / "deltas", k - 1)
+    log(f"  Stand {k:02d} ({to_date}) an die Reihe angehängt, Delta {k - 1:02d}-{k:02d} gerendert")
+
+
 def continue_portfolio_scenario(
     folder: Path,
     to_date: date,
@@ -164,6 +191,7 @@ def continue_portfolio_scenario(
         save_snapshot(snapshot_now, build_snapshot(
             load_solution_config(portfolio_path), as_of=to_date, log=lambda m: None))
         log(f"  Snapshots rotiert: now ({old_reference}) -> prev, neues now ({to_date})")
+        _append_stand(out, snapshot_now, to_date, log)
 
     readme = out / "README.md"
     if readme.is_file():

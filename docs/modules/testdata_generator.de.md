@@ -216,6 +216,32 @@ Wurzel trägt die ganze `structure.json` und eine Index-README. Ein Lagebild
 über Portfolios hinweg ist noch kein Feature; die Daten dafür liegen schon
 bereit.
 
+### Stände-Reihe (Beta, Schnitt 1b)
+
+Der Datenraum bringt statt zweier Stände eine **Reihe von Ständen** mit:
+`--stands N` (2–12, Standard 6) im 14-Tage-Rhythmus, der letzte auf dem
+Referenzdatum. Jeder Stand ist ein Snapshot `snapshots/snapshot_<nn>_<datum>.json`;
+`snapshots/stands.json` zählt sie auf (Index, Datum, Datei), und
+`snapshot_prev.json` / `snapshot_now.json` bleiben Kopien der letzten beiden —
+GUI-Knöpfe, Tutorials und Fortschreibung arbeiten unverändert. Jedes Folgepaar
+liegt als fertiges Delta-Briefing unter `deltas/delta_<nn>-<nn+1>.md` und
+`.html` bei, so dass eine Schulung mit Stand 1 beginnen und die Geschichte
+Stand für Stand aufdecken kann.
+
+```bash
+python -m testdata_generator --scenario portfolio --stands 6 --output demo/
+python -m portfolio --delta demo/snapshots/snapshot_02_*.json demo/snapshots/snapshot_03_*.json
+```
+
+Jeder frühere Stand ist dieselbe Geschichte zwei Wochen jünger: 88 % der
+Vorgänge je Schritt und die Register vor den „jetzt"-Ereignissen. In der
+Standard-Lage schalten die Wendungen (blockierte Abhängigkeit, neues Risiko,
+überfällige Runway-Lücke, Konfidenz-Verfall der schwachen Quelle) mit dem
+letzten Stand — die früheren Deltas zeigen Durchsatz und Wecker-Bewegungen.
+Die Verteilung der Ereignisse über die Stände bringen die Geschichts-Vorlagen
+in Schnitt 2. Die Fortschreibung (`--continue`) hängt das neue Referenzdatum
+als nächsten Stand an und rendert sein Delta.
+
 ## Realistische Statuswege (seit 0.38.0)
 
 Ein echter ART läuft nicht brav durch alle Stufen. Gemessen am echten ART_A (458 Vorgänge,
