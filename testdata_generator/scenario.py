@@ -405,6 +405,17 @@ def parse_art_profile_entries(
 STORY_NOW = "now"
 STORY_PREV = "prev"
 
+#: Step-wise progress of a build: (step id, state, detail). The ids are the
+#: nine steps of the UI prototype (see dataspace.STEPS); states are
+#: "running" and "done". None = no reporting (temp stand builds).
+ProgressHook = Callable[[str, str, str], None]
+
+
+def _emit(progress: ProgressHook | None, step: str, state: str, detail: str = "") -> None:
+    if progress is not None:
+        progress(step, state, detail)
+
+
 #: Series of stands (E3, 26.10.2026): the data room ships N stands, two
 #: weeks apart, the last one being the reference date; snapshot_prev/now
 #: stay as aliases of the last two. Every earlier stand is the same story
@@ -1445,6 +1456,7 @@ def _build_stand_series(
     log: Callable[[str], None],
     template: str = STORY_STANDARD,
     switches: dict[str, bool] | None = None,
+    progress: ProgressHook | None = None,
 ) -> dict[str, Any]:
     """
     Freeze the N stands of the data room and render the N-1 Delta-Briefings.
@@ -1466,6 +1478,7 @@ def _build_stand_series(
     snapshots_dir = out / "snapshots"
     deltas_dir = out / "deltas"
     log(f"  Stände-Reihe: {stands} Stände im {STAND_INTERVAL_DAYS}-Tage-Rhythmus ...")
+    _emit(progress, "stands", "running", f"{stands} Stände")
     entries: list[tuple[int, date, str]] = []
     snapshot_paths: list[Path] = []
     for k, day in enumerate(stand_dates, start=1):
@@ -1493,10 +1506,13 @@ def _build_stand_series(
     shutil.copyfile(snapshot_paths[-2], snapshots_dir / "snapshot_prev.json")
     shutil.copyfile(snapshot_paths[-1], snapshots_dir / "snapshot_now.json")
     stands_index = write_stands_index(snapshots_dir, entries)
+    _emit(progress, "stands", "done", f"{stands} Stände, {stand_dates[0]} bis {stand_dates[-1]}")
+    _emit(progress, "deltas", "running", f"{stands - 1} Folgepaare")
     deltas: list[tuple[Path, Path]] = []
     for k in range(1, stands):
         deltas.append(write_stand_delta(snapshots_dir, deltas_dir, k, lang))
     log(f"  Delta-Briefings: {len(deltas)} Folgepaare unter deltas/")
+    _emit(progress, "deltas", "done", f"{len(deltas)} Delta-Briefings (md + html)")
     return {"stands": stands_index, "snapshots": snapshot_paths, "deltas": deltas}
 
 
@@ -1588,6 +1604,7 @@ def _build_portfolio(
     template: str = STORY_STANDARD,
     switches: dict[str, bool] | None = None,
     stand_index: int | None = None,
+    progress: ProgressHook | None = None,
 ) -> dict[str, Any]:
     """
     Generate one portfolio's data room into ``out`` (see build_portfolio_scenario).
@@ -1612,21 +1629,28 @@ def _build_portfolio(
         wf_file.write_text(_workflow_text(solution.workflow), encoding="utf-8")
         workflow_files[solution.key] = wf_file
 
+    _emit(progress, "story", "running", spec.name)
     binding = bind_roles(spec)
     tags = _solution_tags(spec)
     story_data = story_for(template, binding, tags, stands, switches)
     this_stand = stands if stand_index is None else stand_index
     active = story_data.active_events(this_stand)
+    _emit(progress, "story", "done",
+          f"{spec.name}: {story_data.title}, {len(spec.solutions)} Solutions, "
+          f"{len(spec.arts)} ARTs")
+    _emit(progress, "arts", "running", f"{len(spec.arts)} ARTs")
     members = _generate_arts(
         out, spec, workflow_files,
         _profiles(story, art_profiles, spec, binding, issue_scale, active),
         seed, reference, window_days, log)
+    _emit(progress, "arts", "done", f"{len(spec.arts)} Jira-Exporte, Arbeitsmappen")
 
     # Story-Anker (rollengebunden, Position 0 und 1) + seed-generierte
     # Grundmenge (register_gen, Skala S/M/L) je Solution.
     host_names = _names(spec.solutions[0], tags[spec.solutions[0].short])
     second_names = (_names(spec.solutions[1], tags[spec.solutions[1].short])
                     if len(spec.solutions) > 1 else None)
+    _emit(progress, "registers", "running", f"{len(spec.solutions)} Solutions")
     register_paths: dict[str, Path] = {}
     registers_by_key: dict[str, dict[str, object]] = {}
     for index, solution in enumerate(spec.solutions):
@@ -1644,6 +1668,9 @@ def _build_portfolio(
             _SAVERS[name](target, regs[name])
             register_paths[f"{name}_{solution.key}"] = target
 
+    _emit(progress, "registers", "done",
+          f"{len(REGISTER_NAMES) * len(spec.solutions)} Register")
+    _emit(progress, "configs", "running")
     _registers = {r: f"registers/{r}.json" for r in REGISTER_NAMES}
     solution_paths: dict[str, Path] = {}
     for solution in spec.solutions:
@@ -1671,6 +1698,8 @@ def _build_portfolio(
     save_structure(structure_path, Structure([spec]))
     story_path = out / "story.json"
     save_story(story_path, story_data)
+    _emit(progress, "configs", "done",
+          "portfolio.json, solution.json je Solution, pi_config, structure, story")
     if story == STORY_NOW:
         for notice in story_data.notices:
             log(f"  Hinweis: {notice}")
@@ -1680,12 +1709,17 @@ def _build_portfolio(
     sources_info: dict[str, dict[str, Any]] = {}
     if story == STORY_NOW:
         # E4: Provider-Rohdaten in Systemformaten + sources-Configs je Solution.
+        _emit(progress, "sources", "running")
         sources_info = write_source_inputs(out, spec, registers_by_key, reference, log)
+        _emit(progress, "sources", "done",
+              f"{sum(1 for i in sources_info.values() if i.get('configs'))} Solutions mit Rohdaten")
+    _emit(progress, "readme", "running")
     readme = out / "README.md"
     readme.write_text(_readme_text(spec, story_data, seed, reference, scale,
                                    stand_dates if story == STORY_NOW else [],
                                    sources_info),
                       encoding="utf-8")
+    _emit(progress, "readme", "done", "README.md")
 
     snapshot_prev = out / "snapshots" / "snapshot_prev.json"
     snapshot_now = out / "snapshots" / "snapshot_now.json"
@@ -1693,7 +1727,7 @@ def _build_portfolio(
     if story == STORY_NOW:
         series = _build_stand_series(
             out, spec, seed, reference, window_days, scale, art_profiles,
-            stands, stand_dates, lang, log, template, switches)
+            stands, stand_dates, lang, log, template, switches, progress)
 
     paths: dict[str, Any] = {
         "portfolio": portfolio_cfg, "pi_config": pi_cfg, "readme": readme,
@@ -1727,6 +1761,7 @@ def build_portfolio_scenario(
     lang: str = DEFAULT_LANG,
     template: str = STORY_STANDARD,
     switches: dict[str, bool] | None = None,
+    progress: ProgressHook | None = None,
 ) -> dict[str, Any]:
     """
     Generate the complete demo data room into ``output_dir``.
@@ -1758,6 +1793,8 @@ def build_portfolio_scenario(
                      "escalation" or "recovery" — decides which events the
                      stands show and when they switch on or off.
         switches:    Per-event overrides of the template ({"E3": False}).
+        progress:    Step hook (step id, "running"|"done", detail) — the UI's
+                     progress list; None = none.
 
     Returns:
         One portfolio: the key output paths — "portfolio", "pi_config",
@@ -1789,7 +1826,8 @@ def build_portfolio_scenario(
         paths = _build_portfolio(out, structure.portfolios[0], seed, reference,
                                  window_days, log, story, scale, art_profiles,
                                  stands=stands, lang=lang, template=template,
-                                 switches=switches, stand_index=stand_index)
+                                 switches=switches, stand_index=stand_index,
+                                 progress=progress)
         log(f"Szenario komplett: {out}")
         return paths
 
@@ -1800,7 +1838,7 @@ def build_portfolio_scenario(
         per_portfolio[spec.key] = _build_portfolio(
             out / spec.key, spec, seed, reference, window_days, log, story,
             scale, art_profiles, stands=stands, lang=lang, template=template,
-            switches=switches, stand_index=stand_index)
+            switches=switches, stand_index=stand_index, progress=progress)
     structure_path = out / "structure.json"
     save_structure(structure_path, structure)
     readme = out / "README.md"

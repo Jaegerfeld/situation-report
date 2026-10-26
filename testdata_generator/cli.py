@@ -286,8 +286,8 @@ def _run_scenario(args: argparse.Namespace, parser: argparse.ArgumentParser) -> 
     """--scenario portfolio: resolve the structure, print the estimate, build."""
     import json as _json
 
-    from .scenario import build_portfolio_scenario
-    from .structure import estimate, resolve_structure, structure_from_arts_spec
+    from .dataspace import GenerationRequest, estimate_request, generate_dataspace
+    from .structure import resolve_structure, structure_from_arts_spec
     out_dir = args.output if args.output else Path("demo_portfolio")
     art_profiles = None
     if args.art_profiles is not None:
@@ -301,16 +301,20 @@ def _run_scenario(args: argparse.Namespace, parser: argparse.ArgumentParser) -> 
     except (ValueError, OSError) as exc:
         parser.error(f"structure: {exc}")
     from .scenario import MAX_STANDS, MIN_STANDS
-    from .story import SUGGESTED_STANDS, TEMPLATE_STANDARD, parse_switches
+    from .story import TEMPLATE_STANDARD, parse_switches
     template = args.story or TEMPLATE_STANDARD
     try:
         switches = parse_switches(args.event)
     except ValueError as exc:
         parser.error(str(exc))
-    stands = SUGGESTED_STANDS[template] if args.stands is None else args.stands
+    request = GenerationRequest(
+        output_dir=Path(out_dir), structure=structure, template=template, switches=switches,
+        stands=args.stands, scale=args.scale, seed=args.seed if args.seed is not None else 42,
+        art_profiles=art_profiles, ai_drafts=args.ai_drafts)
+    stands = request.resolved_stands()
     if not MIN_STANDS <= stands <= MAX_STANDS:
         parser.error(f"--stands must be {MIN_STANDS}..{MAX_STANDS}, got {stands}.")
-    est = estimate(structure, stands=stands, scale=args.scale)
+    est = estimate_request(request)
     switch_text = ", ".join(f"{k}={'on' if v else 'off'}" for k, v in switches.items())
     print(f"Struktur: {structure.describe()} — {est.jira_exports} Jira-Exporte, "
           f"{est.workbooks} Arbeitsmappen, {est.registers} Register, "
@@ -319,10 +323,12 @@ def _run_scenario(args: argparse.Namespace, parser: argparse.ArgumentParser) -> 
     if est.warn:
         print(f"WARNUNG: grosse Struktur ({est.warn_reason}) — Erzeugung dauert "
               f"entsprechend.", file=sys.stderr)
-    build_portfolio_scenario(
-        Path(out_dir), seed=args.seed if args.seed is not None else 42,
-        scale=args.scale, art_profiles=art_profiles, structure=structure,
-        stands=stands, template=template, switches=switches)
+    result = generate_dataspace(request, log=print)
+    print(f"Datenraum: {result.issues} Vorgänge, {result.registers} Register, "
+          f"{result.stands} Stände, {result.deltas} Delta-Briefings, "
+          f"{result.providers} Quellen-Arten"
+          + (f", KI-Entwürfe in {len(result.ai_drafts)} Ordner(n)" if result.ai_drafts else "")
+          + f" — {result.elapsed_s} s")
 
 
 def main() -> None:
@@ -359,6 +365,10 @@ def main() -> None:
                              "--event E3=off --event E9=on (ids E1-E10, see story.json). "
                              "Repeatable; an event whose prerequisite is off stays off "
                              "with a notice.")
+    parser.add_argument("--ai-drafts", action="store_true", dest="ai_drafts",
+                        help="With --scenario: also write mock AI drafts (spoken briefing, "
+                             "three answers, a prompt bundle and a wrong practice answer "
+                             "for llm check) into ai_drafts/ — off by default (F3).")
     parser.add_argument("--stands", type=int, default=None, metavar="N",
                         help="With --scenario: number of stands in the series "
                              "(2-12, default 6), two weeks apart, the last one on "

@@ -74,6 +74,22 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   (wiederholbar); README zählt die Ereignisse mit Stand-Fenster, abgeschaltete als „aus". Die
   Standard-Lage erzeugt weiterhin exakt die bisherigen Daten (Bestandstests grün). Schema-1-Dateien
   (`when`) werden weiter gelesen.
+- **Dienstschicht des Datenraums (Beta-Schnitt 3a) und KI-Entwürfe (Entscheidung F3).** Neu
+  `testdata_generator/dataspace.py`: `GenerationRequest` (Struktur, Vorlage, Schalter, Stände,
+  Umfang, Seed, Referenzdatum, Sprache, ART-Profile, KI-Entwürfe), `estimate_request()`,
+  `generate_dataspace(request, progress, log, cancel)` mit Fortschritt je Teilschritt in der
+  Reihenfolge des Prototyps (Struktur und Geschichte, Jira-Exporte, Register, Konfigurationen,
+  Provider-Rohdaten, README, Stände, Delta-Briefings, KI-Entwürfe), Abbruch zwischen Schritten und
+  `GenerationResult` mit den Zahlen der Ergebniskarte (Vorgänge, Register, Stände, Deltas,
+  Quellen-Arten, Dauer). Jede Oberfläche sitzt auf dieser Schicht; die Kommandozeile läuft bereits
+  darüber. `build_portfolio_scenario(..., progress=...)` meldet die Schritte. Neu
+  `testdata_generator/ai_drafts.py` (**nur mit Schalter, standardmäßig aus**: `--ai-drafts`):
+  mit dem Mock-Provider entstehen in `ai_drafts/` ein Einseiter mit Lagevortrag-Entwurf (M6), drei
+  Antworten auf Fragen ans Lagebild (D3), ein Prompt-Bündel (Export-Weg) und eine Übungsantwort mit
+  absichtlich falschen Zahlen, die `llm check` zurückweist — zum Schulen von Marker, Freigabe und
+  Rückweg. Alle Entwürfe tragen den KI-Marker, keiner ist freigegeben; der Nachweis liegt in
+  `ai_drafts/llm_audit.jsonl`, getrennt von der Betreiber-Ebene; Eingabe (Datenraum) und Ergebnis
+  (Entwürfe) bleiben in getrennten Ordnern.
 
 ### Fixed
 - **Delta-Briefing (HTML): vier Register-Abschnitte ohne Überschrift.** Die HTML-Seite kannte keine

@@ -295,6 +295,30 @@ The README lists every event with its stand window ("ab Stand 04", "Stand
 01 bis 04") and marks switched-off events as "aus". The standard template
 still produces exactly the data of before.
 
+### Service layer and AI drafts (beta, step 3a)
+
+Every user interface sits on one service layer, `testdata_generator/dataspace.py`:
+a `GenerationRequest` holds what the three UI steps collect (structure,
+story template and switches, stands, scale, seed, reference date, language,
+ART profiles, AI drafts), `estimate_request()` returns the "what you get"
+numbers, and `generate_dataspace(request, progress, log, cancel)` runs the
+generator with a progress event per step in the prototype's order —
+structure and story, Jira exports, registers, configurations, provider raw
+data, README, stands, delta briefings, AI drafts — a cancel hook between
+steps and a `GenerationResult` with the result card's numbers (issues,
+registers, stands, deltas, source kinds, seconds). The command line already
+runs through it; the UI of step 3b will too.
+
+**AI drafts (decision F3, off by default, `--ai-drafts`):** with the mock
+provider — no model, no installation — the data room gets a folder
+`ai_drafts/` holding a one-pager with the spoken-briefing draft (M6), three
+answers to questions about the picture (D3), an exported prompt bundle and a
+practice answer with deliberately wrong numbers that `llm check` rejects.
+Every draft carries the AI marker, none is approved, the evidence log sits
+in `ai_drafts/llm_audit.jsonl` — input (the data room) and output (the
+drafts) stay in separate folders. `ai_drafts/uebung_README.md` walks through
+the return-path exercise.
+
 ## Realistic stage paths (since 0.38.0)
 
 A real ART does not walk neatly through every stage. Measured on the real ART_A (458 issues,
