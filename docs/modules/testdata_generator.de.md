@@ -300,6 +300,31 @@ Die README zählt jedes Ereignis mit seinem Stand-Fenster („ab Stand 04",
 „Stand 01 bis 04") und markiert abgeschaltete als „aus". Die Standard-Lage
 erzeugt weiterhin exakt die bisherigen Daten.
 
+### Dienstschicht und KI-Entwürfe (Beta, Schnitt 3a)
+
+Jede Oberfläche sitzt auf einer Dienstschicht, `testdata_generator/dataspace.py`:
+ein `GenerationRequest` trägt, was die drei Schritte der Oberfläche sammeln
+(Struktur, Geschichts-Vorlage und Schalter, Stände, Umfang, Seed,
+Referenzdatum, Sprache, ART-Profile, KI-Entwürfe), `estimate_request()`
+liefert die Zahlen für „Was entsteht", und `generate_dataspace(request,
+progress, log, cancel)` lässt den Generator mit einem Fortschrittsereignis je
+Teilschritt in der Reihenfolge des Prototyps laufen — Struktur und
+Geschichte, Jira-Exporte, Register, Konfigurationen, Provider-Rohdaten,
+README, Stände, Delta-Briefings, KI-Entwürfe — mit Abbruch zwischen den
+Schritten und einem `GenerationResult` mit den Zahlen der Ergebniskarte
+(Vorgänge, Register, Stände, Deltas, Quellen-Arten, Sekunden). Die
+Kommandozeile läuft bereits darüber; die Oberfläche aus Schnitt 3b ebenso.
+
+**KI-Entwürfe (Entscheidung F3, standardmäßig aus, `--ai-drafts`):** mit dem
+Mock-Provider — kein Modell, keine Installation — bekommt der Datenraum einen
+Ordner `ai_drafts/` mit Einseiter und Lagevortrag-Entwurf (M6), drei
+Antworten auf Fragen ans Lagebild (D3), einem exportierten Prompt-Bündel und
+einer Übungsantwort mit absichtlich falschen Zahlen, die `llm check`
+zurückweist. Jeder Entwurf trägt den KI-Marker, keiner ist freigegeben, der
+Nachweis liegt in `ai_drafts/llm_audit.jsonl` — Eingabe (Datenraum) und
+Ergebnis (Entwürfe) bleiben in getrennten Ordnern.
+`ai_drafts/uebung_README.md` führt durch die Rückweg-Übung.
+
 ## Realistische Statuswege (seit 0.38.0)
 
 Ein echter ART läuft nicht brav durch alle Stufen. Gemessen am echten ART_A (458 Vorgänge,

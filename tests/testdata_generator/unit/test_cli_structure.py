@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import json
 import sys
+from types import SimpleNamespace
 
 import pytest
 
@@ -99,6 +100,15 @@ class TestScenarioStructureFlags:
         text = capsys.readouterr().out
         assert "Geschichte: calm, Schalter E6=on" in text and "3 Stände" in text
 
+    def test_ai_drafts_flag_and_result_line(self, tmp_path, monkeypatch, capsys) -> None:
+        out = tmp_path / "room"
+        _run(monkeypatch, "--scenario", "portfolio", "--arts", "2,1", "--stands", "2",
+             "--scale", "s", "--ai-drafts", "--output", str(out))
+        assert (out / "ai_drafts" / "uebung_README.md").is_file()
+        text = capsys.readouterr().out
+        assert "Datenraum:" in text and "KI-Entwürfe in 1 Ordner(n)" in text
+        assert "2 Stände, 1 Delta-Briefings" in text
+
     def test_bad_event_switch_is_a_usage_error(self, tmp_path, monkeypatch, capsys) -> None:
         with pytest.raises(SystemExit) as exc:
             _run(monkeypatch, "--scenario", "portfolio", "--arts", "1", "--event", "E42=on",
@@ -108,15 +118,20 @@ class TestScenarioStructureFlags:
 
     def test_large_template_warns_before_building(self, tmp_path, monkeypatch, capsys) -> None:
         # Do not build 49 ARTs in a unit test: stop right after the estimate.
-        import testdata_generator.scenario as scenario
+        import testdata_generator.dataspace as dataspace
 
-        calls: list[dict] = []
-        monkeypatch.setattr(scenario, "build_portfolio_scenario",
-                            lambda *a, **kw: calls.append(kw))
+        calls: list = []
+
+        def fake_generate(request, **_kw):
+            calls.append(request)
+            return SimpleNamespace(issues=0, registers=0, stands=0, deltas=0, providers=0,
+                                   ai_drafts=[], elapsed_s=0.0)
+
+        monkeypatch.setattr(dataspace, "generate_dataspace", fake_generate)
         _run(monkeypatch, "--scenario", "portfolio", "--structure", TEMPLATE_LARGE,
              "--output", str(tmp_path / "x"))
         captured = capsys.readouterr()
         assert "WARNUNG" in captured.err and "ARTs" in captured.err
         assert "5 Portfolios" in captured.out
         assert len(calls) == 1
-        assert calls[0]["structure"].n_arts == structure_template(TEMPLATE_LARGE).n_arts
+        assert calls[0].structure.n_arts == structure_template(TEMPLATE_LARGE).n_arts
