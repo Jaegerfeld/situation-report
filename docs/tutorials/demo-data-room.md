@@ -52,6 +52,10 @@ it with Ctrl+C in the window you started from.
 The UI is German or English (`--lang de`); `--no-browser` only prints the link,
 `--port 8765` fixes the port.
 
+Without a command line: start the card **"Data room (browser)"** in the launcher
+(`SituationReport.bat`); the portable package also ships `DatenraumBrowser.bat` for it
+(macOS/Linux: `DatenraumBrowser.command` / `.sh`).
+
 ### 2.2 Step 1 — Scenario
 
 ![Step 1: template, events and structure](../beta/testdaten-generator_web_schritt1.jpg)

@@ -28,7 +28,9 @@ _WORKFLOWS = [
 ]
 
 # Modules a launcher button can actually start. These MUST be bundled.
-_AVAILABLE_MODULES = sorted(e.module_id for e in _MODULES if e.available)
+# The module python -m actually runs (a card may be a second entry of one
+# module, e.g. the data room's browser UI runs testdata_generator --web).
+_AVAILABLE_MODULES = sorted({e.argv[0] for e in _MODULES if e.available})
 
 
 @pytest.fixture(scope="module")

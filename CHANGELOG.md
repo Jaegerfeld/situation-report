@@ -114,6 +114,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   Fehlerbilder, Befehle auf einen Blick. PDF DE/EN (`dataspace_Tutorial_DE/EN.pdf`) über
   `docs/generate_dataspace_tutorial.py`, das den Markdown→PDF-Konverter des Ask-Tutorials nutzt.
   Verlinkt im mkdocs-Menü und im Modul testdata_generator.
+- **Launcher-Karte „Datenraum (Browser)" und Tester-Paket.** Der Launcher zeigt auf der
+  Solution-Seite eine neunte Karte, die `python -m testdata_generator --web` startet
+  (`_ModuleEntry.command`, Texte in fünf Sprachen). Die Bündel-Workflows (Dev Build, Release)
+  legen `DatenraumBrowser.bat` / `.command` / `.sh` bei, kopieren das Tutorial
+  „Demo-Datenraum in einer Minute" und `TESTER.md` (Hinweise für Tester: Entpacken, die Minute,
+  was wir wissen wollen, bekannte Grenzen) ins Paket. Der Dev Build lässt sich jetzt **von jedem
+  Branch manuell starten** (`workflow_dispatch`); die drei Bündel liegen dann als Run-Artefakte
+  vor, das öffentliche `dev-latest`-Release wird weiterhin nur von Pushes auf `main` aktualisiert.
 
 ### Fixed
 - **Delta-Briefing (HTML): vier Register-Abschnitte ohne Überschrift.** Die HTML-Seite kannte keine

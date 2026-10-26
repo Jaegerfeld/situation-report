@@ -137,6 +137,8 @@ _T: dict[str, dict[str, str]] = {
         "mod_harmonisation_desc":         "Harmonisierungs-Score je E2E-Prozess",
         "mod_testdata_generator_name":    "Testdata Generator",
         "mod_testdata_generator_desc":    "Synthetische Testdaten erstellen",
+        "mod_dataspace_name":             "Datenraum (Browser)",
+        "mod_dataspace_desc":             "Demo-Datenraum in drei Schritten im Browser erzeugen",
         "mod_helper_name":                "Helper",
         "mod_helper_desc":                "JSON-Dateien zusammenführen",
         "mod_portfolio_name":             "Solutions & Portfolios",
@@ -188,6 +190,8 @@ _T: dict[str, dict[str, str]] = {
         "mod_harmonisation_desc":         "Harmonisation score per E2E process",
         "mod_testdata_generator_name":    "Testdata Generator",
         "mod_testdata_generator_desc":    "Generate synthetic test data",
+        "mod_dataspace_name":             "Data room (browser)",
+        "mod_dataspace_desc":             "Generate a demo data room in three steps in the browser",
         "mod_helper_name":                "Helper",
         "mod_helper_desc":                "Merge JSON files",
         "mod_portfolio_name":             "Solutions & Portfolios",
@@ -238,6 +242,8 @@ _T: dict[str, dict[str, str]] = {
         "mod_harmonisation_desc":         "Scor de armonizare per proces E2E",
         "mod_testdata_generator_name":    "Testdata Generator",
         "mod_testdata_generator_desc":    "Generare date de test sintetice",
+        "mod_dataspace_name":             "Spațiu de date (browser)",
+        "mod_dataspace_desc":             "Generează un spațiu de date demo în trei pași în browser",
         "mod_helper_name":                "Helper",
         "mod_helper_desc":                "Combinare fișiere JSON",
         "mod_portfolio_name":             "Solutions & Portfolios",
@@ -289,6 +295,8 @@ _T: dict[str, dict[str, str]] = {
         "mod_harmonisation_desc":         "Score de harmonização por processo E2E",
         "mod_testdata_generator_name":    "Testdata Generator",
         "mod_testdata_generator_desc":    "Gerar dados de teste sintéticos",
+        "mod_dataspace_name":             "Sala de dados (browser)",
+        "mod_dataspace_desc":             "Gerar uma sala de dados demo em três passos no browser",
         "mod_helper_name":                "Helper",
         "mod_helper_desc":                "Combinar ficheiros JSON",
         "mod_portfolio_name":             "Solutions & Portfolios",
@@ -340,6 +348,8 @@ _T: dict[str, dict[str, str]] = {
         "mod_harmonisation_desc":         "Score d'harmonisation par processus E2E",
         "mod_testdata_generator_name":    "Testdata Generator",
         "mod_testdata_generator_desc":    "Générer des données de test synthétiques",
+        "mod_dataspace_name":             "Espace de données (navigateur)",
+        "mod_dataspace_desc":             "Générer un espace de données démo en trois étapes dans le navigateur",
         "mod_helper_name":                "Helper",
         "mod_helper_desc":                "Fusionner des fichiers JSON",
         "mod_portfolio_name":             "Solutions & Portfolios",
@@ -385,10 +395,19 @@ class _ModuleEntry:
     # Which side of the split entry UI the card belongs to:
     # "solution" = left (Large Solutions / Portfolios), "art" = right (ART / team-group tools).
     section: Literal["solution", "art"] = "art"
+    # What "python -m" runs; None = the module_id itself. Lets one module offer
+    # two entries (the tkinter window and the browser UI of the data room).
+    command: tuple[str, ...] | None = None
+
+    @property
+    def argv(self) -> list[str]:
+        return list(self.command) if self.command else [self.module_id]
 
 
 _MODULES: list[_ModuleEntry] = [
     _ModuleEntry("portfolio",          "🗂️", True,  "alpha", section="solution"),
+    _ModuleEntry("dataspace",          "🧭", True,  "beta",  section="solution",
+                 command=("testdata_generator", "--web")),
     _ModuleEntry("harmonisation",      "⚖️", True,  "alpha", section="solution"),
     _ModuleEntry("transform_data",     "🔄", True,  "beta"),
     _ModuleEntry("build_reports",      "📊", True,  "beta"),
@@ -828,7 +847,9 @@ class LauncherApp(tk.Tk):
         log = tempfile.NamedTemporaryFile(prefix=f"sr_{module_id}_", suffix=".log",
                                           delete=False)
         try:
-            proc = subprocess.Popen([sys.executable, "-m", module_id], stderr=log)
+            entry = next((e for e in _MODULES if e.module_id == module_id), None)
+            argv = entry.argv if entry is not None else [module_id]
+            proc = subprocess.Popen([sys.executable, "-m", *argv], stderr=log)
         except OSError as exc:
             log.close()
             self._set_launching(btn, False)
