@@ -3,17 +3,25 @@
 # Repository:     https://github.com/Jaegerfeld/situation-report
 # KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
 # Erstellt:       02.09.2026
-# Geändert:       05.09.2026
+# Geändert:       26.10.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
-#   Portfolio-Szenario: erzeugt ein vollständiges, konsistentes Demo-Portfolio
-#   (2 Solutions × 3 ARTs) mit allen Artefakten der Kette — Workflow-Dateien,
+#   Portfolio-Szenario: erzeugt einen vollständigen, konsistenten Demo-
+#   Datenraum mit allen Artefakten der Kette — Workflow-Dateien,
 #   Jira-JSON (Generator), IssueTimes/CFD/Transitions (transform_data),
 #   Solution-Configs (eine mit stage_map, Schema 2), Portfolio-Config und
 #   PI-Config. Deterministisch über Seed; die Daten liegen relativ zu einem
 #   Referenzdatum (Standard: heute), damit die Konfidenz-Ampel des
 #   Portfolio-Reports nicht alles als veraltet einstuft.
+#
+#   Seit der Beta (Schnitt 1a, 26.10.2026) ist die Struktur Daten
+#   (structure.py: beliebig viele Portfolios, Solutions, ARTs) und die
+#   Geschichte bindet an Rollen (story.py): die erste Solution trägt den
+#   Ausreißer, die zweite die schwache Quelle. Ohne Struktur entsteht die
+#   Standard-Vorlage 1 Portfolio · 2 Solutions · je 3 ARTs — dieselben
+#   Daten wie bisher. Die eingebaute Geschichte („Standard-Lage") am
+#   Beispiel der Standard-Vorlage:
 #
 #   Eingebaute Geschichten für die Demo:
 #   - "Alpha-3" ist der Ausreißer (Cycle Time ~3x) → A3-Hervorhebung.
@@ -44,6 +52,7 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import UTC, date, datetime, timedelta
 from pathlib import Path
+from typing import Any
 
 from portfolio.capability_config import (
     HEALTH_AT_RISK,
@@ -145,6 +154,28 @@ from .generator import (
     PATTERN_TRIANGLE,
     GeneratorConfig,
     generate,
+)
+from .story import (
+    ROLE_OUTLIER_ART,
+    ROLE_WEAK_SOURCE_ART,
+    WHEN_NOW,
+    RoleBinding,
+    Story,
+    bind_roles,
+    save_story,
+    standard_story,
+)
+from .structure import (
+    REGISTER_NAMES,
+    TEMPLATE_STANDARD,
+    WORKFLOW_CLASSIC,
+    WORKFLOW_STAGE_MAP,
+    PortfolioSpec,
+    SolutionSpec,
+    Structure,
+    save_structure,
+    structure_template,
+    validate,
 )
 
 #: Workflow der Alpha-ARTs (klassische Namen; Solution Alpha nutzt den
@@ -358,291 +389,400 @@ def parse_art_profile_entries(
 STORY_NOW = "now"
 STORY_PREV = "prev"
 
+#: Cycle-time means of the ordinary ARTs in order of appearance
+#: (solution j, ART i -> pool[(2·j + i) % len]); reproduces the demo
+#: portfolio's 12/16 (Alpha-1/-2) and 14/18 (Beta-1/-2).
+_CYCLE_POOL = (12, 16, 14, 18, 15, 13, 17, 11, 19, 10)
+#: The outlier's mean cycle time (~3x its sister ARTs).
+_OUTLIER_CYCLE_DAYS = 45
+
+
+def _workflow_text(kind: str) -> str:
+    return _WORKFLOW_BETA if kind == WORKFLOW_STAGE_MAP else _WORKFLOW_ALPHA
+
 
 def _profiles(
     story: str = STORY_NOW,
     art_profiles: dict[str, dict] | None = None,
+    portfolio: PortfolioSpec | None = None,
+    binding: RoleBinding | None = None,
 ) -> list[tuple[str, _ArtProfile]]:
     """
-    (solution key, profile) pairs for the six demo ARTs.
+    (solution key, profile) pairs for every ART of the portfolio.
+
+    Without ``portfolio`` the standard structure (2 solutions × 3 ARTs) is
+    used — the demo portfolio of all releases so far. The roles from
+    ``binding`` (bind_roles) decide the story profiles: the outlier gets
+    the ~3x cycle time, the weak source the data gaps (few first dates,
+    no CFD, data 60 days stale, fewer issues); everything else draws its
+    mean from _CYCLE_POOL by position.
 
     ``art_profiles`` overrides individual fields per ART (see
     apply_art_overrides) — explicit overrides win in both stands.
     ``story=STORY_PREV`` yields the same world two weeks earlier for the
-    Delta-Briefing demo (D2): fewer issues per ART (the throughput
-    since; 88 % of the possibly overridden count), and Beta-3's data
-    gaps were smaller back then (confidence medium — the decay to low is
-    part of the story; skipped when todo_rate is overridden).
+    Delta-Briefing demo (D2): fewer issues per ART (88 % of the possibly
+    overridden count), and the weak source's data gaps were smaller back
+    then (confidence medium — the decay to low is part of the story;
+    skipped when todo_rate is overridden).
     """
-    base = [
-        ("alpha", _ArtProfile("Alpha-1", _WORKFLOW_ALPHA,
-                              mean_cycle_days=12)),
-        ("alpha", _ArtProfile("Alpha-2", _WORKFLOW_ALPHA,
-                              mean_cycle_days=16)),
-        # Der Ausreißer: Cycle Time ~3x der Schwester-ARTs (A3-Hervorhebung).
-        ("alpha", _ArtProfile("Alpha-3", _WORKFLOW_ALPHA,
-                              mean_cycle_days=45)),
-        ("beta", _ArtProfile("Beta-1", _WORKFLOW_BETA, mean_cycle_days=14)),
-        ("beta", _ArtProfile("Beta-2", _WORKFLOW_BETA, mean_cycle_days=18)),
-        # Die schwache Quelle: kaum begonnene Issues (kein First Date), kein
-        # CFD, Datenstand 60 Tage alt (A1-Ampel low, Abdeckung < 100 %).
-        ("beta", _ArtProfile("Beta-3", _WORKFLOW_BETA, mean_cycle_days=15,
-                             completion_rate=0.15, todo_rate=0.8,
-                             stale_days=60, write_cfd=False,
-                             issue_count=60)),
-    ]
+    portfolio = portfolio or structure_template(TEMPLATE_STANDARD).portfolios[0]
+    binding = binding or bind_roles(portfolio)
+    outlier = binding.art(ROLE_OUTLIER_ART)
+    weak = binding.art(ROLE_WEAK_SOURCE_ART)
+    base: list[tuple[str, _ArtProfile]] = []
+    for j, solution in enumerate(portfolio.solutions):
+        wf = _workflow_text(solution.workflow)
+        for i, art in enumerate(solution.arts):
+            if art == outlier:
+                # Der Ausreißer: Cycle Time ~3x der Schwester-ARTs (A3).
+                profile = _ArtProfile(art, wf,
+                                      mean_cycle_days=_OUTLIER_CYCLE_DAYS)
+            elif art == weak:
+                # Die schwache Quelle: kaum begonnene Issues (kein First
+                # Date), kein CFD, Datenstand 60 Tage alt (A1-Ampel low).
+                profile = _ArtProfile(art, wf, mean_cycle_days=15,
+                                      completion_rate=0.15, todo_rate=0.8,
+                                      stale_days=60, write_cfd=False,
+                                      issue_count=60)
+            else:
+                profile = _ArtProfile(
+                    art, wf,
+                    mean_cycle_days=_CYCLE_POOL[(2 * j + i) % len(_CYCLE_POOL)])
+            base.append((solution.key, profile))
     merged = apply_art_overrides(base, art_profiles)
     if story != STORY_PREV:
         return merged
     result: list[tuple[str, _ArtProfile]] = []
     for solution_key, profile in merged:
         updates: dict = {"issue_count": int(profile.issue_count * 0.88)}
-        if (profile.name == "Beta-3"
-                and "todo_rate" not in (art_profiles or {}).get(
-                    "Beta-3", {})):
+        if (weak is not None and profile.name == weak
+                and "todo_rate" not in (art_profiles or {}).get(weak, {})):
             updates["todo_rate"] = 0.45
         result.append((solution_key,
                        dataclasses.replace(profile, **updates)))
     return result
 
 
-def _alpha_risks(reference: date) -> RiskRegister:
-    """ROAM register of Solution Alpha: healthy spread, one aging owned risk."""
+# --- Story anchors, bound to roles -------------------------------------------
+
+@dataclass(frozen=True)
+class _Names:
+    """
+    Names and ID tag of one solution as the anchors see them.
+
+    ``art(i)`` clamps to the last ART, so a two-ART solution still gets
+    every anchor; ``mid`` is a middle ART distinct from first and last
+    (None for fewer than three ARTs) for list entries that must not repeat.
+    """
+    short: str
+    solution: str
+    tag: str
+    arts: tuple[str, ...]
+
+    def art(self, i: int) -> str:
+        return self.arts[i] if i < 0 else self.arts[min(i, len(self.arts) - 1)]
+
+    @property
+    def first(self) -> str:
+        return self.arts[0]
+
+    @property
+    def last(self) -> str:
+        return self.arts[-1]
+
+    @property
+    def plain_last(self) -> str:
+        return self.last.removeprefix("ART ")
+
+    @property
+    def mid(self) -> str | None:
+        return self.arts[1] if len(self.arts) >= 3 else None
+
+    @property
+    def pairs_ok(self) -> bool:
+        return len(self.arts) >= 2
+
+
+def _uniq(items: list[str]) -> list[str]:
+    seen: list[str] = []
+    for item in items:
+        if item not in seen:
+            seen.append(item)
+    return seen
+
+
+def _solution_tags(portfolio: PortfolioSpec) -> dict[str, str]:
+    """Short name -> register ID tag: first letter, disambiguated by index."""
+    tags: dict[str, str] = {}
+    used: set[str] = set()
+    for index, solution in enumerate(portfolio.solutions):
+        letter = solution.short[:1].upper() or "S"
+        tag = letter if letter not in used else f"{letter}{index + 1}"
+        used.add(tag)
+        tags[solution.short] = tag
+    return tags
+
+
+def _names(solution: SolutionSpec, tag: str) -> _Names:
+    return _Names(short=solution.short, solution=solution.display_name,
+                  tag=tag, arts=tuple(solution.member_names))
+
+
+def _host_risks(reference: date, h: _Names) -> RiskRegister:
+    """ROAM register of the host solution: healthy spread, one aging owned risk."""
+    t = h.tag
     return RiskRegister(risks=[
-        Risk("AR-1", "Test environment for PI 4 not ordered yet",
+        Risk(f"{t}R-1", "Test environment for PI 4 not ordered yet",
              ROAM_OWNED, owner="System Team", impact=IMPACT_HIGH,
              status_since=reference - timedelta(days=45),
              notes="Aging: owned for over a month without visible movement."),
-        Risk("AR-2", "Key supplier interface spec still in draft",
-             ROAM_OWNED, owner="ART Alpha-2", impact=IMPACT_MEDIUM,
+        Risk(f"{t}R-2", "Key supplier interface spec still in draft",
+             ROAM_OWNED, owner=h.mid or h.first, impact=IMPACT_MEDIUM,
              status_since=reference - timedelta(days=10)),
-        Risk("AR-3", "Legacy migration effort underestimated",
-             ROAM_MITIGATED, owner="ART Alpha-3", impact=IMPACT_MEDIUM,
+        Risk(f"{t}R-3", "Legacy migration effort underestimated",
+             ROAM_MITIGATED, owner=h.last, impact=IMPACT_MEDIUM,
              status_since=reference - timedelta(days=20),
              notes="Scope cut agreed; buffer feature moved to next PI."),
-        Risk("AR-4", "License audit finding on reporting library",
+        Risk(f"{t}R-4", "License audit finding on reporting library",
              ROAM_RESOLVED, owner="System Team", impact=IMPACT_LOW,
              status_since=reference - timedelta(days=5)),
-        Risk("AR-5", "Peak-load capacity above target only with new cluster",
-             ROAM_ACCEPTED, owner="ART Alpha-1", impact=IMPACT_LOW,
+        Risk(f"{t}R-5", "Peak-load capacity above target only with new cluster",
+             ROAM_ACCEPTED, owner=h.first, impact=IMPACT_LOW,
              status_since=reference - timedelta(days=30)),
     ])
 
 
-def _beta_risks(reference: date, story: str = STORY_NOW) -> RiskRegister:
+def _second_risks(reference: date, s: _Names,
+                  story: str = STORY_NOW) -> RiskRegister:
     """
-    ROAM register of Solution Beta: the second aging owned risk lives here.
+    ROAM register of the second solution: the second aging owned risk lives here.
 
-    In the prev story (two weeks earlier), BR-2 does not exist yet — it shows
-    up as a *new* risk in the Delta-Briefing demo.
+    In the prev story (two weeks earlier), {tag}R-2 does not exist yet — it
+    shows up as a *new* risk in the Delta-Briefing demo.
     """
+    t = s.tag
     risks = [
-        Risk("BR-1", "Data quality of ART Beta-3 blocks solution reporting",
-             ROAM_OWNED, owner="ART Beta-3", impact=IMPACT_HIGH,
+        Risk(f"{t}R-1", f"Data quality of {s.last} blocks solution reporting",
+             ROAM_OWNED, owner=s.last, impact=IMPACT_HIGH,
              status_since=reference - timedelta(days=50),
              notes="Aging: matches the weak-source story of this scenario."),
-        Risk("BR-3", "Vendor API rate limits during nightly sync",
-             ROAM_ACCEPTED, owner="ART Beta-1", impact=IMPACT_MEDIUM,
+        Risk(f"{t}R-3", "Vendor API rate limits during nightly sync",
+             ROAM_ACCEPTED, owner=s.first, impact=IMPACT_MEDIUM,
              status_since=reference - timedelta(days=15)),
-        Risk("BR-4", "Duplicate effort with platform team clarified",
-             ROAM_RESOLVED, owner="ART Beta-2", impact=IMPACT_LOW,
+        Risk(f"{t}R-4", "Duplicate effort with platform team clarified",
+             ROAM_RESOLVED, owner=s.mid or s.first, impact=IMPACT_LOW,
              status_since=reference - timedelta(days=12)),
     ]
     if story != STORY_PREV:
         risks.insert(1, Risk(
-            "BR-2", "Security review for release milestone not scheduled",
+            f"{t}R-2", "Security review for release milestone not scheduled",
             ROAM_MITIGATED, owner="Shared Services", impact=IMPACT_HIGH,
             status_since=reference - timedelta(days=7),
             notes="Interim: external reviewer booked for next sprint."))
     return RiskRegister(risks=risks)
 
 
-def _alpha_capabilities(reference: date) -> CapabilityMap:
-    """Capability map of Solution Alpha: solid, one uncovered capability."""
+def _host_capabilities(reference: date, h: _Names) -> CapabilityMap:
+    """Capability map of the host solution: solid, one uncovered capability."""
+    t = h.tag
     return CapabilityMap(capabilities=[
-        Capability("AC-1", "Order management", HEALTH_HEALTHY,
-                   arts=["ART Alpha-1", "ART Alpha-2"], owner="ART Alpha-1",
+        Capability(f"{t}C-1", "Order management", HEALTH_HEALTHY,
+                   arts=_uniq([h.first, h.mid or h.first]), owner=h.first,
                    assessed_on=reference - timedelta(days=14)),
-        Capability("AC-2", "Billing & invoicing", HEALTH_AT_RISK,
-                   arts=["ART Alpha-3"], owner="ART Alpha-3",
+        Capability(f"{t}C-2", "Billing & invoicing", HEALTH_AT_RISK,
+                   arts=[h.last], owner=h.last,
                    assessed_on=reference - timedelta(days=14),
                    notes="Depends on the outlier ART's delivery pace."),
         # Uncovered: business value nobody delivers — the ARTs cell is flagged.
-        Capability("AC-3", "Partner self-service", HEALTH_HEALTHY,
+        Capability(f"{t}C-3", "Partner self-service", HEALTH_HEALTHY,
                    arts=[], owner="System Team",
                    assessed_on=reference - timedelta(days=45),
                    notes="Planned; no ART assigned yet."),
     ])
 
 
-def _beta_capabilities(reference: date) -> CapabilityMap:
-    """Capability map of Solution Beta: the critical capability lives here."""
+def _second_capabilities(reference: date, s: _Names) -> CapabilityMap:
+    """Capability map of the second solution: the critical capability lives here."""
+    t = s.tag
     return CapabilityMap(capabilities=[
-        Capability("BC-1", "Data insights & reporting", HEALTH_CRITICAL,
-                   arts=["ART Beta-3"], owner="ART Beta-3",
+        Capability(f"{t}C-1", "Data insights & reporting", HEALTH_CRITICAL,
+                   arts=[s.last], owner=s.last,
                    assessed_on=reference - timedelta(days=7),
                    notes="Matches the weak-source story: data quality blocks it."),
-        Capability("BC-2", "Customer onboarding", HEALTH_HEALTHY,
-                   arts=["ART Beta-1", "ART Beta-2"], owner="ART Beta-1",
+        Capability(f"{t}C-2", "Customer onboarding", HEALTH_HEALTHY,
+                   arts=_uniq([s.first, s.mid or s.first]), owner=s.first,
                    assessed_on=reference - timedelta(days=7)),
-        Capability("BC-3", "Payment processing", HEALTH_HEALTHY,
-                   arts=["ART Beta-2"], owner="ART Beta-2",
+        Capability(f"{t}C-3", "Payment processing", HEALTH_HEALTHY,
+                   arts=[s.mid or s.first], owner=s.mid or s.first,
                    assessed_on=reference - timedelta(days=7)),
     ])
 
 
-def _alpha_themes(story: str = STORY_NOW) -> ThemesRegister:
+def _host_themes(h: _Names, story: str = STORY_NOW) -> ThemesRegister:
     """
-    Themes/roadmap of Solution Alpha: one orphan theme, one zombie epic.
+    Themes/roadmap of the host solution: one orphan theme, one zombie epic.
 
-    Prev story (Delta demo): EP-A9 still had its theme two weeks ago —
+    Prev story (Delta demo): EP-{tag}9 still had its theme two weeks ago —
     losing the strategic home is one of the 'updated roadmaps' changes.
     """
     prev = story == STORY_PREV
+    t = h.tag
     return ThemesRegister(
         themes=[
-            StrategicTheme("T-A1", "Digital ordering end-to-end",
+            StrategicTheme(f"T-{t}1", "Digital ordering end-to-end",
                            "Order intake to billing without media breaks."),
             # Deklariert und vergessen: kein einziges Epic zahlt ein.
-            StrategicTheme("T-A2", "Green operations",
+            StrategicTheme(f"T-{t}2", "Green operations",
                            "Energy-aware runtime operations."),
         ],
         epics=[
-            Epic("EP-A1", "Self-service order portal", "ART Alpha-1",
-                 "P1", theme="T-A1", status=EPIC_IN_PROGRESS),
-            Epic("EP-A2", "Billing integration", "ART Alpha-2",
-                 "P2", theme="T-A1"),
-            Epic("EP-A3", "Order analytics", "ART Alpha-1",
-                 "Y1", theme="T-A1"),
+            Epic(f"EP-{t}1", "Self-service order portal", h.first,
+                 "P1", theme=f"T-{t}1", status=EPIC_IN_PROGRESS),
+            Epic(f"EP-{t}2", "Billing integration", h.mid or h.first,
+                 "P2", theme=f"T-{t}1"),
+            Epic(f"EP-{t}3", "Order analytics", h.first,
+                 "Y1", theme=f"T-{t}1"),
             # Die Zombie-Initiative: im Prev-Stand noch mit Theme.
-            Epic("EP-A9", "Legacy portal rewrite", "ART Alpha-3",
-                 "Y1", theme="T-A1" if prev else ""),
+            Epic(f"EP-{t}9", "Legacy portal rewrite", h.last,
+                 "Y1", theme=f"T-{t}1" if prev else ""),
         ],
     )
 
 
-def _beta_themes(story: str = STORY_NOW) -> ThemesRegister:
+def _second_themes(s: _Names, story: str = STORY_NOW) -> ThemesRegister:
     """
-    Themes/roadmap of Solution Beta.
+    Themes/roadmap of the second solution.
 
     Prev story: the data-quality epic was still parked in P2 — pulling it
     into P1 is the second 'updated roadmaps' change.
     """
     prev = story == STORY_PREV
+    t = s.tag
     return ThemesRegister(
         themes=[
-            StrategicTheme("T-B1", "Trusted reporting",
+            StrategicTheme(f"T-{t}1", "Trusted reporting",
                            "One reporting truth across the solution."),
         ],
         epics=[
-            Epic("EP-B1", "Vendor sync hardening", "ART Beta-1",
-                 "P1", theme="T-B1", status=EPIC_DONE),
-            Epic("EP-B2", "Beta-3 data-quality remediation", "ART Beta-3",
-                 "P2" if prev else "P1", theme="T-B1",
+            Epic(f"EP-{t}1", "Vendor sync hardening", s.first,
+                 "P1", theme=f"T-{t}1", status=EPIC_DONE),
+            Epic(f"EP-{t}2", f"{s.plain_last} data-quality remediation", s.last,
+                 "P2" if prev else "P1", theme=f"T-{t}1",
                  status=EPIC_IN_PROGRESS),
-            Epic("EP-B3", "Cross-solution reporting hub", "ART Beta-2",
-                 "Y2", theme="T-B1"),
+            Epic(f"EP-{t}3", "Cross-solution reporting hub", s.mid or s.first,
+                 "Y2", theme=f"T-{t}1"),
         ],
     )
 
 
-def _alpha_decision_points(reference: date) -> DecisionPointRegister:
+def _host_decision_points(reference: date, h: _Names) -> DecisionPointRegister:
     """
-    Alpha's agreed alarms (D4): one triggered (Alpha-3's P85 above the agreed
-    30 days), one relative change that needs a previous stand, one below
-    threshold (blocked dependencies), one not agreed yet (no threshold).
+    The host's agreed alarms (D4): one triggered (the outlier's P85 above the
+    agreed 30 days), one relative change that needs a previous stand, one
+    below threshold (blocked dependencies), one not agreed yet (no threshold).
     """
     agreed = reference - timedelta(days=14)
+    t = h.tag
     return DecisionPointRegister(points=[
-        DecisionPoint("DP-A1", "P85 cycle time of Alpha-3 above the agreed 30 days",
-                      "S1/units(ART Alpha-3).p85_ct", ">=", 30.0, "",
-                      question="Cut the scope of Alpha-3 in the next PI?",
-                      reaction="Lead team of Alpha-3 brings a proposal to the next VSC",
-                      team="ART Alpha-3", agreed_on=agreed),
-        DecisionPoint("DP-A2", "Open items grow faster than 10 % between stands",
+        DecisionPoint(f"DP-{t}1",
+                      f"P85 cycle time of {h.plain_last} above the agreed 30 days",
+                      f"S1/units({h.last}).p85_ct", ">=", 30.0, "",
+                      question=f"Cut the scope of {h.plain_last} in the next PI?",
+                      reaction=f"Lead team of {h.plain_last} brings a proposal "
+                               f"to the next VSC",
+                      team=h.last, agreed_on=agreed),
+        DecisionPoint(f"DP-{t}2", "Open items grow faster than 10 % between stands",
                       "D/total.open", ">=", 10.0, "%",
                       question="Introduce a WIP limit at solution level?",
                       reaction="Solution train engineer prepares a WIP proposal",
-                      team="Solution Alpha", agreed_on=agreed),
-        DecisionPoint("DP-A3", "Two or more dependencies blocked",
+                      team=h.solution, agreed_on=agreed),
+        DecisionPoint(f"DP-{t}3", "Two or more dependencies blocked",
                       "S1/governance.dependencies.count(blocked)", ">=", 2.0, "",
                       question="Escalate the blocked seams to the VSC?",
                       reaction="Dependency owners report within two days",
-                      team="Solution Alpha", agreed_on=agreed),
-        DecisionPoint("DP-A4", "Median cycle time of the solution",
+                      team=h.solution, agreed_on=agreed),
+        DecisionPoint(f"DP-{t}4", "Median cycle time of the solution",
                       "S1/total.median_ct", ">=", None, "",
                       question="Which median would make us act?",
                       reaction="Threshold still to be agreed in the next VSC",
-                      team="Solution Alpha"),
+                      team=h.solution),
     ])
 
 
-def _beta_decision_points(reference: date) -> DecisionPointRegister:
-    """One agreed point in Beta, below threshold."""
+def _second_decision_points(reference: date, s: _Names) -> DecisionPointRegister:
+    """One agreed point in the second solution, below threshold."""
     return DecisionPointRegister(points=[
-        DecisionPoint("DP-B1", "Solution grows beyond 500 items in the window",
+        DecisionPoint(f"DP-{s.tag}1", "Solution grows beyond 500 items in the window",
                       "S1/total.items", ">=", 500.0, "",
-                      question="Split the solution?", reaction="Architecture board reviews the cut",
-                      team="Solution Beta", agreed_on=reference - timedelta(days=30)),
+                      question="Split the solution?",
+                      reaction="Architecture board reviews the cut",
+                      team=s.solution, agreed_on=reference - timedelta(days=30)),
     ])
 
 
-def _alpha_solution_areas(reference: date, story: str = STORY_NOW) -> SolutionAreaRegister:
+def _host_solution_areas(reference: date, h: _Names,
+                         story: str = STORY_NOW) -> SolutionAreaRegister:
     """
-    Solution areas of Alpha: the same seam Alpha-1 × Alpha-3 opened a third
+    Solution areas of the host: the same seam first × last ART opened a third
     time for the same topic — the EA signal (P5). The third opening is only
     in the now stand, so the delta documents the signal coming on.
     """
+    if not h.pairs_ok:
+        return SolutionAreaRegister()
+    t = h.tag
+    seam = [h.first, h.last]
     areas = [
-        SolutionArea("SA-A1", "Shared test environment for order flow", "test environment",
-                     ["ART Alpha-1", "ART Alpha-3"],
+        SolutionArea(f"SA-{t}1", "Shared test environment for order flow",
+                     "test environment", list(seam),
                      opened_on=reference - timedelta(days=220),
                      closed_on=reference - timedelta(days=190)),
-        SolutionArea("SA-A2", "Shared test environment, second round", "test environment",
-                     ["ART Alpha-1", "ART Alpha-3"],
+        SolutionArea(f"SA-{t}2", "Shared test environment, second round",
+                     "test environment", list(seam),
                      opened_on=reference - timedelta(days=120),
                      closed_on=reference - timedelta(days=95),
                      notes="Same seam, same topic: second time."),
-        SolutionArea("SA-A4", "Checkout latency task force", "latency",
-                     ["ART Alpha-1", "ART Alpha-2"],
+        SolutionArea(f"SA-{t}4", "Checkout latency task force", "latency",
+                     _uniq([h.first, h.mid or h.last]),
                      opened_on=reference - timedelta(days=60),
                      closed_on=reference - timedelta(days=35)),
     ]
     if story == STORY_NOW:
         areas.insert(2, SolutionArea(
-            "SA-A3", "Shared test environment, third round", "test environment",
-            ["ART Alpha-1", "ART Alpha-3"],
+            f"SA-{t}3", "Shared test environment, third round",
+            "test environment", list(seam),
             opened_on=reference - timedelta(days=9),
             notes="Third time at the same seam - the EA signal: this is a cut or "
                   "architecture problem, not a team problem."))
     return SolutionAreaRegister(areas=areas)
 
 
-def _beta_solution_areas(reference: date) -> SolutionAreaRegister:
-    """One active area in Beta - rare, as it should be."""
+def _second_solution_areas(reference: date, s: _Names) -> SolutionAreaRegister:
+    """One active area in the second solution - rare, as it should be."""
+    if not s.pairs_ok:
+        return SolutionAreaRegister()
     return SolutionAreaRegister(areas=[
-        SolutionArea("SA-B1", "Export quality working group", "export quality",
-                     ["ART Beta-1", "ART Beta-3"],
+        SolutionArea(f"SA-{s.tag}1", "Export quality working group",
+                     "export quality", [s.first, s.last],
                      opened_on=reference - timedelta(days=20)),
     ])
 
 
-def _alpha_flow_problems(reference: date) -> FlowProblemRegister:
-    """Flow problems of Solution Alpha: one has survived three conferences."""
+def _host_flow_problems(reference: date, h: _Names) -> FlowProblemRegister:
+    """Flow problems of the host: one has survived three conferences."""
+    t = h.tag
     return FlowProblemRegister(problems=[
         # Das Workshop-Muster: geloggt, nie mitigiert, taucht wieder auf.
-        FlowProblem("FP-A1", "Test-environment provisioning takes weeks",
+        FlowProblem(f"FP-{t}1", "Test-environment provisioning takes weeks",
                     FLOW_OPEN,
-                    value_streams=["ART Alpha-1", "ART Alpha-2",
-                                   "ART Alpha-3"],
+                    value_streams=list(h.arts),
                     source="VSC", owner="System Team",
                     raised_on=reference - timedelta(days=140),
                     conferences=3,
                     notes="Survivor: raised at three conferences, still open."),
-        FlowProblem("FP-A2", "Review bottleneck at architecture board",
+        FlowProblem(f"FP-{t}2", "Review bottleneck at architecture board",
                     FLOW_COMMITTED,
-                    value_streams=["ART Alpha-2"],
-                    source="ART Alpha-2", owner="System Team",
+                    value_streams=[h.mid or h.first],
+                    source=h.mid or h.first, owner="System Team",
                     raised_on=reference - timedelta(days=40),
                     conferences=1,
                     resolution_commitment="Second review slot per week",
@@ -650,28 +790,30 @@ def _alpha_flow_problems(reference: date) -> FlowProblemRegister:
     ])
 
 
-def _beta_flow_problems(reference: date) -> FlowProblemRegister:
-    """Flow problems of Solution Beta: the weak source blocks two streams."""
+def _second_flow_problems(reference: date, s: _Names) -> FlowProblemRegister:
+    """Flow problems of the second solution: the weak source blocks two streams."""
+    t = s.tag
     return FlowProblemRegister(problems=[
-        FlowProblem("FP-B1", "Beta-3 export quality blocks solution reporting",
+        FlowProblem(f"FP-{t}1",
+                    f"{s.plain_last} export quality blocks solution reporting",
                     FLOW_OPEN,
-                    value_streams=["ART Beta-1", "ART Beta-3"],
-                    source="VSC", owner="ART Beta-3",
+                    value_streams=_uniq([s.first, s.last]),
+                    source="VSC", owner=s.last,
                     raised_on=reference - timedelta(days=200),
                     conferences=4,
                     notes="Cross-VS survivor: matches the weak-source story."),
-        FlowProblem("FP-B2", "Shared staging window conflicts",
+        FlowProblem(f"FP-{t}2", "Shared staging window conflicts",
                     FLOW_RESOLVED,
-                    value_streams=["ART Beta-1", "ART Beta-2"],
-                    source="ART Beta-1", owner="ART Beta-2",
+                    value_streams=_uniq([s.first, s.mid or s.first]),
+                    source=s.first, owner=s.mid or s.first,
                     raised_on=reference - timedelta(days=90),
                     conferences=2,
                     resolution_commitment="Calendar-based slot booking"),
     ])
 
 
-def _alpha_slo(reference: date) -> SloRegister:
-    """SLOs of Solution Alpha: healthy, one budget running low."""
+def _host_slo(reference: date) -> SloRegister:
+    """SLOs of the host solution: healthy, one budget running low."""
     src = "demo-scenario"
     at = reference.isoformat()
     return SloRegister(records=[
@@ -685,12 +827,13 @@ def _alpha_slo(reference: date) -> SloRegister:
     ])
 
 
-def _beta_slo(reference: date) -> SloRegister:
-    """SLOs of Solution Beta: the sync service has burned its budget."""
+def _second_slo(reference: date) -> SloRegister:
+    """SLOs of the second solution: the sync service has burned its budget."""
     src = "demo-scenario"
     at = reference.isoformat()
     return SloRegister(records=[
-        # Die Geschichte: der Sync-Dienst (Beta-3-Umfeld) reisst sein SLO.
+        # Die Geschichte: der Sync-Dienst (Umfeld der schwachen Quelle)
+        # reisst sein SLO.
         SloRecord("Order Sync API", "availability", 99.5, sli_pct=99.1,
                   source=src, fetched_at=at),
         SloRecord("Reporting", "p95 latency < 500 ms", 99.0, sli_pct=99.6,
@@ -698,267 +841,438 @@ def _beta_slo(reference: date) -> SloRegister:
     ])
 
 
-def _alpha_delivery(reference: date) -> DeliveryRegister:
-    """Delivery health of Solution Alpha: solid, the outlier ships slowly."""
+def _host_delivery(reference: date, h: _Names) -> DeliveryRegister:
+    """Delivery health of the host: solid, the outlier ships slowly."""
     src = "demo-scenario"
     at = reference.isoformat()
-    return DeliveryRegister(
-        dora=[
-            DoraRecord("ART Alpha-1", deployments_per_day=1.4,
-                       lead_time_hours=18.0, change_failure_rate_pct=4.0,
-                       time_to_restore_hours=0.8, source=src, fetched_at=at),
-            DoraRecord("ART Alpha-2", deployments_per_day=0.6,
-                       lead_time_hours=40.0, change_failure_rate_pct=8.0,
-                       time_to_restore_hours=6.0, source=src, fetched_at=at),
-            # Der Ausreisser liefert auch selten und langsam.
-            DoraRecord("ART Alpha-3", deployments_per_day=0.05,
-                       lead_time_hours=520.0, change_failure_rate_pct=14.0,
-                       time_to_restore_hours=20.0, source=src, fetched_at=at),
-        ],
-        quality=[
-            QualityRecord("ART Alpha-1", coverage_pct=78.0,
-                          maintainability="A", critical_issues=0,
-                          source=src, fetched_at=at),
-            QualityRecord("ART Alpha-3", coverage_pct=55.0,
-                          maintainability="C", critical_issues=2,
-                          source=src, fetched_at=at),
-        ],
-    )
+    dora = [
+        DoraRecord(h.first, deployments_per_day=1.4,
+                   lead_time_hours=18.0, change_failure_rate_pct=4.0,
+                   time_to_restore_hours=0.8, source=src, fetched_at=at),
+    ]
+    if h.mid:
+        dora.append(DoraRecord(h.mid, deployments_per_day=0.6,
+                               lead_time_hours=40.0, change_failure_rate_pct=8.0,
+                               time_to_restore_hours=6.0, source=src,
+                               fetched_at=at))
+    if h.pairs_ok:
+        # Der Ausreisser liefert auch selten und langsam.
+        dora.append(DoraRecord(h.last, deployments_per_day=0.05,
+                               lead_time_hours=520.0, change_failure_rate_pct=14.0,
+                               time_to_restore_hours=20.0, source=src,
+                               fetched_at=at))
+    quality = [
+        QualityRecord(h.first, coverage_pct=78.0,
+                      maintainability="A", critical_issues=0,
+                      source=src, fetched_at=at),
+    ]
+    if h.pairs_ok:
+        quality.append(QualityRecord(h.last, coverage_pct=55.0,
+                                     maintainability="C", critical_issues=2,
+                                     source=src, fetched_at=at))
+    return DeliveryRegister(dora=dora, quality=quality)
 
 
-def _beta_delivery(reference: date) -> DeliveryRegister:
-    """Delivery health of Solution Beta: the weak source is low tier."""
+def _second_delivery(reference: date, s: _Names) -> DeliveryRegister:
+    """Delivery health of the second solution: the weak source is low tier."""
     src = "demo-scenario"
     at = reference.isoformat()
+    dora = []
+    if s.pairs_ok:
+        dora.append(DoraRecord(s.first, deployments_per_day=0.9,
+                               lead_time_hours=30.0, change_failure_rate_pct=6.0,
+                               time_to_restore_hours=3.0, source=src,
+                               fetched_at=at))
+    # Die Geschichte: die schwache Quelle auch im Delivery-Bild low.
+    dora.append(DoraRecord(s.last, deployments_per_day=0.02,
+                           lead_time_hours=800.0, change_failure_rate_pct=38.0,
+                           time_to_restore_hours=30.0, source=src, fetched_at=at))
     return DeliveryRegister(
-        dora=[
-            DoraRecord("ART Beta-1", deployments_per_day=0.9,
-                       lead_time_hours=30.0, change_failure_rate_pct=6.0,
-                       time_to_restore_hours=3.0, source=src, fetched_at=at),
-            # Die Geschichte: Beta-3 auch im Delivery-Bild low.
-            DoraRecord("ART Beta-3", deployments_per_day=0.02,
-                       lead_time_hours=800.0, change_failure_rate_pct=38.0,
-                       time_to_restore_hours=30.0, source=src, fetched_at=at),
-        ],
+        dora=dora,
         quality=[
-            QualityRecord("ART Beta-3", coverage_pct=31.0,
+            QualityRecord(s.last, coverage_pct=31.0,
                           maintainability="D", critical_issues=7,
                           source=src, fetched_at=at),
         ],
     )
 
 
-def _alpha_decisions(reference: date) -> DecisionLog:
-    """Decision log of Solution Alpha: a superseded chain plus a confirmed assumption."""
+def _host_decisions(reference: date, h: _Names) -> DecisionLog:
+    """Decision log of the host: a superseded chain plus a confirmed assumption."""
+    t = h.tag
     return DecisionLog(entries=[
-        LogEntry("ADR-A2", KIND_DECISION,
+        LogEntry(f"ADR-{t}2", KIND_DECISION,
                  "Pool ARTs via fixed three-group mapping",
                  DECISION_SUPERSEDED, owner="System Team",
                  logged_on=reference - timedelta(days=120)),
-        LogEntry("ADR-A1", KIND_DECISION,
+        LogEntry(f"ADR-{t}1", KIND_DECISION,
                  "Pool ARTs via custom stage map (schema 2)",
                  DECISION_ACCEPTED, owner="System Team",
                  logged_on=reference - timedelta(days=60),
-                 supersedes="ADR-A2",
+                 supersedes=f"ADR-{t}2",
                  notes="Keeps heterogeneous workflows comparable."),
-        LogEntry("AS-A1", KIND_ASSUMPTION,
+        LogEntry(f"AS-{t}1", KIND_ASSUMPTION,
                  "All ARTs keep exporting weekly Jira snapshots",
-                 ASSUMPTION_CONFIRMED, owner="ART Alpha-1",
+                 ASSUMPTION_CONFIRMED, owner=h.first,
                  logged_on=reference - timedelta(days=90),
                  review_by=reference + timedelta(days=90)),
     ])
 
 
-def _beta_decisions(reference: date) -> DecisionLog:
-    """Decision log of Solution Beta: the overdue open assumption lives here."""
+def _second_decisions(reference: date, s: _Names) -> DecisionLog:
+    """Decision log of the second solution: the overdue open assumption lives here."""
+    t = s.tag
     return DecisionLog(entries=[
-        LogEntry("ADR-B1", KIND_DECISION,
+        LogEntry(f"ADR-{t}1", KIND_DECISION,
                  "Buy vendor sync service instead of building",
-                 DECISION_ACCEPTED, owner="ART Beta-1",
+                 DECISION_ACCEPTED, owner=s.first,
                  logged_on=reference - timedelta(days=150),
-                 notes="Trade-off: rate limits accepted (see dependency BD-1)."),
+                 notes=f"Trade-off: rate limits accepted (see dependency {t}D-1)."),
         # Die Geschichte: eine offene Annahme mit überschrittenem Prüfdatum —
         # genau die Sorte Selbstberuhigung, die ein Premortem aufdecken soll.
-        LogEntry("AS-B1", KIND_ASSUMPTION,
-                 "Beta-3 data quality will fix itself with the next Jira rollout",
-                 ASSUMPTION_OPEN, owner="ART Beta-3",
+        LogEntry(f"AS-{t}1", KIND_ASSUMPTION,
+                 f"{s.plain_last} data quality will fix itself with the next "
+                 f"Jira rollout",
+                 ASSUMPTION_OPEN, owner=s.last,
                  logged_on=reference - timedelta(days=70),
                  review_by=reference - timedelta(days=10),
                  notes="Review due: matches the weak-source story."),
     ])
 
 
-def _alpha_dependencies(
-    reference: date, story: str = STORY_NOW
+def _host_dependencies(
+    reference: date, h: _Names, o: _Names | None, story: str = STORY_NOW
 ) -> DependencyRegister:
     """
-    Dependencies of Solution Alpha: the overdue blocked one lives here.
+    Dependencies of the host: the overdue blocked one lives here.
 
-    In the prev story, AD-1 was still at risk — the escalation to blocked is
-    the status transition the Delta-Briefing demo shows. AD-4 is the second
-    seam towards Solution Beta and carries the same idea for the
-    decision-point indicator: it was on track two weeks ago.
+    In the prev story, {tag}D-1 was still at risk — the escalation to blocked
+    is the status transition the Delta-Briefing demo shows. {tag}D-4 is the
+    second seam towards the second solution and carries the same idea for
+    the decision-point indicator: it was on track two weeks ago. Without a
+    second solution (``o`` None) that seam does not exist.
     """
-    return DependencyRegister(dependencies=[
-        # Die Geschichte: der Ausreißer Alpha-3 liefert nicht — blockiert
-        # und überfällig, springt in der Heatmap rot an.
-        Dependency("AD-1", "Billing API contract for order flow",
-                   from_art="ART Alpha-1", to_art="ART Alpha-3",
-                   status=DEP_AT_RISK if story == STORY_PREV else DEP_BLOCKED,
-                   due=reference - timedelta(days=15),
-                   notes="Overdue: matches the outlier story of this scenario."),
-        Dependency("AD-2", "Shared test fixtures for the order domain",
-                   from_art="ART Alpha-2", to_art="ART Alpha-1",
-                   status=DEP_ON_TRACK, due=reference + timedelta(days=25)),
-        Dependency("AD-3", "SSO integration with platform services",
-                   from_art="ART Alpha-2", to_art="Platform Services",
-                   status=DEP_ON_TRACK, due=reference + timedelta(days=40),
-                   notes="External integration point outside the solution."),
-        # Zweite Naht zwischen den Value Streams, Gegenrichtung zu BD-1:
+    t = h.tag
+    deps: list[Dependency] = []
+    if h.pairs_ok:
+        # Die Geschichte: der Ausreißer liefert nicht — blockiert und
+        # überfällig, springt in der Heatmap rot an.
+        deps.append(Dependency(
+            f"{t}D-1", "Billing API contract for order flow",
+            from_art=h.first, to_art=h.last,
+            status=DEP_AT_RISK if story == STORY_PREV else DEP_BLOCKED,
+            due=reference - timedelta(days=15),
+            notes="Overdue: matches the outlier story of this scenario."))
+    if h.mid:
+        deps.append(Dependency(
+            f"{t}D-2", "Shared test fixtures for the order domain",
+            from_art=h.mid, to_art=h.first,
+            status=DEP_ON_TRACK, due=reference + timedelta(days=25)))
+    deps.append(Dependency(
+        f"{t}D-3", "SSO integration with platform services",
+        from_art=h.mid or h.first, to_art="Platform Services",
+        status=DEP_ON_TRACK, due=reference + timedelta(days=40),
+        notes="External integration point outside the solution."))
+    if o is not None:
+        # Zweite Naht zwischen den Value Streams, Gegenrichtung zu {o}D-1:
         # laengst ueberfaellig — der schwerste Posten des Wecker-Indikators.
-        Dependency("AD-4", "Customer master data feed for Beta reporting",
-                   from_art="ART Alpha-1", to_art="ART Beta-2",
-                   status=DEP_ON_TRACK if story == STORY_PREV else DEP_AT_RISK,
-                   due=reference - timedelta(days=35),
-                   notes="Cross-solution seam towards Solution Beta."),
-    ])
+        deps.append(Dependency(
+            f"{t}D-4", f"Customer master data feed for {o.short} reporting",
+            from_art=h.first, to_art=o.mid or o.last,
+            status=DEP_ON_TRACK if story == STORY_PREV else DEP_AT_RISK,
+            due=reference - timedelta(days=35),
+            notes=f"Cross-solution seam towards {o.solution}."))
+    return DependencyRegister(dependencies=deps)
 
 
-def _beta_dependencies(
-    reference: date, story: str = STORY_NOW
+def _second_dependencies(
+    reference: date, s: _Names, o: _Names, story: str = STORY_NOW
 ) -> DependencyRegister:
     """
-    Dependencies of Solution Beta: the seam towards Solution Alpha lives here.
+    Dependencies of the second solution: the seam towards the host lives here.
 
-    Together with Alpha's AD-4 these make the decision point demonstrable: the
-    pressure between the two value streams rises visibly between the two
-    stands, while every single train looks unremarkable on its own.
+    Together with the host's {tag}D-4 these make the decision point
+    demonstrable: the pressure between the two value streams rises visibly
+    between the two stands, while every single train looks unremarkable on
+    its own.
     """
-    return DependencyRegister(dependencies=[
-        # Cross-Solution-Integration: Beta braucht Alphas Order-Events —
-        # sichtbar nur im Portfolio-Report.
-        Dependency("BD-1", "Order events feed for reporting",
-                   from_art="ART Beta-1", to_art="ART Alpha-1",
+    t = s.tag
+    deps = [
+        # Cross-Solution-Integration: die zweite Solution braucht die
+        # Order-Events des Hosts — sichtbar nur im Portfolio-Report.
+        Dependency(f"{t}D-1", "Order events feed for reporting",
+                   from_art=s.first, to_art=o.first,
                    status=DEP_AT_RISK, due=reference + timedelta(days=10),
-                   notes="Cross-solution integration with Solution Alpha."),
-        Dependency("BD-2", "Sync-service schema migration",
-                   from_art="ART Beta-2", to_art="ART Beta-3",
-                   status=DEP_DONE, due=reference - timedelta(days=30)),
-        # Die Naht eskaliert: vor zwei Wochen gefaehrdet, jetzt blockiert.
-        # Das Faelligkeitsdatum ist in beiden Staenden dasselbe (beide teilen
-        # das Referenzdatum) — es steigt allein das Statusgewicht.
-        Dependency("BD-3", "Shared identity claims for order events",
-                   from_art="ART Beta-3", to_art="ART Alpha-2",
-                   status=DEP_AT_RISK if story == STORY_PREV else DEP_BLOCKED,
-                   due=reference - timedelta(days=12),
-                   notes="Cross-solution integration with Solution Alpha."),
-    ])
+                   notes=f"Cross-solution integration with {o.solution}."),
+    ]
+    if s.pairs_ok:
+        deps.append(Dependency(
+            f"{t}D-2", "Sync-service schema migration",
+            from_art=s.mid or s.first, to_art=s.last,
+            status=DEP_DONE, due=reference - timedelta(days=30)))
+    # Die Naht eskaliert: vor zwei Wochen gefaehrdet, jetzt blockiert.
+    # Das Faelligkeitsdatum ist in beiden Staenden dasselbe (beide teilen
+    # das Referenzdatum) — es steigt allein das Statusgewicht.
+    deps.append(Dependency(
+        f"{t}D-3", "Shared identity claims for order events",
+        from_art=s.last, to_art=o.mid or o.first,
+        status=DEP_AT_RISK if story == STORY_PREV else DEP_BLOCKED,
+        due=reference - timedelta(days=12),
+        notes=f"Cross-solution integration with {o.solution}."))
+    return DependencyRegister(dependencies=deps)
 
 
-def _alpha_nfr(reference: date) -> NfrRegister:
-    """NFR/runway register of Solution Alpha: healthy, one NFR at risk."""
+def _host_nfr(reference: date, h: _Names) -> NfrRegister:
+    """NFR/runway register of the host: healthy, one NFR at risk."""
+    t = h.tag
     return NfrRegister(
         nfrs=[
-            Nfr("AN-1", "Report generation time", target="< 30 s for 10k issues",
+            Nfr(f"{t}N-1", "Report generation time", target="< 30 s for 10k issues",
                 actual="18 s", status=STATUS_MET, owner="System Team"),
-            Nfr("AN-2", "Availability of the reporting service",
+            Nfr(f"{t}N-2", "Availability of the reporting service",
                 target=">= 99.5 % per quarter", actual="99.7 %",
                 status=STATUS_MET, owner="System Team"),
-            Nfr("AN-3", "Peak concurrent report users", target="50 users",
+            Nfr(f"{t}N-3", "Peak concurrent report users", target="50 users",
                 actual="42 users tested", status=STATUS_AT_RISK,
-                owner="ART Alpha-1",
+                owner=h.first,
                 notes="Load test above 42 users pending new cluster."),
         ],
         runway=[
-            RunwayItem("ARW-1", "Central data lake connection",
+            RunwayItem(f"{t}RW-1", "Central data lake connection",
                        status=RUNWAY_IN_PLACE, owner="System Team"),
-            RunwayItem("ARW-2", "Self-service test environment",
+            RunwayItem(f"{t}RW-2", "Self-service test environment",
                        status=RUNWAY_BUILDING,
                        needed_by=reference + timedelta(days=40),
                        owner="System Team"),
         ])
 
 
-def _beta_nfr(reference: date) -> NfrRegister:
-    """NFR/runway register of Solution Beta: one violated NFR, one overdue gap."""
+def _second_nfr(reference: date, s: _Names) -> NfrRegister:
+    """NFR/runway register of the second solution: one violated NFR, one overdue gap."""
+    t = s.tag
+    second = s.mid or s.first
     return NfrRegister(
         nfrs=[
-            Nfr("BN-1", "API response time", target="p95 < 200 ms",
+            Nfr(f"{t}N-1", "API response time", target="p95 < 200 ms",
                 actual="p95 = 340 ms", status=STATUS_VIOLATED,
-                owner="ART Beta-1",
+                owner=s.first,
                 notes="Regression since the vendor library update."),
-            Nfr("BN-2", "Data retention compliance", target="Delete after 180 days",
+            Nfr(f"{t}N-2", "Data retention compliance", target="Delete after 180 days",
                 actual="Job active", status=STATUS_MET, owner="Shared Services"),
-            Nfr("BN-3", "Recovery time objective", target="RTO < 4 h",
+            Nfr(f"{t}N-3", "Recovery time objective", target="RTO < 4 h",
                 actual="Not measured since failover test",
-                status=STATUS_AT_RISK, owner="ART Beta-2"),
+                status=STATUS_AT_RISK, owner=second),
         ],
         runway=[
             # 10 Tage überfällig: vor 14 Tagen noch nicht — im Delta-Briefing
             # taucht die Lücke als „newly overdue" auf (B2- + D2-Story).
-            RunwayItem("BRW-1", "Automated failover for the sync service",
+            RunwayItem(f"{t}RW-1", "Automated failover for the sync service",
                        status=RUNWAY_GAP,
                        needed_by=reference - timedelta(days=10),
-                       owner="ART Beta-2",
+                       owner=second,
                        notes="Overdue: needed before the last release."),
-            RunwayItem("BRW-2", "Contract test suite against vendor API",
+            RunwayItem(f"{t}RW-2", "Contract test suite against vendor API",
                        status=RUNWAY_BUILDING,
                        needed_by=reference + timedelta(days=30),
-                       owner="ART Beta-1"),
+                       owner=s.first),
         ])
 
 
-def build_portfolio_scenario(
-    output_dir: Path,
-    seed: int = 42,
-    reference: date | None = None,
-    window_days: int = 365,
-    log: Callable[[str], None] = print,
-    story: str = STORY_NOW,
-    scale: str = DEFAULT_SCALE,
-    art_profiles: dict[str, dict] | None = None,
-) -> dict[str, Path]:
-    """
-    Generate the complete demo portfolio into ``output_dir``.
+def _empty_registers() -> dict[str, object]:
+    return {"risks": RiskRegister(), "nfr": NfrRegister(),
+            "capabilities": CapabilityMap(),
+            "dependencies": DependencyRegister(), "decisions": DecisionLog(),
+            "slo": SloRegister(), "dora": DeliveryRegister(),
+            "flow_problems": FlowProblemRegister(), "themes": ThemesRegister(),
+            "solution_areas": SolutionAreaRegister(),
+            "decision_points": DecisionPointRegister()}
 
-    Args:
-        output_dir:  Target directory (created if missing).
-        seed:        Base RNG seed; each ART uses seed + index, so the whole
-                     scenario is reproducible for a fixed reference date.
-        reference:   End of the data window (default: today). The window
-                     spans ``window_days`` back from here; the weak source's
-                     window ends ``stale_days`` earlier.
-        window_days: Length of the data window in days.
-        log:         Progress callback.
-        story:       STORY_NOW (default) builds the current state including
-                     the two Delta-Briefing snapshots; STORY_PREV builds the
-                     same world two weeks earlier (used internally for the
-                     prev snapshot — no snapshots of its own).
 
-    Returns:
-        Dict with the key output paths (portfolio config, solution configs,
-        risk registers, PI config, readme).
+def _anchor_registers(index: int, names: _Names, host: _Names,
+                      second: _Names | None, reference: date,
+                      story: str) -> dict[str, object]:
     """
-    reference = reference or date.today()
-    out = Path(output_dir)
-    (out / "workflows").mkdir(parents=True, exist_ok=True)
+    Story anchors of one solution by its position (E2: roles, not names).
+
+    Position 0 hosts the outlier story (its cross-solution seam needs the
+    ``second`` solution), position 1 the weak-source story (its seams point
+    at ``host``); every further solution gets empty registers — the seeded
+    base population (register_gen) fills them.
+    """
+    if index == 0:
+        return {
+            "risks": _host_risks(reference, names),
+            "nfr": _host_nfr(reference, names),
+            "capabilities": _host_capabilities(reference, names),
+            "dependencies": _host_dependencies(reference, names, second, story),
+            "decisions": _host_decisions(reference, names),
+            "slo": _host_slo(reference),
+            "dora": _host_delivery(reference, names),
+            "flow_problems": _host_flow_problems(reference, names),
+            "themes": _host_themes(names, story),
+            "solution_areas": _host_solution_areas(reference, names, story),
+            "decision_points": _host_decision_points(reference, names),
+        }
+    if index == 1:
+        return {
+            "risks": _second_risks(reference, names, story),
+            "nfr": _second_nfr(reference, names),
+            "capabilities": _second_capabilities(reference, names),
+            "dependencies": _second_dependencies(reference, names, host, story),
+            "decisions": _second_decisions(reference, names),
+            "slo": _second_slo(reference),
+            "dora": _second_delivery(reference, names),
+            "flow_problems": _second_flow_problems(reference, names),
+            "themes": _second_themes(names, story),
+            "solution_areas": _second_solution_areas(reference, names),
+            "decision_points": _second_decision_points(reference, names),
+        }
+    return _empty_registers()
+
+
+_SAVERS: dict[str, Callable] = {
+    "risks": save_risks, "nfr": save_nfr,
+    "capabilities": save_capabilities, "dependencies": save_dependencies,
+    "decisions": save_decisions, "slo": save_slo, "dora": save_delivery,
+    "flow_problems": save_flow_problems, "themes": save_themes,
+    "solution_areas": save_solution_areas,
+    "decision_points": save_decision_points,
+}
+
+#: Legacy aliases of the returned path keys (flow_alpha, areas_beta, …).
+_KEY_ALIASES = {"flow": "flow_problems", "areas": "solution_areas",
+                "points": "decision_points"}
+
+
+def _write_pi_config(path: Path, reference: date, window_days: int) -> None:
+    quarters = []
+    q_start = reference - timedelta(days=window_days)
+    n = 1
+    while q_start < reference:
+        q_end = min(q_start + timedelta(days=90), reference)
+        quarters.append({"name": f"PI {n}",
+                         "from": q_start.isoformat(), "to": q_end.isoformat()})
+        q_start = q_end + timedelta(days=1)
+        n += 1
+    path.write_text(json.dumps({"mode": "date", "intervals": quarters}, indent=2),
+                    encoding="utf-8")
+
+
+def _readme_text(spec: PortfolioSpec, story_data: Story, seed: int,
+                 reference: date, scale: str) -> str:
+    """The README of one portfolio data room, told from structure and story."""
+    first_art = spec.arts[0]
+    workflow_label = {WORKFLOW_CLASSIC: "klassischer Workflow (Default-Pfad)",
+                      WORKFLOW_STAGE_MAP: "eigene stage_map (Schema 2)"}
+    lines = [
+        f"# {spec.name} (generierter Demo-Datenraum)",
+        "",
+        f"Erzeugt mit `python -m testdata_generator --scenario portfolio` "
+        f"(Seed {seed}, Referenzdatum {reference.isoformat()}, Skala {scale}, "
+        f"Geschichte „{story_data.title}\").",
+        "",
+        "Direkt verwendbar: `python -m portfolio portfolio.json` bzw. die",
+        "Solution-Configs einzeln. **Der Ordner ist ein Portfolio-Datenraum**:",
+        "alle Pfade in den Configs sind relativ zur jeweiligen Config-Datei —",
+        "der Ordner kann als Ganzes verschoben, kopiert oder gezippt werden.",
+        "",
+        "    structure.json · story.json  Struktur und Geschichte als Daten",
+        "    portfolio.json            Einstieg (Portfolio)",
+        "    solutions/<name>/         je Solution: solution.json,",
+        "                              arts/ (IssueTimes/Transitions/CFD),",
+        "                              registers/ (" + ", ".join(
+            f"{r}.json" for r in REGISTER_NAMES[:4]) + ",",
+        "                              " + ", ".join(
+            f"{r}.json" for r in REGISTER_NAMES[4:]) + ")",
+        "    workflows/  raw/  pi_config.json",
+        "    snapshots/                snapshot_prev.json, snapshot_now.json",
+        "",
+        "## Struktur",
+        "",
+    ]
+    for solution in spec.solutions:
+        lines.append(f"- **{solution.display_name}** — "
+                     f"{workflow_label[solution.workflow]}: "
+                     + ", ".join(solution.member_names))
+    lines += [
+        "",
+        "Die Register bestehen aus festen **Story-Ankern** (unten) plus",
+        "einer seed-generierten Grundmenge; `--scale s|m|l` steuert deren",
+        "Umfang je Solution (s = nur Anker, m = Standard, l = Stresstest).",
+        "Die Anker und ihre Geschichten sind auf jeder Skala identisch.",
+        "Die Statuswege der ARTs sind unordentlich wie in echten ARTs",
+        "(Realismus 60: Sprünge, Abbrüche, Schleifen, Wiedereröffnung).",
+        "Je ART lassen sich die Generator-Regler übersteuern (GUI-Dialog",
+        "„ART-Profile…“ bzw. `--art-profiles datei.json`); Overrides gelten",
+        "in beiden Delta-Ständen, alles andere behält seinen Story-Wert.",
+        "",
+        f"## Geschichte „{story_data.title}\" (story.json)",
+        "",
+    ]
+    lines += [f"{s}" for s in story_data.summary]
+    lines.append("")
+    for event in story_data.events:
+        when = ("nur im jetzigen Stand" if event.when == WHEN_NOW
+                else "in beiden Ständen")
+        lines.append(f"- **{event.event_id}** {event.title} _({when})_  ")
+        lines.append(f"  {event.effect}")
+    if story_data.notices:
+        lines += ["", "Hinweise der Rollenbindung:", ""]
+        lines += [f"- {n}" for n in story_data.notices]
+    lines += [
+        "",
+        "## Weitere Wege",
+        "",
+        "- **Delta-Briefing (D2)**: `snapshots/snapshot_prev.json` (Stand vor",
+        "  14 Tagen) und `snapshots/snapshot_now.json` liegen bei —",
+        "  `python -m portfolio --delta snapshots/snapshot_prev.json",
+        "  snapshots/snapshot_now.json`.",
+        "- **KI-Narration (D2 Teil 2)**: `--narrate mock` ergänzt das",
+        "  Briefing um den gekennzeichneten Abschnitt „Narration (Entwurf)\"",
+        "  — ohne Modell oder Installation (Attrappe); der Nachweis landet",
+        "  in `llm_audit.jsonl`.",
+        "- **Konferenzmappe**: `python -m portfolio portfolio.json --conference mappe.html`.",
+        f"- **Export-Prüfung (Weg 2)**: `python -m get_data check raw/{first_art}_jira.json`;",
+        "  die Roh-JSONs unter `raw/` sind zugleich Demo-Futter für get_data.",
+        "- **Delivery-Register**: erzeugt/austauschbar über `python -m sources fetch`",
+        "  (Provider: file, prometheus, github, gitlab, sonarqube — kombinierbar).",
+        "",
+    ]
+    return "\n".join(lines)
+
+
+def _build_portfolio(
+    out: Path,
+    spec: PortfolioSpec,
+    seed: int,
+    reference: date,
+    window_days: int,
+    log: Callable[[str], None],
+    story: str,
+    scale: str,
+    art_profiles: dict[str, dict] | None,
+) -> dict[str, Any]:
+    """Generate one portfolio's data room into ``out`` (see build_portfolio_scenario)."""
+    out.mkdir(parents=True, exist_ok=True)
+    (out / "workflows").mkdir(exist_ok=True)
     (out / "raw").mkdir(exist_ok=True)
     (out / "snapshots").mkdir(exist_ok=True)
-    for _key in ("alpha", "beta"):
-        (out / "solutions" / _key / "arts").mkdir(parents=True, exist_ok=True)
-        (out / "solutions" / _key / "registers").mkdir(parents=True,
-                                                       exist_ok=True)
+    for solution in spec.solutions:
+        (out / "solutions" / solution.key / "arts").mkdir(parents=True, exist_ok=True)
+        (out / "solutions" / solution.key / "registers").mkdir(parents=True,
+                                                               exist_ok=True)
 
-    workflow_files = {
-        "alpha": out / "workflows" / "alpha.txt",
-        "beta": out / "workflows" / "beta.txt",
-    }
-    workflow_files["alpha"].write_text(_WORKFLOW_ALPHA, encoding="utf-8")
-    workflow_files["beta"].write_text(_WORKFLOW_BETA, encoding="utf-8")
+    workflow_files: dict[str, Path] = {}
+    for solution in spec.solutions:
+        wf_file = out / "workflows" / f"{solution.key}.txt"
+        wf_file.write_text(_workflow_text(solution.workflow), encoding="utf-8")
+        workflow_files[solution.key] = wf_file
 
-    members: dict[str, list[Member]] = {"alpha": [], "beta": []}
+    binding = bind_roles(spec)
+    tags = _solution_tags(spec)
+    members: dict[str, list[Member]] = {s.key: [] for s in spec.solutions}
     for i, (solution_key, profile) in enumerate(
-            _profiles(story, art_profiles)):
+            _profiles(story, art_profiles, spec, binding)):
         wf_file = workflow_files[solution_key]
         workflow = parse_workflow(wf_file)
 
@@ -1013,228 +1327,60 @@ def build_portfolio_scenario(
         log(f"  {profile.name}: {len(records)} issues"
             f"{' (kein CFD, Datenstand -' + str(profile.stale_days) + 'd)' if profile.stale_days else ''}")
 
-    # Story-Anker (handgeschriebene Fixtures) + seed-generierte
+    # Story-Anker (rollengebunden, Position 0 und 1) + seed-generierte
     # Grundmenge (register_gen, Skala S/M/L) je Solution.
-    anchor_registers = {
-        "alpha": {
-            "risks": _alpha_risks(reference),
-            "nfr": _alpha_nfr(reference),
-            "capabilities": _alpha_capabilities(reference),
-            "dependencies": _alpha_dependencies(reference, story),
-            "decisions": _alpha_decisions(reference),
-            "slo": _alpha_slo(reference),
-            "dora": _alpha_delivery(reference),
-            "flow_problems": _alpha_flow_problems(reference),
-            "themes": _alpha_themes(story),
-            "solution_areas": _alpha_solution_areas(reference, story),
-            "decision_points": _alpha_decision_points(reference),
-        },
-        "beta": {
-            "risks": _beta_risks(reference, story),
-            "nfr": _beta_nfr(reference),
-            "capabilities": _beta_capabilities(reference),
-            "dependencies": _beta_dependencies(reference, story),
-            "decisions": _beta_decisions(reference),
-            "slo": _beta_slo(reference),
-            "dora": _beta_delivery(reference),
-            "flow_problems": _beta_flow_problems(reference),
-            "themes": _beta_themes(story),
-            "solution_areas": _beta_solution_areas(reference),
-            "decision_points": _beta_decision_points(reference),
-        },
-    }
-    savers = {"risks": save_risks, "nfr": save_nfr,
-              "capabilities": save_capabilities,
-              "dependencies": save_dependencies,
-              "decisions": save_decisions, "slo": save_slo,
-              "dora": save_delivery, "flow_problems": save_flow_problems,
-              "themes": save_themes, "solution_areas": save_solution_areas,
-              "decision_points": save_decision_points}
+    host_names = _names(spec.solutions[0], tags[spec.solutions[0].short])
+    second_names = (_names(spec.solutions[1], tags[spec.solutions[1].short])
+                    if len(spec.solutions) > 1 else None)
     register_paths: dict[str, Path] = {}
-    for solution_key, regs in anchor_registers.items():
+    for index, solution in enumerate(spec.solutions):
+        names = _names(solution, tags[solution.short])
+        regs = _anchor_registers(index, names, host_names, second_names,
+                                 reference, story)
         populate_registers(
-            regs, solution_key,
-            art_names=[m.name for m in members[solution_key]],
+            regs, solution.key,
+            art_names=[m.name for m in members[solution.key]],
             reference=reference, seed=seed, scale=scale,
-            prev=(story == STORY_PREV))
-        for name, register in regs.items():
-            target = (out / "solutions" / solution_key / "registers"
-                      / f"{name}.json")
-            savers[name](target, register)
-            register_paths[f"{name}_{solution_key}"] = target
+            prev=(story == STORY_PREV), tag=names.tag)
+        for name in REGISTER_NAMES:
+            target = out / "solutions" / solution.key / "registers" / f"{name}.json"
+            _SAVERS[name](target, regs[name])
+            register_paths[f"{name}_{solution.key}"] = target
 
-    risks_alpha = register_paths["risks_alpha"]
-    risks_beta = register_paths["risks_beta"]
-    nfr_alpha = register_paths["nfr_alpha"]
-    nfr_beta = register_paths["nfr_beta"]
-    caps_alpha = register_paths["capabilities_alpha"]
-    caps_beta = register_paths["capabilities_beta"]
-    deps_alpha = register_paths["dependencies_alpha"]
-    deps_beta = register_paths["dependencies_beta"]
-    decisions_alpha = register_paths["decisions_alpha"]
-    decisions_beta = register_paths["decisions_beta"]
-    slo_alpha = register_paths["slo_alpha"]
-    slo_beta = register_paths["slo_beta"]
-    dora_alpha = register_paths["dora_alpha"]
-    dora_beta = register_paths["dora_beta"]
-    flow_alpha = register_paths["flow_problems_alpha"]
-    flow_beta = register_paths["flow_problems_beta"]
-    themes_alpha = register_paths["themes_alpha"]
-    themes_beta = register_paths["themes_beta"]
-    areas_alpha = register_paths["solution_areas_alpha"]
-    areas_beta = register_paths["solution_areas_beta"]
-
-    _registers = {r: f"registers/{r}.json"
-                  for r in ("risks", "nfr", "capabilities", "dependencies",
-                            "decisions", "slo", "dora", "flow_problems",
-                            "themes", "solution_areas", "decision_points")}
-    solution_alpha = out / "solutions" / "alpha" / "solution.json"
-    save_solution_config(solution_alpha, SolutionConfig(
-        name="Solution Alpha", members=members["alpha"],
-        from_date=reference - timedelta(days=window_days), to_date=reference,
-        **_registers))
-    solution_beta = out / "solutions" / "beta" / "solution.json"
-    save_solution_config(solution_beta, SolutionConfig(
-        name="Solution Beta", members=members["beta"],
-        from_date=reference - timedelta(days=window_days), to_date=reference,
-        stage_map=_BETA_STAGE_MAP, **_registers))
+    _registers = {r: f"registers/{r}.json" for r in REGISTER_NAMES}
+    solution_paths: dict[str, Path] = {}
+    for solution in spec.solutions:
+        cfg_path = out / "solutions" / solution.key / "solution.json"
+        save_solution_config(cfg_path, SolutionConfig(
+            name=solution.display_name, members=members[solution.key],
+            from_date=reference - timedelta(days=window_days), to_date=reference,
+            stage_map=(_BETA_STAGE_MAP if solution.workflow == WORKFLOW_STAGE_MAP
+                       else None),
+            **_registers))
+        solution_paths[solution.key] = cfg_path
 
     portfolio_cfg = out / "portfolio.json"
     save_solution_config(portfolio_cfg, SolutionConfig(
-        name="Demo Portfolio", kind=KIND_PORTFOLIO,
-        members=[
-            Member(name="Solution Alpha",
-                   template="solutions/alpha/solution.json"),
-            Member(name="Solution Beta",
-                   template="solutions/beta/solution.json"),
-        ],
+        name=spec.name, kind=KIND_PORTFOLIO,
+        members=[Member(name=s.display_name,
+                        template=f"solutions/{s.key}/solution.json")
+                 for s in spec.solutions],
         from_date=reference - timedelta(days=window_days), to_date=reference))
 
     pi_cfg = out / "pi_config.json"
-    quarters = []
-    q_start = reference - timedelta(days=window_days)
-    n = 1
-    while q_start < reference:
-        q_end = min(q_start + timedelta(days=90), reference)
-        quarters.append({"name": f"PI {n}",
-                         "from": q_start.isoformat(), "to": q_end.isoformat()})
-        q_start = q_end + timedelta(days=1)
-        n += 1
-    pi_cfg.write_text(json.dumps({"mode": "date", "intervals": quarters}, indent=2),
-                      encoding="utf-8")
+    _write_pi_config(pi_cfg, reference, window_days)
+
+    structure_path = out / "structure.json"
+    save_structure(structure_path, Structure([spec]))
+    story_data = standard_story(binding, tags)
+    story_path = out / "story.json"
+    save_story(story_path, story_data)
+    for notice in story_data.notices:
+        log(f"  Hinweis: {notice}")
 
     readme = out / "README.md"
-    readme.write_text("\n".join([
-        "# Demo Portfolio (generierte Testdaten)",
-        "",
-        f"Erzeugt mit `python -m testdata_generator --scenario portfolio` "
-        f"(Seed {seed}, Referenzdatum {reference.isoformat()}).",
-        "",
-        "Direkt verwendbar: `python -m portfolio portfolio.json` bzw. die",
-        "Solution-Configs einzeln. **Der Ordner ist ein Portfolio-Datenraum**:",
-        "alle Pfade in den Configs sind relativ zur jeweiligen Config-Datei —",
-        "der Ordner kann als Ganzes verschoben, kopiert oder gezippt werden.",
-        "",
-        "    portfolio.json            Einstieg (Portfolio)",
-        "    solutions/<name>/         je Solution: solution.json,",
-        "                              arts/ (IssueTimes/Transitions/CFD),",
-        "                              registers/ (Standardnamen: risks.json,",
-        "                              nfr.json, capabilities.json,",
-        "                              dependencies.json, decisions.json,",
-        "                              slo.json, dora.json, flow_problems.json,",
-        "                              themes.json, solution_areas.json,",
-        "                              decision_points.json)",
-        "    workflows/  raw/  pi_config.json",
-        "    snapshots/                snapshot_prev.json, snapshot_now.json",
-        "",
-        "Die Register bestehen aus festen **Story-Ankern** (unten) plus",
-        "einer seed-generierten Grundmenge; `--scale s|m|l` steuert deren",
-        "Umfang je Solution (s = nur Anker, m = Standard, l = Stresstest).",
-        "Die Anker und ihre Geschichten sind auf jeder Skala identisch.",
-        "Die Statuswege der ARTs sind seit 0.38.0 unordentlich wie in echten",
-        "ARTs (Realismus 60: Sprünge, Abbrüche, Schleifen, Wiedereröffnung).",
-        "Je ART lassen sich die Generator-Regler übersteuern (GUI-Dialog",
-        "„ART-Profile…“ bzw. `--art-profiles datei.json`): Issues, Ø-/σ-CT,",
-        "Quoten, Backflow, Realismus, Muster + Stärke, PI-Wochen — Overrides gelten",
-        "in beiden Delta-Ständen, alles andere behält seinen Story-Wert.",
-        "",
-        "Eingebaute Geschichten:",
-        "",
-        "- **ART Alpha-3** ist der Ausreißer (Cycle Time ~3x) — im",
-        "  Comparison-Report der Solution Alpha markiert die",
-        "  Ausreißer-Hervorhebung seine Median-/P95-Zellen rot.",
-        "- **ART Beta-3** liefert schwache Daten (kein CFD, kaum First Dates,",
-        "  Datenstand 60 Tage alt) — die Qualitätstabelle zeigt ihn als 'low',",
-        "  der Titel meldet die Abdeckung.",
-        "- **Solution Beta** poolt über eine eigene `stage_map` (Schema 2,",
-        "  Vorlauf/Umsetzung/Fertig); Solution Alpha nutzt den Default-Pfad",
-        "  (To Do / In Progress / Done).",
-        "- **ROAM-Board**: beide Solutions bringen ein Risiko-Register mit",
-        "  (`solutions/*/registers/risks.json`); zwei Owned-Risiken sind",
-        "  bewusst alt (45/50 Tage) — das Aging springt im Board rot an.",
-        "- **NFR & Runway**: beide Solutions bringen ein NFR-Register mit",
-        "  (`registers/nfr.json`); Betas API-NFR ist verletzt und",
-        "  ein Runway-Element ist eine überfällige Lücke — Dashboard-Ampel rot.",
-        "- **Capability-Map**: beide Solutions bringen eine Capability-Map mit",
-        "  (`registers/capabilities.json`); Betas",
-        "  Data-Insights-Capability ist kritisch (schwache Quelle) und Alphas",
-        "  Partner-Self-Service hat keinen beitragenden ART (uncovered).",
-        "- **Dependency-Heatmap**: beide Solutions bringen ein",
-        "  Dependency-Register mit (`registers/dependencies.json`);",
-        "  Alpha-1 → Alpha-3 ist blockiert und",
-        "  überfällig (der Ausreißer liefert nicht), Beta-1 → Alpha-1 ist eine",
-        "  Cross-Solution-Integration — im Portfolio-Report sichtbar.",
-        "- **Decision-Log**: beide Solutions bringen ein Decision-/",
-        "  Assumption-Log mit (`registers/decisions.json`);",
-        "  Alphas Stage-Map-Entscheidung ersetzt eine ältere (supersedes),",
-        "  Betas offene Annahme „Beta-3 heilt sich selbst\" hat ihr Prüfdatum",
-        "  überschritten — im Log rot als „review due\" markiert.",
-        "- **Flussproblem-Backlog (B6, VSC)**: `registers/flow_problems.json`;",
-        "  FP-A1 und FP-B1 haben 3 bzw. 4 Konferenzen überlebt (das",
-        "  Workshop-Muster „geloggt, nie mitigiert\" — rot markiert), FP-B1",
-        "  ist Cross-VS. Konferenzmappe: `python -m portfolio portfolio.json",
-        "  --conference mappe.html`.",
-        "- **Strategic Themes & Roadmap (B7, VSC)**: `registers/themes.json`;",
-        "  Alphas Theme „Green operations\" ist verwaist (kein Epic —",
-        "  „declared & forgotten\"), EP-A9 ist eine Zombie-Initiative ohne",
-        "  Theme; die Roadmap-Matrix zeigt Trains × P1·P2·Y1·Y2·Y3. Im",
-        "  Delta-Briefing: EP-A9 verlor sein Theme, EP-B2 wurde von P2 nach",
-        "  P1 gezogen („updated roadmaps\").",
-        "- **Entscheidungspunkte / Wecker (D4)**: `registers/decision_points.json`;",
-        "  DP-A1 (P85 von Alpha-3 über 30 Tagen) ist ausgelöst, DP-A2 (offene Items",
-        "  +10 % zum Vorstand) braucht den Vorstand, DP-A3 (zwei blockierte",
-        "  Abhängigkeiten) ist unterschwellig, DP-A4 hat noch keine Schwelle.",
-        "- **Solution Areas & Rekurrenz (P5)**: `registers/solution_areas.json`;",
-        "  die Naht Alpha-1 × Alpha-3 öffnete zum dritten Mal eine Area für",
-        "  dasselbe Thema (test environment) — das EA-Signal: Schnitt oder",
-        "  Architektur prüfen, nicht die Teams. Im Delta-Briefing kommt die",
-        "  dritte Area (SA-A3) neu dazu.",
-        "- **SLO & Error-Budgets (C1)**: `registers/slo.json`;",
-        "  Betas „Order Sync API\" reißt ihr SLO (breached), Alphas",
-        "  „Checkout\" hat sein Budget fast aufgebraucht (at risk).",
-        "- **DORA & Code-Qualität (C2)**: `registers/dora.json`;",
-        "  ART Beta-3 ist auch im Delivery-Bild low (CFR 38 %, MTTR 30 h,",
-        "  Coverage 31 %, Rating D) — die schwache Quelle von allen Seiten.",
-        "  Erzeugt/austauschbar über `python -m sources fetch` (Provider:",
-        "  file, prometheus, github, gitlab, sonarqube — kombinierbar).",
-        "- **Delta-Briefing (D2)**: `snapshots/snapshot_prev.json` (Stand vor",
-        "  14 Tagen) und `snapshots/snapshot_now.json` liegen bei —",
-        "  `python -m portfolio --delta snapshots/snapshot_prev.json",
-        "  snapshots/snapshot_now.json`",
-        "  zeigt: Durchsatz im Zeitraum, Beta-3-Konfidenz medium → low,",
-        "  AD-1 at_risk → blocked, Risiko BR-2 neu, Runway-Lücke und Annahme",
-        "  AS-B1 frisch überfällig.",
-        "- **KI-Narration (D2 Teil 2)**: `--narrate mock` ergänzt das",
-        "  Briefing um den gekennzeichneten Abschnitt „Narration (Entwurf)\"",
-        "  — ohne Modell oder Installation (Attrappe); der Nachweis landet",
-        "  in `llm_audit.jsonl`. Mit lokal installiertem Ollama echt:",
-        "  `--narrate` (Modell mistral-nemo; Anleitung: Doku-Site →",
-        "  Tutorials → „Ollama auf Windows 11\").",
-        "",
-        "Die Roh-JSONs unter `raw/` sind zugleich Demo-Futter für get_data:",
-        "`python -m get_data check raw/Alpha-1_jira.json` zeigt die",
-        "Export-Prüfung (Weg 2) am Beispiel.",
-    ]), encoding="utf-8")
+    readme.write_text(_readme_text(spec, story_data, seed, reference, scale),
+                      encoding="utf-8")
 
     snapshot_prev = out / "snapshots" / "snapshot_prev.json"
     snapshot_now = out / "snapshots" / "snapshot_now.json"
@@ -1251,29 +1397,111 @@ def build_portfolio_scenario(
             load_solution_config(portfolio_cfg), as_of=reference,
             log=lambda m: None))
         with tempfile.TemporaryDirectory(prefix="scenario_prev_") as tmp:
-            prev_paths = build_portfolio_scenario(
-                Path(tmp), seed=seed, reference=reference,
+            prev_paths = _build_portfolio(
+                Path(tmp), spec, seed=seed, reference=reference,
                 window_days=window_days, log=lambda m: None,
-                story=STORY_PREV, scale=scale,
-                art_profiles=art_profiles)
+                story=STORY_PREV, scale=scale, art_profiles=art_profiles)
             save_snapshot(snapshot_prev, build_snapshot(
                 load_solution_config(prev_paths["portfolio"]),
                 as_of=reference - timedelta(days=14), log=lambda m: None))
 
-    log(f"Szenario komplett: {out}")
-    return {"portfolio": portfolio_cfg, "solution_alpha": solution_alpha,
-            "solution_beta": solution_beta, "risks_alpha": risks_alpha,
-            "risks_beta": risks_beta, "nfr_alpha": nfr_alpha,
-            "nfr_beta": nfr_beta, "capabilities_alpha": caps_alpha,
-            "capabilities_beta": caps_beta, "dependencies_alpha": deps_alpha,
-            "dependencies_beta": deps_beta, "decisions_alpha": decisions_alpha,
-            "decisions_beta": decisions_beta, "pi_config": pi_cfg,
-            "flow_alpha": flow_alpha, "flow_beta": flow_beta,
-            "themes_alpha": themes_alpha, "themes_beta": themes_beta,
-            "areas_alpha": areas_alpha, "areas_beta": areas_beta,
-            "points_alpha": register_paths["decision_points_alpha"],
-            "points_beta": register_paths["decision_points_beta"],
-            "slo_alpha": slo_alpha, "slo_beta": slo_beta,
-            "dora_alpha": dora_alpha, "dora_beta": dora_beta,
-            "snapshot_prev": snapshot_prev, "snapshot_now": snapshot_now,
-            "readme": readme}
+    paths: dict[str, Any] = {
+        "portfolio": portfolio_cfg, "pi_config": pi_cfg, "readme": readme,
+        "structure": structure_path, "story": story_path,
+        "snapshot_prev": snapshot_prev, "snapshot_now": snapshot_now,
+        "solutions": solution_paths,
+    }
+    for key, cfg_path in solution_paths.items():
+        paths[f"solution_{key}"] = cfg_path
+        for name in REGISTER_NAMES:
+            paths[f"{name}_{key}"] = register_paths[f"{name}_{key}"]
+        for alias, name in _KEY_ALIASES.items():
+            paths[f"{alias}_{key}"] = register_paths[f"{name}_{key}"]
+    return paths
+
+
+def build_portfolio_scenario(
+    output_dir: Path,
+    seed: int = 42,
+    reference: date | None = None,
+    window_days: int = 365,
+    log: Callable[[str], None] = print,
+    story: str = STORY_NOW,
+    scale: str = DEFAULT_SCALE,
+    art_profiles: dict[str, dict] | None = None,
+    structure: Structure | None = None,
+) -> dict[str, Any]:
+    """
+    Generate the complete demo data room into ``output_dir``.
+
+    Args:
+        output_dir:  Target directory (created if missing).
+        seed:        Base RNG seed; each ART uses seed + index, so the whole
+                     scenario is reproducible for a fixed reference date.
+        reference:   End of the data window (default: today). The window
+                     spans ``window_days`` back from here; the weak source's
+                     window ends ``stale_days`` earlier.
+        window_days: Length of the data window in days.
+        log:         Progress callback.
+        story:       STORY_NOW (default) builds the current state including
+                     the two Delta-Briefing snapshots; STORY_PREV builds the
+                     same world two weeks earlier (used internally for the
+                     prev snapshot — no snapshots of its own).
+        scale:       Register volume per solution ("s", "m", "l").
+        art_profiles: Per-ART generator overrides (see apply_art_overrides).
+        structure:   The data-room structure (E2a). None = the standard
+                     template (1 portfolio · 2 solutions · 3 ARTs each),
+                     which yields exactly the demo portfolio of before.
+
+    Returns:
+        One portfolio: the key output paths — "portfolio", "pi_config",
+        "readme", "structure", "story", "snapshot_prev", "snapshot_now",
+        "solutions" ({key: solution.json}), plus "solution_<key>" and
+        "<register>_<key>" for every solution (aliases flow_/areas_/points_).
+        Several portfolios: "structure", "readme" and "portfolios"
+        ({key: the per-portfolio dict above}); each portfolio lives in its
+        own sub-folder and is a complete data room by itself.
+
+    Raises:
+        ValueError: invalid structure (see structure.validate).
+    """
+    reference = reference or date.today()
+    out = Path(output_dir)
+    structure = structure or structure_template(TEMPLATE_STANDARD)
+    validate(structure)
+
+    if len(structure.portfolios) == 1:
+        paths = _build_portfolio(out, structure.portfolios[0], seed, reference,
+                                 window_days, log, story, scale, art_profiles)
+        log(f"Szenario komplett: {out}")
+        return paths
+
+    out.mkdir(parents=True, exist_ok=True)
+    per_portfolio: dict[str, dict[str, Any]] = {}
+    for spec in structure.portfolios:
+        log(f"Portfolio {spec.name} -> {spec.key}/")
+        per_portfolio[spec.key] = _build_portfolio(
+            out / spec.key, spec, seed, reference, window_days, log, story,
+            scale, art_profiles)
+    structure_path = out / "structure.json"
+    save_structure(structure_path, structure)
+    readme = out / "README.md"
+    readme.write_text("\n".join([
+        "# Demo-Datenraum mit mehreren Portfolios",
+        "",
+        f"Erzeugt mit `python -m testdata_generator --scenario portfolio` "
+        f"(Seed {seed}, Referenzdatum {reference.isoformat()}, "
+        f"{structure.describe()}).",
+        "",
+        "Jeder Unterordner ist ein vollständiger Portfolio-Datenraum mit",
+        "eigener `portfolio.json`, eigenen Ständen und eigener README:",
+        "",
+    ] + [f"- `{spec.key}/` — {spec.name}: "
+         + ", ".join(s.display_name for s in spec.solutions)
+         for spec in structure.portfolios]
+      + ["", "Ein Lagebild über mehrere Portfolios hinweg ist heute kein",
+         "Feature; die Daten dafür liegen hier bereits nebeneinander.", ""]),
+        encoding="utf-8")
+    log(f"Szenario komplett: {out} ({structure.describe()})")
+    return {"structure": structure_path, "readme": readme,
+            "portfolios": per_portfolio}

@@ -3,7 +3,7 @@
 # Repository:     https://github.com/Jaegerfeld/situation-report
 # KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
 # Erstellt:       02.05.2026
-# Geändert:       13.05.2026
+# Geändert:       26.10.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
@@ -282,6 +282,35 @@ def run_continue(
     return target
 
 
+def _run_scenario(args: argparse.Namespace, parser: argparse.ArgumentParser) -> None:
+    """--scenario portfolio: resolve the structure, print the estimate, build."""
+    import json as _json
+
+    from .scenario import build_portfolio_scenario
+    from .structure import estimate, resolve_structure, structure_from_arts_spec
+    out_dir = args.output if args.output else Path("demo_portfolio")
+    art_profiles = None
+    if args.art_profiles is not None:
+        art_profiles = _json.loads(
+            args.art_profiles.read_text(encoding="utf-8"))
+    if args.structure is not None and args.arts is not None:
+        parser.error("--structure and --arts exclude each other.")
+    try:
+        structure = (structure_from_arts_spec(args.arts) if args.arts is not None
+                     else resolve_structure(args.structure))
+    except (ValueError, OSError) as exc:
+        parser.error(f"structure: {exc}")
+    est = estimate(structure, scale=args.scale)
+    print(f"Struktur: {structure.describe()} — {est.jira_exports} Jira-Exporte, "
+          f"{est.workbooks} Arbeitsmappen, {est.registers} Register")
+    if est.warn:
+        print(f"WARNUNG: grosse Struktur ({est.warn_reason}) — Erzeugung dauert "
+              f"entsprechend.", file=sys.stderr)
+    build_portfolio_scenario(
+        Path(out_dir), seed=args.seed if args.seed is not None else 42,
+        scale=args.scale, art_profiles=art_profiles, structure=structure)
+
+
 def main() -> None:
     """Entry point for CLI mode (called by __main__.py when args are present)."""
     parser = argparse.ArgumentParser(
@@ -292,10 +321,23 @@ def main() -> None:
                         help="Workflow definition file (.txt) — defines stages and boundaries. "
                              "Required unless --scenario is used.")
     parser.add_argument("--scenario", choices=["portfolio"], default=None,
-                        help="Generate a complete demo scenario instead of a single "
-                             "project: 'portfolio' builds 2 solutions x 3 ARTs with "
+                        help="Generate a complete demo data room instead of a single "
+                             "project: 'portfolio' builds every ART of the structure "
+                             "(default 2 solutions x 3 ARTs) with "
                              "IssueTimes/CFD/Transitions, solution/portfolio configs "
-                             "(one with a stage_map), and a PI config into --output.")
+                             "(stage_map per solution), registers, snapshots, "
+                             "structure.json/story.json and a PI config into --output.")
+    parser.add_argument("--structure", default=None, metavar="TEMPLATE|FILE",
+                        help="With --scenario: the data-room structure — a template "
+                             "name (small = 1 solution x 2 ARTs, standard = 2 x 3, "
+                             "large = 5 portfolios) or a structure.json (portfolios "
+                             "-> solutions -> ARTs, workflow per solution). "
+                             "Default: standard.")
+    parser.add_argument("--arts", default=None, metavar="N[,N...]",
+                        help="With --scenario: one portfolio from ART counts per "
+                             "solution, e.g. '3,4s,1' = three solutions with 3, 4 "
+                             "and 1 ARTs; a trailing 's' gives that solution its own "
+                             "stage map. Not combinable with --structure.")
     parser.add_argument("--scale", choices=["s", "m", "l"], default="m",
                         help="With --scenario: register volume per solution. "
                              "s = story anchors only, m = realistic demo "
@@ -400,17 +442,7 @@ def main() -> None:
         return
 
     if args.scenario == "portfolio":
-        import json as _json
-
-        from .scenario import build_portfolio_scenario
-        out_dir = args.output if args.output else Path("demo_portfolio")
-        art_profiles = None
-        if args.art_profiles is not None:
-            art_profiles = _json.loads(
-                args.art_profiles.read_text(encoding="utf-8"))
-        build_portfolio_scenario(
-            Path(out_dir), seed=args.seed if args.seed is not None else 42,
-            scale=args.scale, art_profiles=art_profiles)
+        _run_scenario(args, parser)
         return
 
     if args.learn_from is not None:

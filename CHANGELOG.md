@@ -7,6 +7,26 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added (Beta-Branch `beta/ux-redesign`, nicht released)
+- **Datenraum-Struktur als Daten (Beta-Schnitt 1a, Entscheidungen E1/E2/E2a vom 26.10.2026).**
+  Der Testdaten-Generator war auf „1 Portfolio · 2 Solutions · je 3 ARTs" festgeschrieben. Neu
+  `testdata_generator/structure.py`: `structure.json` (Portfolios → Solutions → ARTs, Workflow je
+  Solution, mindestens ein ART je Solution) mit den Vorlagen **small** (1·1·2), **standard** (1·2·3,
+  liefert exakt die bisherigen Demo-Daten) und **large** (5 Portfolios, 3–4 Solutions, 1–6 ARTs);
+  Namensvorschläge (Alpha … Omega, dann S25 …), Validierung, Schätzung „Was entsteht" mit Warnung
+  ab 30 ARTs bzw. 5 Portfolios bei Umfang L. Neu `testdata_generator/story.py`: die Geschichte als
+  `story.json` — Ereignisse an **Rollen** gebunden (Ausreißer = letzter ART der ersten Solution,
+  schwache Quelle = letzter ART der zweiten, Cross-Solution-Naht zwischen beiden); was die Struktur
+  nicht hergibt, entfällt mit Hinweis statt Fehler (eine Solution → keine Cross-Solution-Ereignisse;
+  dritte und weitere Solutions tragen nur die seed-erzeugte Grundmenge). `scenario.py` baut jetzt
+  aus der Struktur: alle Story-Anker sind rollengebunden (IDs nach Solution-Kennbuchstabe), mehrere
+  Portfolios landen als eigene Datenräume in Unterordnern mit Index-README. CLI: `--structure
+  small|standard|large|DATEI.json` und `--arts 3,4s,1` (ART-Zahl je Solution, `s` = eigene
+  Stage-Map); vor dem Bau die Schätzung auf der Konsole. Jeder Datenraum trägt `structure.json`,
+  `story.json` und eine aus beiden erzählte README. GUI unverändert (Standard-Vorlage); Oberfläche
+  folgt in Schnitt 3 nach dem Prototyp. 67 neue Tests, Bestand grün (die Standard-Vorlage erzeugt
+  byte-gleiche Register und identische IssueTimes).
+
 ### Docs
 - **Rechtsstand 10/2026 (Rechts-Kandidat R5, reine Doku — kein Release).** Roadmap-Block „Rechtliche
   Leitplanken für Phase D" auf den Stand 23.10.2026: Digital Omnibus in Kraft (Hochrisiko-Fristen
