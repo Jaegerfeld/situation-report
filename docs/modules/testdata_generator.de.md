@@ -176,6 +176,46 @@ Eingebaute Geschichten (deterministisch je Seed):
 Der Ordner ist direkt verwendbar: `python -m portfolio demo/portfolio.json`
 erzeugt den Portfolio-Report; die Solution-Configs funktionieren auch einzeln.
 
+### Konfigurierbare Struktur (Beta, Schnitt 1a)
+
+Die Struktur des Datenraums ist Daten, nicht Code: `structure.json` zählt
+Portfolios, ihre Solutions und die ARTs jeder Solution auf; der Workflow
+(klassisch oder eigene Stage-Map) ist eine Eigenschaft der Solution. Drei
+Vorlagen liegen bei — `small` (eine Solution mit zwei ARTs), `standard` (das
+Demo-Portfolio oben, byte-gleich dieselben Daten) und `large` (fünf Portfolios
+mit drei bis vier Solutions und ein bis sechs ARTs, zusammen 49 ARTs).
+Solution-Namen werden vorgeschlagen (Alpha … Omega, danach S25 …), ART-Namen
+folgen `<Solution>-<n>`; alle Namen sind änderbar.
+
+```bash
+python -m testdata_generator --scenario portfolio --structure small --output demo/
+python -m testdata_generator --scenario portfolio --arts 3,4s,1 --output demo/
+python -m testdata_generator --scenario portfolio --structure meine_struktur.json --output demo/
+```
+
+`--arts` baut ein Portfolio aus ART-Zahlen je Solution (`s` = diese Solution
+bekommt eine eigene Stage-Map). Vor dem Bau gibt die Kommandozeile die
+Schätzung aus (Jira-Exporte, Arbeitsmappen, Register) und warnt ab 30 ARTs
+oder fünf Portfolios bei Umfang `l` — verweigert aber nichts.
+
+Die Geschichte bindet an **Rollen, nicht an Namen** (`story.json` im
+Datenraum): der Ausreißer ist der letzte ART der ersten Solution, die schwache
+Quelle der letzte ART der zweiten, blockierte Abhängigkeit und wiederkehrende
+Naht laufen vom ersten zum letzten ART der ersten Solution, die
+Cross-Solution-Abhängigkeit vom ersten ART der zweiten Solution zum ersten ART
+der ersten. Umbenennen verschiebt nichts. Was die Struktur nicht hergibt,
+entfällt mit Hinweis im Log, in `story.json` und in der README: eine einzelne
+Solution hat keine schwache Quelle und keine Cross-Solution-Naht; eine
+Solution mit einem ART keinen Ausreißer; die dritte und jede weitere Solution
+trägt nur die seed-erzeugte Grundmenge. Register-IDs tragen den
+Anfangsbuchstaben der Solution als Kennung (`AR-1`, `BD-3`, `DP-G1`).
+
+Mehrere Portfolios bekommen je einen Unterordner mit `portfolio.json`,
+Ständen und README — jeder Unterordner ist ein vollständiger Datenraum; die
+Wurzel trägt die ganze `structure.json` und eine Index-README. Ein Lagebild
+über Portfolios hinweg ist noch kein Feature; die Daten dafür liegen schon
+bereit.
+
 ## Realistische Statuswege (seit 0.38.0)
 
 Ein echter ART läuft nicht brav durch alle Stufen. Gemessen am echten ART_A (458 Vorgänge,

@@ -174,6 +174,45 @@ Built-in stories (deterministic per seed):
 The folder is directly usable: `python -m portfolio demo/portfolio.json`
 builds the portfolio report; the solution configs also work individually.
 
+### Configurable structure (beta, step 1a)
+
+The structure of the data room is data, not code: `structure.json` lists
+portfolios, their solutions and the ARTs of every solution; the workflow
+(classic or own stage map) is a property of the solution. Three templates
+ship — `small` (one solution with two ARTs), `standard` (the demo portfolio
+above, byte-for-byte the same data) and `large` (five portfolios with three
+to four solutions and one to six ARTs each, 49 ARTs in total). Solution names
+are suggested (Alpha … Omega, then S25 …), ART names follow
+`<Solution>-<n>`; all names are editable.
+
+```bash
+python -m testdata_generator --scenario portfolio --structure small --output demo/
+python -m testdata_generator --scenario portfolio --arts 3,4s,1 --output demo/
+python -m testdata_generator --scenario portfolio --structure my_structure.json --output demo/
+```
+
+`--arts` builds one portfolio from ART counts per solution (`s` = that
+solution gets its own stage map). Before building, the CLI prints the
+estimate (Jira exports, workbooks, registers) and warns from 30 ARTs or
+five portfolios at scale `l` — it refuses nothing.
+
+The story binds to **roles, not names** (`story.json` in the data room):
+the outlier is the last ART of the first solution, the weak source the last
+ART of the second, the blocked dependency and the recurring seam run from the
+first to the last ART of the first solution, the cross-solution dependency
+from the second solution's first ART to the first solution's first ART.
+Renaming moves nothing. What the structure cannot provide is dropped with a
+notice in the log, in `story.json` and in the README: a single solution has
+no weak source and no cross-solution seam; a one-ART solution has no
+outlier; a third and every further solution carries only the seed-generated
+base population. Register IDs take the solution's first letter as tag
+(`AR-1`, `BD-3`, `DP-G1`).
+
+Several portfolios each get their own sub-folder with `portfolio.json`,
+stands and README — every sub-folder is a complete data room; the root
+holds the full `structure.json` and an index README. A picture across
+portfolios is not a feature yet; the data for it is already laid out.
+
 ## Realistic stage paths (since 0.38.0)
 
 A real ART does not walk neatly through every stage. Measured on the real ART_A (458 issues,

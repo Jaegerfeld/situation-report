@@ -191,7 +191,16 @@ Firmenrechner prüfen.
 **Bewusst nicht:** keine Personen, keine Live-Systeme (Prometheus & Co. nur als Dateien), kein Generator
 für die Denkschriften-Beispiele, keine Zufalls-„Realität" ohne Seed (alles reproduzierbar).
 
-## 6. Nächster Schritt
+## 6. Umsetzungsstand
 
-Schnitt 1a (Struktur-Datei, Datenraum-Baum, Geschichte-Datei, CLI, Tests) als erster PR auf
-`beta/ux-redesign`. Prototyp-Stand 7 spiegelt F3 (Hinweistext am Schalter KI-Entwürfe).
+| Schnitt | Stand | Inhalt |
+|---|---|---|
+| 1a | **gebaut 26.10.2026** (PR auf `beta/ux-redesign`) | `structure.json` + `story.json` (`testdata_generator/structure.py`, `story.py`), `scenario.py` baut aus der Struktur mit rollengebundenen Ankern, mehrere Portfolios als Unterordner, CLI `--structure`/`--arts` mit Schätzung und Warnung, 67 Tests, Doku (CHANGELOG, mkdocs DE/EN, Handbuch 5 Sprachen). GUI noch unverändert. Archiv: `Ideen/Archiv/Datenraum-Struktur_1a_2026-10-26/`. |
+| 1b | offen | Stände-Reihe (6 × 14 Tage), Delta-Briefings aller Folgepaare, `deltas/`. |
+| 1c | offen | Provider-Rohdaten in Systemformaten, `sources.json`, Prüfung Writer gegen Reader. |
+| 2 | offen | Vorlagen Ruhig/Eskalation/Erholung, Ereignis-Schalter. |
+| 3 | offen | Oberfläche nach Prototyp (Stand 7), Framework-Entscheidung, Reiter-Audit. |
+| 4 | offen | Tutorial „Demo-Datenraum in einer Minute". |
+
+Onepager DE/EN: Vorschlag, einmal für den ganzen Generator nach Schnitt 1c statt je Schnitt
+(Robert entscheidet).

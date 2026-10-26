@@ -253,6 +253,7 @@ def populate_registers(
     seed: int,
     scale: str = DEFAULT_SCALE,
     prev: bool = False,
+    tag: str | None = None,
 ) -> None:
     """
     Extend the story-anchor registers with the seeded base population.
@@ -272,6 +273,8 @@ def populate_registers(
         seed:         Scenario seed (per-solution stream, story-agnostic).
         scale:        "s" (anchors only), "m", "l".
         prev:         Build the two-weeks-earlier stand (drop rule).
+        tag:          ID tag of the solution ("A", "B", "G2"); default: the
+                      first letter of solution_key, upper-cased.
 
     Raises:
         ValueError: Unknown scale.
@@ -280,7 +283,7 @@ def populate_registers(
         raise ValueError(
             f"Unknown scale '{scale}' — expected one of {', '.join(SCALES)}.")
     g = _Gen(rng=random.Random(f"{seed}:{solution_key}:registers"),
-             tag=solution_key[:1].upper(), reference=reference,
+             tag=tag or solution_key[:1].upper(), reference=reference,
              art_names=art_names, profile=SCALE_PROFILES[scale], prev=prev)
     _gen_risks(g, registers["risks"])
     _gen_nfr(g, registers["nfr"])
@@ -352,6 +355,8 @@ def _gen_dependencies(g: _Gen, deps: DependencyRegister) -> None:
     """Real ARTs only; never blocked, never overdue, no cross-solution —
     die blockierte, überfällige AD-1 und die Cross-Integration bleiben
     die einzigen ihrer Art (Anker-Invariante)."""
+    if len(g.art_names) < 2:
+        return      # a one-ART solution has no inner seams
     for i in range(g.profile.dependencies):
         did = f"D-{g.tag}{100 + i}"
         frm, to = g.rng.sample(g.art_names, k=2)
