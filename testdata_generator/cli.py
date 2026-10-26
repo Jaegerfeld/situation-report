@@ -300,21 +300,29 @@ def _run_scenario(args: argparse.Namespace, parser: argparse.ArgumentParser) -> 
                      else resolve_structure(args.structure))
     except (ValueError, OSError) as exc:
         parser.error(f"structure: {exc}")
-    from .scenario import DEFAULT_STANDS, MAX_STANDS, MIN_STANDS
-    stands = DEFAULT_STANDS if args.stands is None else args.stands
+    from .scenario import MAX_STANDS, MIN_STANDS
+    from .story import SUGGESTED_STANDS, TEMPLATE_STANDARD, parse_switches
+    template = args.story or TEMPLATE_STANDARD
+    try:
+        switches = parse_switches(args.event)
+    except ValueError as exc:
+        parser.error(str(exc))
+    stands = SUGGESTED_STANDS[template] if args.stands is None else args.stands
     if not MIN_STANDS <= stands <= MAX_STANDS:
         parser.error(f"--stands must be {MIN_STANDS}..{MAX_STANDS}, got {stands}.")
     est = estimate(structure, stands=stands, scale=args.scale)
+    switch_text = ", ".join(f"{k}={'on' if v else 'off'}" for k, v in switches.items())
     print(f"Struktur: {structure.describe()} — {est.jira_exports} Jira-Exporte, "
           f"{est.workbooks} Arbeitsmappen, {est.registers} Register, "
-          f"{est.stands} Stände, {est.deltas} Delta-Briefings")
+          f"{est.stands} Stände, {est.deltas} Delta-Briefings; Geschichte: {template}"
+          + (f", Schalter {switch_text}" if switch_text else ""))
     if est.warn:
         print(f"WARNUNG: grosse Struktur ({est.warn_reason}) — Erzeugung dauert "
               f"entsprechend.", file=sys.stderr)
     build_portfolio_scenario(
         Path(out_dir), seed=args.seed if args.seed is not None else 42,
         scale=args.scale, art_profiles=art_profiles, structure=structure,
-        stands=stands)
+        stands=stands, template=template, switches=switches)
 
 
 def main() -> None:
@@ -339,6 +347,18 @@ def main() -> None:
                              "large = 5 portfolios) or a structure.json (portfolios "
                              "-> solutions -> ARTs, workflow per solution). "
                              "Default: standard.")
+    parser.add_argument("--story", default=None,
+                        choices=["calm", "standard", "escalation", "recovery"],
+                        help="With --scenario: the story template — calm (no turning "
+                             "points, suggests 3 stands), standard (the demo story: "
+                             "turning points with the last stand), escalation (pressure "
+                             "rises stand by stand), recovery (starts bad, heals). "
+                             "Default: standard.")
+    parser.add_argument("--event", action="append", default=None, metavar="ID=on|off",
+                        help="With --scenario: switch one story event on or off, e.g. "
+                             "--event E3=off --event E9=on (ids E1-E10, see story.json). "
+                             "Repeatable; an event whose prerequisite is off stays off "
+                             "with a notice.")
     parser.add_argument("--stands", type=int, default=None, metavar="N",
                         help="With --scenario: number of stands in the series "
                              "(2-12, default 6), two weeks apart, the last one on "

@@ -14,6 +14,7 @@
 
 from __future__ import annotations
 
+import json
 import sys
 
 import pytest
@@ -86,6 +87,24 @@ class TestScenarioStructureFlags:
                  "--output", str(tmp_path / "x"))
         assert exc.value.code == 2
         assert "--stands must be 2..12" in capsys.readouterr().err
+
+    def test_story_template_and_switches(self, tmp_path, monkeypatch, capsys) -> None:
+        out = tmp_path / "room"
+        _run(monkeypatch, "--scenario", "portfolio", "--arts", "2,1", "--story", "calm",
+             "--event", "E6=on", "--scale", "s", "--output", str(out))
+        data = json.loads((out / "story.json").read_text(encoding="utf-8"))
+        assert data["template"] == "calm" and data["stands"] == 3     # calm suggests 3 stands
+        enabled = {e["id"] for e in data["events"] if e["enabled"]}
+        assert enabled == {"E6"}
+        text = capsys.readouterr().out
+        assert "Geschichte: calm, Schalter E6=on" in text and "3 Stände" in text
+
+    def test_bad_event_switch_is_a_usage_error(self, tmp_path, monkeypatch, capsys) -> None:
+        with pytest.raises(SystemExit) as exc:
+            _run(monkeypatch, "--scenario", "portfolio", "--arts", "1", "--event", "E42=on",
+                 "--output", str(tmp_path / "x"))
+        assert exc.value.code == 2
+        assert "unknown event id" in capsys.readouterr().err
 
     def test_large_template_warns_before_building(self, tmp_path, monkeypatch, capsys) -> None:
         # Do not build 49 ARTs in a unit test: stop right after the estimate.

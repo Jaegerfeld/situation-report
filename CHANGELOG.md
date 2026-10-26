@@ -58,6 +58,22 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   gelten relativ zur Config-Datei, wenn sie vom Arbeitsverzeichnis aus nicht existieren.
   GitHub und GitLab verstehen `"as_of": DATUM` und verankern ihr Fenster an diesem Tag statt an
   heute (reproduzierbare Abrufe, Demo-Datenräume mit festem Referenzdatum).
+- **Geschichts-Vorlagen mit Ereignis-Schaltern (Beta-Schnitt 2, Entscheidung E2 vom 26.10.2026).**
+  `story.json` (Schema 2) kennt vier Vorlagen — **Ruhig** (keine Wendungen, schlägt drei Stände vor),
+  **Standard-Lage** (die bisherige Demo-Geschichte: Wendungen mit dem letzten Stand), **Eskalation**
+  (Druck Stand für Stand: SLO-Bruch früh, blockierte Naht in der Mitte, Verfall der Datenquelle und
+  Cross-Solution-Nähte spät, neues Risiko und Roadmaps zuletzt) und **Erholung** (beginnt schlecht
+  und heilt: Nähte gelöst, SLO hält, Ausreißer findet seinen Takt, Datenquelle zuletzt). Zehn
+  Ereignisse E1–E10 mit **Schalter** und **Stand-Fenster** aus Phasen (start, early, mid, late,
+  end), die für die gewählte Zahl der Stände in Stand-Indizes aufgelöst werden; `active_events(k)`
+  sagt dem Generator, was in Stand k gilt. **Alle Register-Anker und die ART-Profile richten sich
+  nach den aktiven Ereignissen** statt nach prev/now: ohne Ausreißer-Ereignis liefert der letzte ART
+  wie seine Schwestern, ohne SLO-Bruch hält „Order Sync API", ohne stille Muster altert kein Risiko.
+  Unplausible Kombinationen (Verfall ohne schwache Quelle) laufen mit Hinweis durch, das abhängige
+  Ereignis bleibt aus. CLI `--story calm|standard|escalation|recovery`, `--event E3=off`
+  (wiederholbar); README zählt die Ereignisse mit Stand-Fenster, abgeschaltete als „aus". Die
+  Standard-Lage erzeugt weiterhin exakt die bisherigen Daten (Bestandstests grün). Schema-1-Dateien
+  (`when`) werden weiter gelesen.
 
 ### Fixed
 - **Delta-Briefing (HTML): vier Register-Abschnitte ohne Überschrift.** Die HTML-Seite kannte keine

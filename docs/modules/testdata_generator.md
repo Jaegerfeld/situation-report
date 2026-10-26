@@ -264,6 +264,37 @@ medians of three recorded durations), so small units show coarse steps —
 reader test checks exactly that. Solutions whose registers carry no records
 get no raw data (the log and the README say so).
 
+### Story templates and event switches (beta, step 2)
+
+The story of a data room is a template plus switches, written to
+`story.json` (schema 2). Four templates ship:
+
+| Template | What the stands show | Suggested stands |
+|---|---|---|
+| `calm` | No turning points: every ART delivers evenly, the registers hold base population and healthy anchors — the exercise is reading a picture that says nothing dramatic | 3 |
+| `standard` | The demo story: outlier, weak source, SLO breach and the silent patterns from the start; blocked seam, cross-solution pressure, third solution area, confidence decay, new risk and updated roadmaps with the last stand | 6 |
+| `escalation` | Pressure rises stand by stand: SLO breach early, blocked seam mid, confidence decay and cross-solution seams late, new risk and roadmaps last | 6 |
+| `recovery` | Starts bad and heals: seams get resolved, the SLO holds again, the outlier finds its pace, the data source heals last — only the silent patterns remain | 6 |
+
+Ten events (E1–E10) carry a **switch** and a **stand window** given as
+phases (`start`, `early`, `mid`, `late`, `end`) that resolve to stand
+indices for the chosen series length; the registers' anchors and the ART
+profiles follow the events in force at each stand. Switch an event off and
+its traces disappear everywhere: no outlier means the last ART delivers like
+its sisters, no SLO breach means "Order Sync API" keeps its budget. An event
+whose prerequisite is off (the confidence decay needs the weak source) stays
+off with a notice.
+
+```bash
+python -m testdata_generator --scenario portfolio --story escalation --output demo/
+python -m testdata_generator --scenario portfolio --story calm --event E6=on --output demo/
+python -m testdata_generator --scenario portfolio --event E3=off --event E9=off --output demo/
+```
+
+The README lists every event with its stand window ("ab Stand 04", "Stand
+01 bis 04") and marks switched-off events as "aus". The standard template
+still produces exactly the data of before.
+
 ## Realistic stage paths (since 0.38.0)
 
 A real ART does not walk neatly through every stage. Measured on the real ART_A (458 issues,

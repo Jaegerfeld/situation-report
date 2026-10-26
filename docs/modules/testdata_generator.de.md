@@ -269,6 +269,37 @@ Provider liefern wird, und genau das prüft der Test Writer gegen Reader.
 Solutions ohne Register-Einträge bekommen keine Rohdaten (Log und README
 sagen es).
 
+### Geschichts-Vorlagen und Ereignis-Schalter (Beta, Schnitt 2)
+
+Die Geschichte eines Datenraums ist eine Vorlage plus Schalter, abgelegt in
+`story.json` (Schema 2). Vier Vorlagen liegen bei:
+
+| Vorlage | Was die Stände zeigen | Vorschlag Stände |
+|---|---|---|
+| `calm` (Ruhig) | Keine Wendungen: alle ARTs liefern gleichmäßig, die Register tragen Grundmenge und gesunde Anker — die Übung ist, ein Lagebild zu lesen, das nichts Dramatisches sagt | 3 |
+| `standard` (Standard-Lage) | Die Demo-Geschichte: Ausreißer, schwache Quelle, SLO-Bruch und stille Muster von Anfang an; blockierte Naht, Cross-Solution-Druck, dritte Solution Area, Konfidenz-Verfall, neues Risiko und aktualisierte Roadmaps mit dem letzten Stand | 6 |
+| `escalation` (Eskalation) | Druck steigt Stand für Stand: SLO-Bruch früh, blockierte Naht in der Mitte, Konfidenz-Verfall und Cross-Solution-Nähte spät, neues Risiko und Roadmaps zuletzt | 6 |
+| `recovery` (Erholung) | Beginnt schlecht und heilt: Nähte werden gelöst, das SLO hält wieder, der Ausreißer findet seinen Takt, die Datenquelle heilt zuletzt — nur die stillen Muster bleiben | 6 |
+
+Zehn Ereignisse (E1–E10) tragen einen **Schalter** und ein **Stand-Fenster**
+aus Phasen (`start`, `early`, `mid`, `late`, `end`), das für die gewählte
+Zahl der Stände in Stand-Indizes aufgelöst wird; Register-Anker und
+ART-Profile richten sich nach den Ereignissen, die im jeweiligen Stand
+gelten. Wer ein Ereignis abschaltet, nimmt seine Spuren überall heraus: ohne
+Ausreißer liefert der letzte ART wie seine Schwestern, ohne SLO-Bruch hält
+„Order Sync API" sein Budget. Ein Ereignis, dessen Voraussetzung aus ist
+(der Konfidenz-Verfall braucht die schwache Quelle), bleibt mit Hinweis aus.
+
+```bash
+python -m testdata_generator --scenario portfolio --story escalation --output demo/
+python -m testdata_generator --scenario portfolio --story calm --event E6=on --output demo/
+python -m testdata_generator --scenario portfolio --event E3=off --event E9=off --output demo/
+```
+
+Die README zählt jedes Ereignis mit seinem Stand-Fenster („ab Stand 04",
+„Stand 01 bis 04") und markiert abgeschaltete als „aus". Die Standard-Lage
+erzeugt weiterhin exakt die bisherigen Daten.
+
 ## Realistische Statuswege (seit 0.38.0)
 
 Ein echter ART läuft nicht brav durch alle Stufen. Gemessen am echten ART_A (458 Vorgänge,
