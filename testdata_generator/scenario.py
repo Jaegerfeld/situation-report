@@ -1835,9 +1835,11 @@ def build_portfolio_scenario(
     per_portfolio: dict[str, dict[str, Any]] = {}
     for spec in structure.portfolios:
         log(f"Portfolio {spec.name} -> {spec.key}/")
+        # Overrides are keyed by ART short name; each portfolio knows only its own.
+        own = {k: v for k, v in (art_profiles or {}).items() if k in spec.arts} or None
         per_portfolio[spec.key] = _build_portfolio(
             out / spec.key, spec, seed, reference, window_days, log, story,
-            scale, art_profiles, stands=stands, lang=lang, template=template,
+            scale, own, stands=stands, lang=lang, template=template,
             switches=switches, stand_index=stand_index, progress=progress)
     structure_path = out / "structure.json"
     save_structure(structure_path, structure)

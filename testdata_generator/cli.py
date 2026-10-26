@@ -365,6 +365,18 @@ def main() -> None:
                              "--event E3=off --event E9=on (ids E1-E10, see story.json). "
                              "Repeatable; an event whose prerequisite is off stays off "
                              "with a notice.")
+    parser.add_argument("--web", action="store_true",
+                        help="Open the data-room UI in your browser: a local server on "
+                             "127.0.0.1 (random port, access key in the link), no extra "
+                             "package. Ends with Ctrl+C. --lang de|en picks the UI language, "
+                             "--port fixes the port, --no-browser only prints the link.")
+    parser.add_argument("--lang", default=None, choices=["de", "en", "ro", "pt", "fr"],
+                        help="With --web: language of the UI (de/en) and default language of "
+                             "the generated texts.")
+    parser.add_argument("--port", type=int, default=0,
+                        help="With --web: port on 127.0.0.1 (default 0 = random free port).")
+    parser.add_argument("--no-browser", action="store_true", dest="no_browser",
+                        help="With --web: do not open the browser, only print the link.")
     parser.add_argument("--ai-drafts", action="store_true", dest="ai_drafts",
                         help="With --scenario: also write mock AI drafts (spoken briefing, "
                              "three answers, a prompt bundle and a wrong practice answer "
@@ -469,6 +481,13 @@ def main() -> None:
                              "(skips, cancels, parking, self-loops, reopening).")
 
     args = parser.parse_args()
+
+    if args.web:
+        from build_reports.chart_texts import DEFAULT_LANG
+
+        from .web.server import run as run_web
+        sys.exit(run_web(lang=args.lang or DEFAULT_LANG, port=args.port,
+                         open_browser=not args.no_browser))
 
     if args.scenario == "portfolio" and args.continue_from is not None:
         # 0.40.0: continue the whole data room in place (snapshots rotate)

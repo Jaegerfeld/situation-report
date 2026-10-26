@@ -90,6 +90,22 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   Rückweg. Alle Entwürfe tragen den KI-Marker, keiner ist freigegeben; der Nachweis liegt in
   `ai_drafts/llm_audit.jsonl`, getrennt von der Betreiber-Ebene; Eingabe (Datenraum) und Ergebnis
   (Entwürfe) bleiben in getrennten Ordnern.
+- **Browser-Oberfläche des Datenraums auf lokalem Server (Beta-Schnitt 3b, Entscheidung E6 vom
+  26.10.2026: „lokaler Server").** `python -m testdata_generator --web` startet einen Server aus der
+  Standardbibliothek **nur an 127.0.0.1** mit Zufallsport und Zufallsschlüssel im Link (ohne
+  Schlüssel: 403), öffnet den Browser des Nutzers und zeigt die drei Schritte des Prototyps —
+  **Szenario** (vier Vorlagen, Ereignis-Tabelle mit Stand-Fenstern und Schaltern, Struktur-Editor
+  für Portfolios, Solutions, ARTs und Workflow, „Was entsteht" aus der Schätzung), **Umfang &
+  Quellen** (Stände-Regler, Umfang, Realismus, Seed, letzter Stand, Sprache, Quellenliste,
+  KI-Entwürfe-Schalter) und **Erzeugen** (Zielordner mit Pfadfeld und „Durchsuchen" über den
+  tkinter-Dialog in einem eigenen Prozess, Rückfrage bei vollem Ordner, Fortschrittsliste der neun
+  Teilschritte mit Abbrechen, Ergebniskarte mit vier Zahlen, Geschichte in drei Sätzen,
+  Portfolio-Report, Konferenzmappe, README, Ordner, KI-Entwürfe und einem Delta-Vergleichswähler für
+  beliebige Stand-Paare). Kein Zusatzpaket, keine externen Ressourcen (Content-Security-Policy),
+  Texte DE/EN. Paket `testdata_generator/web/` (`server.py`, `page.py`, `texts.py`) auf der
+  Dienstschicht `dataspace.py`; `--lang`, `--port`, `--no-browser`. Das tkinter-Fenster bleibt
+  erreichbar (`python -m testdata_generator` ohne Argumente). UX read nach `ux-preflight` im
+  Kopf von `page.py`.
 
 ### Fixed
 - **Delta-Briefing (HTML): vier Register-Abschnitte ohne Überschrift.** Die HTML-Seite kannte keine
