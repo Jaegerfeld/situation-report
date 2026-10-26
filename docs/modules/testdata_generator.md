@@ -319,6 +319,31 @@ in `ai_drafts/llm_audit.jsonl` — input (the data room) and output (the
 drafts) stay in separate folders. `ai_drafts/uebung_README.md` walks through
 the return-path exercise.
 
+### Browser UI on a local server (beta, step 3b)
+
+```bash
+python -m testdata_generator --web            # opens the browser; Ctrl+C ends
+python -m testdata_generator --web --lang de --no-browser   # only prints the link
+```
+
+The UI runs on a server from the standard library bound to **127.0.0.1
+only**, on a random port, with a random access key in the link — a request
+without the key gets 403, nothing is reachable from the network, the page
+loads no external resources (Content-Security-Policy), and no package is
+installed. Three steps as in the prototype: **Scenario** (four templates,
+event table with stand windows and switches, structure editor for
+portfolios, solutions, ARTs and workflow, "what you get" from the estimate),
+**Scope & sources** (stands slider, scale, realism, seed, last stand,
+language, source list, AI-drafts switch) and **Generate** (target folder with
+a path field and "Browse" through the tkinter dialog in a child process, a
+question before writing into a full folder, the progress list of the nine
+steps with cancel, the result card with four numbers, the story in three
+sentences, portfolio report, conference pre-read, README, folder, AI drafts
+and a delta comparison picker for any pair of stands). The UI texts are
+German or English; the generated texts follow the chosen data-room language.
+The tkinter window stays available (`python -m testdata_generator` without
+arguments).
+
 ## Realistic stage paths (since 0.38.0)
 
 A real ART does not walk neatly through every stage. Measured on the real ART_A (458 issues,

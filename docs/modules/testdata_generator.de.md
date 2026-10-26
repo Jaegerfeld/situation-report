@@ -325,6 +325,31 @@ Nachweis liegt in `ai_drafts/llm_audit.jsonl` — Eingabe (Datenraum) und
 Ergebnis (Entwürfe) bleiben in getrennten Ordnern.
 `ai_drafts/uebung_README.md` führt durch die Rückweg-Übung.
 
+### Browser-Oberfläche auf lokalem Server (Beta, Schnitt 3b)
+
+```bash
+python -m testdata_generator --web            # öffnet den Browser; Strg+C beendet
+python -m testdata_generator --web --lang de --no-browser   # druckt nur den Link
+```
+
+Die Oberfläche läuft auf einem Server aus der Standardbibliothek, **nur an
+127.0.0.1**, mit Zufallsport und Zufallsschlüssel im Link — eine Anfrage ohne
+Schlüssel bekommt 403, aus dem Netz ist nichts erreichbar, die Seite lädt
+keine externen Ressourcen (Content-Security-Policy), installiert wird nichts.
+Drei Schritte wie im Prototyp: **Szenario** (vier Vorlagen, Ereignis-Tabelle
+mit Stand-Fenstern und Schaltern, Struktur-Editor für Portfolios, Solutions,
+ARTs und Workflow, „Was entsteht" aus der Schätzung), **Umfang & Quellen**
+(Stände-Regler, Umfang, Realismus, Seed, letzter Stand, Sprache,
+Quellenliste, KI-Entwürfe-Schalter) und **Erzeugen** (Zielordner mit Pfadfeld
+und „Durchsuchen" über den tkinter-Dialog in einem eigenen Prozess, Rückfrage
+vor dem Schreiben in einen vollen Ordner, Fortschrittsliste der neun
+Teilschritte mit Abbrechen, Ergebniskarte mit vier Zahlen, Geschichte in drei
+Sätzen, Portfolio-Report, Konferenzmappe, README, Ordner, KI-Entwürfe und ein
+Delta-Vergleichswähler für beliebige Stand-Paare). Die Oberflächentexte sind
+Deutsch oder Englisch; die erzeugten Texte folgen der gewählten
+Datenraum-Sprache. Das tkinter-Fenster bleibt erreichbar
+(`python -m testdata_generator` ohne Argumente).
+
 ## Realistische Statuswege (seit 0.38.0)
 
 Ein echter ART läuft nicht brav durch alle Stufen. Gemessen am echten ART_A (458 Vorgänge,
