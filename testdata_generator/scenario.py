@@ -158,14 +158,28 @@ from .generator import (
 )
 from .source_inputs import write_source_inputs
 from .story import (
+    ALL_EVENTS,
+    EVENT_BLOCKED,
+    EVENT_CROSS_SOLUTION,
+    EVENT_HOST_PATTERNS,
+    EVENT_NEW_RISK,
+    EVENT_OUTLIER,
+    EVENT_ROADMAPS,
+    EVENT_SEAM,
+    EVENT_SLO_BREACH,
+    EVENT_WEAK_DECAY,
+    EVENT_WEAK_SOURCE,
     ROLE_OUTLIER_ART,
     ROLE_WEAK_SOURCE_ART,
-    WHEN_NOW,
+    STORY_TEMPLATES,
     RoleBinding,
     Story,
     bind_roles,
     save_story,
-    standard_story,
+    story_for,
+)
+from .story import (
+    TEMPLATE_STANDARD as STORY_STANDARD,
 )
 from .structure import (
     REGISTER_NAMES,
@@ -420,6 +434,7 @@ def _profiles(
     portfolio: PortfolioSpec | None = None,
     binding: RoleBinding | None = None,
     issue_scale: float | None = None,
+    active: frozenset[str] | None = None,
 ) -> list[tuple[str, _ArtProfile]]:
     """
     (solution key, profile) pairs for every ART of the portfolio.
@@ -433,17 +448,24 @@ def _profiles(
 
     ``art_profiles`` overrides individual fields per ART (see
     apply_art_overrides) — explicit overrides win in both stands.
-    ``story=STORY_PREV`` yields the same world earlier for the stands of
-    the Delta-Briefing series (D2/E3): fewer issues per ART (``issue_scale``
-    of the possibly overridden count, default PREV_ISSUE_FACTOR = one step
-    of two weeks), and the weak source's data gaps were smaller back then
-    (confidence medium — the decay to low is part of the story; skipped
-    when todo_rate is overridden).
+    ``active`` names the story events in force at this stand (Schnitt 2):
+    EVENT_OUTLIER gives the outlier its ~3x cycle time, EVENT_WEAK_SOURCE
+    the weak source its data gaps (few first dates, no CFD, stale, fewer
+    issues) and EVENT_WEAK_DECAY the final decay (80 % without first date
+    -> confidence low; before: 45 % -> medium). None derives the set from
+    ``story``: STORY_NOW = every event, STORY_PREV = the standard story's
+    start events — the two stands of the old Delta-Briefing demo.
+    ``story=STORY_PREV`` also scales the issues (``issue_scale`` of the
+    possibly overridden count, default PREV_ISSUE_FACTOR = one step of two
+    weeks).
     """
     portfolio = portfolio or structure_template(TEMPLATE_STANDARD).portfolios[0]
     binding = binding or bind_roles(portfolio)
-    outlier = binding.art(ROLE_OUTLIER_ART)
-    weak = binding.art(ROLE_WEAK_SOURCE_ART)
+    if active is None:
+        active = (ALL_EVENTS if story != STORY_PREV
+                  else story_for(STORY_STANDARD, binding, stands=2).active_events(1))
+    outlier = binding.art(ROLE_OUTLIER_ART) if EVENT_OUTLIER in active else None
+    weak = binding.art(ROLE_WEAK_SOURCE_ART) if EVENT_WEAK_SOURCE in active else None
     base: list[tuple[str, _ArtProfile]] = []
     for j, solution in enumerate(portfolio.solutions):
         wf = _workflow_text(solution.workflow)
@@ -454,11 +476,12 @@ def _profiles(
                                       mean_cycle_days=_OUTLIER_CYCLE_DAYS)
             elif art == weak:
                 # Die schwache Quelle: kaum begonnene Issues (kein First
-                # Date), kein CFD, Datenstand 60 Tage alt (A1-Ampel low).
-                profile = _ArtProfile(art, wf, mean_cycle_days=15,
-                                      completion_rate=0.15, todo_rate=0.8,
-                                      stale_days=60, write_cfd=False,
-                                      issue_count=60)
+                # Date), kein CFD, Datenstand 60 Tage alt (A1-Ampel low);
+                # vor dem Verfall (EVENT_WEAK_DECAY) noch 45 % -> medium.
+                profile = _ArtProfile(
+                    art, wf, mean_cycle_days=15, completion_rate=0.15,
+                    todo_rate=0.8 if EVENT_WEAK_DECAY in active else 0.45,
+                    stale_days=60, write_cfd=False, issue_count=60)
             else:
                 profile = _ArtProfile(
                     art, wf,
@@ -468,15 +491,9 @@ def _profiles(
     if story != STORY_PREV:
         return merged
     scale_factor = PREV_ISSUE_FACTOR if issue_scale is None else issue_scale
-    result: list[tuple[str, _ArtProfile]] = []
-    for solution_key, profile in merged:
-        updates: dict = {"issue_count": max(1, int(profile.issue_count * scale_factor))}
-        if (weak is not None and profile.name == weak
-                and "todo_rate" not in (art_profiles or {}).get(weak, {})):
-            updates["todo_rate"] = 0.45
-        result.append((solution_key,
-                       dataclasses.replace(profile, **updates)))
-    return result
+    return [(solution_key, dataclasses.replace(
+                profile, issue_count=max(1, int(profile.issue_count * scale_factor))))
+            for solution_key, profile in merged]
 
 
 # --- Story anchors, bound to roles -------------------------------------------
@@ -544,14 +561,18 @@ def _names(solution: SolutionSpec, tag: str) -> _Names:
                   tag=tag, arts=tuple(solution.member_names))
 
 
-def _host_risks(reference: date, h: _Names) -> RiskRegister:
-    """ROAM register of the host solution: healthy spread, one aging owned risk."""
+def _host_risks(reference: date, h: _Names,
+                active: frozenset[str] = ALL_EVENTS) -> RiskRegister:
+    """ROAM register of the host solution: healthy spread; with EVENT_HOST_PATTERNS
+    one aging owned risk."""
     t = h.tag
+    patterns = EVENT_HOST_PATTERNS in active
     return RiskRegister(risks=[
         Risk(f"{t}R-1", "Test environment for PI 4 not ordered yet",
              ROAM_OWNED, owner="System Team", impact=IMPACT_HIGH,
-             status_since=reference - timedelta(days=45),
-             notes="Aging: owned for over a month without visible movement."),
+             status_since=reference - timedelta(days=45 if patterns else 5),
+             notes=("Aging: owned for over a month without visible movement."
+                    if patterns else "Ordered last week; delivery date confirmed.")),
         Risk(f"{t}R-2", "Key supplier interface spec still in draft",
              ROAM_OWNED, owner=h.mid or h.first, impact=IMPACT_MEDIUM,
              status_since=reference - timedelta(days=10)),
@@ -569,19 +590,20 @@ def _host_risks(reference: date, h: _Names) -> RiskRegister:
 
 
 def _second_risks(reference: date, s: _Names,
-                  story: str = STORY_NOW) -> RiskRegister:
+                  active: frozenset[str] = ALL_EVENTS) -> RiskRegister:
     """
-    ROAM register of the second solution: the second aging owned risk lives here.
-
-    In the prev story (two weeks earlier), {tag}R-2 does not exist yet — it
-    shows up as a *new* risk in the Delta-Briefing demo.
+    ROAM register of the second solution: with EVENT_WEAK_SOURCE the second
+    aging owned risk lives here; EVENT_NEW_RISK adds {tag}R-2 (the risk the
+    Delta-Briefing shows as new).
     """
     t = s.tag
+    weak = EVENT_WEAK_SOURCE in active
     risks = [
         Risk(f"{t}R-1", f"Data quality of {s.last} blocks solution reporting",
-             ROAM_OWNED, owner=s.last, impact=IMPACT_HIGH,
-             status_since=reference - timedelta(days=50),
-             notes="Aging: matches the weak-source story of this scenario."),
+             ROAM_OWNED if weak else ROAM_MITIGATED, owner=s.last, impact=IMPACT_HIGH,
+             status_since=reference - timedelta(days=50 if weak else 6),
+             notes=("Aging: matches the weak-source story of this scenario." if weak
+                    else "Export fixed; monitoring the next two extracts.")),
         Risk(f"{t}R-3", "Vendor API rate limits during nightly sync",
              ROAM_ACCEPTED, owner=s.first, impact=IMPACT_MEDIUM,
              status_since=reference - timedelta(days=15)),
@@ -589,7 +611,7 @@ def _second_risks(reference: date, s: _Names,
              ROAM_RESOLVED, owner=s.mid or s.first, impact=IMPACT_LOW,
              status_since=reference - timedelta(days=12)),
     ]
-    if story != STORY_PREV:
+    if EVENT_NEW_RISK in active:
         risks.insert(1, Risk(
             f"{t}R-2", "Security review for release milestone not scheduled",
             ROAM_MITIGATED, owner="Shared Services", impact=IMPACT_HIGH,
@@ -598,33 +620,44 @@ def _second_risks(reference: date, s: _Names,
     return RiskRegister(risks=risks)
 
 
-def _host_capabilities(reference: date, h: _Names) -> CapabilityMap:
-    """Capability map of the host solution: solid, one uncovered capability."""
+def _host_capabilities(reference: date, h: _Names,
+                       active: frozenset[str] = ALL_EVENTS) -> CapabilityMap:
+    """Capability map of the host solution: solid; EVENT_OUTLIER puts billing
+    at risk, EVENT_HOST_PATTERNS leaves one capability uncovered."""
     t = h.tag
     return CapabilityMap(capabilities=[
         Capability(f"{t}C-1", "Order management", HEALTH_HEALTHY,
                    arts=_uniq([h.first, h.mid or h.first]), owner=h.first,
                    assessed_on=reference - timedelta(days=14)),
-        Capability(f"{t}C-2", "Billing & invoicing", HEALTH_AT_RISK,
+        Capability(f"{t}C-2", "Billing & invoicing",
+                   HEALTH_AT_RISK if EVENT_OUTLIER in active else HEALTH_HEALTHY,
                    arts=[h.last], owner=h.last,
                    assessed_on=reference - timedelta(days=14),
-                   notes="Depends on the outlier ART's delivery pace."),
+                   notes=("Depends on the outlier ART's delivery pace."
+                          if EVENT_OUTLIER in active else "")),
         # Uncovered: business value nobody delivers — the ARTs cell is flagged.
         Capability(f"{t}C-3", "Partner self-service", HEALTH_HEALTHY,
-                   arts=[], owner="System Team",
+                   arts=[] if EVENT_HOST_PATTERNS in active else [h.first],
+                   owner="System Team",
                    assessed_on=reference - timedelta(days=45),
-                   notes="Planned; no ART assigned yet."),
+                   notes=("Planned; no ART assigned yet."
+                          if EVENT_HOST_PATTERNS in active else "")),
     ])
 
 
-def _second_capabilities(reference: date, s: _Names) -> CapabilityMap:
-    """Capability map of the second solution: the critical capability lives here."""
+def _second_capabilities(reference: date, s: _Names,
+                         active: frozenset[str] = ALL_EVENTS) -> CapabilityMap:
+    """Capability map of the second solution: with EVENT_WEAK_SOURCE the
+    critical capability lives here."""
     t = s.tag
+    weak = EVENT_WEAK_SOURCE in active
     return CapabilityMap(capabilities=[
-        Capability(f"{t}C-1", "Data insights & reporting", HEALTH_CRITICAL,
+        Capability(f"{t}C-1", "Data insights & reporting",
+                   HEALTH_CRITICAL if weak else HEALTH_HEALTHY,
                    arts=[s.last], owner=s.last,
                    assessed_on=reference - timedelta(days=7),
-                   notes="Matches the weak-source story: data quality blocks it."),
+                   notes=("Matches the weak-source story: data quality blocks it."
+                          if weak else "")),
         Capability(f"{t}C-2", "Customer onboarding", HEALTH_HEALTHY,
                    arts=_uniq([s.first, s.mid or s.first]), owner=s.first,
                    assessed_on=reference - timedelta(days=7)),
@@ -634,14 +667,14 @@ def _second_capabilities(reference: date, s: _Names) -> CapabilityMap:
     ])
 
 
-def _host_themes(h: _Names, story: str = STORY_NOW) -> ThemesRegister:
+def _host_themes(h: _Names, active: frozenset[str] = ALL_EVENTS) -> ThemesRegister:
     """
-    Themes/roadmap of the host solution: one orphan theme, one zombie epic.
-
-    Prev story (Delta demo): EP-{tag}9 still had its theme two weeks ago —
-    losing the strategic home is one of the 'updated roadmaps' changes.
+    Themes/roadmap of the host solution: with EVENT_HOST_PATTERNS one orphan
+    theme, with EVENT_ROADMAPS the zombie epic (EP-{tag}9 loses its theme —
+    one of the 'updated roadmaps' changes of the Delta-Briefing).
     """
-    prev = story == STORY_PREV
+    zombie = EVENT_ROADMAPS in active
+    orphan = EVENT_HOST_PATTERNS in active
     t = h.tag
     return ThemesRegister(
         themes=[
@@ -657,22 +690,21 @@ def _host_themes(h: _Names, story: str = STORY_NOW) -> ThemesRegister:
             Epic(f"EP-{t}2", "Billing integration", h.mid or h.first,
                  "P2", theme=f"T-{t}1"),
             Epic(f"EP-{t}3", "Order analytics", h.first,
-                 "Y1", theme=f"T-{t}1"),
-            # Die Zombie-Initiative: im Prev-Stand noch mit Theme.
+                 "Y1", theme=f"T-{t}1" if orphan else f"T-{t}2"),
+            # Die Zombie-Initiative: vor EVENT_ROADMAPS noch mit Theme.
             Epic(f"EP-{t}9", "Legacy portal rewrite", h.last,
-                 "Y1", theme=f"T-{t}1" if prev else ""),
+                 "Y1", theme="" if zombie else f"T-{t}1"),
         ],
     )
 
 
-def _second_themes(s: _Names, story: str = STORY_NOW) -> ThemesRegister:
+def _second_themes(s: _Names, active: frozenset[str] = ALL_EVENTS) -> ThemesRegister:
     """
-    Themes/roadmap of the second solution.
-
-    Prev story: the data-quality epic was still parked in P2 — pulling it
-    into P1 is the second 'updated roadmaps' change.
+    Themes/roadmap of the second solution: before EVENT_ROADMAPS the
+    data-quality epic is parked in P2 — pulling it into P1 is the second
+    'updated roadmaps' change.
     """
-    prev = story == STORY_PREV
+    pulled = EVENT_ROADMAPS in active
     t = s.tag
     return ThemesRegister(
         themes=[
@@ -683,7 +715,7 @@ def _second_themes(s: _Names, story: str = STORY_NOW) -> ThemesRegister:
             Epic(f"EP-{t}1", "Vendor sync hardening", s.first,
                  "P1", theme=f"T-{t}1", status=EPIC_DONE),
             Epic(f"EP-{t}2", f"{s.plain_last} data-quality remediation", s.last,
-                 "P2" if prev else "P1", theme=f"T-{t}1",
+                 "P1" if pulled else "P2", theme=f"T-{t}1",
                  status=EPIC_IN_PROGRESS),
             Epic(f"EP-{t}3", "Cross-solution reporting hub", s.mid or s.first,
                  "Y2", theme=f"T-{t}1"),
@@ -737,11 +769,11 @@ def _second_decision_points(reference: date, s: _Names) -> DecisionPointRegister
 
 
 def _host_solution_areas(reference: date, h: _Names,
-                         story: str = STORY_NOW) -> SolutionAreaRegister:
+                         active: frozenset[str] = ALL_EVENTS) -> SolutionAreaRegister:
     """
     Solution areas of the host: the same seam first × last ART opened a third
-    time for the same topic — the EA signal (P5). The third opening is only
-    in the now stand, so the delta documents the signal coming on.
+    time for the same topic — the EA signal (P5). The third opening comes
+    with EVENT_SEAM, so the delta documents the signal coming on.
     """
     if not h.pairs_ok:
         return SolutionAreaRegister()
@@ -762,7 +794,7 @@ def _host_solution_areas(reference: date, h: _Names,
                      opened_on=reference - timedelta(days=60),
                      closed_on=reference - timedelta(days=35)),
     ]
-    if story == STORY_NOW:
+    if EVENT_SEAM in active:
         areas.insert(2, SolutionArea(
             f"SA-{t}3", "Shared test environment, third round",
             "test environment", list(seam),
@@ -783,18 +815,24 @@ def _second_solution_areas(reference: date, s: _Names) -> SolutionAreaRegister:
     ])
 
 
-def _host_flow_problems(reference: date, h: _Names) -> FlowProblemRegister:
-    """Flow problems of the host: one has survived three conferences."""
+def _host_flow_problems(reference: date, h: _Names,
+                        active: frozenset[str] = ALL_EVENTS) -> FlowProblemRegister:
+    """Flow problems of the host: with EVENT_HOST_PATTERNS one has survived
+    three conferences."""
     t = h.tag
+    survivor = EVENT_HOST_PATTERNS in active
     return FlowProblemRegister(problems=[
         # Das Workshop-Muster: geloggt, nie mitigiert, taucht wieder auf.
         FlowProblem(f"FP-{t}1", "Test-environment provisioning takes weeks",
-                    FLOW_OPEN,
+                    FLOW_OPEN if survivor else FLOW_COMMITTED,
                     value_streams=list(h.arts),
                     source="VSC", owner="System Team",
-                    raised_on=reference - timedelta(days=140),
-                    conferences=3,
-                    notes="Survivor: raised at three conferences, still open."),
+                    raised_on=reference - timedelta(days=140 if survivor else 30),
+                    conferences=3 if survivor else 1,
+                    resolution_commitment=("" if survivor
+                                           else "Self-service environments in PI 5"),
+                    notes=("Survivor: raised at three conferences, still open."
+                           if survivor else "")),
         FlowProblem(f"FP-{t}2", "Review bottleneck at architecture board",
                     FLOW_COMMITTED,
                     value_streams=[h.mid or h.first],
@@ -806,18 +844,23 @@ def _host_flow_problems(reference: date, h: _Names) -> FlowProblemRegister:
     ])
 
 
-def _second_flow_problems(reference: date, s: _Names) -> FlowProblemRegister:
-    """Flow problems of the second solution: the weak source blocks two streams."""
+def _second_flow_problems(reference: date, s: _Names,
+                          active: frozenset[str] = ALL_EVENTS) -> FlowProblemRegister:
+    """Flow problems of the second solution: with EVENT_WEAK_SOURCE the weak
+    source blocks two streams."""
     t = s.tag
+    weak = EVENT_WEAK_SOURCE in active
     return FlowProblemRegister(problems=[
         FlowProblem(f"FP-{t}1",
                     f"{s.plain_last} export quality blocks solution reporting",
-                    FLOW_OPEN,
+                    FLOW_OPEN if weak else FLOW_RESOLVED,
                     value_streams=_uniq([s.first, s.last]),
                     source="VSC", owner=s.last,
                     raised_on=reference - timedelta(days=200),
-                    conferences=4,
-                    notes="Cross-VS survivor: matches the weak-source story."),
+                    conferences=4 if weak else 2,
+                    resolution_commitment="" if weak else "Export job rebuilt",
+                    notes=("Cross-VS survivor: matches the weak-source story."
+                           if weak else "")),
         FlowProblem(f"FP-{t}2", "Shared staging window conflicts",
                     FLOW_RESOLVED,
                     value_streams=_uniq([s.first, s.mid or s.first]),
@@ -828,39 +871,46 @@ def _second_flow_problems(reference: date, s: _Names) -> FlowProblemRegister:
     ])
 
 
-def _host_slo(reference: date) -> SloRegister:
-    """SLOs of the host solution: healthy, one budget running low."""
+def _host_slo(reference: date, active: frozenset[str] = ALL_EVENTS) -> SloRegister:
+    """SLOs of the host solution: healthy; with EVENT_HOST_PATTERNS one budget
+    running low."""
     src = "demo-scenario"
     at = reference.isoformat()
     return SloRegister(records=[
         SloRecord("Order API", "p95 latency < 200 ms", 99.9, sli_pct=99.97,
                   source=src, fetched_at=at),
         # Budget fast aufgebraucht: SLI knapp ueber Ziel -> at_risk.
-        SloRecord("Checkout", "availability", 99.5, sli_pct=99.55,
+        SloRecord("Checkout", "availability", 99.5,
+                  sli_pct=99.55 if EVENT_HOST_PATTERNS in active else 99.9,
                   source=src, fetched_at=at),
         SloRecord("Search", "p99 latency < 800 ms", 99.0, sli_pct=99.8,
                   source=src, fetched_at=at),
     ])
 
 
-def _second_slo(reference: date) -> SloRegister:
-    """SLOs of the second solution: the sync service has burned its budget."""
+def _second_slo(reference: date, active: frozenset[str] = ALL_EVENTS) -> SloRegister:
+    """SLOs of the second solution: with EVENT_SLO_BREACH the sync service has
+    burned its budget."""
     src = "demo-scenario"
     at = reference.isoformat()
     return SloRegister(records=[
         # Die Geschichte: der Sync-Dienst (Umfeld der schwachen Quelle)
         # reisst sein SLO.
-        SloRecord("Order Sync API", "availability", 99.5, sli_pct=99.1,
+        SloRecord("Order Sync API", "availability", 99.5,
+                  sli_pct=99.1 if EVENT_SLO_BREACH in active else 99.7,
                   source=src, fetched_at=at),
         SloRecord("Reporting", "p95 latency < 500 ms", 99.0, sli_pct=99.6,
                   source=src, fetched_at=at),
     ])
 
 
-def _host_delivery(reference: date, h: _Names) -> DeliveryRegister:
-    """Delivery health of the host: solid, the outlier ships slowly."""
+def _host_delivery(reference: date, h: _Names,
+                   active: frozenset[str] = ALL_EVENTS) -> DeliveryRegister:
+    """Delivery health of the host: solid; with EVENT_OUTLIER the outlier
+    ships slowly."""
     src = "demo-scenario"
     at = reference.isoformat()
+    slow = EVENT_OUTLIER in active
     dora = [
         DoraRecord(h.first, deployments_per_day=1.4,
                    lead_time_hours=18.0, change_failure_rate_pct=4.0,
@@ -873,9 +923,10 @@ def _host_delivery(reference: date, h: _Names) -> DeliveryRegister:
                                fetched_at=at))
     if h.pairs_ok:
         # Der Ausreisser liefert auch selten und langsam.
-        dora.append(DoraRecord(h.last, deployments_per_day=0.05,
-                               lead_time_hours=520.0, change_failure_rate_pct=14.0,
-                               time_to_restore_hours=20.0, source=src,
+        dora.append(DoraRecord(h.last, deployments_per_day=0.05 if slow else 0.7,
+                               lead_time_hours=520.0 if slow else 36.0,
+                               change_failure_rate_pct=14.0 if slow else 7.0,
+                               time_to_restore_hours=20.0 if slow else 4.0, source=src,
                                fetched_at=at))
     quality = [
         QualityRecord(h.first, coverage_pct=78.0,
@@ -883,16 +934,20 @@ def _host_delivery(reference: date, h: _Names) -> DeliveryRegister:
                       source=src, fetched_at=at),
     ]
     if h.pairs_ok:
-        quality.append(QualityRecord(h.last, coverage_pct=55.0,
-                                     maintainability="C", critical_issues=2,
+        quality.append(QualityRecord(h.last, coverage_pct=55.0 if slow else 70.0,
+                                     maintainability="C" if slow else "B",
+                                     critical_issues=2 if slow else 1,
                                      source=src, fetched_at=at))
     return DeliveryRegister(dora=dora, quality=quality)
 
 
-def _second_delivery(reference: date, s: _Names) -> DeliveryRegister:
-    """Delivery health of the second solution: the weak source is low tier."""
+def _second_delivery(reference: date, s: _Names,
+                     active: frozenset[str] = ALL_EVENTS) -> DeliveryRegister:
+    """Delivery health of the second solution: with EVENT_WEAK_SOURCE the weak
+    source is low tier."""
     src = "demo-scenario"
     at = reference.isoformat()
+    weak = EVENT_WEAK_SOURCE in active
     dora = []
     if s.pairs_ok:
         dora.append(DoraRecord(s.first, deployments_per_day=0.9,
@@ -900,14 +955,17 @@ def _second_delivery(reference: date, s: _Names) -> DeliveryRegister:
                                time_to_restore_hours=3.0, source=src,
                                fetched_at=at))
     # Die Geschichte: die schwache Quelle auch im Delivery-Bild low.
-    dora.append(DoraRecord(s.last, deployments_per_day=0.02,
-                           lead_time_hours=800.0, change_failure_rate_pct=38.0,
-                           time_to_restore_hours=30.0, source=src, fetched_at=at))
+    dora.append(DoraRecord(s.last, deployments_per_day=0.02 if weak else 0.8,
+                           lead_time_hours=800.0 if weak else 32.0,
+                           change_failure_rate_pct=38.0 if weak else 7.0,
+                           time_to_restore_hours=30.0 if weak else 3.5,
+                           source=src, fetched_at=at))
     return DeliveryRegister(
         dora=dora,
         quality=[
-            QualityRecord(s.last, coverage_pct=31.0,
-                          maintainability="D", critical_issues=7,
+            QualityRecord(s.last, coverage_pct=31.0 if weak else 72.0,
+                          maintainability="D" if weak else "B",
+                          critical_issues=7 if weak else 1,
                           source=src, fetched_at=at),
         ],
     )
@@ -935,9 +993,12 @@ def _host_decisions(reference: date, h: _Names) -> DecisionLog:
     ])
 
 
-def _second_decisions(reference: date, s: _Names) -> DecisionLog:
-    """Decision log of the second solution: the overdue open assumption lives here."""
+def _second_decisions(reference: date, s: _Names,
+                      active: frozenset[str] = ALL_EVENTS) -> DecisionLog:
+    """Decision log of the second solution: with EVENT_WEAK_SOURCE the overdue
+    open assumption lives here."""
     t = s.tag
+    weak = EVENT_WEAK_SOURCE in active
     return DecisionLog(entries=[
         LogEntry(f"ADR-{t}1", KIND_DECISION,
                  "Buy vendor sync service instead of building",
@@ -949,36 +1010,42 @@ def _second_decisions(reference: date, s: _Names) -> DecisionLog:
         LogEntry(f"AS-{t}1", KIND_ASSUMPTION,
                  f"{s.plain_last} data quality will fix itself with the next "
                  f"Jira rollout",
-                 ASSUMPTION_OPEN, owner=s.last,
+                 ASSUMPTION_OPEN if weak else ASSUMPTION_CONFIRMED, owner=s.last,
                  logged_on=reference - timedelta(days=70),
-                 review_by=reference - timedelta(days=10),
-                 notes="Review due: matches the weak-source story."),
+                 review_by=reference - timedelta(days=10 if weak else -80),
+                 notes=("Review due: matches the weak-source story." if weak
+                        else "Confirmed after the export job was rebuilt.")),
     ])
 
 
 def _host_dependencies(
-    reference: date, h: _Names, o: _Names | None, story: str = STORY_NOW
+    reference: date, h: _Names, o: _Names | None,
+    active: frozenset[str] = ALL_EVENTS,
 ) -> DependencyRegister:
     """
     Dependencies of the host: the overdue blocked one lives here.
 
-    In the prev story, {tag}D-1 was still at risk — the escalation to blocked
-    is the status transition the Delta-Briefing demo shows. {tag}D-4 is the
-    second seam towards the second solution and carries the same idea for
-    the decision-point indicator: it was on track two weeks ago. Without a
-    second solution (``o`` None) that seam does not exist.
+    {tag}D-1 is at risk while the outlier under-delivers (EVENT_OUTLIER) and
+    blocked with EVENT_BLOCKED — the status transition the Delta-Briefing
+    shows. {tag}D-4 is the second seam towards the second solution and
+    carries the same idea for the decision-point indicator: at risk with
+    EVENT_CROSS_SOLUTION. Without a second solution (``o`` None) that seam
+    does not exist.
     """
     t = h.tag
     deps: list[Dependency] = []
     if h.pairs_ok:
         # Die Geschichte: der Ausreißer liefert nicht — blockiert und
         # überfällig, springt in der Heatmap rot an.
+        pressure = EVENT_BLOCKED in active or EVENT_OUTLIER in active
         deps.append(Dependency(
             f"{t}D-1", "Billing API contract for order flow",
             from_art=h.first, to_art=h.last,
-            status=DEP_AT_RISK if story == STORY_PREV else DEP_BLOCKED,
-            due=reference - timedelta(days=15),
-            notes="Overdue: matches the outlier story of this scenario."))
+            status=(DEP_BLOCKED if EVENT_BLOCKED in active
+                    else DEP_AT_RISK if EVENT_OUTLIER in active else DEP_ON_TRACK),
+            due=reference - timedelta(days=15 if pressure else -20),
+            notes=("Overdue: matches the outlier story of this scenario."
+                   if pressure else "")))
     if h.mid:
         deps.append(Dependency(
             f"{t}D-2", "Shared test fixtures for the order domain",
@@ -992,33 +1059,39 @@ def _host_dependencies(
     if o is not None:
         # Zweite Naht zwischen den Value Streams, Gegenrichtung zu {o}D-1:
         # laengst ueberfaellig — der schwerste Posten des Wecker-Indikators.
+        cross = EVENT_CROSS_SOLUTION in active
+        overdue = cross or EVENT_HOST_PATTERNS in active   # one of the silent patterns
         deps.append(Dependency(
             f"{t}D-4", f"Customer master data feed for {o.short} reporting",
             from_art=h.first, to_art=o.mid or o.last,
-            status=DEP_ON_TRACK if story == STORY_PREV else DEP_AT_RISK,
-            due=reference - timedelta(days=35),
+            status=DEP_AT_RISK if cross else DEP_ON_TRACK,
+            due=reference - timedelta(days=35 if overdue else -30),
             notes=f"Cross-solution seam towards {o.solution}."))
     return DependencyRegister(dependencies=deps)
 
 
 def _second_dependencies(
-    reference: date, s: _Names, o: _Names, story: str = STORY_NOW
+    reference: date, s: _Names, o: _Names,
+    active: frozenset[str] = ALL_EVENTS,
 ) -> DependencyRegister:
     """
     Dependencies of the second solution: the seam towards the host lives here.
 
     Together with the host's {tag}D-4 these make the decision point
-    demonstrable: the pressure between the two value streams rises visibly
-    between the two stands, while every single train looks unremarkable on
-    its own.
+    demonstrable: with EVENT_CROSS_SOLUTION the pressure between the two
+    value streams rises visibly between stands, while every single train
+    looks unremarkable on its own.
     """
     t = s.tag
+    cross = EVENT_CROSS_SOLUTION in active
     deps = [
         # Cross-Solution-Integration: die zweite Solution braucht die
         # Order-Events des Hosts — sichtbar nur im Portfolio-Report.
         Dependency(f"{t}D-1", "Order events feed for reporting",
                    from_art=s.first, to_art=o.first,
-                   status=DEP_AT_RISK, due=reference + timedelta(days=10),
+                   status=(DEP_AT_RISK if cross or EVENT_WEAK_SOURCE in active
+                           else DEP_ON_TRACK),
+                   due=reference + timedelta(days=10),
                    notes=f"Cross-solution integration with {o.solution}."),
     ]
     if s.pairs_ok:
@@ -1032,8 +1105,9 @@ def _second_dependencies(
     deps.append(Dependency(
         f"{t}D-3", "Shared identity claims for order events",
         from_art=s.last, to_art=o.mid or o.first,
-        status=DEP_AT_RISK if story == STORY_PREV else DEP_BLOCKED,
-        due=reference - timedelta(days=12),
+        status=(DEP_BLOCKED if cross
+                else DEP_AT_RISK if EVENT_WEAK_SOURCE in active else DEP_ON_TRACK),
+        due=reference - timedelta(days=12 if cross or EVENT_WEAK_SOURCE in active else -15),
         notes=f"Cross-solution integration with {o.solution}."))
     return DependencyRegister(dependencies=deps)
 
@@ -1063,16 +1137,20 @@ def _host_nfr(reference: date, h: _Names) -> NfrRegister:
         ])
 
 
-def _second_nfr(reference: date, s: _Names) -> NfrRegister:
-    """NFR/runway register of the second solution: one violated NFR, one overdue gap."""
+def _second_nfr(reference: date, s: _Names,
+                active: frozenset[str] = ALL_EVENTS) -> NfrRegister:
+    """NFR/runway register of the second solution: with EVENT_SLO_BREACH one
+    violated NFR and one overdue runway gap."""
     t = s.tag
     second = s.mid or s.first
+    breach = EVENT_SLO_BREACH in active
     return NfrRegister(
         nfrs=[
             Nfr(f"{t}N-1", "API response time", target="p95 < 200 ms",
-                actual="p95 = 340 ms", status=STATUS_VIOLATED,
+                actual="p95 = 340 ms" if breach else "p95 = 170 ms",
+                status=STATUS_VIOLATED if breach else STATUS_MET,
                 owner=s.first,
-                notes="Regression since the vendor library update."),
+                notes="Regression since the vendor library update." if breach else ""),
             Nfr(f"{t}N-2", "Data retention compliance", target="Delete after 180 days",
                 actual="Job active", status=STATUS_MET, owner="Shared Services"),
             Nfr(f"{t}N-3", "Recovery time objective", target="RTO < 4 h",
@@ -1083,10 +1161,10 @@ def _second_nfr(reference: date, s: _Names) -> NfrRegister:
             # 10 Tage überfällig: vor 14 Tagen noch nicht — im Delta-Briefing
             # taucht die Lücke als „newly overdue" auf (B2- + D2-Story).
             RunwayItem(f"{t}RW-1", "Automated failover for the sync service",
-                       status=RUNWAY_GAP,
-                       needed_by=reference - timedelta(days=10),
+                       status=RUNWAY_GAP if breach else RUNWAY_BUILDING,
+                       needed_by=reference - timedelta(days=10 if breach else -25),
                        owner=second,
-                       notes="Overdue: needed before the last release."),
+                       notes="Overdue: needed before the last release." if breach else ""),
             RunwayItem(f"{t}RW-2", "Contract test suite against vendor API",
                        status=RUNWAY_BUILDING,
                        needed_by=reference + timedelta(days=30),
@@ -1106,7 +1184,7 @@ def _empty_registers() -> dict[str, object]:
 
 def _anchor_registers(index: int, names: _Names, host: _Names,
                       second: _Names | None, reference: date,
-                      story: str) -> dict[str, object]:
+                      active: frozenset[str]) -> dict[str, object]:
     """
     Story anchors of one solution by its position (E2: roles, not names).
 
@@ -1117,29 +1195,29 @@ def _anchor_registers(index: int, names: _Names, host: _Names,
     """
     if index == 0:
         return {
-            "risks": _host_risks(reference, names),
+            "risks": _host_risks(reference, names, active),
             "nfr": _host_nfr(reference, names),
-            "capabilities": _host_capabilities(reference, names),
-            "dependencies": _host_dependencies(reference, names, second, story),
+            "capabilities": _host_capabilities(reference, names, active),
+            "dependencies": _host_dependencies(reference, names, second, active),
             "decisions": _host_decisions(reference, names),
-            "slo": _host_slo(reference),
-            "dora": _host_delivery(reference, names),
-            "flow_problems": _host_flow_problems(reference, names),
-            "themes": _host_themes(names, story),
-            "solution_areas": _host_solution_areas(reference, names, story),
+            "slo": _host_slo(reference, active),
+            "dora": _host_delivery(reference, names, active),
+            "flow_problems": _host_flow_problems(reference, names, active),
+            "themes": _host_themes(names, active),
+            "solution_areas": _host_solution_areas(reference, names, active),
             "decision_points": _host_decision_points(reference, names),
         }
     if index == 1:
         return {
-            "risks": _second_risks(reference, names, story),
-            "nfr": _second_nfr(reference, names),
-            "capabilities": _second_capabilities(reference, names),
-            "dependencies": _second_dependencies(reference, names, host, story),
-            "decisions": _second_decisions(reference, names),
-            "slo": _second_slo(reference),
-            "dora": _second_delivery(reference, names),
-            "flow_problems": _second_flow_problems(reference, names),
-            "themes": _second_themes(names, story),
+            "risks": _second_risks(reference, names, active),
+            "nfr": _second_nfr(reference, names, active),
+            "capabilities": _second_capabilities(reference, names, active),
+            "dependencies": _second_dependencies(reference, names, host, active),
+            "decisions": _second_decisions(reference, names, active),
+            "slo": _second_slo(reference, active),
+            "dora": _second_delivery(reference, names, active),
+            "flow_problems": _second_flow_problems(reference, names, active),
+            "themes": _second_themes(names, active),
             "solution_areas": _second_solution_areas(reference, names),
             "decision_points": _second_decision_points(reference, names),
         }
@@ -1234,8 +1312,18 @@ def _readme_text(spec: PortfolioSpec, story_data: Story, seed: int,
     lines += [f"{s}" for s in story_data.summary]
     lines.append("")
     for event in story_data.events:
-        when = ("nur im jetzigen Stand" if event.when == WHEN_NOW
-                else "in beiden Ständen")
+        if not event.enabled:
+            lines.append(f"- **{event.event_id}** _(aus)_ {event.title}")
+            continue
+        last = story_data.stands
+        if event.stand_from <= 1 and (event.stand_to is None or event.stand_to >= last):
+            when = "in allen Ständen"
+        elif event.stand_to is None or event.stand_to >= last:
+            when = (f"ab Stand {event.stand_from:02d}" if event.stand_from < last
+                    else "nur im letzten Stand")
+        else:
+            when = (f"Stand {event.stand_from:02d}" if event.stand_from == event.stand_to
+                    else f"Stand {event.stand_from:02d} bis {event.stand_to:02d}")
         lines.append(f"- **{event.event_id}** {event.title} _({when})_  ")
         lines.append(f"  {event.effect}")
     if story_data.notices:
@@ -1355,17 +1443,19 @@ def _build_stand_series(
     stand_dates: list[date],
     lang: str,
     log: Callable[[str], None],
+    template: str = STORY_STANDARD,
+    switches: dict[str, bool] | None = None,
 ) -> dict[str, Any]:
     """
     Freeze the N stands of the data room and render the N-1 Delta-Briefings.
 
     Stand N is the data room itself (as of ``reference``). Every earlier
     stand k is the same story (STAND_INTERVAL_DAYS × (N-k)) days younger:
-    built as a prev variant into a temp folder with PREV_ISSUE_FACTOR**(N-k)
-    of the issues and the registers before the "now" events, frozen as of
-    its stand date, then discarded. snapshot_prev/now.json are copies of
-    stands N-1 and N (the aliases the GUI, the tutorials and the
-    continuation use).
+    built into a temp folder with PREV_ISSUE_FACTOR**(N-k) of the issues
+    and the registers in the state the story template prescribes for stand
+    k, frozen as of its stand date, then discarded. snapshot_prev/now.json
+    are copies of stands N-1 and N (the aliases the GUI, the tutorials and
+    the continuation use).
     """
     import shutil
     import tempfile
@@ -1392,7 +1482,8 @@ def _build_stand_series(
                     window_days=window_days, log=lambda m: None,
                     story=STORY_PREV, scale=scale, art_profiles=art_profiles,
                     stands=stands, lang=lang,
-                    issue_scale=PREV_ISSUE_FACTOR ** (stands - k))
+                    issue_scale=PREV_ISSUE_FACTOR ** (stands - k),
+                    template=template, switches=switches, stand_index=k)
                 save_snapshot(target, build_snapshot(
                     load_solution_config(prev_paths["portfolio"]), as_of=day,
                     log=lambda m: None))
@@ -1409,41 +1500,22 @@ def _build_stand_series(
     return {"stands": stands_index, "snapshots": snapshot_paths, "deltas": deltas}
 
 
-def _build_portfolio(
+def _generate_arts(
     out: Path,
     spec: PortfolioSpec,
+    workflow_files: dict[str, Path],
+    profiles: list[tuple[str, _ArtProfile]],
     seed: int,
     reference: date,
     window_days: int,
     log: Callable[[str], None],
-    story: str,
-    scale: str,
-    art_profiles: dict[str, dict] | None,
-    stands: int = DEFAULT_STANDS,
-    lang: str = DEFAULT_LANG,
-    issue_scale: float | None = None,
-) -> dict[str, Any]:
-    """Generate one portfolio's data room into ``out`` (see build_portfolio_scenario)."""
-    out.mkdir(parents=True, exist_ok=True)
-    (out / "workflows").mkdir(exist_ok=True)
-    (out / "raw").mkdir(exist_ok=True)
-    (out / "snapshots").mkdir(exist_ok=True)
-    for solution in spec.solutions:
-        (out / "solutions" / solution.key / "arts").mkdir(parents=True, exist_ok=True)
-        (out / "solutions" / solution.key / "registers").mkdir(parents=True,
-                                                               exist_ok=True)
-
-    workflow_files: dict[str, Path] = {}
-    for solution in spec.solutions:
-        wf_file = out / "workflows" / f"{solution.key}.txt"
-        wf_file.write_text(_workflow_text(solution.workflow), encoding="utf-8")
-        workflow_files[solution.key] = wf_file
-
-    binding = bind_roles(spec)
-    tags = _solution_tags(spec)
+) -> dict[str, list[Member]]:
+    """
+    Generate every ART's raw Jira export and its IssueTimes/Transitions/CFD
+    workbooks; returns the solution members (paths relative to solution.json).
+    """
     members: dict[str, list[Member]] = {s.key: [] for s in spec.solutions}
-    for i, (solution_key, profile) in enumerate(
-            _profiles(story, art_profiles, spec, binding, issue_scale)):
+    for i, (solution_key, profile) in enumerate(profiles):
         wf_file = workflow_files[solution_key]
         workflow = parse_workflow(wf_file)
 
@@ -1497,6 +1569,58 @@ def _build_portfolio(
         ))
         log(f"  {profile.name}: {len(records)} issues"
             f"{' (kein CFD, Datenstand -' + str(profile.stale_days) + 'd)' if profile.stale_days else ''}")
+    return members
+
+
+def _build_portfolio(
+    out: Path,
+    spec: PortfolioSpec,
+    seed: int,
+    reference: date,
+    window_days: int,
+    log: Callable[[str], None],
+    story: str,
+    scale: str,
+    art_profiles: dict[str, dict] | None,
+    stands: int = DEFAULT_STANDS,
+    lang: str = DEFAULT_LANG,
+    issue_scale: float | None = None,
+    template: str = STORY_STANDARD,
+    switches: dict[str, bool] | None = None,
+    stand_index: int | None = None,
+) -> dict[str, Any]:
+    """
+    Generate one portfolio's data room into ``out`` (see build_portfolio_scenario).
+
+    ``stand_index`` is the stand this build represents (1..stands; None =
+    the last). The story template and the switches decide which events are
+    in force at that stand — profiles and register anchors follow them;
+    ``story`` (STORY_PREV) only still scales the issues of earlier stands.
+    """
+    out.mkdir(parents=True, exist_ok=True)
+    (out / "workflows").mkdir(exist_ok=True)
+    (out / "raw").mkdir(exist_ok=True)
+    (out / "snapshots").mkdir(exist_ok=True)
+    for solution in spec.solutions:
+        (out / "solutions" / solution.key / "arts").mkdir(parents=True, exist_ok=True)
+        (out / "solutions" / solution.key / "registers").mkdir(parents=True,
+                                                               exist_ok=True)
+
+    workflow_files: dict[str, Path] = {}
+    for solution in spec.solutions:
+        wf_file = out / "workflows" / f"{solution.key}.txt"
+        wf_file.write_text(_workflow_text(solution.workflow), encoding="utf-8")
+        workflow_files[solution.key] = wf_file
+
+    binding = bind_roles(spec)
+    tags = _solution_tags(spec)
+    story_data = story_for(template, binding, tags, stands, switches)
+    this_stand = stands if stand_index is None else stand_index
+    active = story_data.active_events(this_stand)
+    members = _generate_arts(
+        out, spec, workflow_files,
+        _profiles(story, art_profiles, spec, binding, issue_scale, active),
+        seed, reference, window_days, log)
 
     # Story-Anker (rollengebunden, Position 0 und 1) + seed-generierte
     # Grundmenge (register_gen, Skala S/M/L) je Solution.
@@ -1508,7 +1632,7 @@ def _build_portfolio(
     for index, solution in enumerate(spec.solutions):
         names = _names(solution, tags[solution.short])
         regs = _anchor_registers(index, names, host_names, second_names,
-                                 reference, story)
+                                 reference, active)
         registers_by_key[solution.key] = regs
         populate_registers(
             regs, solution.key,
@@ -1545,11 +1669,11 @@ def _build_portfolio(
 
     structure_path = out / "structure.json"
     save_structure(structure_path, Structure([spec]))
-    story_data = standard_story(binding, tags)
     story_path = out / "story.json"
     save_story(story_path, story_data)
-    for notice in story_data.notices:
-        log(f"  Hinweis: {notice}")
+    if story == STORY_NOW:
+        for notice in story_data.notices:
+            log(f"  Hinweis: {notice}")
 
     stand_dates = [reference - timedelta(days=STAND_INTERVAL_DAYS * (stands - k))
                    for k in range(1, stands + 1)]
@@ -1569,7 +1693,7 @@ def _build_portfolio(
     if story == STORY_NOW:
         series = _build_stand_series(
             out, spec, seed, reference, window_days, scale, art_profiles,
-            stands, stand_dates, lang, log)
+            stands, stand_dates, lang, log, template, switches)
 
     paths: dict[str, Any] = {
         "portfolio": portfolio_cfg, "pi_config": pi_cfg, "readme": readme,
@@ -1601,6 +1725,8 @@ def build_portfolio_scenario(
     structure: Structure | None = None,
     stands: int = DEFAULT_STANDS,
     lang: str = DEFAULT_LANG,
+    template: str = STORY_STANDARD,
+    switches: dict[str, bool] | None = None,
 ) -> dict[str, Any]:
     """
     Generate the complete demo data room into ``output_dir``.
@@ -1628,6 +1754,10 @@ def build_portfolio_scenario(
                      the last one on ``reference``; every consecutive pair
                      gets a rendered Delta-Briefing under deltas/.
         lang:        Language of the rendered Delta-Briefing pages.
+        template:    Story template (E2, Schnitt 2): "calm", "standard",
+                     "escalation" or "recovery" — decides which events the
+                     stands show and when they switch on or off.
+        switches:    Per-event overrides of the template ({"E3": False}).
 
     Returns:
         One portfolio: the key output paths — "portfolio", "pi_config",
@@ -1641,8 +1771,8 @@ def build_portfolio_scenario(
         own sub-folder and is a complete data room by itself.
 
     Raises:
-        ValueError: invalid structure (see structure.validate) or a stand
-            count outside MIN_STANDS..MAX_STANDS.
+        ValueError: invalid structure (see structure.validate), a stand
+            count outside MIN_STANDS..MAX_STANDS, or an unknown template.
     """
     reference = reference or date.today()
     out = Path(output_dir)
@@ -1650,11 +1780,16 @@ def build_portfolio_scenario(
     validate(structure)
     if not MIN_STANDS <= stands <= MAX_STANDS:
         raise ValueError(f"stands must be {MIN_STANDS}..{MAX_STANDS}, got {stands}.")
+    if template not in STORY_TEMPLATES:
+        raise ValueError(f"Unknown story template '{template}' — expected one of "
+                         f"{', '.join(STORY_TEMPLATES)}.")
+    stand_index = stands - 1 if story == STORY_PREV else None
 
     if len(structure.portfolios) == 1:
         paths = _build_portfolio(out, structure.portfolios[0], seed, reference,
                                  window_days, log, story, scale, art_profiles,
-                                 stands=stands, lang=lang)
+                                 stands=stands, lang=lang, template=template,
+                                 switches=switches, stand_index=stand_index)
         log(f"Szenario komplett: {out}")
         return paths
 
@@ -1664,7 +1799,8 @@ def build_portfolio_scenario(
         log(f"Portfolio {spec.name} -> {spec.key}/")
         per_portfolio[spec.key] = _build_portfolio(
             out / spec.key, spec, seed, reference, window_days, log, story,
-            scale, art_profiles, stands=stands, lang=lang)
+            scale, art_profiles, stands=stands, lang=lang, template=template,
+            switches=switches, stand_index=stand_index)
     structure_path = out / "structure.json"
     save_structure(structure_path, structure)
     readme = out / "README.md"

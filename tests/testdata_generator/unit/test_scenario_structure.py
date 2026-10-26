@@ -74,7 +74,7 @@ class TestStandardTemplateEqualsDefault:
         story = load_story(paths["story"])
         assert story.roles[ROLE_OUTLIER_ART] == "Alpha-3"
         assert story.roles[ROLE_WEAK_SOURCE_ART] == "Beta-3"
-        assert len(story.events) == 7
+        assert len(story.events) == 10
         readme = paths["readme"].read_text(encoding="utf-8")
         assert "## Struktur" in readme and "Standard-Lage" in readme
         assert "ART Alpha-3 ist der Ausreißer" in readme
