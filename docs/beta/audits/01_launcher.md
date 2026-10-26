@@ -60,3 +60,38 @@ Summe 20 von 32 (8 Linsen bewertet) = 63 % → **Needs work** (zwei P1).
 Nichts wurde geändert. Wähle die Befunde, die umgesetzt werden sollen (`fix all`, `fix 1, 2` oder `fix P1`); die Umsetzung folgt dem `ux-fix`-Verfahren: kleinste Änderung zuerst, eine nach der anderen, jede nachgeprüft. Vorschlag: #1, #2 (P1) zuerst, dann #4 und #6 — #3 und #5 betreffen die Informationsarchitektur und gehören in den Schnitt „Launcher nach dem Ritual" (V3 der UX-Skills-Analyse), zusammen mit dem Card Sorting.
 
 *Based on Laws of UX by Jon Yablonski, lawsofux.com. Published by Pip Decks.*
+
+---
+
+# UX fixes applied: Launcher #1 und #2 (26.10.2026)
+
+**Applied:** 2 of 2 · **Score:** 20/32 (63 %) to 21/32 (66 %) · **Verdict:** Needs work to Needs work (kein P1 mehr; unter 75 % wegen der offenen P2 #3–#7)
+
+## Changes
+
+| # | Sev | Law | What changed | Where | Re-check |
+|---|-----|-----|--------------|-------|----------|
+| 1 | P1 | Feedback (+ Doherty Threshold) | Beim Klick setzt `_set_launching` den Kartenknopf sofort auf „Startet …" (fünf Sprachen), deaktiviert ihn und schaltet den Wartecursor; nach `_LAUNCH_SETTLE_MS` (3000 ms) kehrt die Karte zurück | `launcher/gui.py:44` (Konstante), `:794-809` (`_launch_button`, `_set_launching`), `:811-831` (`_launch`) | Pass: Live-Lauf mit gemocktem `Popen` — nach dem Klick `text='Startet …' state=disabled cursor='watch'`, nach 3,4 s `text='Starten' state=normal cursor=''`; kein zweiter Prozess bei Doppelklick, weil der Knopf deaktiviert ist |
+| 2 | P1 | Feedback (+ Constraints) | `Popen` in `try/except OSError`; stderr in eine Temp-Datei; `_after_launch` prüft `poll()` nach dem Einschwingen und zeigt bei Rückgabewert ≠ 0 den Dialog „<Modul> konnte nicht gestartet werden" mit den letzten 1 500 Zeichen stderr und Handbuch-Hinweis (`_report_launch_failure`, `messagebox.showerror`) | `launcher/gui.py:816-831`, `:833-851`, `:853-857`; Texte `dlg_launch_failed_title`/`msg_launch_failed` je Sprache | Pass: echter Prozess `python -m no_such_module_xyz` → Dialog mit Titel „Modul konnte nicht gestartet werden" und Text „… No module named no_such_module_xyz"; `OSError` beim Start → Dialog sofort, Karte wieder normal; gesunder Prozess (`poll()` = None) → kein Dialog |
+
+Tests: `tests/launcher/unit/test_launch_feedback.py` (5 neu), Schlüssel in `test_gui.py` ergänzt; 56 Launcher-Tests grün, ruff/mypy sauber.
+
+## Assumed
+
+- #1: Einschwingzeit 3 s als feste Konstante (Nielsen: ~1 s hält den Gedankenfluss, ~10 s die Aufmerksamkeit; die Modulfenster brauchen 1–4 s). Zu kurz/lang → `_LAUNCH_SETTLE_MS` ändern. Text „Startet …" ohne Fortschrittsbalken — ein indeterminierter Zustand reicht für < 10 s.
+- #2: Dialogtext nennt den Modulnamen der Karte, den stderr-Auszug und den Hinweis aufs Handbuch; Wortlaut in fünf Sprachen ist Entwurf, bitte prüfen (DE/EN von mir, RO/PT/FR nach Muster der anderen Launcher-Texte).
+- Temp-Log `%TEMP%/sr_<modul>_*.log` wird nach dem Einschwingen gelöscht; hält das Modul die Datei noch (Windows), bleibt sie liegen (klein, nur stderr).
+
+## Still open from the audit
+
+- #3 (P2): keine Gewichtung der acht Karten · #4 (P2): Reihenfolge nicht die Pipeline · #5 (P2): Modulnamen statt Aufgaben · #6 (P2): Flagge/„?" ohne Beschriftung · #7 (P2): Ziele unter 24 px · #8–#11 (P3)
+- Scorecard neu: Linse 5 „Signals and feedback" von 1 auf 2 (schlechtester Rest: #6 P2); alle anderen Linsen unverändert.
+
+## New findings
+
+- `launcher/gui.py:750` (Workaround-Dialog): der dort verdrahtete `_launch("helper")` erhält jetzt denselben Wartezustand — der Dialog selbst bleibt unerreichbar (#9).
+
+## Check it
+
+`python -m launcher`, auf „Starten" einer Karte klicken: der Knopf zeigt sofort „Startet …" und ist für drei Sekunden gesperrt. Zum Fehlerfall: in `launcher/gui.py` testweise `"build_reports"` in `_MODULES` durch `"build_reportz"` ersetzen — nach drei Sekunden erscheint der Dialog mit dem stderr-Auszug.
+

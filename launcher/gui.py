@@ -22,6 +22,7 @@ from __future__ import annotations
 import json
 import subprocess
 import sys
+import tempfile
 import threading
 import tkinter as tk
 import urllib.error
@@ -29,8 +30,8 @@ import urllib.request
 import webbrowser
 from dataclasses import dataclass
 from pathlib import Path
-from tkinter import ttk
-from typing import Literal
+from tkinter import messagebox, ttk
+from typing import Any, Literal
 
 try:
     from version import __version__ as _VERSION
@@ -38,6 +39,10 @@ except ImportError:
     _VERSION = "?"
 
 C_ACCENT = "#2980b9"
+
+#: How long the card stays in its pending state after a launch (ms). Module
+#: windows appear within a few seconds; after that the button is usable again.
+_LAUNCH_SETTLE_MS = 3000
 
 _UPDATE_API = "https://api.github.com/repos/Jaegerfeld/situation-report/releases/latest"
 _RELEASES_URL = "https://github.com/Jaegerfeld/situation-report/releases/latest"
@@ -117,6 +122,9 @@ _T: dict[str, dict[str, str]] = {
         "tip_manual":                     "Benutzerhandbuch öffnen",
         "lbl_update":                     "Update verfügbar: {version}",
         "btn_download":                   "Herunterladen",
+        "btn_starting":                   "Startet …",
+        "dlg_launch_failed_title":        "Modul konnte nicht gestartet werden",
+        "msg_launch_failed":              '{module} konnte nicht gestartet werden.\n\n{detail}\n\nHinweis: Im portablen Paket muss das Modul enthalten sein; Details stehen im Benutzerhandbuch (?).',
         "mod_build_reports_name":         "Build Reports",
         "mod_build_reports_desc":         "Flow-Metriken und Reports",
         "mod_transform_data_name":        "Transform Data",
@@ -165,6 +173,9 @@ _T: dict[str, dict[str, str]] = {
         "tip_manual":                     "Open user manual",
         "lbl_update":                     "Update available: {version}",
         "btn_download":                   "Download",
+        "btn_starting":                   "Starting …",
+        "dlg_launch_failed_title":        "Module could not be started",
+        "msg_launch_failed":              '{module} could not be started.\n\n{detail}\n\nHint: in the portable bundle the module must be included; see the user manual (?).',
         "mod_build_reports_name":         "Build Reports",
         "mod_build_reports_desc":         "Flow metrics and reports",
         "mod_transform_data_name":        "Transform Data",
@@ -212,6 +223,9 @@ _T: dict[str, dict[str, str]] = {
         "tip_manual":                     "Deschideți manualul",
         "lbl_update":                     "Actualizare disponibilă: {version}",
         "btn_download":                   "Descărcare",
+        "btn_starting":                   "Pornește …",
+        "dlg_launch_failed_title":        "Modulul nu a putut fi pornit",
+        "msg_launch_failed":              '{module} nu a putut fi pornit.\n\n{detail}\n\nIndicație: în pachetul portabil modulul trebuie să fie inclus; vezi manualul (?).',
         "mod_build_reports_name":         "Build Reports",
         "mod_build_reports_desc":         "Metrici de flux și rapoarte",
         "mod_transform_data_name":        "Transform Data",
@@ -260,6 +274,9 @@ _T: dict[str, dict[str, str]] = {
         "tip_manual":                     "Abrir manual do utilizador",
         "lbl_update":                     "Atualização disponível: {version}",
         "btn_download":                   "Transferir",
+        "btn_starting":                   "A iniciar …",
+        "dlg_launch_failed_title":        "O módulo não pôde ser iniciado",
+        "msg_launch_failed":              '{module} não pôde ser iniciado.\n\n{detail}\n\nNota: no pacote portátil o módulo tem de estar incluído; ver o manual (?).',
         "mod_build_reports_name":         "Build Reports",
         "mod_build_reports_desc":         "Métricas de fluxo e relatórios",
         "mod_transform_data_name":        "Transform Data",
@@ -308,6 +325,9 @@ _T: dict[str, dict[str, str]] = {
         "tip_manual":                     "Ouvrir le manuel",
         "lbl_update":                     "Mise à jour disponible : {version}",
         "btn_download":                   "Télécharger",
+        "btn_starting":                   "Démarrage …",
+        "dlg_launch_failed_title":        "Le module n'a pas pu démarrer",
+        "msg_launch_failed":              "{module} n'a pas pu démarrer.\n\n{detail}\n\nRemarque : dans le paquet portable, le module doit être inclus ; voir le manuel (?).",
         "mod_build_reports_name":         "Build Reports",
         "mod_build_reports_desc":         "Métriques de flux et rapports",
         "mod_transform_data_name":        "Transform Data",
@@ -772,14 +792,72 @@ class LauncherApp(tk.Tk):
         y = self.winfo_y() + (self.winfo_height() - dlg.winfo_height()) // 2
         dlg.geometry(f"+{x}+{y}")
 
+    def _launch_button(self, module_id: str) -> ttk.Button | None:
+        """The card's launch button (None for a card without one)."""
+        for card in self._card_widgets:
+            if card["module_id"] == module_id and card["available"]:
+                widget = card["action_widget"]
+                return widget if isinstance(widget, ttk.Button) else None
+        return None
+
+    def _set_launching(self, btn: ttk.Button | None, pending: bool) -> None:
+        """Pending state of a card (UX audit #1, Feedback/Doherty): the button
+        says it is starting and cannot be clicked twice; the cursor waits."""
+        if btn is not None:
+            btn.configure(text=self._tr("btn_starting" if pending else "btn_launch"),
+                          state="disabled" if pending else "normal")
+        self.configure(cursor="watch" if pending else "")
+        self.update_idletasks()
+
     def _launch(self, module_id: str) -> None:
         """
         Start a module as a separate process.
 
+        The card shows the pending state at once (within the Doherty
+        threshold) and returns to normal after the process has settled —
+        module windows need seconds to appear (Plotly import).
+
         Args:
             module_id: Python module name to run (e.g. 'build_reports').
         """
-        subprocess.Popen([sys.executable, "-m", module_id])
+        btn = self._launch_button(module_id)
+        self._set_launching(btn, True)
+        # UX audit #2 (Feedback/Constraints): a module that cannot start must
+        # say so here, not on a console nobody sees. stderr goes to a temp
+        # file (a pipe could fill up while a healthy module keeps running).
+        log = tempfile.NamedTemporaryFile(prefix=f"sr_{module_id}_", suffix=".log",
+                                          delete=False)
+        try:
+            proc = subprocess.Popen([sys.executable, "-m", module_id], stderr=log)
+        except OSError as exc:
+            log.close()
+            self._set_launching(btn, False)
+            self._report_launch_failure(module_id, str(exc))
+            return
+        self.after(_LAUNCH_SETTLE_MS, lambda: self._after_launch(module_id, proc, log, btn))
+
+    def _after_launch(self, module_id: str, proc: Any, log: Any, btn: ttk.Button | None) -> None:
+        """Settle after a launch: back to normal — or the failure dialog when
+        the process already died (non-zero exit code)."""
+        self._set_launching(btn, False)
+        code = proc.poll()
+        detail = ""
+        try:
+            log.close()
+            if code not in (None, 0):
+                detail = Path(log.name).read_text(encoding="utf-8", errors="replace")[-1500:].strip()
+            Path(log.name).unlink()      # a running module still holds it: then it stays
+        except OSError:
+            pass
+        if code is None or code == 0:
+            return
+        self._report_launch_failure(module_id, detail or f"exit code {code}")
+
+    def _report_launch_failure(self, module_id: str, detail: str) -> None:
+        name = self._tr(f"mod_{module_id}_name")
+        messagebox.showerror(self._tr("dlg_launch_failed_title"),
+                             self._tr("msg_launch_failed").format(module=name, detail=detail),
+                             parent=self)
 
 
 def main() -> None:
