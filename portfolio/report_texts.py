@@ -1151,6 +1151,29 @@ _TEXTS: dict[str, dict[str, str]] = {
         LANG_PT: "Épicos de roadmap (roadmaps atualizados)",
         LANG_FR: "Epics de roadmap (roadmaps mises à jour)",
     },
+    "section.flow_problems": {
+        LANG_DE: "Flussprobleme (Impediment-Backlog)",
+        LANG_EN: "Flow problems (impediment backlog)",
+        LANG_RO: "Probleme de flux (backlog de impedimente)",
+        LANG_PT: "Problemas de fluxo (backlog de impedimentos)",
+        LANG_FR: "Problèmes de flux (backlog d'impediments)",
+    },
+    "section.slo": {
+        LANG_DE: "SLOs", LANG_EN: "SLOs", LANG_RO: "SLO-uri", LANG_PT: "SLOs",
+        LANG_FR: "SLO",
+    },
+    "section.solution_areas": {
+        LANG_DE: "Solution Areas (Nähte)", LANG_EN: "Solution areas (seams)",
+        LANG_RO: "Solution areas (cusături)", LANG_PT: "Solution areas (costuras)",
+        LANG_FR: "Solution areas (coutures)",
+    },
+    "section.decision_points": {
+        LANG_DE: "Entscheidungspunkte (Wecker-Register)",
+        LANG_EN: "Decision points (alarm register)",
+        LANG_RO: "Puncte de decizie (registrul de alarme)",
+        LANG_PT: "Pontos de decisão (registo de alarmes)",
+        LANG_FR: "Points de décision (registre d'alarmes)",
+    },
     # -- Konferenzmappe ------------------------------------------------------
     # ACHTUNG: Die deutschen Einträge dieses Blocks sind Roberts eigene Prosa
     # aus 0.31.0 und stehen hier ZEICHENGENAU. Sie werden nicht geglättet,

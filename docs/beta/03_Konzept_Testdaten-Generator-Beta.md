@@ -196,7 +196,7 @@ für die Denkschriften-Beispiele, keine Zufalls-„Realität" ohne Seed (alles r
 | Schnitt | Stand | Inhalt |
 |---|---|---|
 | 1a | **gebaut 26.10.2026** (PR auf `beta/ux-redesign`) | `structure.json` + `story.json` (`testdata_generator/structure.py`, `story.py`), `scenario.py` baut aus der Struktur mit rollengebundenen Ankern, mehrere Portfolios als Unterordner, CLI `--structure`/`--arts` mit Schätzung und Warnung, 67 Tests, Doku (CHANGELOG, mkdocs DE/EN, Handbuch 5 Sprachen). GUI noch unverändert. Archiv: `Ideen/Archiv/Datenraum-Struktur_1a_2026-10-26/`. |
-| 1b | offen | Stände-Reihe (6 × 14 Tage), Delta-Briefings aller Folgepaare, `deltas/`. |
+| 1b | **gebaut 26.10.2026** (PR auf `beta/ux-redesign`) | Stände-Reihe `--stands N` (2–12, Standard 6, 14-Tage-Rhythmus), `snapshots/snapshot_<nn>_<datum>.json` + `stands.json`, prev/now als Aliasse, Delta-Briefings aller Folgepaare unter `deltas/` (md + html), Fortschreibung hängt Stände an. Nebenbefund behoben: Delta-HTML ohne Titel für vier Register-Abschnitte. Ereignisse schalten in 1b noch mit dem letzten Stand; Verteilung über die Stände kommt mit Schnitt 2. |
 | 1c | offen | Provider-Rohdaten in Systemformaten, `sources.json`, Prüfung Writer gegen Reader. |
 | 2 | offen | Vorlagen Ruhig/Eskalation/Erholung, Ereignis-Schalter. |
 | 3 | offen | Oberfläche nach Prototyp (Stand 7), Framework-Entscheidung, Reiter-Audit. |

@@ -72,6 +72,21 @@ class TestScenarioStructureFlags:
         assert exc.value.code == 2
         assert "structure:" in capsys.readouterr().err
 
+    def test_stands_flag_sets_the_series_length(self, tmp_path, monkeypatch, capsys) -> None:
+        out = tmp_path / "room"
+        _run(monkeypatch, "--scenario", "portfolio", "--arts", "1", "--stands", "3",
+             "--scale", "s", "--output", str(out))
+        assert len(list((out / "snapshots").glob("snapshot_??_*.json"))) == 3
+        assert len(list((out / "deltas").glob("*.html"))) == 2
+        assert "3 Stände, 2 Delta-Briefings" in capsys.readouterr().out
+
+    def test_stands_out_of_range_is_a_usage_error(self, tmp_path, monkeypatch, capsys) -> None:
+        with pytest.raises(SystemExit) as exc:
+            _run(monkeypatch, "--scenario", "portfolio", "--arts", "1", "--stands", "1",
+                 "--output", str(tmp_path / "x"))
+        assert exc.value.code == 2
+        assert "--stands must be 2..12" in capsys.readouterr().err
+
     def test_large_template_warns_before_building(self, tmp_path, monkeypatch, capsys) -> None:
         # Do not build 49 ARTs in a unit test: stop right after the estimate.
         import testdata_generator.scenario as scenario

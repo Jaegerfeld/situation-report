@@ -300,15 +300,21 @@ def _run_scenario(args: argparse.Namespace, parser: argparse.ArgumentParser) -> 
                      else resolve_structure(args.structure))
     except (ValueError, OSError) as exc:
         parser.error(f"structure: {exc}")
-    est = estimate(structure, scale=args.scale)
+    from .scenario import DEFAULT_STANDS, MAX_STANDS, MIN_STANDS
+    stands = DEFAULT_STANDS if args.stands is None else args.stands
+    if not MIN_STANDS <= stands <= MAX_STANDS:
+        parser.error(f"--stands must be {MIN_STANDS}..{MAX_STANDS}, got {stands}.")
+    est = estimate(structure, stands=stands, scale=args.scale)
     print(f"Struktur: {structure.describe()} — {est.jira_exports} Jira-Exporte, "
-          f"{est.workbooks} Arbeitsmappen, {est.registers} Register")
+          f"{est.workbooks} Arbeitsmappen, {est.registers} Register, "
+          f"{est.stands} Stände, {est.deltas} Delta-Briefings")
     if est.warn:
         print(f"WARNUNG: grosse Struktur ({est.warn_reason}) — Erzeugung dauert "
               f"entsprechend.", file=sys.stderr)
     build_portfolio_scenario(
         Path(out_dir), seed=args.seed if args.seed is not None else 42,
-        scale=args.scale, art_profiles=art_profiles, structure=structure)
+        scale=args.scale, art_profiles=art_profiles, structure=structure,
+        stands=stands)
 
 
 def main() -> None:
@@ -333,6 +339,11 @@ def main() -> None:
                              "large = 5 portfolios) or a structure.json (portfolios "
                              "-> solutions -> ARTs, workflow per solution). "
                              "Default: standard.")
+    parser.add_argument("--stands", type=int, default=None, metavar="N",
+                        help="With --scenario: number of stands in the series "
+                             "(2-12, default 6), two weeks apart, the last one on "
+                             "the reference date; every consecutive pair gets a "
+                             "rendered delta briefing under deltas/.")
     parser.add_argument("--arts", default=None, metavar="N[,N...]",
                         help="With --scenario: one portfolio from ART counts per "
                              "solution, e.g. '3,4s,1' = three solutions with 3, 4 "

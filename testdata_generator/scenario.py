@@ -54,6 +54,7 @@ from datetime import UTC, date, datetime, timedelta
 from pathlib import Path
 from typing import Any
 
+from build_reports.chart_texts import DEFAULT_LANG
 from portfolio.capability_config import (
     HEALTH_AT_RISK,
     HEALTH_CRITICAL,
@@ -389,6 +390,17 @@ def parse_art_profile_entries(
 STORY_NOW = "now"
 STORY_PREV = "prev"
 
+#: Series of stands (E3, 26.10.2026): the data room ships N stands, two
+#: weeks apart, the last one being the reference date; snapshot_prev/now
+#: stay as aliases of the last two. Every earlier stand is the same story
+#: two weeks younger: fewer issues (PREV_ISSUE_FACTOR per step) and the
+#: register state before the "now" events.
+DEFAULT_STANDS = 6
+MIN_STANDS = 2
+MAX_STANDS = 12
+STAND_INTERVAL_DAYS = 14
+PREV_ISSUE_FACTOR = 0.88
+
 #: Cycle-time means of the ordinary ARTs in order of appearance
 #: (solution j, ART i -> pool[(2·j + i) % len]); reproduces the demo
 #: portfolio's 12/16 (Alpha-1/-2) and 14/18 (Beta-1/-2).
@@ -406,6 +418,7 @@ def _profiles(
     art_profiles: dict[str, dict] | None = None,
     portfolio: PortfolioSpec | None = None,
     binding: RoleBinding | None = None,
+    issue_scale: float | None = None,
 ) -> list[tuple[str, _ArtProfile]]:
     """
     (solution key, profile) pairs for every ART of the portfolio.
@@ -419,11 +432,12 @@ def _profiles(
 
     ``art_profiles`` overrides individual fields per ART (see
     apply_art_overrides) — explicit overrides win in both stands.
-    ``story=STORY_PREV`` yields the same world two weeks earlier for the
-    Delta-Briefing demo (D2): fewer issues per ART (88 % of the possibly
-    overridden count), and the weak source's data gaps were smaller back
-    then (confidence medium — the decay to low is part of the story;
-    skipped when todo_rate is overridden).
+    ``story=STORY_PREV`` yields the same world earlier for the stands of
+    the Delta-Briefing series (D2/E3): fewer issues per ART (``issue_scale``
+    of the possibly overridden count, default PREV_ISSUE_FACTOR = one step
+    of two weeks), and the weak source's data gaps were smaller back then
+    (confidence medium — the decay to low is part of the story; skipped
+    when todo_rate is overridden).
     """
     portfolio = portfolio or structure_template(TEMPLATE_STANDARD).portfolios[0]
     binding = binding or bind_roles(portfolio)
@@ -452,9 +466,10 @@ def _profiles(
     merged = apply_art_overrides(base, art_profiles)
     if story != STORY_PREV:
         return merged
+    scale_factor = PREV_ISSUE_FACTOR if issue_scale is None else issue_scale
     result: list[tuple[str, _ArtProfile]] = []
     for solution_key, profile in merged:
-        updates: dict = {"issue_count": int(profile.issue_count * 0.88)}
+        updates: dict = {"issue_count": max(1, int(profile.issue_count * scale_factor))}
         if (weak is not None and profile.name == weak
                 and "todo_rate" not in (art_profiles or {}).get(weak, {})):
             updates["todo_rate"] = 0.45
@@ -1159,7 +1174,8 @@ def _write_pi_config(path: Path, reference: date, window_days: int) -> None:
 
 
 def _readme_text(spec: PortfolioSpec, story_data: Story, seed: int,
-                 reference: date, scale: str) -> str:
+                 reference: date, scale: str,
+                 stand_dates: list[date] | None = None) -> str:
     """The README of one portfolio data room, told from structure and story."""
     first_art = spec.arts[0]
     workflow_label = {WORKFLOW_CLASSIC: "klassischer Workflow (Default-Pfad)",
@@ -1185,7 +1201,9 @@ def _readme_text(spec: PortfolioSpec, story_data: Story, seed: int,
         "                              " + ", ".join(
             f"{r}.json" for r in REGISTER_NAMES[4:]) + ")",
         "    workflows/  raw/  pi_config.json",
-        "    snapshots/                snapshot_prev.json, snapshot_now.json",
+        "    snapshots/                snapshot_<nn>_<datum>.json je Stand, stands.json,",
+        "                              snapshot_prev/now.json = die letzten beiden",
+        "    deltas/                   delta_<nn>-<nn+1>.md/.html je Folgepaar",
         "",
         "## Struktur",
         "",
@@ -1219,6 +1237,20 @@ def _readme_text(spec: PortfolioSpec, story_data: Story, seed: int,
     if story_data.notices:
         lines += ["", "Hinweise der Rollenbindung:", ""]
         lines += [f"- {n}" for n in story_data.notices]
+    if stand_dates:
+        lines += ["", "## Stände", "",
+                  f"{len(stand_dates)} Stände im Abstand von {STAND_INTERVAL_DAYS} Tagen "
+                  f"— jeder Stand ein Snapshot, jedes Folgepaar ein fertiges "
+                  f"Delta-Briefing. Die „jetzt\"-Ereignisse der Geschichte gelten ab "
+                  f"dem letzten Stand; davor zeigt die Reihe die Lage davor "
+                  f"(weniger Vorgänge, Register ohne die späten Wendungen).", ""]
+        for k, day in enumerate(stand_dates, start=1):
+            marker = ("  ← snapshot_now" if k == len(stand_dates)
+                      else "  ← snapshot_prev" if k == len(stand_dates) - 1 else "")
+            lines.append(f"- Stand {k:02d}: {day.isoformat()}"
+                         f" (`snapshots/{_snapshot_name(k, day)}`){marker}")
+        lines += ["", "Delta-Briefings: " + ", ".join(
+            f"`deltas/delta_{k:02d}-{k + 1:02d}.html`" for k in range(1, len(stand_dates)))]
     lines += [
         "",
         "## Weitere Wege",
@@ -1226,7 +1258,7 @@ def _readme_text(spec: PortfolioSpec, story_data: Story, seed: int,
         "- **Delta-Briefing (D2)**: `snapshots/snapshot_prev.json` (Stand vor",
         "  14 Tagen) und `snapshots/snapshot_now.json` liegen bei —",
         "  `python -m portfolio --delta snapshots/snapshot_prev.json",
-        "  snapshots/snapshot_now.json`.",
+        "  snapshots/snapshot_now.json`; jedes andere Paar genauso.",
         "- **KI-Narration (D2 Teil 2)**: `--narrate mock` ergänzt das",
         "  Briefing um den gekennzeichneten Abschnitt „Narration (Entwurf)\"",
         "  — ohne Modell oder Installation (Attrappe); der Nachweis landet",
@@ -1241,6 +1273,112 @@ def _readme_text(spec: PortfolioSpec, story_data: Story, seed: int,
     return "\n".join(lines)
 
 
+def _snapshot_name(index: int, day: date) -> str:
+    return f"snapshot_{index:02d}_{day.isoformat()}.json"
+
+
+def write_stand_delta(snapshots_dir: Path, deltas_dir: Path, k: int,
+                      lang: str = DEFAULT_LANG) -> tuple[Path, Path]:
+    """
+    Render the Delta-Briefing between stand ``k`` and ``k + 1`` of a data
+    room (Markdown + HTML) into ``deltas/``; returns both paths.
+
+    Reads the stand files through ``stands.json``.
+    """
+    import shutil  # noqa: F401  (kept local: the module avoids a top-level import)
+
+    from portfolio.delta import compute_delta, delta_to_markdown, render_delta_html
+    from portfolio.snapshot import load_snapshot
+
+    index = json.loads((snapshots_dir / "stands.json").read_text(encoding="utf-8"))
+    by_index = {int(s["index"]): snapshots_dir / s["file"] for s in index["stands"]}
+    delta = compute_delta(load_snapshot(by_index[k]), load_snapshot(by_index[k + 1]))
+    deltas_dir.mkdir(exist_ok=True)
+    md = deltas_dir / f"delta_{k:02d}-{k + 1:02d}.md"
+    html = deltas_dir / f"delta_{k:02d}-{k + 1:02d}.html"
+    md.write_text(delta_to_markdown(delta), encoding="utf-8")
+    html.write_text(render_delta_html(delta, lang=lang), encoding="utf-8")
+    return md, html
+
+
+def write_stands_index(snapshots_dir: Path, entries: list[tuple[int, date, str]]) -> Path:
+    """Write ``snapshots/stands.json`` (schema 1) and return its path."""
+    path = snapshots_dir / "stands.json"
+    path.write_text(json.dumps({
+        "schema": 1,
+        "interval_days": STAND_INTERVAL_DAYS,
+        "stands": [{"index": k, "as_of": day.isoformat(), "file": name}
+                   for k, day, name in entries],
+    }, indent=2) + "\n", encoding="utf-8")
+    return path
+
+
+def _build_stand_series(
+    out: Path,
+    spec: PortfolioSpec,
+    seed: int,
+    reference: date,
+    window_days: int,
+    scale: str,
+    art_profiles: dict[str, dict] | None,
+    stands: int,
+    stand_dates: list[date],
+    lang: str,
+    log: Callable[[str], None],
+) -> dict[str, Any]:
+    """
+    Freeze the N stands of the data room and render the N-1 Delta-Briefings.
+
+    Stand N is the data room itself (as of ``reference``). Every earlier
+    stand k is the same story (STAND_INTERVAL_DAYS × (N-k)) days younger:
+    built as a prev variant into a temp folder with PREV_ISSUE_FACTOR**(N-k)
+    of the issues and the registers before the "now" events, frozen as of
+    its stand date, then discarded. snapshot_prev/now.json are copies of
+    stands N-1 and N (the aliases the GUI, the tutorials and the
+    continuation use).
+    """
+    import shutil
+    import tempfile
+
+    from portfolio.snapshot import build_snapshot, save_snapshot
+    from portfolio.solution_config import load_solution_config
+
+    snapshots_dir = out / "snapshots"
+    deltas_dir = out / "deltas"
+    log(f"  Stände-Reihe: {stands} Stände im {STAND_INTERVAL_DAYS}-Tage-Rhythmus ...")
+    entries: list[tuple[int, date, str]] = []
+    snapshot_paths: list[Path] = []
+    for k, day in enumerate(stand_dates, start=1):
+        name = _snapshot_name(k, day)
+        target = snapshots_dir / name
+        if k == stands:
+            save_snapshot(target, build_snapshot(
+                load_solution_config(out / "portfolio.json"), as_of=day,
+                log=lambda m: None))
+        else:
+            with tempfile.TemporaryDirectory(prefix=f"scenario_stand{k:02d}_") as tmp:
+                prev_paths = _build_portfolio(
+                    Path(tmp), spec, seed=seed, reference=reference,
+                    window_days=window_days, log=lambda m: None,
+                    story=STORY_PREV, scale=scale, art_profiles=art_profiles,
+                    stands=stands, lang=lang,
+                    issue_scale=PREV_ISSUE_FACTOR ** (stands - k))
+                save_snapshot(target, build_snapshot(
+                    load_solution_config(prev_paths["portfolio"]), as_of=day,
+                    log=lambda m: None))
+        entries.append((k, day, name))
+        snapshot_paths.append(target)
+        log(f"    Stand {k:02d}: {day.isoformat()}")
+    shutil.copyfile(snapshot_paths[-2], snapshots_dir / "snapshot_prev.json")
+    shutil.copyfile(snapshot_paths[-1], snapshots_dir / "snapshot_now.json")
+    stands_index = write_stands_index(snapshots_dir, entries)
+    deltas: list[tuple[Path, Path]] = []
+    for k in range(1, stands):
+        deltas.append(write_stand_delta(snapshots_dir, deltas_dir, k, lang))
+    log(f"  Delta-Briefings: {len(deltas)} Folgepaare unter deltas/")
+    return {"stands": stands_index, "snapshots": snapshot_paths, "deltas": deltas}
+
+
 def _build_portfolio(
     out: Path,
     spec: PortfolioSpec,
@@ -1251,6 +1389,9 @@ def _build_portfolio(
     story: str,
     scale: str,
     art_profiles: dict[str, dict] | None,
+    stands: int = DEFAULT_STANDS,
+    lang: str = DEFAULT_LANG,
+    issue_scale: float | None = None,
 ) -> dict[str, Any]:
     """Generate one portfolio's data room into ``out`` (see build_portfolio_scenario)."""
     out.mkdir(parents=True, exist_ok=True)
@@ -1272,7 +1413,7 @@ def _build_portfolio(
     tags = _solution_tags(spec)
     members: dict[str, list[Member]] = {s.key: [] for s in spec.solutions}
     for i, (solution_key, profile) in enumerate(
-            _profiles(story, art_profiles, spec, binding)):
+            _profiles(story, art_profiles, spec, binding, issue_scale)):
         wf_file = workflow_files[solution_key]
         workflow = parse_workflow(wf_file)
 
@@ -1378,37 +1519,27 @@ def _build_portfolio(
     for notice in story_data.notices:
         log(f"  Hinweis: {notice}")
 
+    stand_dates = [reference - timedelta(days=STAND_INTERVAL_DAYS * (stands - k))
+                   for k in range(1, stands + 1)]
     readme = out / "README.md"
-    readme.write_text(_readme_text(spec, story_data, seed, reference, scale),
+    readme.write_text(_readme_text(spec, story_data, seed, reference, scale,
+                                   stand_dates if story == STORY_NOW else []),
                       encoding="utf-8")
 
     snapshot_prev = out / "snapshots" / "snapshot_prev.json"
     snapshot_now = out / "snapshots" / "snapshot_now.json"
+    series: dict[str, Any] = {"stands": None, "snapshots": [], "deltas": []}
     if story == STORY_NOW:
-        # Delta-Briefing-Demo (D2): denselben Bau als Prev-Variante in einen
-        # Temp-Ordner legen, beide Staende einfrieren, Temp verwerfen.
-        import tempfile
-
-        from portfolio.snapshot import build_snapshot, save_snapshot
-        from portfolio.solution_config import load_solution_config
-
-        log("  Delta-Briefing: Snapshots (prev/now) werden erzeugt ...")
-        save_snapshot(snapshot_now, build_snapshot(
-            load_solution_config(portfolio_cfg), as_of=reference,
-            log=lambda m: None))
-        with tempfile.TemporaryDirectory(prefix="scenario_prev_") as tmp:
-            prev_paths = _build_portfolio(
-                Path(tmp), spec, seed=seed, reference=reference,
-                window_days=window_days, log=lambda m: None,
-                story=STORY_PREV, scale=scale, art_profiles=art_profiles)
-            save_snapshot(snapshot_prev, build_snapshot(
-                load_solution_config(prev_paths["portfolio"]),
-                as_of=reference - timedelta(days=14), log=lambda m: None))
+        series = _build_stand_series(
+            out, spec, seed, reference, window_days, scale, art_profiles,
+            stands, stand_dates, lang, log)
 
     paths: dict[str, Any] = {
         "portfolio": portfolio_cfg, "pi_config": pi_cfg, "readme": readme,
         "structure": structure_path, "story": story_path,
         "snapshot_prev": snapshot_prev, "snapshot_now": snapshot_now,
+        "stands": series["stands"], "snapshots": series["snapshots"],
+        "deltas": series["deltas"],
         "solutions": solution_paths,
     }
     for key, cfg_path in solution_paths.items():
@@ -1430,6 +1561,8 @@ def build_portfolio_scenario(
     scale: str = DEFAULT_SCALE,
     art_profiles: dict[str, dict] | None = None,
     structure: Structure | None = None,
+    stands: int = DEFAULT_STANDS,
+    lang: str = DEFAULT_LANG,
 ) -> dict[str, Any]:
     """
     Generate the complete demo data room into ``output_dir``.
@@ -1452,10 +1585,17 @@ def build_portfolio_scenario(
         structure:   The data-room structure (E2a). None = the standard
                      template (1 portfolio · 2 solutions · 3 ARTs each),
                      which yields exactly the demo portfolio of before.
+        stands:      Number of stands in the series (E3; MIN_STANDS to
+                     MAX_STANDS, default DEFAULT_STANDS), two weeks apart,
+                     the last one on ``reference``; every consecutive pair
+                     gets a rendered Delta-Briefing under deltas/.
+        lang:        Language of the rendered Delta-Briefing pages.
 
     Returns:
         One portfolio: the key output paths — "portfolio", "pi_config",
         "readme", "structure", "story", "snapshot_prev", "snapshot_now",
+        "stands" (stands.json), "snapshots" (one path per stand), "deltas"
+        ([(md, html)] per consecutive pair),
         "solutions" ({key: solution.json}), plus "solution_<key>" and
         "<register>_<key>" for every solution (aliases flow_/areas_/points_).
         Several portfolios: "structure", "readme" and "portfolios"
@@ -1463,16 +1603,20 @@ def build_portfolio_scenario(
         own sub-folder and is a complete data room by itself.
 
     Raises:
-        ValueError: invalid structure (see structure.validate).
+        ValueError: invalid structure (see structure.validate) or a stand
+            count outside MIN_STANDS..MAX_STANDS.
     """
     reference = reference or date.today()
     out = Path(output_dir)
     structure = structure or structure_template(TEMPLATE_STANDARD)
     validate(structure)
+    if not MIN_STANDS <= stands <= MAX_STANDS:
+        raise ValueError(f"stands must be {MIN_STANDS}..{MAX_STANDS}, got {stands}.")
 
     if len(structure.portfolios) == 1:
         paths = _build_portfolio(out, structure.portfolios[0], seed, reference,
-                                 window_days, log, story, scale, art_profiles)
+                                 window_days, log, story, scale, art_profiles,
+                                 stands=stands, lang=lang)
         log(f"Szenario komplett: {out}")
         return paths
 
@@ -1482,7 +1626,7 @@ def build_portfolio_scenario(
         log(f"Portfolio {spec.name} -> {spec.key}/")
         per_portfolio[spec.key] = _build_portfolio(
             out / spec.key, spec, seed, reference, window_days, log, story,
-            scale, art_profiles)
+            scale, art_profiles, stands=stands, lang=lang)
     structure_path = out / "structure.json"
     save_structure(structure_path, structure)
     readme = out / "README.md"
