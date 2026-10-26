@@ -93,6 +93,40 @@ GitHub (Deployments + Workflow-Runs → DORA), GitLab (Pipelines/Deployments), S
 Die Zahlen sind dieselben wie in den Registern — **eine Wahrheit, zwei Wege** (Register direkt oder
 über `sources fetch`), und die Schulung kann beide zeigen.
 
+### 3.6 Struktur als Daten (Ergänzung Robert, 26.10.2026)
+Der Generator darf nicht auf „1 Portfolio · 2 Solutions · je 3 ARTs" festgelegt sein. Die Struktur ist
+eine eigene Datei `structure.json` (Baum: Portfolios → Solutions → ARTs) und wird in Schritt 1 bearbeitet:
+
+```json
+{"schema": 1, "portfolios": [
+  {"id": "P1", "name": "Demo Portfolio", "solutions": [
+    {"id": "S1", "name": "Alpha", "workflow": "classic", "arts": ["Alpha-1", "Alpha-2", "Alpha-3"]},
+    {"id": "S2", "name": "Beta",  "workflow": "stage_map", "arts": ["Beta-1", "Beta-2", "Beta-3"]}]},
+  {"id": "P2", "name": "Portfolio Nord", "solutions": [
+    {"id": "S3", "name": "Gamma", "workflow": "classic", "arts": ["Gamma-1"]},
+    {"id": "S4", "name": "Delta", "workflow": "classic", "arts": ["Delta-1", "Delta-2", "Delta-3", "Delta-4"]}]}
+]}
+```
+
+- **Beliebige Kardinalität:** n Portfolios, je Portfolio m Solutions, je Solution k ≥ 1 ARTs
+  (eine Solution mit einem ART ist zulässig — ihr Report ist dann ART-Tiefe ohne Vergleich).
+  Strukturvorlagen: *Klein* (1·1·2), *Standard* (1·2·3), *Groß* (5 Portfolios, 3–4 Solutions, 1–6
+  ARTs), *Eigene*. Namen werden vorgeschlagen (griechische Buchstaben, dann Nummern) und sind änderbar;
+  eine Struktur lässt sich als Datei laden und speichern.
+- **Vorlagen binden an Rollen, nicht an Namen:** Jedes Ereignis der Geschichte adressiert eine Rolle
+  (`outlier_art`, `weak_source_art`, `blocked_dependency: {from, to}`, `slo_breach_service`,
+  `alarm_art`, `recurring_seam`), und `story.json` ordnet Rollen auf die vorhandene Struktur zu —
+  Standard: Ausreißer = letzter ART der ersten Solution, Datenlücke = letzter ART der zweiten Solution,
+  Cross-Solution-Abhängigkeit zwischen Solution 1 und 2. Bei nur einer Solution entfallen
+  Cross-Solution-Ereignisse mit Hinweis statt Fehler.
+- **Mehrere Portfolios:** je Portfolio ein eigener Datenraum-Unterordner mit eigener `portfolio.json`
+  und eigenen Ständen; Solutions bleiben Templates je Portfolio. Ein Portfolio-übergreifendes Lagebild
+  (Enterprise-Ebene) ist heute kein Feature — der Datenraum legt die Daten dafür aber schon ab.
+- **Umfang folgt der Struktur:** die Schätzung („Was entsteht") rechnet aus der Struktur: Jira-Exporte
+  = Zahl der ARTs, Arbeitsmappen = 3 × ARTs, Register = 12 × Solutions, Stände × Portfolios.
+- **Grenzen, die das Werkzeug nennt:** ab etwa 30 ARTs oder 5 Portfolios bei Umfang L warnt der
+  Generator vor Dauer und Größe (Schätzung in Schritt 2), verweigert aber nichts.
+
 ### 3.5 Personen
 Keine. Teams/ARTs als Owner, anonymisierte Autoren im Changelog (wie R1), Teilnehmerzahlen im
 Kompetenz-Log. Der Datenraum ist damit ohne Datenschutz-Frage weitergebbar.
@@ -111,7 +145,7 @@ Standardwerten, nicht in Feldern), Feedback/Doherty (Fortschritt je Artefakt, Ab
 
 | Schritt | Inhalt | Prototyp |
 |---|---|---|
-| 1 Szenario | Vorlage wählen (Ruhig · **Standard-Lage** empfohlen · Eskalation · Erholung · Eigene), darunter die Ereignisse der Vorlage als Liste mit Zeitpunkt und Schalter; rechts die Struktur (Portfolio → 2 Solutions → 6 ARTs) mit Namen, änderbar | `Main.dc.html` |
+| 1 Szenario | Vorlage wählen (Ruhig · **Standard-Lage** empfohlen · Eskalation · Erholung · Eigene), darunter die Ereignisse der Vorlage als Liste mit Zeitpunkt und Schalter; rechts der **Struktur-Editor** (Strukturvorlage, Portfolios mit Solutions, ART-Zähler je Solution, Workflow je Solution, Namen änderbar, + Solution / + Portfolio, Struktur laden/speichern, Summe) | `Main.dc.html` |
 | 2 Umfang & Quellen | Stände (Schieber 2–12, Standard 6, Rhythmus 14 Tage; Schalter „Delta-Briefings für alle Folgepaare erzeugen"), Umfang s/m/l, Realismus 0–100, Seed, Sprache; Provider-Checkliste (Prometheus, GitHub, GitLab, SonarQube, CSV, Datei; Harmonisierung; Betreiber-Ebene) — alles an, Details einklappbar | `Umfang.dc.html` |
 | 3 Erzeugen | Zielordner, Knopf „Datenraum erzeugen"; Fortschritt als Artefakt-Liste mit Häkchen und Zeit; Ergebniskarte: Zahlen (Vorgänge, Register, Stände, Provider), Geschichte in drei Sätzen, Aktionen „Report öffnen · Konferenzmappe · Delta 5→6 · Einseiter · Lagebild befragen · im Portfolio-Manager öffnen"; Vergleichswähler Stand a → b für jedes Paar | `Ergebnis.dc.html` |
 | ART-Werkzeug | Eigener Reiter „Ein ART" mit dem heutigen Generator (Muster, Lernen, Fortschreiben) — für RTE und Analysten, nicht im Hauptweg | später |
@@ -119,7 +153,8 @@ Standardwerten, nicht in Feldern), Feedback/Doherty (Fortschritt je Artefakt, Ab
 ## 5. Entscheidungen (meine Empfehlung jeweils zuerst)
 
 - **E1 Datenraum als feste Struktur mit `README.md`-Geschichte** (3.1). *Alternative:* flacher Ordner wie heute.
-- **E2 Geschichte als Daten (`story.json`) mit vier Vorlagen und Ereignis-Schaltern.** *Alternative:* nur die heutige feste Story.
+- **E2 Geschichte als Daten (`story.json`) mit vier Vorlagen und Ereignis-Schaltern,** Ereignisse an Rollen gebunden. *Alternative:* nur die heutige feste Story.
+- **E2a Struktur als Daten (`structure.json`): beliebig viele Portfolios, Solutions, ARTs; Vorlagen Klein/Standard/Groß/Eigene.** *Alternative:* feste 1·2·3-Struktur mit Namensänderung.
 - **E3 Reihe von Ständen, Standard 6 × 14 Tage.** *Alternative:* prev/now bleiben, Reihe nur per Fortschreiben.
 - **E4 Provider-Rohdaten in Systemformaten + `sources.json`,** damit `sources fetch` im Demo-Datenraum läuft. *Alternative:* Register direkt wie heute (die Provider bleiben ohne Demo).
 - **E5 Drei-Schritte-Oberfläche mit einem Hauptknopf; ART-Generator als eigener Reiter.** *Alternative:* heutiges Fenster erweitern.
