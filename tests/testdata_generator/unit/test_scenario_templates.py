@@ -112,7 +112,7 @@ class TestCalm:
         assert len(alpha) == 3 and max(alpha.values()) < 2 * min(alpha.values())
         assert _confidence(last, "ART Beta-3") != CONFIDENCE_LOW
         readme = paths["readme"].read_text(encoding="utf-8")
-        assert "Ruhig" in readme and "_(aus)_" in readme
+        assert "Calm" in readme and "_(off)_" in readme
 
     def test_deltas_stay_governance_quiet(self, calm) -> None:
         _, paths = calm
@@ -183,7 +183,7 @@ class TestRecovery:
         outlier = next(e for e in story.events if e.event_id == EVENT_OUTLIER)
         assert (outlier.stand_from, outlier.stand_to) == (1, 4)
         readme = paths["readme"].read_text(encoding="utf-8")
-        assert "Stand 01 bis 04" in readme and "Erholung" in readme
+        assert "stands 01 to 04" in readme and "Recovery" in readme
 
     def test_registers_in_the_room_show_the_healed_state(self, recovery) -> None:
         _, paths = recovery

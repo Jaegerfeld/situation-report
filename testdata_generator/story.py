@@ -3,7 +3,7 @@
 # Repository:     https://github.com/Jaegerfeld/situation-report
 # KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
 # Erstellt:       26.10.2026
-# Geändert:       26.10.2026
+# Geändert:       30.10.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
@@ -29,11 +29,12 @@
 from __future__ import annotations
 
 import json
-from collections.abc import Callable
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
+from .i18n import DEFAULT_LANG, template_title
+from .i18n import t as _t
 from .structure import PortfolioSpec
 
 STORY_SCHEMA = 2
@@ -43,8 +44,8 @@ TEMPLATE_STANDARD = "standard"
 TEMPLATE_ESCALATION = "escalation"
 TEMPLATE_RECOVERY = "recovery"
 STORY_TEMPLATES = (TEMPLATE_CALM, TEMPLATE_STANDARD, TEMPLATE_ESCALATION, TEMPLATE_RECOVERY)
-TEMPLATE_TITLES = {TEMPLATE_CALM: "Ruhig", TEMPLATE_STANDARD: "Standard-Lage",
-                   TEMPLATE_ESCALATION: "Eskalation", TEMPLATE_RECOVERY: "Erholung"}
+#: Titles in the default language (English); ``template_title(id, lang)`` for the others.
+TEMPLATE_TITLES = {tpl: template_title(tpl) for tpl in STORY_TEMPLATES}
 #: Stands a template suggests when the caller names none (E3: Ruhig = ein PI).
 SUGGESTED_STANDS = {TEMPLATE_CALM: 3, TEMPLATE_STANDARD: 6,
                     TEMPLATE_ESCALATION: 6, TEMPLATE_RECOVERY: 6}
@@ -124,7 +125,7 @@ class RoleBinding:
         return None
 
 
-def bind_roles(portfolio: PortfolioSpec) -> RoleBinding:
+def bind_roles(portfolio: PortfolioSpec, lang: str = DEFAULT_LANG) -> RoleBinding:
     """
     Map the story roles onto a concrete portfolio structure.
 
@@ -133,11 +134,12 @@ def bind_roles(portfolio: PortfolioSpec) -> RoleBinding:
     (first -> last ART); the second solution hosts the weak source (its
     last ART), the SLO breach and the cross-solution dependency (its first
     ART -> the host's first ART). Missing positions are reported as
-    notices and leave the role unbound.
+    notices and leave the role unbound. ``lang`` is the language of the
+    notices (they end up in story.json and the README).
     """
     b = RoleBinding()
     if not portfolio.solutions:
-        b.notices.append("Portfolio ohne Solution — keine Geschichte.")
+        b.notices.append(_t("notice.no_solution", lang))
         return b
     host = portfolio.solutions[0]
     b.roles[ROLE_HOST_SOLUTION] = host.short
@@ -146,9 +148,7 @@ def bind_roles(portfolio: PortfolioSpec) -> RoleBinding:
         b.roles[ROLE_BLOCKED_DEPENDENCY] = [host.arts[0], host.arts[-1]]
         b.roles[ROLE_RECURRING_SEAM] = [host.arts[0], host.arts[-1]]
     else:
-        b.notices.append(
-            f"{host.display_name} hat nur einen ART — kein Ausreißer, keine "
-            f"blockierte Abhängigkeit, keine wiederkehrende Naht.")
+        b.notices.append(_t("notice.one_art_host", lang, solution=host.display_name))
     if len(portfolio.solutions) >= 2:
         second = portfolio.solutions[1]
         b.roles[ROLE_SECOND_SOLUTION] = second.short
@@ -156,17 +156,12 @@ def bind_roles(portfolio: PortfolioSpec) -> RoleBinding:
         b.roles[ROLE_SLO_BREACH_SOLUTION] = second.short
         b.roles[ROLE_CROSS_SOLUTION_DEPENDENCY] = [second.arts[0], host.arts[0]]
         if len(second.arts) < 2:
-            b.notices.append(
-                f"{second.display_name} hat nur einen ART — er ist zugleich "
-                f"die schwache Quelle und der Partner der Cross-Solution-Naht.")
+            b.notices.append(_t("notice.one_art_second", lang, solution=second.display_name))
     else:
-        b.notices.append(
-            "Nur eine Solution — keine schwache Quelle, kein SLO-Bruch in "
-            "einer zweiten Solution, keine Cross-Solution-Abhängigkeit.")
+        b.notices.append(_t("notice.one_solution", lang))
     if len(portfolio.solutions) > 2:
         others = ", ".join(s.display_name for s in portfolio.solutions[2:])
-        b.notices.append(
-            f"Ohne Story-Anker (nur seed-erzeugte Grundmenge): {others}.")
+        b.notices.append(_t("notice.anchor_free", lang, others=others))
     return b
 
 
@@ -260,49 +255,37 @@ _TIMING: dict[str, dict[str, tuple[bool, str, str | None]]] = {
     },
 }
 
-_SUMMARIES: dict[str, Callable[[str | None, str | None], list[str]]] = {
-    TEMPLATE_CALM: lambda outlier, weak: [
-        "Ein Portfolio ohne Wendungen: alle ARTs liefern gleichmäßig, die Register tragen "
-        "Grundmenge und gesunde Anker.",
-        "Die Reihe zeigt Durchsatz und kleine Bewegungen — die Übung ist, ein Lagebild zu lesen, "
-        "das nichts Dramatisches sagt.",
-        "Wer hier Alarm schlägt, hat das Bild überlesen.",
-    ],
-    TEMPLATE_STANDARD: lambda outlier, weak: [
-        "Ein Portfolio, das auf den ersten Blick ruhig wirkt.",
-        (f"Darunter ein Ausreißer-ART ({outlier}), " if outlier else "Darunter ")
-        + (f"eine schwache Datenquelle ({weak}) " if weak else "")
-        + "und Nähte zwischen den Value Streams, die mit dem letzten Stand sichtbar unter Druck "
-          "geraten.",
-        "Die Register erzählen dieselbe Lage aus jeder Richtung — Risiken, Abhängigkeiten, "
-        "Annahmen, SLOs und Wecker zeigen auf dieselben Stellen.",
-    ],
-    TEMPLATE_ESCALATION: lambda outlier, weak: [
-        "Eine Lage, die sich Stand für Stand verschärft.",
-        (f"Zuerst reißt ein SLO, dann blockiert der Ausreißer ({outlier}) seine Naht, " if outlier
-         else "Zuerst reißt ein SLO, dann blockiert eine Naht, ")
-        + (f"dann verfällt die Datenqualität von {weak} und die Cross-Solution-Nähte kippen."
-           if weak else "dann kippen die Nähte zwischen den Value Streams."),
-        "Am Ende kommen ein neues Sicherheitsrisiko und geänderte Roadmaps dazu — der Wecker hätte "
-        "früher klingeln müssen.",
-    ],
-    TEMPLATE_RECOVERY: lambda outlier, weak: [
-        "Eine Lage, die schlecht beginnt und sich erholt.",
-        (f"Stand 1 zeigt den Ausreißer ({outlier}), " if outlier else "Stand 1 zeigt ")
-        + "blockierte und gefährdete Nähte, ein gerissenes SLO"
-        + (f" und die schwache Quelle {weak}." if weak else "."),
-        "Dann werden Nähte gelöst, das SLO hält wieder, der Ausreißer findet seinen Takt, zuletzt "
-        "heilt die Datenquelle — nur die stillen Muster der ersten Solution bleiben.",
-    ],
-}
+def _summary(template: str, outlier: str | None, weak: str | None, lang: str) -> list[str]:
+    """The three summary sentences of a template, with the bound roles filled in."""
+    def s(key: str, **kw: object) -> str:
+        return _t(f"sum.{key}", lang, **kw)
+
+    if template == TEMPLATE_CALM:
+        return [s("calm.1"), s("calm.2"), s("calm.3")]
+    if template == TEMPLATE_STANDARD:
+        return [s("standard.1"),
+                s("standard.2", outlier=s("part.outlier", outlier=outlier) if outlier else "",
+                  weak=s("part.weak", weak=weak) if weak else ""),
+                s("standard.3")]
+    if template == TEMPLATE_ESCALATION:
+        return [s("escalation.1"),
+                s("escalation.2",
+                  blocks=s("part.blocks_outlier", outlier=outlier) if outlier else s("part.blocks_plain"),
+                  decay=s("part.decay_weak", weak=weak) if weak else s("part.decay_plain")),
+                s("escalation.3")]
+    return [s("recovery.1"),
+            s("recovery.2", outlier=s("part.rec_outlier", outlier=outlier) if outlier else "",
+              weak=s("part.rec_weak", weak=weak) if weak else "."),
+            s("recovery.3")]
 
 
 def _art(name: str) -> str:
     return f"ART {name}"
 
 
-def _catalogue(binding: RoleBinding, tags: dict[str, str]) -> list[tuple[str, str, str, str]]:
-    """(event id, role, title, effect) for every event the binding can host."""
+def _catalogue(binding: RoleBinding, tags: dict[str, str],
+               lang: str = DEFAULT_LANG) -> list[tuple[str, str, str, str]]:
+    """(event id, role, title, effect) for every event the binding can host, in ``lang``."""
     host = binding.get(ROLE_HOST_SOLUTION) or ""
     second = binding.get(ROLE_SECOND_SOLUTION) or ""
     ht = tags.get(host, "A")
@@ -315,63 +298,33 @@ def _catalogue(binding: RoleBinding, tags: dict[str, str]) -> list[tuple[str, st
     slo_sol = binding.get(ROLE_SLO_BREACH_SOLUTION)
 
     events: list[tuple[str, str, str, str]] = []
+
+    def add(eid: str, role: str, **kw: object) -> None:
+        events.append((eid, role, _t(f"ev.{eid}.title", lang, **kw),
+                       _t(f"ev.{eid}.effect", lang, **kw)))
+
     if outlier:
-        events.append((EVENT_OUTLIER, ROLE_OUTLIER_ART,
-                       f"{_art(outlier)} ist der Ausreißer (Cycle Time etwa 3×).",
-                       f"Comparison-Report: Median/P95 rot markiert; Wecker DP-{ht}1 (P85 über "
-                       f"30 Tagen) ausgelöst; Delivery-Bild selten und langsam; Capability "
-                       f"{ht}C-2 at risk."))
+        add(EVENT_OUTLIER, ROLE_OUTLIER_ART, art=_art(outlier), ht=ht)
     if weak:
-        events.append((EVENT_WEAK_SOURCE, ROLE_WEAK_SOURCE_ART,
-                       f"{_art(weak)} liefert schwache Daten (kein CFD, kaum First Dates, "
-                       f"Datenstand 60 Tage alt).",
-                       f"Konfidenz medium; Risiko {st}R-1 altert (50 Tage); Capability {st}C-1 "
-                       f"kritisch; Flussproblem FP-{st}1 überlebt vier Konferenzen; Annahme "
-                       f"AS-{st}1 überschreitet ihr Prüfdatum; DORA/Qualität low."))
+        add(EVENT_WEAK_SOURCE, ROLE_WEAK_SOURCE_ART, art=_art(weak), st=st)
     if blocked:
-        events.append((EVENT_BLOCKED, ROLE_BLOCKED_DEPENDENCY,
-                       f"{_art(blocked[0])} → {_art(blocked[1])} ist blockiert und überfällig.",
-                       f"Abhängigkeit {ht}D-1: at_risk → blocked; Heatmap rot; Wecker DP-{ht}3 "
-                       f"(zwei blockierte) unterschwellig."))
+        add(EVENT_BLOCKED, ROLE_BLOCKED_DEPENDENCY, a=_art(blocked[0]), b=_art(blocked[1]), ht=ht)
     if cross:
-        events.append((EVENT_CROSS_SOLUTION, ROLE_CROSS_SOLUTION_DEPENDENCY,
-                       f"{_art(cross[0])} → {_art(cross[1])} ist eine Cross-Solution-Naht; der "
-                       f"Druck zwischen den Value Streams steigt.",
-                       f"{st}D-1 at_risk, {st}D-3 at_risk → blocked, {ht}D-4 on_track → at_risk — "
-                       f"nur im Portfolio-Report sichtbar; Grundlage des "
-                       f"Entscheidungspunkt-Indikators (P4)."))
+        add(EVENT_CROSS_SOLUTION, ROLE_CROSS_SOLUTION_DEPENDENCY,
+            a=_art(cross[0]), b=_art(cross[1]), ht=ht, st=st)
     if seam:
-        events.append((EVENT_SEAM, ROLE_RECURRING_SEAM,
-                       f"Die Naht {_art(seam[0])} × {_art(seam[1])} öffnet zum dritten Mal eine "
-                       f"Solution Area zum selben Thema (test environment).",
-                       f"SA-{ht}1, SA-{ht}2 geschlossen, SA-{ht}3 neu — das EA-Signal (P5): "
-                       f"Schnitt oder Architektur prüfen, nicht die Teams."))
+        add(EVENT_SEAM, ROLE_RECURRING_SEAM, a=_art(seam[0]), b=_art(seam[1]), ht=ht)
     if slo_sol:
-        events.append((EVENT_SLO_BREACH, ROLE_SLO_BREACH_SOLUTION,
-                       f"„Order Sync API“ in Solution {slo_sol} reißt sein SLO.",
-                       f"SLO-Register: breached; NFR {st}N-1 (API response time) verletzt; "
-                       f"Runway-Lücke {st}RW-1 überfällig."))
+        add(EVENT_SLO_BREACH, ROLE_SLO_BREACH_SOLUTION, sol=slo_sol, st=st)
     if host:
-        events.append((EVENT_HOST_PATTERNS, ROLE_HOST_SOLUTION,
-                       f"Solution {host} wirkt gesund — mit den stillen Mustern.",
-                       f"Risiko {ht}R-1 seit 45 Tagen owned (Aging); Theme T-{ht}2 ohne Epic "
-                       f"(„declared & forgotten“); Flussproblem FP-{ht}1 überlebt drei "
-                       f"Konferenzen; Capability {ht}C-3 ohne ART (uncovered); SLO „Checkout“ "
-                       f"at risk."))
+        add(EVENT_HOST_PATTERNS, ROLE_HOST_SOLUTION, host=host, ht=ht)
     if weak:
-        events.append((EVENT_WEAK_DECAY, ROLE_WEAK_SOURCE_ART,
-                       f"Die Datenqualität von {_art(weak)} verfällt weiter.",
-                       "Anteil der Vorgänge ohne First Date steigt auf 80 % — Konfidenz medium → "
-                       "low, Abdeckung im Titel sichtbar."))
+        add(EVENT_WEAK_DECAY, ROLE_WEAK_SOURCE_ART, art=_art(weak))
     if second:
-        events.append((EVENT_NEW_RISK, ROLE_SECOND_SOLUTION,
-                       f"Neues Risiko in Solution {second}: Security-Review nicht terminiert.",
-                       f"Risiko {st}R-2 (mitigated, hoch) erscheint — im Delta-Briefing als neu."))
+        add(EVENT_NEW_RISK, ROLE_SECOND_SOLUTION, second=second, st=st)
     if host:
-        events.append((EVENT_ROADMAPS, ROLE_HOST_SOLUTION,
-                       "Roadmaps aktualisiert.",
-                       f"Epic EP-{ht}9 verliert sein Theme (Zombie-Initiative)"
-                       + (f"; Epic EP-{st}2 wird von P2 nach P1 gezogen." if second else ".")))
+        add(EVENT_ROADMAPS, ROLE_HOST_SOLUTION, ht=ht,
+            second_part=_t("ev.E10.second", lang, st=st) if second else ".")
     return events
 
 
@@ -398,14 +351,17 @@ def parse_switches(values: list[str] | None) -> dict[str, bool]:
 
 
 def story_for(template: str, binding: RoleBinding, tags: dict[str, str] | None = None,
-              stands: int = 6, switches: dict[str, bool] | None = None) -> Story:
+              stands: int = 6, switches: dict[str, bool] | None = None,
+              lang: str = DEFAULT_LANG) -> Story:
     """
     Build the story of a template for a bound structure and a series length.
 
     Events the binding cannot host are left out (the binding's notices say
     why). ``switches`` override the template's enabled flags per event id;
     an event whose prerequisite is off (EVENT_REQUIRES) is switched off
-    with a notice instead of raising.
+    with a notice instead of raising. ``lang`` is the language of title,
+    summary, event texts and notices (one of the five suite languages;
+    anything else is English).
 
     Raises:
         ValueError: unknown template.
@@ -418,7 +374,7 @@ def story_for(template: str, binding: RoleBinding, tags: dict[str, str] | None =
     timing = _TIMING[template]
     notices = list(binding.notices)
     events: list[Event] = []
-    for eid, role, title, effect in _catalogue(binding, tags):
+    for eid, role, title, effect in _catalogue(binding, tags, lang):
         enabled, onset, until = timing[eid]
         if eid in switches:
             enabled = switches[eid]
@@ -430,22 +386,21 @@ def story_for(template: str, binding: RoleBinding, tags: dict[str, str] | None =
         event = by_id.get(eid)
         if event is not None and event.enabled and not (needs in by_id and by_id[needs].enabled):
             event.enabled = False
-            notices.append(f"{eid} braucht {needs} — bleibt aus, weil {needs} nicht aktiv ist.")
+            notices.append(_t("notice.requires", lang, eid=eid, needs=needs))
     unknown = sorted(set(switches) - set(by_id))
     if unknown:
-        notices.append("Schalter ohne Ereignis in dieser Struktur (ignoriert): "
-                       + ", ".join(unknown) + ".")
+        notices.append(_t("notice.unknown_switch", lang, ids=", ".join(unknown)))
     outlier = binding.art(ROLE_OUTLIER_ART)
     weak = binding.art(ROLE_WEAK_SOURCE_ART)
-    return Story(template=template, title=TEMPLATE_TITLES[template],
-                 summary=_SUMMARIES[template](outlier, weak), stands=stands,
+    return Story(template=template, title=template_title(template, lang),
+                 summary=_summary(template, outlier, weak, lang), stands=stands,
                  roles=dict(binding.roles), notices=notices, events=events)
 
 
 def standard_story(binding: RoleBinding, tags: dict[str, str] | None = None,
-                   stands: int = 6) -> Story:
+                   stands: int = 6, lang: str = DEFAULT_LANG) -> Story:
     """The built-in story of the demo portfolio („Standard-Lage")."""
-    return story_for(TEMPLATE_STANDARD, binding, tags, stands)
+    return story_for(TEMPLATE_STANDARD, binding, tags, stands, lang=lang)
 
 
 # --- Serialisation ----------------------------------------------------------

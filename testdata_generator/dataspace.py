@@ -3,7 +3,7 @@
 # Repository:     https://github.com/Jaegerfeld/situation-report
 # KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
 # Erstellt:       26.10.2026
-# Geändert:       26.10.2026
+# Geändert:       30.10.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
@@ -32,6 +32,8 @@ from typing import Any
 from build_reports.chart_texts import DEFAULT_LANG
 
 from .ai_drafts import write_ai_drafts
+from .i18n import step_label
+from .i18n import t as _t
 from .register_gen import DEFAULT_SCALE, SCALES
 from .scenario import MAX_STANDS, MIN_STANDS, build_portfolio_scenario
 from .story import STORY_TEMPLATES, SUGGESTED_STANDS, TEMPLATE_STANDARD, Story, load_story
@@ -47,18 +49,12 @@ from .structure import (
     TEMPLATE_STANDARD as STRUCTURE_STANDARD,
 )
 
-#: (step id, label) in the order the generator runs them.
-STEPS: tuple[tuple[str, str], ...] = (
-    ("story", "Struktur und Geschichte"),
-    ("arts", "Jira-Exporte und Arbeitsmappen"),
-    ("registers", "Register"),
-    ("configs", "Konfigurationen"),
-    ("sources", "Provider-Rohdaten"),
-    ("readme", "README"),
-    ("stands", "Stände-Reihe"),
-    ("deltas", "Delta-Briefings"),
-    ("ai_drafts", "KI-Entwürfe (Mock)"),
-)
+#: Step ids in the order the generator runs them; labels via
+#: ``i18n.step_label(step, lang)``.
+STEP_IDS: tuple[str, ...] = ("story", "arts", "registers", "configs", "sources", "readme",
+                             "stands", "deltas", "ai_drafts")
+#: (step id, label in the default language) — kept for callers that iterate pairs.
+STEPS: tuple[tuple[str, str], ...] = tuple((s, step_label(s)) for s in STEP_IDS)
 STEP_LABELS = dict(STEPS)
 STATE_RUNNING = "running"
 STATE_DONE = "done"
@@ -208,7 +204,7 @@ def generate_dataspace(
             step_started[step] = time.monotonic()
         elapsed = time.monotonic() - step_started.get(step, time.monotonic())
         if progress is not None:
-            progress(ProgressEvent(step, STEP_LABELS.get(step, step), state, detail,
+            progress(ProgressEvent(step, step_label(step, request.lang), state, detail,
                                    round(elapsed, 2)))
 
     structure = request.resolved_structure()
@@ -238,9 +234,9 @@ def generate_dataspace(
                                    lang=request.lang, log=quiet)
             drafts.append(info["dir"])
             room["ai_drafts"] = info
-        emit("ai_drafts", STATE_DONE, f"{len(drafts)} Ordner")
+        emit("ai_drafts", STATE_DONE, _t("det.drafts_done", request.lang, n=len(drafts)))
     else:
-        emit("ai_drafts", STATE_SKIPPED, "Schalter aus")
+        emit("ai_drafts", STATE_SKIPPED, _t("det.drafts_off", request.lang))
 
     story = load_story(Path(rooms[0]["story"])) if rooms and rooms[0].get("story") else None
     return GenerationResult(

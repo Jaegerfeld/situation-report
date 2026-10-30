@@ -124,9 +124,9 @@ class TestOutputsAndLog:
 
     def test_readme_and_log_tell_the_story(self, room) -> None:
         out, _, _, lines = room
-        assert "Fortgeschrieben am" in (out / "README.md").read_text(encoding="utf-8")
-        assert any("Snapshots rotiert" in li for li in lines)
-        assert any("Beta-3" in li and "Datenstand -60d bleibt" in li for li in lines)
+        assert "Continued on" in (out / "README.md").read_text(encoding="utf-8")
+        assert any("Snapshots rotated" in li for li in lines)
+        assert any("Beta-3" in li and "data stays -60d stale" in li for li in lines)
 
 
 class TestErrors:

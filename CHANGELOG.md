@@ -134,6 +134,24 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   Launcher-Karte „Datenraum (Fenster)" (zehnte Karte), im Bündel `DatenraumFenster.bat` /
   `.command` / `.sh`; `TESTER.md` nennt den Rückfallweg. Nicht so schön wie die Browser-Seite,
   funktional gleich.
+- **Testdaten-Generator in fünf Sprachen (30.10.2026).** Der Generator war außerhalb von DE/EN
+  englisch, die Browser-Seite startete immer englisch (der Launcher gab seine Sprache nicht
+  weiter) und hatte keinen Umschalter; Geschichte, README, Protokoll, Fortschritt, KI-Übungs-
+  dateien und Konsole waren fest deutsch. Neu `testdata_generator/i18n.py`: ein Katalog
+  `t(key, lang, **platzhalter)` mit 142 Schlüsseln in Deutsch, Englisch, Rumänisch,
+  Portugiesisch und Französisch — Vorlagentitel, Ereignisse E1–E10, Zusammenfassungen, Hinweise
+  der Rollenbindung, README des Datenraums, Schrittlabels, Fortschrittsdetails, Protokoll-
+  und Konsolenzeilen, Fortschreibung, KI-Übungsdateien, Schätzwarnung. `story_for`,
+  `bind_roles`, `build_portfolio_scenario`, `continue_portfolio_scenario`,
+  `write_source_inputs` nehmen `lang`; `web/texts.py` und das ART-Fenster (`gui.py`) tragen
+  RO/PT/FR. **Eine Sprache je Lauf:** Browser-Seite, Fenster und Kommandozeile starten in der
+  Suite-Sprache des Launchers (`~/.situation_report/prefs.json`), `--lang` übersteuert; beide
+  Oberflächen haben oben rechts einen Sprachumschalter (Seite lädt mit `?lang=xx` neu, Fenster
+  baut sich neu auf und behält Einstellungen und Ergebnis). Standardsprache ohne Angabe ist
+  Englisch wie in der ganzen Suite — ein ohne `--lang` erzeugter Datenraum ist damit englisch,
+  wo er vorher deutsch war. Vollständigkeits- und Platzhalter-Test über die drei Kataloge
+  (`tests/testdata_generator/unit/test_i18n.py`); 22 Bestandstests auf den englischen Standard
+  umgestellt. Übersetzungen RO/PT/FR sind Entwürfe zur Prüfung durch Muttersprachler.
 
 ### Fixed
 - **Delta-Briefing (HTML): vier Register-Abschnitte ohne Überschrift.** Die HTML-Seite kannte keine

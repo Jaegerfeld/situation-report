@@ -76,8 +76,8 @@ class TestStandardTemplateEqualsDefault:
         assert story.roles[ROLE_WEAK_SOURCE_ART] == "Beta-3"
         assert len(story.events) == 10
         readme = paths["readme"].read_text(encoding="utf-8")
-        assert "## Struktur" in readme and "Standard-Lage" in readme
-        assert "ART Alpha-3 ist der Ausreißer" in readme
+        assert "## Structure" in readme and "Standard situation" in readme
+        assert "ART Alpha-3 is the outlier" in readme
         # Generic and legacy keys both point at the same files.
         assert paths["flow_problems_alpha"] == paths["flow_alpha"]
         assert paths["solutions"]["beta"] == paths["solution_beta"]
@@ -123,8 +123,8 @@ class TestSmallStructure:
 
     def test_notice_is_logged_and_in_story(self, small) -> None:
         _, paths, messages = small
-        assert any("Nur eine Solution" in m for m in messages)
-        assert any("Nur eine Solution" in n for n in load_story(paths["story"]).notices)
+        assert any("Only one solution" in m for m in messages)
+        assert any("Only one solution" in n for n in load_story(paths["story"]).notices)
 
     def test_snapshots_and_pooled_report_work(self, small) -> None:
         _, paths, _ = small

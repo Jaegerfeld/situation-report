@@ -49,8 +49,11 @@ Seite läuft auf einem kleinen Server **nur auf deinem Rechner** (Adresse 127.0.
 Port, Zufallsschlüssel im Link). Wer den Link nicht hat, bekommt eine 403-Seite; aus dem
 Netz ist nichts erreichbar. Beenden mit Strg+C im Fenster, aus dem du gestartet hast.
 
-Die Oberfläche ist Deutsch oder Englisch (`--lang de`); mit `--no-browser` druckt der
-Generator nur den Link, mit `--port 8765` nimmt er einen festen Port.
+Die Oberfläche startet in der Sprache deines Launchers (Deutsch, Englisch, Rumänisch,
+Portugiesisch oder Französisch) und lässt sich oben rechts umschalten; `--lang de` erzwingt
+eine Sprache. Die erzeugten Texte — Geschichte, README, Delta-Briefings — folgen derselben
+Sprache. Mit `--no-browser` druckt der Generator nur den Link, mit `--port 8765` nimmt er
+einen festen Port.
 
 Ohne Kommandozeile: im Launcher (`SituationReport.bat`) die Karte **„Datenraum (Browser)"**
 starten; im tragbaren Paket liegt dafür auch `DatenraumBrowser.bat` (macOS/Linux:

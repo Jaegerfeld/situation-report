@@ -49,8 +49,10 @@ small server **only on your machine** (address 127.0.0.1, random port, random ke
 link). Whoever lacks the link gets a 403 page; nothing is reachable from the network. End
 it with Ctrl+C in the window you started from.
 
-The UI is German or English (`--lang de`); `--no-browser` only prints the link,
-`--port 8765` fixes the port.
+The UI starts in your launcher's language (German, English, Romanian, Portuguese or
+French) and can be switched at the top right; `--lang de` forces a language. The generated
+texts — story, README, delta briefings — follow the same language. With `--no-browser` the
+generator only prints the link; `--port 8765` fixes the port.
 
 Without a command line: start the card **"Data room (browser)"** in the launcher
 (`SituationReport.bat`); the portable package also ships `DatenraumBrowser.bat` for it

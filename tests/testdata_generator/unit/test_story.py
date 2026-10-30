@@ -103,20 +103,20 @@ class TestBinding:
         assert not b.has(ROLE_WEAK_SOURCE_ART)
         assert not b.has(ROLE_CROSS_SOLUTION_DEPENDENCY)
         assert not b.has(ROLE_SLO_BREACH_SOLUTION)
-        assert any("Nur eine Solution" in n for n in b.notices)
+        assert any("Only one solution" in n for n in b.notices)
 
     def test_one_art_host_has_no_outlier(self) -> None:
         b = bind_roles(structure_from_arts_spec("1,2").portfolios[0])
         assert not b.has(ROLE_OUTLIER_ART)
         assert not b.has(ROLE_BLOCKED_DEPENDENCY)
         assert b.art(ROLE_WEAK_SOURCE_ART) == "Beta-2"
-        assert any("nur einen ART" in n for n in b.notices)
+        assert any("has only one ART" in n for n in b.notices)
 
     def test_one_art_second_solution_is_weak_source_and_seam_partner(self) -> None:
         b = bind_roles(structure_from_arts_spec("3,1").portfolios[0])
         assert b.art(ROLE_WEAK_SOURCE_ART) == "Beta-1"
         assert b.pair(ROLE_CROSS_SOLUTION_DEPENDENCY) == ("Beta-1", "Alpha-1")
-        assert any("zugleich" in n for n in b.notices)
+        assert any("both the weak source" in n for n in b.notices)
 
     def test_third_and_further_solutions_are_named_as_anchor_free(self) -> None:
         b = bind_roles(structure_from_arts_spec("3,4s,1,2").portfolios[0])
@@ -160,7 +160,7 @@ class TestTemplates:
         story = story_for(TEMPLATE_CALM, _standard_binding(), TAGS, stands=3)
         assert all(not e.enabled for e in story.events)
         assert story.active_events(1) == frozenset() == story.active_events(3)
-        assert story.title == "Ruhig"
+        assert story.title == "Calm"
 
     def test_escalation_adds_pressure_stand_by_stand(self) -> None:
         story = story_for(TEMPLATE_ESCALATION, _standard_binding(), TAGS, stands=6)
@@ -229,13 +229,13 @@ class TestSwitches:
                           switches={EVENT_WEAK_SOURCE: False})
         decay = next(e for e in story.events if e.event_id == EVENT_WEAK_DECAY)
         assert not decay.enabled
-        assert any("E8 braucht E2" in n for n in story.notices)
+        assert any("E8 needs E2" in n for n in story.notices)
         assert EVENT_WEAK_DECAY not in story.active_events(6)
 
     def test_switch_for_an_event_the_structure_cannot_host_is_noted(self) -> None:
         b = bind_roles(structure_template(TEMPLATE_SMALL).portfolios[0])
         story = story_for(TEMPLATE_STANDARD, b, {"Alpha": "A"}, switches={EVENT_SLO_BREACH: True})
-        assert any("Schalter ohne Ereignis" in n and "E6" in n for n in story.notices)
+        assert any("Switches without an event" in n and "E6" in n for n in story.notices)
 
 
 class TestSerialisation:

@@ -3,7 +3,7 @@
 # Repository:     https://github.com/Jaegerfeld/situation-report
 # KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
 # Erstellt:       26.10.2026
-# Geändert:       26.10.2026
+# Geändert:       30.10.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
@@ -44,7 +44,7 @@ from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from typing import Any
-from urllib.parse import urlsplit
+from urllib.parse import parse_qs, urlsplit
 
 from build_reports.chart_texts import DEFAULT_LANG, LANGUAGES
 from version import __version__
@@ -59,12 +59,12 @@ from ..dataspace import (
     estimate_request,
     generate_dataspace,
 )
+from ..i18n import normalise, step_label, template_title
 from ..register_gen import SCALES
 from ..scenario import DEFAULT_STANDS, MAX_STANDS, MIN_STANDS, _solution_tags
 from ..story import (
     STORY_TEMPLATES,
     SUGGESTED_STANDS,
-    TEMPLATE_TITLES,
     bind_roles,
     story_for,
     story_to_dict,
@@ -77,7 +77,7 @@ from ..structure import (
     to_dict,
 )
 from .page import render_page
-from .texts import texts_for
+from .texts import LANGUAGE_NAMES, texts_for
 
 HOST = "127.0.0.1"
 DEFAULT_REALISM = 60
@@ -168,8 +168,10 @@ class DataspaceServer(ThreadingHTTPServer):
                  verbose: bool = False) -> None:
         super().__init__((HOST, port), _Handler)
         self.token = secrets.token_hex(16)
-        self.ui_lang = "de" if lang == "de" else "en"
-        self.data_lang = lang if lang in LANGUAGES else DEFAULT_LANG
+        # One language for page and generated texts; the page's switch
+        # (``/?lang=xx``) changes both for this server (single user, loopback).
+        self.ui_lang = normalise(lang)
+        self.data_lang = self.ui_lang
         self.opener = opener
         self.browse = browse
         self.verbose = verbose
@@ -180,6 +182,11 @@ class DataspaceServer(ThreadingHTTPServer):
     def url(self) -> str:
         return f"http://{HOST}:{self.server_port}/{self.token}/"
 
+    def set_lang(self, lang: str) -> None:
+        """Switch page and data language (the page's language select reloads with ?lang=)."""
+        self.ui_lang = normalise(lang)
+        self.data_lang = self.ui_lang
+
     # --- API -----------------------------------------------------------------
 
     def options(self) -> dict[str, Any]:
@@ -188,14 +195,15 @@ class DataspaceServer(ThreadingHTTPServer):
             "version": __version__,
             "lang": self.ui_lang,
             "data_lang": self.data_lang,
-            "templates": [{"id": t, "title": TEMPLATE_TITLES[t],
+            "ui_languages": [{"id": code, "name": LANGUAGE_NAMES[code]} for code in LANGUAGES],
+            "templates": [{"id": t, "title": template_title(t, self.ui_lang),
                            "suggested_stands": SUGGESTED_STANDS[t]} for t in STORY_TEMPLATES],
             "structure_templates": [{"id": s, "structure": to_dict(structure_template(s))}
                                     for s in STRUCTURE_TEMPLATES],
             "scales": list(SCALES),
             "languages": list(LANGUAGES),
             "stands": {"min": MIN_STANDS, "max": MAX_STANDS, "default": DEFAULT_STANDS},
-            "steps": [{"id": s, "label": label} for s, label in STEPS],
+            "steps": [{"id": s, "label": step_label(s, self.ui_lang)} for s, _label in STEPS],
             "defaults": {"seed": 42, "reference": today.isoformat(), "realism": DEFAULT_REALISM,
                          "scale": "m",
                          "output_dir": str(Path.home() / f"SituationReport-Datenraum-{today.isoformat()}")},
@@ -212,9 +220,12 @@ class DataspaceServer(ThreadingHTTPServer):
                                     switches=switches, stands=stands, scale=str(body.get("scale") or "m"))
         request.validate()
         first = structure.portfolios[0]
-        story = story_for(template, bind_roles(first), _solution_tags(first), stands, switches)
+        est = estimate_request(request)
+        story = story_for(template, bind_roles(first, self.ui_lang), _solution_tags(first), stands,
+                          switches, lang=self.ui_lang)
         return {"ok": True, "describe": structure.describe(), "stands": stands,
-                "estimate": asdict(estimate_request(request)), "story": story_to_dict(story)}
+                "estimate": {**asdict(est), "warn_reason": est.warn_text(self.ui_lang)},
+                "story": story_to_dict(story)}
 
     def start_generation(self, body: dict[str, Any]) -> dict[str, Any]:
         request = request_from_body(body, self.data_lang)
@@ -489,7 +500,7 @@ class _Handler(BaseHTTPRequestHandler):
             self._send_html(HTTPStatus.FORBIDDEN,
                             f"<!doctype html><meta charset='utf-8'><title>403</title>"
                             f"<p style='font-family:system-ui;padding:24px'>{texts['app']}: "
-                            f"Zugang nur über den Link aus dem Startfenster.</p>")
+                            f"{texts['forbidden']}</p>")
             return None
         return parts[1:]
 
@@ -499,6 +510,9 @@ class _Handler(BaseHTTPRequestHandler):
         if route is None:
             return
         if route == ():
+            wanted = parse_qs(urlsplit(self.path).query).get("lang", [None])[0]
+            if wanted in LANGUAGES and wanted != self.server.ui_lang:
+                self.server.set_lang(wanted)
             self._send_html(HTTPStatus.OK, render_page(self.server.ui_lang, self.server.token,
                                                        __version__))
         elif route == ("api", "options"):

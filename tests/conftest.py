@@ -45,6 +45,7 @@ _PREF_MODULES = (
     "build_reports.gui", "get_data.gui", "harmonisation.gui", "helper.gui",
     "launcher.gui", "portfolio.gui", "simulate.gui", "testdata_generator.gui",
     "transform_data.gui",
+    "testdata_generator.i18n",
 )
 
 

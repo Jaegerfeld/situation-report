@@ -70,8 +70,8 @@ class TestFilesAndFormats:
             "quality_sources.json", "slo.csv", "slo_sources.json", "slo_sources_csv.json",
             "sonarqube_responses.json"]
         assert (out / "sources" / "beta" / "gitlab_responses.json").is_file()
-        assert any("Quellen alpha" in m and "github" in m for m in messages)
-        assert "## Quellen (Provider-Rohdaten, Weg 2)" in paths["readme"].read_text(encoding="utf-8")
+        assert any("Sources alpha" in m and "github" in m for m in messages)
+        assert "## Sources (provider raw data, path 2)" in paths["readme"].read_text(encoding="utf-8")
 
     def test_raw_files_look_like_the_systems(self, room) -> None:
         out, _, _ = room
@@ -182,7 +182,7 @@ class TestSolutionsWithoutRecords:
             structure=structure_from_arts_spec("2,1,1"))
         gamma = paths["sources"]["gamma"]
         assert gamma["configs"] == {} and not gamma["dir"].exists()
-        assert any("Quellen gamma: keine Register" in m for m in messages)
-        assert "`gamma`: keine Register" in paths["readme"].read_text(encoding="utf-8")
+        assert any("Sources gamma: no registers" in m for m in messages)
+        assert "`gamma`: no registers" in paths["readme"].read_text(encoding="utf-8")
         # Beta (one ART) still carries the weak-source story -> raw data exists.
         assert paths["sources"]["beta"]["dora_provider"] == "gitlab"

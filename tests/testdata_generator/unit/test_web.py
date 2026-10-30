@@ -227,6 +227,8 @@ class TestRequestTranslation:
 
 
 class TestTexts:
-    def test_both_languages_have_the_same_keys(self) -> None:
-        assert set(TEXTS["de"]) == set(TEXTS["en"])
-        assert texts_for("fr") is TEXTS["en"] and texts_for("de") is TEXTS["de"]
+    def test_all_five_languages_have_the_same_keys(self) -> None:
+        assert set(TEXTS) == {"de", "en", "ro", "pt", "fr"}
+        assert all(set(TEXTS[lang]) == set(TEXTS["en"]) for lang in TEXTS)
+        assert texts_for("fr") is TEXTS["fr"] and texts_for("de") is TEXTS["de"]
+        assert texts_for("xx") is TEXTS["en"]

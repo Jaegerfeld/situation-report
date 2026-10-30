@@ -28,11 +28,18 @@
 #   Zeilenhöhe durch Padding), Jakob (ttk-Standardwidgets wie im Rest der
 #   Suite). Zustände: leer, Vorschau, Vorschau-Fehler, läuft, abgebrochen,
 #   fehlgeschlagen, fertig, Ordner nicht leer (Rückfrage).
+#
+#   UX read Sprachumschalter (30.10.2026, Robert: „egal aus welcher sprache
+#   ich komme … man kann sie auch nicht verändern"): Jakob (Sprachwahl oben
+#   rechts, Sprachen in Eigenschreibweise, wie die Browser-Seite), Postel
+#   (unbekannte Sprache → Englisch, nie leer), Tesler (Start in der
+#   Suite-Sprache des Launchers, kein Pflichtschritt), Doherty (Neuaufbau
+#   sofort, Einstellungen und Ergebnis bleiben). UX check: Umschalten
+#   verliert keine Eingabe, der laufende Auftrag läuft weiter.
 # =============================================================================
 
 from __future__ import annotations
 
-import json
 import queue
 import threading
 import tkinter as tk
@@ -42,7 +49,7 @@ from pathlib import Path
 from tkinter import filedialog, messagebox, ttk
 from typing import Any
 
-from build_reports.chart_texts import DEFAULT_LANG, LANG_EN, LANGUAGES
+from build_reports.chart_texts import DEFAULT_LANG, LANGUAGES
 
 from .dataspace import (
     STATE_DONE,
@@ -57,6 +64,7 @@ from .dataspace import (
     estimate_request,
     generate_dataspace,
 )
+from .i18n import load_lang_pref, normalise, step_label
 from .scenario import MAX_STANDS, MIN_STANDS, _solution_tags
 from .story import STORY_TEMPLATES, SUGGESTED_STANDS, Story, bind_roles, story_for
 from .structure import (
@@ -73,19 +81,9 @@ from .structure import (
     validate,
 )
 from .web.server import DEFAULT_REALISM, _delta_pair, _listing, _render_report, _rooms, default_open
-from .web.texts import texts_for
+from .web.texts import LANGUAGE_NAMES, texts_for
 
-_PREFS_PATH = Path.home() / ".situation_report" / "prefs.json"
 _GREEK_FALLBACK = "S"
-
-
-def _load_lang_pref() -> str:
-    try:
-        with open(_PREFS_PATH, encoding="utf-8") as f:
-            val = json.load(f).get("lang", LANG_EN)
-            return val if val in LANGUAGES else LANG_EN
-    except Exception:
-        return LANG_EN
 
 
 # --- editable model (testable without tkinter) ----------------------------------
@@ -159,8 +157,8 @@ def build_preview(settings: Settings) -> tuple[Structure, Estimate, Story]:
                                 stands=stands, scale=settings.scale)
     request.validate()
     first = structure.portfolios[0]
-    story = story_for(settings.template, bind_roles(first), _solution_tags(first), stands,
-                      dict(settings.switches))
+    story = story_for(settings.template, bind_roles(first, settings.lang), _solution_tags(first), stands,
+                      dict(settings.switches), lang=settings.lang)
     return structure, estimate_request(request), story
 
 
@@ -239,10 +237,11 @@ class DataspaceWindow(tk.Tk):
 
     def __init__(self, lang: str | None = None) -> None:
         super().__init__()
-        lang = lang or _load_lang_pref()
-        self.ui_lang = "de" if lang == "de" else "en"
+        # One language for window and generated texts: the suite preference
+        # (launcher), unless the caller names one; switchable in the header.
+        self.ui_lang = normalise(lang or load_lang_pref())
         self.t = texts_for(self.ui_lang)
-        self.s = Settings(lang=lang if lang in LANGUAGES else DEFAULT_LANG)
+        self.s = Settings(lang=self.ui_lang)
         self.s.rows = rows_from_structure(structure_template("standard"))
         self.preview: tuple[Structure, Estimate, Story] | None = None
         self.preview_error: str | None = None
@@ -262,9 +261,39 @@ class DataspaceWindow(tk.Tk):
         self._build()
         self._refresh_preview()
 
+    def set_lang(self, lang: str) -> None:
+        """Rebuild the window in ``lang``; settings and result survive, a running job too."""
+        lang = normalise(lang)
+        if lang == self.ui_lang:
+            return
+        self._sync_scalars()          # typed seed, date, folder survive the rebuild
+        self.ui_lang = lang
+        self.t = texts_for(lang)
+        self.s.lang = lang
+        self.preview = None
+        for child in self.winfo_children():
+            child.destroy()
+        self._event_vars = {}
+        self.title(f"{self.t['app']} · {self.t['nav_room']}")
+        self._build()
+        self._refresh_preview()
+        if self.result is not None and self.job_state == "done":
+            self._render_result(self.result)
+
     # -- layout --
     def _build(self) -> None:
         pad = {"padx": 10, "pady": 6}
+        # Header: app name left, language switch right (the page has the same control).
+        head = ttk.Frame(self)
+        head.pack(side="top", fill="x", padx=10, pady=(8, 0))
+        ttk.Label(head, text=self.t["app"], font=("Segoe UI", 11, "bold")).pack(side="left")
+        ttk.Label(head, text=self.t["ui_lang"], foreground="#5b6b7c").pack(side="right", padx=(0, 6))
+        self.var_ui_lang = tk.StringVar(value=LANGUAGE_NAMES[self.ui_lang])
+        self.cmb_ui_lang = ttk.Combobox(head, textvariable=self.var_ui_lang, state="readonly", width=12,
+                                        values=[LANGUAGE_NAMES[c] for c in LANGUAGES])
+        self.cmb_ui_lang.pack(side="right")
+        self.cmb_ui_lang.bind("<<ComboboxSelected>>", lambda _e: self.set_lang(
+            next(c for c, n in LANGUAGE_NAMES.items() if n == self.var_ui_lang.get())))
         # Footer first and at the bottom: Back/Next stay visible however tall the tabs grow.
         foot = ttk.Frame(self)
         foot.pack(side="bottom", fill="x", **pad)
@@ -551,7 +580,7 @@ class DataspaceWindow(tk.Tk):
             self.t["yields_line2"],
             self.t["yields_line3"].format(stands=e.stands, deltas=e.deltas),
             self.t["yields_note"]]))
-        self.lbl_warn.configure(text=self.t["warn_large"].format(reason=e.warn_reason) if e.warn else "")
+        self.lbl_warn.configure(text=self.t["warn_large"].format(reason=e.warn_text(self.ui_lang)) if e.warn else "")
         if hasattr(self, "lbl_estimate"):
             self.lbl_estimate.configure(text=self.t["estimate_line"].format(
                 exports=e.jira_exports, registers=e.registers, stands=e.stands, deltas=e.deltas))
@@ -697,7 +726,8 @@ class DataspaceWindow(tk.Tk):
         self.step_rows: dict[str, tuple[ttk.Label, ttk.Label, ttk.Label]] = {}
         grid = ttk.Frame(prog)
         grid.pack(fill="x", padx=6, pady=(2, 6))
-        for i, (step, label) in enumerate(STEPS):
+        for i, (step, _default_label) in enumerate(STEPS):
+            label = step_label(step, self.ui_lang)
             mark = ttk.Label(grid, text="○", width=2, foreground="#5b6b7c")
             mark.grid(row=i % 5, column=(i // 5) * 3, sticky="w")
             name = ttk.Label(grid, text=label, foreground="#5b6b7c")
