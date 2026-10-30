@@ -9,11 +9,14 @@ starten, am Ende den Ordner löschen.
 1. Rechtsklick auf die ZIP → Eigenschaften → unten „Zulassen" (Sicherheit) → OK.
    Ohne diesen Schritt blockiert Windows Defender die enthaltenen Dateien.
 2. ZIP entpacken (nicht aus dem ZIP heraus starten).
-3. **`DatenraumBrowser.bat`** doppelklicken: Es öffnet sich dein Browser mit der neuen
-   Oberfläche „Datenraum erzeugen". Das Fenster dahinter bleibt offen — es ist der lokale
-   Server; schließen beendet die Oberfläche.
+3. **`DatenraumFenster.bat`** doppelklicken: die Oberfläche „Datenraum erzeugen" als
+   Fenster mit drei Schritten. Das ist der Standardweg — er öffnet keinen Netzwerkport.
 4. Alternativ `SituationReport.bat`: der Launcher mit allen Modulen, darin die Karte
-   „Datenraum (Browser)".
+   „Datenraum (Fenster)".
+5. **Nur auf einem privaten Rechner:** `DatenraumBrowser.bat` zeigt dieselben Schritte im
+   Browser. Dafür startet ein lokaler Server auf 127.0.0.1 — auf einem Firmenrechner hat die
+   Sicherheitssoftware das beim ersten Test blockiert und gemeldet. Bitte dort nicht erneut
+   versuchen, bevor die IT es freigegeben hat.
 
 macOS/Linux: `DatenraumBrowser.sh` bzw. `.command` (erster Start richtet eine Python-Umgebung
 ein, dafür ist einmal Internet nötig).
@@ -34,8 +37,8 @@ unter https://jaegerfeld.github.io/situation-report/ (Tutorials → Demo-Datenra
 
 ## Was wir wissen wollen
 
-- Lief die Oberfläche im Browser? Wenn nicht: Welche Meldung stand da (403, „Seite nicht
-  erreichbar", Proxy-Hinweis)? Welcher Browser, welches Betriebssystem, Firmenrechner?
+- Lief das Fenster? Wenn nicht: Welche Meldung stand da? Welches Betriebssystem, Firmenrechner?
+- Falls du den Browser-Weg auf einem privaten Rechner probiert hast: Lief er?
 - Was war unklar, was hast du gesucht und nicht gefunden?
 - Wo hast du gezögert, bevor du geklickt hast?
 - Wie lange hat die Erzeugung gedauert (steht auf der Ergebniskarte)?
@@ -45,8 +48,8 @@ Generator laden — das Paket ist für erfundene Daten gedacht.
 
 ## Bekannte Grenzen dieses Stands
 
-- Firmenrechner können lokale Server (127.0.0.1) über Proxy oder Richtlinien blockieren.
-  Dann hilft `TestdataGenerator.bat` (das bisherige Fenster) oder die Kommandozeile aus dem
-  Tutorial.
+- Der Browser-Weg startet einen lokalen Server; Endgeräte-Sicherheitssoftware auf
+  Firmenrechnern blockiert und meldet das (im ersten Test geschehen). Deshalb ist das Fenster
+  der Standardweg — gleicher Funktionsumfang.
 - Der Reiter „Ein ART" und das Umbenennen einzelner ARTs in der Oberfläche fehlen noch.
 - Texte der Oberfläche: Deutsch und Englisch.

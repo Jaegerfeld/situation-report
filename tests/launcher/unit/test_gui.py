@@ -50,6 +50,8 @@ _REQUIRED_KEYS = {
     "mod_testdata_generator_desc",
     "mod_dataspace_name",
     "mod_dataspace_desc",
+    "mod_dataspace_window_name",
+    "mod_dataspace_window_desc",
     "mod_portfolio_name",
     "mod_portfolio_desc",
     "sec_solutions",
@@ -75,10 +77,10 @@ class TestModuleRegistry:
         for entry in _MODULES:
             assert isinstance(entry.available, bool)
 
-    def test_exactly_nine_available_modules(self):
-        """Nine modules are available — since the beta, the data room's browser UI too."""
+    def test_exactly_ten_available_modules(self):
+        """Ten modules are available — the data room as browser UI and as window."""
         available = [e for e in _MODULES if e.available]
-        assert len(available) == 9
+        assert len(available) == 10
 
     def test_simulate_is_available(self):
         """simulate is available — launchable from the main GUI."""
@@ -105,9 +107,9 @@ class TestModuleRegistry:
         ids = {e.module_id for e in _MODULES if e.available}
         assert "transform_data" in ids
 
-    def test_nine_modules_total(self):
-        """The registry contains exactly nine module entries."""
-        assert len(_MODULES) == 9
+    def test_ten_modules_total(self):
+        """The registry contains exactly ten module entries."""
+        assert len(_MODULES) == 10
 
     def test_dataspace_card_runs_the_generator_web_ui(self):
         """The data-room card is a second entry of the generator: python -m testdata_generator --web."""
@@ -115,6 +117,8 @@ class TestModuleRegistry:
         assert entry.argv == ["testdata_generator", "--web"] and entry.section == "solution"
         plain = next(e for e in _MODULES if e.module_id == "testdata_generator")
         assert plain.argv == ["testdata_generator"]
+        window = next(e for e in _MODULES if e.module_id == "dataspace_window")
+        assert window.argv == ["testdata_generator", "--dataspace"] and window.section == "solution"
 
     def test_all_module_ids_unique(self):
         """All module_ids in the registry are unique."""
@@ -145,7 +149,7 @@ class TestModuleRegistry:
     def test_portfolio_on_solution_side(self):
         """Portfolio and harmonisation sit on the left (solution) side of the split UI."""
         solution = {e.module_id for e in _MODULES if e.section == "solution"}
-        assert solution == {"portfolio", "harmonisation", "dataspace"}
+        assert solution == {"portfolio", "harmonisation", "dataspace", "dataspace_window"}
 
     def test_all_other_modules_on_art_side(self):
         """Every non-portfolio module belongs to the right (ART) side."""

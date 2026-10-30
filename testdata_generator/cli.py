@@ -370,6 +370,10 @@ def main() -> None:
                              "127.0.0.1 (random port, access key in the link), no extra "
                              "package. Ends with Ctrl+C. --lang de|en picks the UI language, "
                              "--port fixes the port, --no-browser only prints the link.")
+    parser.add_argument("--dataspace", action="store_true",
+                        help="Open the data-room UI as a tkinter window — the same three "
+                             "steps as --web without a local server or browser (fallback "
+                             "where 127.0.0.1 is blocked).")
     parser.add_argument("--lang", default=None, choices=["de", "en", "ro", "pt", "fr"],
                         help="With --web: language of the UI (de/en) and default language of "
                              "the generated texts.")
@@ -488,6 +492,10 @@ def main() -> None:
         from .web.server import run as run_web
         sys.exit(run_web(lang=args.lang or DEFAULT_LANG, port=args.port,
                          open_browser=not args.no_browser))
+
+    if args.dataspace:
+        from .dataspace_gui import main as run_window
+        sys.exit(run_window(args.lang))
 
     if args.scenario == "portfolio" and args.continue_from is not None:
         # 0.40.0: continue the whole data room in place (snapshots rotate)

@@ -172,6 +172,23 @@ und Portfolio-GUI folgen beim Suite-Umbau. **Risiko (Einschätzung, nicht gemess
 können lokale Server über Proxy-Regeln oder Richtlinien blocken — früh mit einem Testnutzer auf einem
 Firmenrechner prüfen.
 
+**Nachtrag 30.10.2026 — Risiko eingetreten, Rückfall gebaut:** Der Tester-Lauf vom 26.10. zeigte
+Probleme mit dem lokalen Server „in wenigen Szenarien" (Robert). Befund laut Robert: **der Aufruf
+wurde geblockt, danach kam eine Meldung der Security** — also nicht der Proxy, sondern die
+Endgeräte-Sicherheitssoftware, die einen Prozess mit lokalem Netzwerkport als auffällig einstuft
+und meldet. Das ist schwerer als ein Proxy-Problem: Ein gemeldeter Tester ist ein Tester
+weniger. Entscheidung Robert: eine tkinter-Alternative mit gleichem Funktionsumfang, nicht so
+schön wie die Browser-Seite. `testdata_generator/dataspace_gui.py` (`--dataspace`, Launcher-Karte
+„Datenraum (Fenster)", `DatenraumFenster.bat`) sitzt auf derselben Dienstschicht; beide
+Oberflächen bleiben, **das Fenster ist der Standardweg** (Launcher-Karte zuerst, TESTER.md), der
+Browser-Weg ist für private Rechner oder nach IT-Freigabe.
+
+Folgerung für den Suite-Umbau (Einschätzung, 30.10.): Eine Browser-Oberfläche braucht einen
+lokalen Server oder einen eingebetteten Webview; beides ist auf Firmenrechnern ohne IT-Freigabe
+riskant. Für die Beta bleibt tkinter die tragende Oberfläche je Modul, die Browser-Seite ein
+Angebot für Rechner ohne Endgeräte-Sicherheit. Die Dienstschicht je Modul (wie `dataspace.py`)
+ist der Teil, der in jedem Fall trägt.
+
 ## 5. Entscheidungen (Robert, 26.10.2026, einzeln durchgegangen)
 
 | Nr. | Entscheidung | Festlegungen |
@@ -200,7 +217,7 @@ für die Denkschriften-Beispiele, keine Zufalls-„Realität" ohne Seed (alles r
 | 1c | **gebaut 26.10.2026** (PR auf `beta/ux-redesign`) | `sources/<solution>/` mit Replay-Dateien im Systemformat (Prometheus, GitHub/GitLab, SonarQube, SLO-CSV) + `*_sources.json`; `sources/replay.py` (Antworten ohne Netz, Pfade relativ zur Config), `as_of` bei GitHub/GitLab; Test Writer gegen Reader (exakt außer GitHub-Näherung, `github_expected`). Abweichung zum Konzept: Configs je Solution und Kind statt einer `sources.json`, weil `sources fetch` je Kind ein Register schreibt. |
 | 2 | **gebaut 26.10.2026** (PR auf `beta/ux-redesign`) | `story.json` Schema 2: Vorlagen calm/standard/escalation/recovery, zehn Ereignisse E1–E10 mit Schalter und Stand-Fenster (Phasen start/early/mid/late/end → Stand-Indizes), Register-Anker und ART-Profile folgen `active_events(k)`; Abhängigkeits-Hinweise (E8 braucht E2); CLI `--story`, `--event`; Ruhig schlägt 3 Stände vor. Standard-Lage byte-gleich zu vorher (Bestandstests). |
 | 3a | **gebaut 26.10.2026** (PR auf `beta/ux-redesign`) | Dienstschicht `testdata_generator/dataspace.py` (`GenerationRequest`, `estimate_request`, `generate_dataspace` mit Fortschritt je Teilschritt in Prototyp-Reihenfolge, Abbruch, `GenerationResult`), CLI läuft darüber; **F3 KI-Entwürfe** `ai_drafts.py` (`--ai-drafts`, standardmäßig aus: Mock-Lagevortrag, drei Antworten, Prompt-Bündel, Übungsantwort für `llm check`). Framework-unabhängig. |
-| 3b | **gebaut 26.10.2026** (PR auf `beta/ux-redesign`) — **E6 entschieden: lokaler Server** | `testdata_generator/web/` (`server.py`, `page.py`, `texts.py`): `--web` startet einen stdlib-Server nur an 127.0.0.1 mit Zufallsport und Zufallsschlüssel, Seite nach Prototyp Stand 7 (drei Schritte, Struktur-Editor, Ereignis-Tabelle, Fortschrittsliste, Ergebniskarte mit Delta-Wähler), Ordnerdialog über tkinter im Kindprozess, CSP ohne externe Ressourcen, Texte DE/EN. Offen: Reiter „Ein ART" (E5-Audit), Launcher-Eintrag, Testnutzer-Prüfung auf Firmenrechner (Proxy). |
+| 3b | **gebaut 26.10.2026** (PR auf `beta/ux-redesign`) — **E6 entschieden: lokaler Server** | `testdata_generator/web/` (`server.py`, `page.py`, `texts.py`): `--web` startet einen stdlib-Server nur an 127.0.0.1 mit Zufallsport und Zufallsschlüssel, Seite nach Prototyp Stand 7 (drei Schritte, Struktur-Editor, Ereignis-Tabelle, Fortschrittsliste, Ergebniskarte mit Delta-Wähler), Ordnerdialog über tkinter im Kindprozess, CSP ohne externe Ressourcen, Texte DE/EN. Launcher-Karte 26.10. (PR #314). **Rückfall 30.10.:** tkinter-Fenster `dataspace_gui.py` mit gleichem Funktionsumfang (`--dataspace`, Karte „Datenraum (Fenster)", `DatenraumFenster.bat`), nachdem der Tester-Lauf Server-Probleme in einzelnen Umgebungen zeigte. Offen: Reiter „Ein ART" (E5-Audit). |
 | 4 | **gebaut 26.10.2026** (PR auf `beta/ux-redesign`) | `docs/tutorials/demo-data-room(.de).md` + PDF DE/EN (`generate_dataspace_tutorial.py`, Konverter des Ask-Tutorials), mkdocs-Menü, Link im Modul. Damit E7 komplett; offen: Launcher-Eintrag `--web`, Reiter „Ein ART" (E5-Audit), Testnutzer-Prüfung (Proxy), Onepager einmal für den ganzen Generator (Vorschlag). |
 
 Onepager DE/EN: Vorschlag, einmal für den ganzen Generator nach Schnitt 1c statt je Schnitt
