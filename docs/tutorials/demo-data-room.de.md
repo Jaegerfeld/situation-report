@@ -56,6 +56,11 @@ Ohne Kommandozeile: im Launcher (`SituationReport.bat`) die Karte **„Datenraum
 starten; im tragbaren Paket liegt dafür auch `DatenraumBrowser.bat` (macOS/Linux:
 `DatenraumBrowser.command` / `.sh`).
 
+**Lädt die Seite nicht** (Proxy, Richtlinie, 403 trotz Link), nimm den Rückfallweg:
+`python -m testdata_generator --dataspace`, die Launcher-Karte **„Datenraum (Fenster)"** oder
+`DatenraumFenster.bat`. Das Fenster hat dieselben drei Schritte und denselben Funktionsumfang,
+nur ohne Server und Browser — alles Folgende gilt dort genauso.
+
 ### 2.2 Schritt 1 — Szenario
 
 ![Schritt 1: Vorlage, Ereignisse und Struktur](../beta/testdaten-generator_web_schritt1.jpg)
@@ -279,7 +284,7 @@ gerechnet, der neue Stand wird Stand 7, das Delta 6 → 7 gerendert; die Registe
 |---|---|---|
 | „Ordner ist nicht leer" | der Zielordner enthält schon Dateien | anderen Ordner wählen oder bewusst hinein erzeugen (gleiche Namen werden überschrieben) |
 | 403-Seite im Browser | der Link ohne Schlüssel oder ein alter Link | den Link aus dem Startfenster nehmen; jeder Start hat einen neuen Schlüssel |
-| Seite lädt nicht | Proxy oder Richtlinie blockt 127.0.0.1 | `--no-browser`, Link kopieren; bleibt es dabei, die Kommandozeile aus Abschnitt 3 nutzen |
+| Seite lädt nicht | Proxy oder Richtlinie blockt 127.0.0.1 | Rückfallweg: `--dataspace` bzw. `DatenraumFenster.bat` — dieselben Schritte als Fenster; oder die Kommandozeile aus Abschnitt 3 |
 | „Kein Ordnerdialog verfügbar" | tkinter fehlt auf diesem Rechner | Pfad ins Feld tippen |
 | Warnung „große Struktur" | ab 30 ARTs oder 5 Portfolios bei Umfang L | abwarten oder Umfang S wählen |
 | Hinweis „nur eine Solution" | die Geschichte hat keine zweite Solution | so gewollt; zweite Solution anlegen, wenn du die schwache Quelle brauchst |

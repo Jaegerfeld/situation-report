@@ -122,6 +122,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   was wir wissen wollen, bekannte Grenzen) ins Paket. Der Dev Build lässt sich jetzt **von jedem
   Branch manuell starten** (`workflow_dispatch`); die drei Bündel liegen dann als Run-Artefakte
   vor, das öffentliche `dev-latest`-Release wird weiterhin nur von Pushes auf `main` aktualisiert.
+- **Rückfalllösung: Datenraum als tkinter-Fenster (30.10.2026).** Der Tester-Lauf zeigte, dass
+  der lokale Server der Browser-Oberfläche in einzelnen Umgebungen nicht erreichbar ist. Neu
+  `testdata_generator/dataspace_gui.py`: dieselben drei Schritte als Fenster — Vorlage und
+  Ereignis-Schalter, Struktur-Editor (Portfolios, Solutions, ART-Zähler, Workflow), Umfang &
+  Quellen (Stände, Umfang, Realismus, Seed, letzter Stand, Sprache, KI-Entwürfe), Erzeugen mit
+  Ordnerdialog, Rückfrage bei vollem Ordner, Fortschrittsliste der neun Teilschritte, Abbruch,
+  Ergebniskarte mit Zahlen, Geschichte, Report, Konferenzmappe, README, Ordner, KI-Entwürfen und
+  Delta-Vergleichswähler. Ohne Server, ohne Browser, auf derselben Dienstschicht und mit denselben
+  Texten (DE/EN) wie die Browser-Seite. Start: `python -m testdata_generator --dataspace`,
+  Launcher-Karte „Datenraum (Fenster)" (zehnte Karte), im Bündel `DatenraumFenster.bat` /
+  `.command` / `.sh`; `TESTER.md` nennt den Rückfallweg. Nicht so schön wie die Browser-Seite,
+  funktional gleich.
 
 ### Fixed
 - **Delta-Briefing (HTML): vier Register-Abschnitte ohne Überschrift.** Die HTML-Seite kannte keine

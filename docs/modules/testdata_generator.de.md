@@ -353,6 +353,14 @@ Deutsch oder Englisch; die erzeugten Texte folgen der gewählten
 Datenraum-Sprache. Das tkinter-Fenster bleibt erreichbar
 (`python -m testdata_generator` ohne Argumente).
 
+**Rückfall ohne Server:** wo 127.0.0.1 blockiert ist (ein Firmenrechner eines
+Testers zeigte das), öffnet `python -m testdata_generator --dataspace` dieselben
+drei Schritte als tkinter-Fenster — Vorlage und Ereignis-Schalter,
+Struktur-Editor, Umfang und Quellen, Erzeugen mit Fortschritt, Abbruch und
+Ergebniskarte samt Delta-Vergleichswähler. Dieselbe Dienstschicht, dieselben
+Texte, kein Server, kein Browser; schlichter anzusehen, funktional gleich. Im
+Launcher ist es die Karte „Datenraum (Fenster)", im Bündel `DatenraumFenster.bat`.
+
 ## Realistische Statuswege (seit 0.38.0)
 
 Ein echter ART läuft nicht brav durch alle Stufen. Gemessen am echten ART_A (458 Vorgänge,

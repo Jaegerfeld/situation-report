@@ -14,6 +14,10 @@ starten, am Ende den Ordner löschen.
    Server; schließen beendet die Oberfläche.
 4. Alternativ `SituationReport.bat`: der Launcher mit allen Modulen, darin die Karte
    „Datenraum (Browser)".
+5. **Wenn der Browser die Seite nicht lädt** (403, „nicht erreichbar", Proxy-Hinweis):
+   `DatenraumFenster.bat` doppelklicken — dieselben drei Schritte als Fenster, ohne Server.
+   Im Launcher heißt die Karte „Datenraum (Fenster)". Bitte trotzdem notieren, welche
+   Meldung der Browser zeigte.
 
 macOS/Linux: `DatenraumBrowser.sh` bzw. `.command` (erster Start richtet eine Python-Umgebung
 ein, dafür ist einmal Internet nötig).
@@ -46,7 +50,6 @@ Generator laden — das Paket ist für erfundene Daten gedacht.
 ## Bekannte Grenzen dieses Stands
 
 - Firmenrechner können lokale Server (127.0.0.1) über Proxy oder Richtlinien blockieren.
-  Dann hilft `TestdataGenerator.bat` (das bisherige Fenster) oder die Kommandozeile aus dem
-  Tutorial.
+  Dann `DatenraumFenster.bat` nehmen — gleicher Funktionsumfang, nur als Fenster.
 - Der Reiter „Ein ART" und das Umbenennen einzelner ARTs in der Oberfläche fehlen noch.
 - Texte der Oberfläche: Deutsch und Englisch.

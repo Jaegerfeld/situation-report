@@ -56,6 +56,11 @@ Without a command line: start the card **"Data room (browser)"** in the launcher
 (`SituationReport.bat`); the portable package also ships `DatenraumBrowser.bat` for it
 (macOS/Linux: `DatenraumBrowser.command` / `.sh`).
 
+**If the page does not load** (proxy, policy, 403 despite the link), take the fallback:
+`python -m testdata_generator --dataspace`, the launcher card **"Data room (window)"** or
+`DatenraumFenster.bat`. The window has the same three steps and the same functions, only
+without server and browser — everything below applies there too.
+
 ### 2.2 Step 1 — Scenario
 
 ![Step 1: template, events and structure](../beta/testdaten-generator_web_schritt1.jpg)
@@ -278,7 +283,7 @@ becomes stand 7 and the delta 6 → 7 is rendered; the registers stay.
 |---|---|---|
 | "Folder is not empty" | the target folder already holds files | choose another folder or generate into it deliberately (same names are overwritten) |
 | 403 page in the browser | the link without its key, or an old link | take the link from the start window; every start has a new key |
-| page does not load | a proxy or policy blocks 127.0.0.1 | `--no-browser`, copy the link; if it stays blocked, use the command line from section 3 |
+| page does not load | a proxy or policy blocks 127.0.0.1 | fallback: `--dataspace` or `DatenraumFenster.bat` — the same steps as a window; or the command line from section 3 |
 | "No folder dialog available" | tkinter is missing on this machine | type the path into the field |
 | warning "large structure" | from 30 ARTs or 5 portfolios at scale L | wait, or choose scale S |
 | notice "only one solution" | the story has no second solution | as intended; add a second solution when you need the weak source |

@@ -347,6 +347,14 @@ German or English; the generated texts follow the chosen data-room language.
 The tkinter window stays available (`python -m testdata_generator` without
 arguments).
 
+**Fallback without a server:** where 127.0.0.1 is blocked (a tester's corporate
+machine showed this), `python -m testdata_generator --dataspace` opens the same
+three steps as a tkinter window — template and event switches, structure
+editor, scope and sources, generate with progress, cancel and the result card
+including the delta comparison picker. Same service layer, same texts, no
+server, no browser; plainer to look at, equal in function. In the launcher
+it is the card "Data room (window)", in the bundle `DatenraumFenster.bat`.
+
 ## Realistic stage paths (since 0.38.0)
 
 A real ART does not walk neatly through every stage. Measured on the real ART_A (458 issues,
