@@ -173,11 +173,21 @@ können lokale Server über Proxy-Regeln oder Richtlinien blocken — früh mit 
 Firmenrechner prüfen.
 
 **Nachtrag 30.10.2026 — Risiko eingetreten, Rückfall gebaut:** Der Tester-Lauf vom 26.10. zeigte
-Probleme mit dem lokalen Server „in wenigen Szenarien" (Robert). Entscheidung Robert: eine
-tkinter-Alternative mit gleichem Funktionsumfang, nicht so schön wie die Browser-Seite.
-`testdata_generator/dataspace_gui.py` (`--dataspace`, Launcher-Karte „Datenraum (Fenster)",
-`DatenraumFenster.bat`) sitzt auf derselben Dienstschicht; beide Oberflächen bleiben. Für den
-Suite-Umbau heißt das: Browser-Oberfläche als Standard, tkinter als Rückfall je Modul einplanen.
+Probleme mit dem lokalen Server „in wenigen Szenarien" (Robert). Befund laut Robert: **der Aufruf
+wurde geblockt, danach kam eine Meldung der Security** — also nicht der Proxy, sondern die
+Endgeräte-Sicherheitssoftware, die einen Prozess mit lokalem Netzwerkport als auffällig einstuft
+und meldet. Das ist schwerer als ein Proxy-Problem: Ein gemeldeter Tester ist ein Tester
+weniger. Entscheidung Robert: eine tkinter-Alternative mit gleichem Funktionsumfang, nicht so
+schön wie die Browser-Seite. `testdata_generator/dataspace_gui.py` (`--dataspace`, Launcher-Karte
+„Datenraum (Fenster)", `DatenraumFenster.bat`) sitzt auf derselben Dienstschicht; beide
+Oberflächen bleiben, **das Fenster ist der Standardweg** (Launcher-Karte zuerst, TESTER.md), der
+Browser-Weg ist für private Rechner oder nach IT-Freigabe.
+
+Folgerung für den Suite-Umbau (Einschätzung, 30.10.): Eine Browser-Oberfläche braucht einen
+lokalen Server oder einen eingebetteten Webview; beides ist auf Firmenrechnern ohne IT-Freigabe
+riskant. Für die Beta bleibt tkinter die tragende Oberfläche je Modul, die Browser-Seite ein
+Angebot für Rechner ohne Endgeräte-Sicherheit. Die Dienstschicht je Modul (wie `dataspace.py`)
+ist der Teil, der in jedem Fall trägt.
 
 ## 5. Entscheidungen (Robert, 26.10.2026, einzeln durchgegangen)
 

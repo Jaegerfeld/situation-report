@@ -56,10 +56,11 @@ Ohne Kommandozeile: im Launcher (`SituationReport.bat`) die Karte **„Datenraum
 starten; im tragbaren Paket liegt dafür auch `DatenraumBrowser.bat` (macOS/Linux:
 `DatenraumBrowser.command` / `.sh`).
 
-**Lädt die Seite nicht** (Proxy, Richtlinie, 403 trotz Link), nimm den Rückfallweg:
-`python -m testdata_generator --dataspace`, die Launcher-Karte **„Datenraum (Fenster)"** oder
-`DatenraumFenster.bat`. Das Fenster hat dieselben drei Schritte und denselben Funktionsumfang,
-nur ohne Server und Browser — alles Folgende gilt dort genauso.
+**Auf einem Firmenrechner** nimm das Fenster: `python -m testdata_generator --dataspace`, die
+Launcher-Karte **„Datenraum (Fenster)"** oder `DatenraumFenster.bat`. Der Browser-Weg startet
+einen lokalen Server, den Endgeräte-Sicherheitssoftware blockieren und melden kann (im ersten
+Testlauf geschehen). Das Fenster hat dieselben drei Schritte und denselben Funktionsumfang, nur
+ohne Server und Browser — alles Folgende gilt dort genauso.
 
 ### 2.2 Schritt 1 — Szenario
 

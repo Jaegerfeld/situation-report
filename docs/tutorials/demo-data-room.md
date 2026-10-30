@@ -56,10 +56,11 @@ Without a command line: start the card **"Data room (browser)"** in the launcher
 (`SituationReport.bat`); the portable package also ships `DatenraumBrowser.bat` for it
 (macOS/Linux: `DatenraumBrowser.command` / `.sh`).
 
-**If the page does not load** (proxy, policy, 403 despite the link), take the fallback:
-`python -m testdata_generator --dataspace`, the launcher card **"Data room (window)"** or
-`DatenraumFenster.bat`. The window has the same three steps and the same functions, only
-without server and browser — everything below applies there too.
+**On a corporate machine** take the window: `python -m testdata_generator --dataspace`, the
+launcher card **"Data room (window)"** or `DatenraumFenster.bat`. The browser path starts a
+local server that endpoint security software may block and report (it happened in the first
+test run). The window has the same three steps and the same functions, only without server
+and browser — everything below applies there too.
 
 ### 2.2 Step 1 — Scenario
 
