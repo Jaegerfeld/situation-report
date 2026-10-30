@@ -3,7 +3,7 @@
 # Repository:     https://github.com/Jaegerfeld/situation-report
 # KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
 # Erstellt:       26.10.2026
-# Geändert:       26.10.2026
+# Geändert:       30.10.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
@@ -39,6 +39,8 @@ from portfolio.slo_config import SloRegister
 from sources.base import DoraRecord
 from sources.replay import REPLAY_SCHEMA
 
+from .i18n import DEFAULT_LANG
+from .i18n import t as _t
 from .structure import PortfolioSpec
 
 #: Fictitious hosts — `.invalid` is reserved and never resolves (RFC 2606).
@@ -260,6 +262,7 @@ def write_source_inputs(
     registers: dict[str, dict[str, object]],
     reference: date,
     log: Callable[[str], None] = print,
+    lang: str = DEFAULT_LANG,
 ) -> dict[str, dict[str, Any]]:
     """
     Write the provider raw data and source configs of every solution into
@@ -319,9 +322,10 @@ def write_source_inputs(
                              "components": components}]})
         if info["configs"]:
             kinds = ", ".join(sorted(info["configs"]))
-            log(f"  Quellen {solution.key}: {kinds}"
-                + (f" (DORA über {info['dora_provider']})" if info["dora_provider"] else ""))
+            dora = (_t("rm.sources_dora", lang, provider=info["dora_provider"])
+                    if info["dora_provider"] else "")
+            log(_t("log.sources", lang, key=solution.key, kinds=kinds, dora=dora))
         else:
-            log(f"  Quellen {solution.key}: keine Register mit Einträgen — keine Rohdaten")
+            log(_t("log.sources_none", lang, key=solution.key))
         result[solution.key] = info
     return result

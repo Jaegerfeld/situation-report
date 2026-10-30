@@ -3,7 +3,7 @@
 # Repository:     https://github.com/Jaegerfeld/situation-report
 # KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
 # Erstellt:       02.05.2026
-# Geändert:       26.10.2026
+# Geändert:       30.10.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
@@ -307,28 +307,29 @@ def _run_scenario(args: argparse.Namespace, parser: argparse.ArgumentParser) -> 
         switches = parse_switches(args.event)
     except ValueError as exc:
         parser.error(str(exc))
+    from .i18n import load_lang_pref
+    from .i18n import t as _t
+    lang = args.lang or load_lang_pref()
     request = GenerationRequest(
         output_dir=Path(out_dir), structure=structure, template=template, switches=switches,
         stands=args.stands, scale=args.scale, seed=args.seed if args.seed is not None else 42,
-        art_profiles=art_profiles, ai_drafts=args.ai_drafts)
+        art_profiles=art_profiles, ai_drafts=args.ai_drafts, lang=lang)
     stands = request.resolved_stands()
     if not MIN_STANDS <= stands <= MAX_STANDS:
         parser.error(f"--stands must be {MIN_STANDS}..{MAX_STANDS}, got {stands}.")
     est = estimate_request(request)
     switch_text = ", ".join(f"{k}={'on' if v else 'off'}" for k, v in switches.items())
-    print(f"Struktur: {structure.describe()} — {est.jira_exports} Jira-Exporte, "
-          f"{est.workbooks} Arbeitsmappen, {est.registers} Register, "
-          f"{est.stands} Stände, {est.deltas} Delta-Briefings; Geschichte: {template}"
-          + (f", Schalter {switch_text}" if switch_text else ""))
+    print(_t("cli.structure", lang, describe=structure.describe(), exports=est.jira_exports,
+             workbooks=est.workbooks, registers=est.registers, stands=est.stands,
+             deltas=est.deltas, template=template,
+             switches=_t("cli.switches", lang, switches=switch_text) if switch_text else ""))
     if est.warn:
-        print(f"WARNUNG: grosse Struktur ({est.warn_reason}) — Erzeugung dauert "
-              f"entsprechend.", file=sys.stderr)
+        print(_t("cli.warn", lang, reason=est.warn_text(lang)), file=sys.stderr)
     result = generate_dataspace(request, log=print)
-    print(f"Datenraum: {result.issues} Vorgänge, {result.registers} Register, "
-          f"{result.stands} Stände, {result.deltas} Delta-Briefings, "
-          f"{result.providers} Quellen-Arten"
-          + (f", KI-Entwürfe in {len(result.ai_drafts)} Ordner(n)" if result.ai_drafts else "")
-          + f" — {result.elapsed_s} s")
+    print(_t("cli.result", lang, issues=result.issues, registers=result.registers,
+             stands=result.stands, deltas=result.deltas, providers=result.providers,
+             drafts=(_t("cli.drafts", lang, n=len(result.ai_drafts)) if result.ai_drafts else ""),
+             s=result.elapsed_s))
 
 
 def main() -> None:
@@ -368,15 +369,16 @@ def main() -> None:
     parser.add_argument("--web", action="store_true",
                         help="Open the data-room UI in your browser: a local server on "
                              "127.0.0.1 (random port, access key in the link), no extra "
-                             "package. Ends with Ctrl+C. --lang de|en picks the UI language, "
+                             "package. Ends with Ctrl+C. --lang picks the UI language, "
                              "--port fixes the port, --no-browser only prints the link.")
     parser.add_argument("--dataspace", action="store_true",
                         help="Open the data-room UI as a tkinter window — the same three "
                              "steps as --web without a local server or browser (fallback "
                              "where 127.0.0.1 is blocked).")
     parser.add_argument("--lang", default=None, choices=["de", "en", "ro", "pt", "fr"],
-                        help="With --web: language of the UI (de/en) and default language of "
-                             "the generated texts.")
+                        help="Language of the UI (--web, --dataspace), of the console output and "
+                             "of the generated texts (story, README, delta briefings). Default: "
+                             "the suite language from ~/.situation_report/prefs.json, else en.")
     parser.add_argument("--port", type=int, default=0,
                         help="With --web: port on 127.0.0.1 (default 0 = random free port).")
     parser.add_argument("--no-browser", action="store_true", dest="no_browser",
@@ -487,10 +489,9 @@ def main() -> None:
     args = parser.parse_args()
 
     if args.web:
-        from build_reports.chart_texts import DEFAULT_LANG
-
+        from .i18n import load_lang_pref
         from .web.server import run as run_web
-        sys.exit(run_web(lang=args.lang or DEFAULT_LANG, port=args.port,
+        sys.exit(run_web(lang=args.lang or load_lang_pref(), port=args.port,
                          open_browser=not args.no_browser))
 
     if args.dataspace:
@@ -503,7 +504,9 @@ def main() -> None:
         if args.to_date is None:
             parser.error("--scenario portfolio --continue needs --to-date (the new reference).")
         try:
-            continue_portfolio_scenario(Path(args.continue_from), args.to_date)
+            from .i18n import load_lang_pref
+            continue_portfolio_scenario(Path(args.continue_from), args.to_date,
+                                        lang=args.lang or load_lang_pref())
         except ScenarioContinuationError as exc:
             print(f"ERROR: {exc}", file=sys.stderr)
             sys.exit(1)

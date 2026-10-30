@@ -52,4 +52,6 @@ Generator laden — das Paket ist für erfundene Daten gedacht.
   Firmenrechnern blockiert und meldet das (im ersten Test geschehen). Deshalb ist das Fenster
   der Standardweg — gleicher Funktionsumfang.
 - Der Reiter „Ein ART" und das Umbenennen einzelner ARTs in der Oberfläche fehlen noch.
-- Texte der Oberfläche: Deutsch und Englisch.
+- Sprachen: Deutsch, Englisch, Rumänisch, Portugiesisch, Französisch — Start in der
+  Launcher-Sprache, Umschalter oben rechts in Fenster und Browser-Seite; die erzeugten Texte
+  (Geschichte, README, Delta-Briefings) folgen derselben Sprache.

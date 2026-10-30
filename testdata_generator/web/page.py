@@ -3,7 +3,7 @@
 # Repository:     https://github.com/Jaegerfeld/situation-report
 # KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
 # Erstellt:       26.10.2026
-# Geändert:       26.10.2026
+# Geändert:       30.10.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
@@ -24,13 +24,21 @@
 #   Nicht ausgeliefert: Feldwand, gleichgewichtige Knöpfe, Erfolg ohne
 #   nächsten Schritt. Zustände: leer, Vorschau, läuft, abgebrochen, Fehler,
 #   fertig, Ordner nicht leer (Rückfrage).
+#
+#   UX read Sprachumschalter (30.10.2026): Jakob (Select oben rechts im Kopf,
+#   Sprachnamen in Eigenschreibweise, Handbuch-Link folgt), Postel (?lang=
+#   unbekannt → Sprache bleibt), Tesler (Start in der Suite-Sprache), Doherty
+#   (Neuladen der Seite unter 400 ms, kein Zustand verloren außer Eingaben
+#   der Sitzung — die Seite warnt nicht, weil sie vor dem ersten Schritt
+#   gewechselt wird; Umschalten während eines laufenden Auftrags lässt den
+#   Server weiterarbeiten, die Fortschrittsliste holt ihn nach dem Laden ab).
 # =============================================================================
 
 from __future__ import annotations
 
 import json
 
-from .texts import texts_for
+from .texts import LANGUAGE_NAMES, MANUALS, texts_for
 
 _CSS = """
 :root{--bg:#f3f5f8;--card:#fff;--line:#d9dee6;--line2:#c9d2dd;--ink:#23303e;--mute:#5b6b7c;
@@ -40,6 +48,8 @@ body{margin:0;background:var(--bg);font-family:"Segoe UI",system-ui,sans-serif;c
 a{color:var(--pri)}a:hover{color:var(--pri-dark)}
 button,input,select{font:inherit;color:inherit}
 header{display:flex;align-items:center;gap:16px;padding:14px 32px;background:var(--card);border-bottom:1px solid var(--line);flex-wrap:wrap}
+.uilang{margin-left:auto}.uilang select{padding:6px 8px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink);font:inherit}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
 .brand{font-size:20px;font-weight:700}.beta{font-size:13px;color:var(--mute)}
 nav{margin-left:auto;display:flex;gap:6px;flex-wrap:wrap}
 nav a{padding:8px 14px;border-radius:6px;color:var(--ink);text-decoration:none;min-height:44px;display:inline-flex;align-items:center}
@@ -254,7 +264,7 @@ function renderStep2(m) {
     el('input', { id: 'realism', type: 'range', min: 0, max: 100, value: S.realism, oninput: ev => { S.realism = parseInt(ev.target.value, 10); document.getElementById('realism-v').textContent = String(S.realism); } }),
     el('div', { style: 'display:flex;justify-content:space-between;font-size:13px;color:var(--mute)' }, el('span', {}, T.realism_low), el('span', { id: 'realism-v', style: 'color:var(--ink);font-weight:600' }, String(S.realism)), el('span', {}, T.realism_high)));
   const langSel = el('select', { id: 'lang', onchange: ev => { S.dataLang = ev.target.value; } });
-  const names = { de: 'Deutsch', en: 'English', ro: 'Română', pt: 'Português', fr: 'Français' };
+  const names = Object.fromEntries((S.options.ui_languages || []).map(x => [x.id, x.name]));
   for (const l of S.options.languages) langSel.append(el('option', { value: l, selected: l === S.dataLang }, names[l] || l));
   card.append(stBox,
     el('div', { style: 'display:flex;flex-direction:column;gap:6px' }, el('label', { for: 'scale', style: 'font-weight:600' }, T.scale), scale),
@@ -382,7 +392,10 @@ def render_page(lang: str, token: str, version: str = "") -> str:
     """The complete page for ``lang`` with the access key baked into its API calls."""
     t = texts_for(lang)
     texts_json = json.dumps(t, ensure_ascii=False).replace("</", "<\\/")
-    manual = "testdata_generator_Benutzerhandbuch.pdf" if lang == "de" else "testdata_generator_UserManual.pdf"
+    manual = MANUALS.get(lang, MANUALS["en"])
+    options = "".join(
+        f'<option value="{code}"{" selected" if code == lang else ""}>{name}</option>'
+        for code, name in LANGUAGE_NAMES.items())
     return f"""<!doctype html>
 <html lang="{lang}">
 <head>
@@ -400,6 +413,10 @@ def render_page(lang: str, token: str, version: str = "") -> str:
       <a href="#" aria-current="page">{t['nav_room']}</a>
       <a href="https://jaegerfeld.github.io/situation-report/{manual}" rel="noreferrer">{t['nav_manual']}</a>
     </nav>
+    <label class="uilang"><span class="sr">{t['ui_lang']}</span>
+      <select id="ui-lang" aria-label="{t['ui_lang']}" title="{t['ui_lang']}"
+              onchange="location.href = '/' + window.__TOKEN__ + '/?lang=' + this.value">{options}</select>
+    </label>
   </header>
   <div class="steps" id="steps" aria-label="Schritte"></div>
   <main id="main"></main>

@@ -342,10 +342,9 @@ a path field and "Browse" through the tkinter dialog in a child process, a
 question before writing into a full folder, the progress list of the nine
 steps with cancel, the result card with four numbers, the story in three
 sentences, portfolio report, conference pre-read, README, folder, AI drafts
-and a delta comparison picker for any pair of stands). The UI texts are
-German or English; the generated texts follow the chosen data-room language.
-The tkinter window stays available (`python -m testdata_generator` without
-arguments).
+and a delta comparison picker for any pair of stands). UI and generated texts
+come in the five suite languages (see "Five languages" below). The tkinter
+window stays available (`python -m testdata_generator` without arguments).
 
 **Fallback without a server:** where 127.0.0.1 is blocked (a tester's corporate
 machine showed this), `python -m testdata_generator --dataspace` opens the same
@@ -354,6 +353,31 @@ editor, scope and sources, generate with progress, cancel and the result card
 including the delta comparison picker. Same service layer, same texts, no
 server, no browser; plainer to look at, equal in function. In the launcher
 it is the card "Data room (window)", in the bundle `DatenraumFenster.bat`.
+
+### Five languages (beta, 30 October 2026)
+
+The whole generator speaks the five suite languages — German, English,
+Romanian, Portuguese, French — not only its two user interfaces. One
+language applies to everything a run produces: the UI, the story (template
+titles, events, summaries, notices in `story.json`), the README of the data
+room, the progress labels and log lines, the AI practice files, the console
+summary of the CLI and the continuation. The texts live in one catalogue,
+`testdata_generator/i18n.py` (`t(key, lang, **placeholders)`), plus
+`web/texts.py` for the two UIs and `gui.py` for the ART window; a test
+checks that every key carries all five languages with the same placeholders.
+
+**Which language?** The default is the **suite language** the launcher
+stores in `~/.situation_report/prefs.json` — the browser page, the window and
+the CLI all start in it, so a launcher set to Portuguese opens a Portuguese
+generator. `--lang de|en|ro|pt|fr` overrides it for one run. Both UIs carry
+a **language switch** in the header: the page reloads in the chosen language
+(`/?lang=xx`, which also sets the language of the generated texts for that
+server), the window rebuilds in place and keeps settings and result. The
+switch is per session; the suite setting stays with the launcher. Unknown
+or missing languages fall back to English, which is also the default of the
+public functions (`story_for`, `bind_roles`, `build_portfolio_scenario`,
+`continue_portfolio_scenario`), so a data room generated without a language
+argument is now English where it was German before.
 
 ## Realistic stage paths (since 0.38.0)
 

@@ -107,10 +107,10 @@ class TestSeries:
     def test_readme_and_log_name_the_stands(self, series) -> None:
         _, paths, messages = series
         readme = paths["readme"].read_text(encoding="utf-8")
-        assert "## Stände" in readme and "Stand 06: 2025-06-30" in readme
+        assert "## Stands" in readme and "Stand 06: 2025-06-30" in readme
         assert "deltas/delta_05-06.html" in readme
-        assert any("6 Stände" in m for m in messages)
-        assert any("5 Folgepaare" in m for m in messages)
+        assert any("6 stands" in m for m in messages)
+        assert any("5 consecutive pairs" in m for m in messages)
 
 
 class TestStandCount:

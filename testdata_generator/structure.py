@@ -3,7 +3,7 @@
 # Repository:     https://github.com/Jaegerfeld/situation-report
 # KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
 # Erstellt:       26.10.2026
-# Geändert:       26.10.2026
+# Geändert:       30.10.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
@@ -29,6 +29,9 @@ import unicodedata
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
+
+from .i18n import DEFAULT_LANG
+from .i18n import t as _t
 
 SCHEMA = 1
 
@@ -412,7 +415,22 @@ class Estimate:
     stands: int
     deltas: int
     warn: bool
+    #: Reason text in the default language; ``warn_text(lang)`` for the others.
     warn_reason: str = ""
+    warn_arts: int = 0
+    warn_portfolios: int = 0
+
+    def warn_text(self, lang: str = DEFAULT_LANG) -> str:
+        return _warn_text(self.warn_arts, self.warn_portfolios, lang)
+
+
+def _warn_text(warn_arts: int, warn_portfolios: int, lang: str) -> str:
+    reasons = []
+    if warn_arts:
+        reasons.append(_t("warn.arts", lang, n=warn_arts, limit=WARN_ARTS))
+    if warn_portfolios:
+        reasons.append(_t("warn.portfolios", lang, n=warn_portfolios))
+    return "; ".join(reasons)
 
 
 def estimate(structure: Structure, stands: int = 6,
@@ -423,13 +441,12 @@ def estimate(structure: Structure, stands: int = 6,
     WARN_PORTFOLIOS portfolios or more at scale 'l'.
     """
     p, s, a = structure.n_portfolios, structure.n_solutions, structure.n_arts
-    reasons = []
-    if a >= WARN_ARTS:
-        reasons.append(f"{a} ARTs (ab {WARN_ARTS} dauert die Erzeugung spürbar)")
-    if p >= WARN_PORTFOLIOS and scale == "l":
-        reasons.append(f"{p} Portfolios bei Umfang L")
+    warn_arts = a if a >= WARN_ARTS else 0
+    warn_portfolios = p if p >= WARN_PORTFOLIOS and scale == "l" else 0
     return Estimate(
         portfolios=p, solutions=s, arts=a,
         jira_exports=a, workbooks=3 * a, registers=len(REGISTER_NAMES) * s,
         stands=stands * p, deltas=max(stands - 1, 0) * p,
-        warn=bool(reasons), warn_reason="; ".join(reasons))
+        warn=bool(warn_arts or warn_portfolios),
+        warn_reason=_warn_text(warn_arts, warn_portfolios, DEFAULT_LANG),
+        warn_arts=warn_arts, warn_portfolios=warn_portfolios)

@@ -3,7 +3,7 @@
 # Repository:     https://github.com/Jaegerfeld/situation-report
 # KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
 # Erstellt:       26.10.2026
-# Geändert:       26.10.2026
+# Geändert:       30.10.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
@@ -29,75 +29,15 @@ from datetime import date
 from pathlib import Path
 from typing import Any
 
+from .i18n import t as _t
+
 AI_DRAFTS_DIR = "ai_drafts"
 PRACTICE_ANSWER = "uebung_antwort_falsch.md"
 PRACTICE_README = "uebung_README.md"
 
-#: Questions a trainer would ask the picture (D3), per language.
-QUESTIONS: dict[str, list[str]] = {
-    "de": [
-        "Welche Solution braucht in dieser Woche die Aufmerksamkeit des Portfolios?",
-        "Was hat sich seit dem letzten Stand bei den Abhängigkeiten geändert?",
-        "Welche Annahme sollten wir vor der nächsten Konferenz prüfen?",
-    ],
-    "en": [
-        "Which solution needs the portfolio's attention this week?",
-        "What changed in the dependencies since the last stand?",
-        "Which assumption should we check before the next conference?",
-    ],
-}
-
-#: The practice answer: two numbers that are certainly not in any contract,
-#: one real-looking citation path and one uncited claim.
-_PRACTICE_TEXT = {
-    "de": ("Der Durchsatz des Portfolios liegt bei 4711 Vorgängen [S1/total.items] und ist "
-           "damit um 0815 Prozent gestiegen. Solution Alpha ist die beste im Konzern.\n"),
-    "en": ("The portfolio's throughput stands at 4711 items [S1/total.items], up by 0815 "
-           "percent. Solution Alpha is the best in the group.\n"),
-}
-
-_PRACTICE_README = {
-    "de": """# Übung: Rückweg mit `llm check`
-
-`{bundle}` ist ein exportiertes Prompt-Bündel (Export-Weg: Prompt in ein externes
-Modell kopieren, Antwort zurückholen). `{answer}` ist eine Antwort, wie sie aus einem
-Modell kommen könnte — mit zwei Zahlen, die nicht im Contract stehen (4711, 0815), und
-einer Behauptung ohne Zitat.
-
-Prüfen:
-
-    python -m llm check {answer} --bundle {bundle}
-
-Erwartung: der Zahlen-Wächter weist beide Zahlen zurück, der Zitat-Wächter die unbelegte
-Behauptung; nichts wird als Entwurf abgelegt. Dann dieselbe Prüfung mit einer eigenen,
-belegten Antwort versuchen.
-
-Die anderen Dateien in diesem Ordner sind Mock-Entwürfe (kein Modell): Lagevortrag
-(`{briefing}`) und drei Antworten (`frage_*.ask.md`), alle mit KI-Marker,
-nicht freigegeben. Freigabe üben: `python -m llm approve <datei>`.
-""",
-    "en": """# Practice: the return path with `llm check`
-
-`{bundle}` is an exported prompt bundle (export path: copy the prompt into an external
-model, bring the answer back). `{answer}` is an answer as a model might give it — with two
-numbers that are not in the contract (4711, 0815) and a claim without a citation.
-
-Check it:
-
-    python -m llm check {answer} --bundle {bundle}
-
-Expected: the numbers guard rejects both numbers, the citation guard the unbacked claim;
-nothing is stored as a draft. Then try the same check with your own, cited answer.
-
-The other files in this folder are mock drafts (no model): the spoken briefing
-(`{briefing}`) and three answers (`frage_*.ask.md`), all carrying the AI
-marker, none approved. Practise approval: `python -m llm approve <file>`.
-""",
-}
-
-
-def _lang_key(lang: str) -> str:
-    return "de" if lang == "de" else "en"
+def questions(lang: str) -> list[str]:
+    """The three questions a trainer would ask the picture (D3), in ``lang``."""
+    return [_t("drafts.q1", lang), _t("drafts.q2", lang), _t("drafts.q3", lang)]
 
 
 def write_ai_drafts(
@@ -132,7 +72,6 @@ def write_ai_drafts(
     from portfolio.solution_config import load_solution_config
 
     quiet: Callable[[str], None] = lambda m: None
-    key = _lang_key(lang)
     drafts_dir = Path(out) / AI_DRAFTS_DIR
     drafts_dir.mkdir(parents=True, exist_ok=True)
     audit = drafts_dir / AUDIT_FILENAME
@@ -150,25 +89,25 @@ def write_ai_drafts(
 
     # D3: three questions answered by the mock.
     asks: list[Path] = []
-    for i, question in enumerate(QUESTIONS[key], start=1):
+    for i, question in enumerate(questions(lang), start=1):
         res = run_ask(config, question, drafts_dir / f"frage_{i}.ask.md", provider_id="mock",
                       lang=lang, snapshot=now, prev_snapshot=prev, reference=reference, log=quiet)
         asks.append(res.written or drafts_dir / f"frage_{i}.ask.md")
 
     # Export path: a prompt bundle for the return path, plus a wrong practice answer.
-    run_ask(config, QUESTIONS[key][0], drafts_dir / "uebung_frage.ask.md", provider_id="export",
+    run_ask(config, questions(lang)[0], drafts_dir / "uebung_frage.ask.md", provider_id="export",
             lang=lang, snapshot=now, prev_snapshot=prev, reference=reference, log=quiet)
     bundle = find_bundle(drafts_dir, "d3_question")
     practice = drafts_dir / PRACTICE_ANSWER
-    practice.write_text(_PRACTICE_TEXT[key], encoding="utf-8")
+    practice.write_text(_t("drafts.practice_text", lang), encoding="utf-8")
     readme = drafts_dir / PRACTICE_README
-    readme.write_text(_PRACTICE_README[key].format(
+    readme.write_text(_t(
+        "drafts.practice_readme", lang,
         bundle=f"{AI_DRAFTS_DIR}/{bundle.name}" if bundle else f"{AI_DRAFTS_DIR}/prompt_d3_question_*.md",
         answer=f"{AI_DRAFTS_DIR}/{PRACTICE_ANSWER}",
         briefing=f"{AI_DRAFTS_DIR}/{briefing_path.name}"), encoding="utf-8")
 
-    log(f"  KI-Entwürfe (Mock): Lagevortrag, {len(asks)} Antworten, Prompt-Bündel, "
-        f"Übungsantwort -> {AI_DRAFTS_DIR}/")
+    log(_t("log.drafts", lang, n=len(asks)))
     return {"dir": drafts_dir, "onepager": page_path, "briefing": briefing_path, "asks": asks,
             "bundle": bundle, "practice_answer": practice, "practice_readme": readme,
             "audit": audit}

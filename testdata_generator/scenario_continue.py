@@ -3,7 +3,7 @@
 # Repository:     https://github.com/Jaegerfeld/situation-report
 # KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
 # Erstellt:       13.10.2026
-# Geändert:       26.10.2026
+# Geändert:       30.10.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
@@ -42,6 +42,8 @@ from transform_data.workflow import parse_workflow
 from transform_data.writers import write_cfd, write_issue_times, write_transitions
 
 from .continuation import ContinuationError, continue_generation, read_meta
+from .i18n import DEFAULT_LANG
+from .i18n import t as _t
 
 
 class ScenarioContinuationError(ValueError):
@@ -75,7 +77,8 @@ def _pi_config(path: Path, start: date, end: date) -> None:
 
 
 def _continue_art(out: Path, solution: SolutionConfig, member, to_date: date,
-                  old_reference: date, log: Callable[[str], None]) -> int:
+                  old_reference: date, log: Callable[[str], None],
+                  lang: str = DEFAULT_LANG) -> int:
     """Continue one ART's raw extract and rewrite its transform_data outputs."""
     raw = _raw_file(out, member.name)
     data = json.loads(raw.read_text(encoding="utf-8"))
@@ -106,13 +109,14 @@ def _continue_art(out: Path, solution: SolutionConfig, member, to_date: date,
         write_cfd(records, workflow, resolve_config_path(solution.base_dir, member.cfd),
                   reference_dt=reference_dt)
     before = len(data.get("issues", []))
-    log(f"  {_art_short_name(member.name)}: {before} -> {len(records)} issues"
-        f"{' (Datenstand -' + str(stale_days) + 'd bleibt)' if stale_days else ''}")
+    log(_t("log.cont.art", lang, name=_art_short_name(member.name), before=before,
+           after=len(records),
+           stale=_t("log.cont.stale", lang, days=stale_days) if stale_days else ""))
     return len(records) - before
 
 
 def _append_stand(out: Path, snapshot_now: Path, to_date: date,
-                  log: Callable[[str], None]) -> None:
+                  log: Callable[[str], None], lang: str = DEFAULT_LANG) -> None:
     """
     Series of stands (Beta 1b): if the data room carries ``stands.json``,
     the new now becomes stand N+1 and the Delta-Briefing N -> N+1 is
@@ -134,17 +138,19 @@ def _append_stand(out: Path, snapshot_now: Path, to_date: date,
     shutil.copyfile(snapshot_now, snapshots_dir / name)
     entries.append((k, to_date, name))
     write_stands_index(snapshots_dir, entries)
-    write_stand_delta(snapshots_dir, out / "deltas", k - 1)
-    log(f"  Stand {k:02d} ({to_date}) an die Reihe angehängt, Delta {k - 1:02d}-{k:02d} gerendert")
+    write_stand_delta(snapshots_dir, out / "deltas", k - 1, lang)
+    log(_t("log.cont.appended", lang, k=k, date=to_date, a=k - 1, b=k))
 
 
 def continue_portfolio_scenario(
     folder: Path,
     to_date: date,
     log: Callable[[str], None] = print,
+    lang: str = DEFAULT_LANG,
 ) -> dict[str, Path]:
     """
     Continue the demo data room in place to the new reference date ``to_date``.
+    ``lang`` is the language of log lines, README note and the new delta briefing.
 
     Returns the key paths (portfolio config, snapshots, readme).
 
@@ -165,14 +171,15 @@ def continue_portfolio_scenario(
             f"to_date {to_date} must lie after the current reference {old_reference}.")
     window_days = (old_reference - portfolio.from_date).days
     new_from = to_date - timedelta(days=window_days)
-    log(f"Szenario fortschreiben: {old_reference} -> {to_date} ({(to_date - old_reference).days} Tage)")
+    log(_t("log.cont.start", lang, old=old_reference, new=to_date,
+           days=(to_date - old_reference).days))
 
     added = 0
     for sol_member in portfolio.members:
         sol_path = resolve_config_path(portfolio.base_dir, sol_member.template)
         solution = load_solution_config(sol_path)
         for art in solution.members:
-            added += _continue_art(out, solution, art, to_date, old_reference, log)
+            added += _continue_art(out, solution, art, to_date, old_reference, log, lang)
         solution.from_date, solution.to_date = new_from, to_date
         save_solution_config(sol_path, solution)
     portfolio.from_date, portfolio.to_date = new_from, to_date
@@ -190,16 +197,15 @@ def continue_portfolio_scenario(
         shutil.copyfile(snapshot_now, snapshot_prev)
         save_snapshot(snapshot_now, build_snapshot(
             load_solution_config(portfolio_path), as_of=to_date, log=lambda m: None))
-        log(f"  Snapshots rotiert: now ({old_reference}) -> prev, neues now ({to_date})")
-        _append_stand(out, snapshot_now, to_date, log)
+        log(_t("log.cont.rotated", lang, old=old_reference, new=to_date))
+        _append_stand(out, snapshot_now, to_date, log, lang)
 
     readme = out / "README.md"
     if readme.is_file():
         with readme.open("a", encoding="utf-8") as f:
-            f.write(f"\n\n_Fortgeschrieben am {date.today().isoformat()}: Referenzdatum "
-                    f"{old_reference.isoformat()} → {to_date.isoformat()}, {added} neue Vorgänge; "
-                    f"snapshot_prev = Stand {old_reference.isoformat()}, snapshot_now = Stand "
-                    f"{to_date.isoformat()}. Register unverändert._\n")
-    log(f"Fortschreibung komplett: {out} (+{added} Vorgänge)")
+            f.write("\n\n" + _t("rm.cont.appended", lang, today=date.today().isoformat(),
+                                  old=old_reference.isoformat(), new=to_date.isoformat(),
+                                  added=added) + "\n")
+    log(_t("log.cont.done", lang, out=out, added=added))
     return {"portfolio": portfolio_path, "snapshot_prev": snapshot_prev,
             "snapshot_now": snapshot_now, "readme": readme}

@@ -348,10 +348,10 @@ und „Durchsuchen" über den tkinter-Dialog in einem eigenen Prozess, Rückfrag
 vor dem Schreiben in einen vollen Ordner, Fortschrittsliste der neun
 Teilschritte mit Abbrechen, Ergebniskarte mit vier Zahlen, Geschichte in drei
 Sätzen, Portfolio-Report, Konferenzmappe, README, Ordner, KI-Entwürfe und ein
-Delta-Vergleichswähler für beliebige Stand-Paare). Die Oberflächentexte sind
-Deutsch oder Englisch; die erzeugten Texte folgen der gewählten
-Datenraum-Sprache. Das tkinter-Fenster bleibt erreichbar
-(`python -m testdata_generator` ohne Argumente).
+Delta-Vergleichswähler für beliebige Stand-Paare). Oberfläche und erzeugte
+Texte gibt es in den fünf Sprachen der Suite (siehe „Fünf Sprachen" unten).
+Das tkinter-Fenster bleibt erreichbar (`python -m testdata_generator` ohne
+Argumente).
 
 **Rückfall ohne Server:** wo 127.0.0.1 blockiert ist (ein Firmenrechner eines
 Testers zeigte das), öffnet `python -m testdata_generator --dataspace` dieselben
@@ -360,6 +360,35 @@ Struktur-Editor, Umfang und Quellen, Erzeugen mit Fortschritt, Abbruch und
 Ergebniskarte samt Delta-Vergleichswähler. Dieselbe Dienstschicht, dieselben
 Texte, kein Server, kein Browser; schlichter anzusehen, funktional gleich. Im
 Launcher ist es die Karte „Datenraum (Fenster)", im Bündel `DatenraumFenster.bat`.
+
+### Fünf Sprachen (Beta, 30.10.2026)
+
+Der ganze Generator spricht die fünf Sprachen der Suite — Deutsch, Englisch,
+Rumänisch, Portugiesisch, Französisch — nicht nur seine zwei Oberflächen. Eine
+Sprache gilt für alles, was ein Lauf erzeugt: Oberfläche, Geschichte
+(Vorlagentitel, Ereignisse, Zusammenfassungen, Hinweise in `story.json`),
+README des Datenraums, Fortschrittsbezeichnungen und Protokollzeilen,
+KI-Übungsdateien, Konsolen-Zusammenfassung der Kommandozeile und der
+Fortschreibung. Die Texte liegen in einem Katalog,
+`testdata_generator/i18n.py` (`t(key, lang, **platzhalter)`), dazu
+`web/texts.py` für die beiden Oberflächen und `gui.py` für das ART-Fenster;
+ein Test prüft, dass jeder Schlüssel alle fünf Sprachen mit denselben
+Platzhaltern trägt.
+
+**Welche Sprache?** Standard ist die **Suite-Sprache**, die der Launcher in
+`~/.situation_report/prefs.json` ablegt — Browser-Seite, Fenster und
+Kommandozeile starten darin; ein auf Portugiesisch gestellter Launcher öffnet
+also einen portugiesischen Generator. `--lang de|en|ro|pt|fr` übersteuert das
+für einen Lauf. Beide Oberflächen tragen einen **Sprachumschalter** im Kopf:
+die Seite lädt in der gewählten Sprache neu (`/?lang=xx`, das stellt für
+diesen Server auch die Sprache der erzeugten Texte um), das Fenster baut sich
+an Ort und Stelle neu auf und behält Einstellungen und Ergebnis. Der Schalter
+gilt je Sitzung; die Suite-Einstellung bleibt beim Launcher. Unbekannte oder
+fehlende Sprachen fallen auf Englisch zurück — das ist auch der Standard der
+öffentlichen Funktionen (`story_for`, `bind_roles`,
+`build_portfolio_scenario`, `continue_portfolio_scenario`); ein ohne
+Sprachangabe erzeugter Datenraum ist damit jetzt englisch, wo er vorher
+deutsch war.
 
 ## Realistische Statuswege (seit 0.38.0)
 

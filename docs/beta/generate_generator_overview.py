@@ -51,9 +51,9 @@ from testdata_generator.scenario import _solution_tags  # noqa: E402
 from testdata_generator.story import (  # noqa: E402
     STORY_TEMPLATES,
     SUGGESTED_STANDS,
-    TEMPLATE_TITLES,
     bind_roles,
     story_for,
+    template_title,
 )
 from testdata_generator.structure import structure_template  # noqa: E402
 
@@ -180,12 +180,12 @@ def _window(event, last: int) -> str:
 def scenario_pages() -> list:
     """One page per story template, events and windows taken from the code itself."""
     portfolio = structure_template("standard").portfolios[0]
-    binding = bind_roles(portfolio)
+    binding = bind_roles(portfolio, "de")
     tags = _solution_tags(portfolio)
     out: list = []
     for template in STORY_TEMPLATES:
         stands = SUGGESTED_STANDS[template]
-        story = story_for(template, binding, tags, stands)
+        story = story_for(template, binding, tags, stands, lang="de")
         rows = []
         for e in story.events:
             window = _window(e, stands) if e.enabled else "aus"
@@ -194,7 +194,7 @@ def scenario_pages() -> list:
         content = [grid(["Nr.", f"Fenster ({stands} Stände)", "Was passiert", "Sichtbar als"], rows,
                         [12, 32, 92, 116])]
         body = [KeepInFrame(W - 2 * MARGIN, H - 28 * mm - 150, content, mode="shrink")]
-        out += page(f"Szenario „{TEMPLATE_TITLES[template]}“",
+        out += page(f"Szenario „{template_title(template, 'de')}“",
                     _SCENARIO_LEAD[template] + " " + " ".join(story.summary), body,
                     _SCENARIO_PROMPT[template])
     return out

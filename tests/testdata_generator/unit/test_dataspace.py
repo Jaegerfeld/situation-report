@@ -97,10 +97,10 @@ class TestRun:
         done = {e.step for e in events if e.state == STATE_DONE}
         assert done == set(order) - {"ai_drafts"}
         skipped = [e for e in events if e.state == STATE_SKIPPED]
-        assert [e.step for e in skipped] == ["ai_drafts"] and "Schalter aus" in skipped[0].detail
+        assert [e.step for e in skipped] == ["ai_drafts"] and "switch off" in skipped[0].detail
         assert all(e.label for e in events) and all(e.elapsed_s >= 0 for e in events)
         stands_done = next(e for e in events if e.step == "stands" and e.state == STATE_DONE)
-        assert "2 Stände" in stands_done.detail
+        assert "2 stands" in stands_done.detail
 
     def test_result_numbers(self, run) -> None:
         result, _, lines = run
@@ -111,7 +111,7 @@ class TestRun:
         assert result.ai_drafts == [] and result.elapsed_s > 0
         assert result.story is not None and result.story.template == TEMPLATE_STANDARD
         assert result.root.joinpath("portfolio.json").is_file()
-        assert any("Szenario komplett" in li for li in lines)
+        assert any("Scenario complete" in li for li in lines)
 
     def test_invalid_request_writes_nothing(self, tmp_path) -> None:
         with pytest.raises(ValueError):
@@ -148,7 +148,7 @@ class TestAiDrafts:
         assert any(n.startswith("prompt_d3_question_") for n in names)
         assert PRACTICE_ANSWER in names and PRACTICE_README in names and "llm_audit.jsonl" in names
         done = next(e for e in events if e.step == "ai_drafts" and e.state == STATE_DONE)
-        assert "1 Ordner" in done.detail
+        assert "1 folder" in done.detail
 
     def test_every_draft_carries_the_marker_and_is_not_approved(self, drafts) -> None:
         out, _, _ = drafts

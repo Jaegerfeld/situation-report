@@ -3,7 +3,7 @@
 # Repository:     https://github.com/Jaegerfeld/situation-report
 # KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
 # Erstellt:       02.09.2026
-# Geändert:       26.10.2026
+# Geändert:       30.10.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
@@ -156,6 +156,7 @@ from .generator import (
     GeneratorConfig,
     generate,
 )
+from .i18n import t as _t
 from .source_inputs import write_source_inputs
 from .story import (
     ALL_EVENTS,
@@ -1266,110 +1267,81 @@ def _write_pi_config(path: Path, reference: date, window_days: int) -> None:
 def _readme_text(spec: PortfolioSpec, story_data: Story, seed: int,
                  reference: date, scale: str,
                  stand_dates: list[date] | None = None,
-                 sources_info: dict[str, dict[str, Any]] | None = None) -> str:
-    """The README of one portfolio data room, told from structure and story."""
+                 sources_info: dict[str, dict[str, Any]] | None = None,
+                 lang: str = DEFAULT_LANG) -> str:
+    """The README of one portfolio data room, told from structure and story, in ``lang``."""
+    def tt(_key: str, **kw: object) -> str:
+        return _t(_key, lang, **kw)
+
     first_art = spec.arts[0]
-    workflow_label = {WORKFLOW_CLASSIC: "klassischer Workflow (Default-Pfad)",
-                      WORKFLOW_STAGE_MAP: "eigene stage_map (Schema 2)"}
+    workflow_label = {WORKFLOW_CLASSIC: tt("rm.workflow.classic"),
+                      WORKFLOW_STAGE_MAP: tt("rm.workflow.stage_map")}
+    regs_a = ", ".join(f"{r}.json" for r in REGISTER_NAMES[:4])
+    regs_b = ", ".join(f"{r}.json" for r in REGISTER_NAMES[4:])
     lines = [
-        f"# {spec.name} (generierter Demo-Datenraum)",
+        tt("rm.title", name=spec.name),
         "",
-        f"Erzeugt mit `python -m testdata_generator --scenario portfolio` "
-        f"(Seed {seed}, Referenzdatum {reference.isoformat()}, Skala {scale}, "
-        f"Geschichte „{story_data.title}\").",
+        tt("rm.made", seed=seed, reference=reference.isoformat(), scale=scale,
+           title=story_data.title),
         "",
-        "Direkt verwendbar: `python -m portfolio portfolio.json` bzw. die",
-        "Solution-Configs einzeln. **Der Ordner ist ein Portfolio-Datenraum**:",
-        "alle Pfade in den Configs sind relativ zur jeweiligen Config-Datei —",
-        "der Ordner kann als Ganzes verschoben, kopiert oder gezippt werden.",
+        tt("rm.usable"),
         "",
-        "    structure.json · story.json  Struktur und Geschichte als Daten",
-        "    portfolio.json            Einstieg (Portfolio)",
-        "    solutions/<name>/         je Solution: solution.json,",
-        "                              arts/ (IssueTimes/Transitions/CFD),",
-        "                              registers/ (" + ", ".join(
-            f"{r}.json" for r in REGISTER_NAMES[:4]) + ",",
-        "                              " + ", ".join(
-            f"{r}.json" for r in REGISTER_NAMES[4:]) + ")",
+        f"    structure.json · story.json  {tt('rm.tree.structure')}",
+        f"    portfolio.json            {tt('rm.tree.portfolio')}",
+        f"    solutions/<name>/         {tt('rm.tree.solution')} ({regs_a},",
+        f"                              {regs_b})",
         "    workflows/  raw/  pi_config.json",
-        "    snapshots/                snapshot_<nn>_<datum>.json je Stand, stands.json,",
-        "                              snapshot_prev/now.json = die letzten beiden",
-        "    deltas/                   delta_<nn>-<nn+1>.md/.html je Folgepaar",
-        "    sources/<name>/           Provider-Rohdaten (Replay-Dateien im Systemformat)",
-        "                              + sources-Configs je Solution",
+        f"    snapshots/                {tt('rm.tree.snapshots')}",
+        f"    deltas/                   {tt('rm.tree.deltas')}",
+        f"    sources/<name>/           {tt('rm.tree.sources')}",
         "",
-        "## Struktur",
+        tt("rm.h_structure"),
         "",
     ]
     for solution in spec.solutions:
         lines.append(f"- **{solution.display_name}** — "
                      f"{workflow_label[solution.workflow]}: "
                      + ", ".join(solution.member_names))
-    lines += [
-        "",
-        "Die Register bestehen aus festen **Story-Ankern** (unten) plus",
-        "einer seed-generierten Grundmenge; `--scale s|m|l` steuert deren",
-        "Umfang je Solution (s = nur Anker, m = Standard, l = Stresstest).",
-        "Die Anker und ihre Geschichten sind auf jeder Skala identisch.",
-        "Die Statuswege der ARTs sind unordentlich wie in echten ARTs",
-        "(Realismus 60: Sprünge, Abbrüche, Schleifen, Wiedereröffnung).",
-        "Je ART lassen sich die Generator-Regler übersteuern (GUI-Dialog",
-        "„ART-Profile…“ bzw. `--art-profiles datei.json`); Overrides gelten",
-        "in beiden Delta-Ständen, alles andere behält seinen Story-Wert.",
-        "",
-        f"## Geschichte „{story_data.title}\" (story.json)",
-        "",
-    ]
+    lines += ["", tt("rm.registers"), "", tt("rm.h_story", title=story_data.title), ""]
     lines += [f"{s}" for s in story_data.summary]
     lines.append("")
     for event in story_data.events:
         if not event.enabled:
-            lines.append(f"- **{event.event_id}** _(aus)_ {event.title}")
+            lines.append(f"- **{event.event_id}** _({tt('rm.when.off')})_ {event.title}")
             continue
         last = story_data.stands
         if event.stand_from <= 1 and (event.stand_to is None or event.stand_to >= last):
-            when = "in allen Ständen"
+            when = tt("rm.when.all")
         elif event.stand_to is None or event.stand_to >= last:
-            when = (f"ab Stand {event.stand_from:02d}" if event.stand_from < last
-                    else "nur im letzten Stand")
+            when = (tt("rm.when.from", a=event.stand_from) if event.stand_from < last
+                    else tt("rm.when.last"))
         else:
-            when = (f"Stand {event.stand_from:02d}" if event.stand_from == event.stand_to
-                    else f"Stand {event.stand_from:02d} bis {event.stand_to:02d}")
+            when = (tt("rm.when.one", a=event.stand_from) if event.stand_from == event.stand_to
+                    else tt("rm.when.range", a=event.stand_from, b=event.stand_to))
         lines.append(f"- **{event.event_id}** {event.title} _({when})_  ")
         lines.append(f"  {event.effect}")
     if story_data.notices:
-        lines += ["", "Hinweise der Rollenbindung:", ""]
+        lines += ["", tt("rm.notices"), ""]
         lines += [f"- {n}" for n in story_data.notices]
     if stand_dates:
-        lines += ["", "## Stände", "",
-                  f"{len(stand_dates)} Stände im Abstand von {STAND_INTERVAL_DAYS} Tagen "
-                  f"— jeder Stand ein Snapshot, jedes Folgepaar ein fertiges "
-                  f"Delta-Briefing. Die „jetzt\"-Ereignisse der Geschichte gelten ab "
-                  f"dem letzten Stand; davor zeigt die Reihe die Lage davor "
-                  f"(weniger Vorgänge, Register ohne die späten Wendungen).", ""]
+        lines += ["", tt("rm.h_stands"), "",
+                  tt("rm.stands_intro", n=len(stand_dates), days=STAND_INTERVAL_DAYS), ""]
         for k, day in enumerate(stand_dates, start=1):
             marker = ("  ← snapshot_now" if k == len(stand_dates)
                       else "  ← snapshot_prev" if k == len(stand_dates) - 1 else "")
-            lines.append(f"- Stand {k:02d}: {day.isoformat()}"
+            lines.append(f"- {tt('rm.stand_line', k=k, date=day.isoformat())}"
                          f" (`snapshots/{_snapshot_name(k, day)}`){marker}")
-        lines += ["", "Delta-Briefings: " + ", ".join(
+        lines += ["", tt("rm.deltas_label") + ", ".join(
             f"`deltas/delta_{k:02d}-{k + 1:02d}.html`" for k in range(1, len(stand_dates)))]
     if sources_info:
-        lines += ["", "## Quellen (Provider-Rohdaten, Weg 2)", "",
-                  "Je Solution liegen unter `sources/<name>/` die Rohdaten, wie die Systeme sie",
-                  "liefern würden — Prometheus-Instant-Queries, GitHub-Deployments/PRs/Issues",
-                  "oder GitLab-DORA-Tageswerte, SonarQube-Measures, eine SLO-CSV — als",
-                  "Replay-Dateien, dazu die passenden `sources`-Configs. `python -m sources",
-                  "fetch` läuft darauf ohne Netz (`\"replay\"` in der Config) und liefert, was",
-                  "auch in `registers/` steht; GitHub-DORA kommt näherungsweise (Zählungen),",
-                  "GitLab exakt. Pfade in den Configs gelten relativ zur Config-Datei.", ""]
+        lines += ["", tt("rm.h_sources"), "", tt("rm.sources_intro"), ""]
         for key, info in sources_info.items():
             if not info.get("configs"):
-                lines.append(f"- `{key}`: keine Register mit Einträgen — keine Rohdaten.")
+                lines.append("- " + tt("rm.sources_none", key=key))
                 continue
             provider = info.get("dora_provider")
             lines.append(f"- `{key}`: " + ", ".join(sorted(info["configs"]))
-                         + (f" (DORA über {provider})" if provider else ""))
+                         + (tt("rm.sources_dora", provider=provider) if provider else ""))
         first = next((k for k, i in sources_info.items() if i.get("configs")), None)
         if first:
             lines += ["", "```bash",
@@ -1382,21 +1354,13 @@ def _readme_text(spec: PortfolioSpec, story_data: Story, seed: int,
                       "```"]
     lines += [
         "",
-        "## Weitere Wege",
+        tt("rm.h_more"),
         "",
-        "- **Delta-Briefing (D2)**: `snapshots/snapshot_prev.json` (Stand vor",
-        "  14 Tagen) und `snapshots/snapshot_now.json` liegen bei —",
-        "  `python -m portfolio --delta snapshots/snapshot_prev.json",
-        "  snapshots/snapshot_now.json`; jedes andere Paar genauso.",
-        "- **KI-Narration (D2 Teil 2)**: `--narrate mock` ergänzt das",
-        "  Briefing um den gekennzeichneten Abschnitt „Narration (Entwurf)\"",
-        "  — ohne Modell oder Installation (Attrappe); der Nachweis landet",
-        "  in `llm_audit.jsonl`.",
-        "- **Konferenzmappe**: `python -m portfolio portfolio.json --conference mappe.html`.",
-        f"- **Export-Prüfung (Weg 2)**: `python -m get_data check raw/{first_art}_jira.json`;",
-        "  die Roh-JSONs unter `raw/` sind zugleich Demo-Futter für get_data.",
-        "- **Delivery-Register**: erzeugt/austauschbar über `python -m sources fetch`",
-        "  (Provider: file, prometheus, github, gitlab, sonarqube — kombinierbar).",
+        tt("rm.more.delta", days=STAND_INTERVAL_DAYS),
+        tt("rm.more.narrate"),
+        tt("rm.more.conference"),
+        tt("rm.more.getdata", art=first_art),
+        tt("rm.more.delivery"),
         "",
     ]
     return "\n".join(lines)
@@ -1477,8 +1441,8 @@ def _build_stand_series(
 
     snapshots_dir = out / "snapshots"
     deltas_dir = out / "deltas"
-    log(f"  Stände-Reihe: {stands} Stände im {STAND_INTERVAL_DAYS}-Tage-Rhythmus ...")
-    _emit(progress, "stands", "running", f"{stands} Stände")
+    log(_t("log.stands_start", lang, n=stands, days=STAND_INTERVAL_DAYS))
+    _emit(progress, "stands", "running", _t("det.stands_running", lang, n=stands))
     entries: list[tuple[int, date, str]] = []
     snapshot_paths: list[Path] = []
     for k, day in enumerate(stand_dates, start=1):
@@ -1502,17 +1466,18 @@ def _build_stand_series(
                     log=lambda m: None))
         entries.append((k, day, name))
         snapshot_paths.append(target)
-        log(f"    Stand {k:02d}: {day.isoformat()}")
+        log(_t("log.stand", lang, k=k, date=day.isoformat()))
     shutil.copyfile(snapshot_paths[-2], snapshots_dir / "snapshot_prev.json")
     shutil.copyfile(snapshot_paths[-1], snapshots_dir / "snapshot_now.json")
     stands_index = write_stands_index(snapshots_dir, entries)
-    _emit(progress, "stands", "done", f"{stands} Stände, {stand_dates[0]} bis {stand_dates[-1]}")
-    _emit(progress, "deltas", "running", f"{stands - 1} Folgepaare")
+    _emit(progress, "stands", "done",
+          _t("det.stands_done", lang, n=stands, first=stand_dates[0], last=stand_dates[-1]))
+    _emit(progress, "deltas", "running", _t("det.deltas_running", lang, n=stands - 1))
     deltas: list[tuple[Path, Path]] = []
     for k in range(1, stands):
         deltas.append(write_stand_delta(snapshots_dir, deltas_dir, k, lang))
-    log(f"  Delta-Briefings: {len(deltas)} Folgepaare unter deltas/")
-    _emit(progress, "deltas", "done", f"{len(deltas)} Delta-Briefings (md + html)")
+    log(_t("log.deltas", lang, n=len(deltas)))
+    _emit(progress, "deltas", "done", _t("det.deltas_done", lang, n=len(deltas)))
     return {"stands": stands_index, "snapshots": snapshot_paths, "deltas": deltas}
 
 
@@ -1630,27 +1595,28 @@ def _build_portfolio(
         workflow_files[solution.key] = wf_file
 
     _emit(progress, "story", "running", spec.name)
-    binding = bind_roles(spec)
+    binding = bind_roles(spec, lang)
     tags = _solution_tags(spec)
-    story_data = story_for(template, binding, tags, stands, switches)
+    story_data = story_for(template, binding, tags, stands, switches, lang=lang)
     this_stand = stands if stand_index is None else stand_index
     active = story_data.active_events(this_stand)
     _emit(progress, "story", "done",
-          f"{spec.name}: {story_data.title}, {len(spec.solutions)} Solutions, "
-          f"{len(spec.arts)} ARTs")
-    _emit(progress, "arts", "running", f"{len(spec.arts)} ARTs")
+          _t("det.story", lang, name=spec.name, title=story_data.title,
+             solutions=len(spec.solutions), arts=len(spec.arts)))
+    _emit(progress, "arts", "running", _t("det.arts_running", lang, n=len(spec.arts)))
     members = _generate_arts(
         out, spec, workflow_files,
         _profiles(story, art_profiles, spec, binding, issue_scale, active),
         seed, reference, window_days, log)
-    _emit(progress, "arts", "done", f"{len(spec.arts)} Jira-Exporte, Arbeitsmappen")
+    _emit(progress, "arts", "done", _t("det.arts_done", lang, n=len(spec.arts)))
 
     # Story-Anker (rollengebunden, Position 0 und 1) + seed-generierte
     # Grundmenge (register_gen, Skala S/M/L) je Solution.
     host_names = _names(spec.solutions[0], tags[spec.solutions[0].short])
     second_names = (_names(spec.solutions[1], tags[spec.solutions[1].short])
                     if len(spec.solutions) > 1 else None)
-    _emit(progress, "registers", "running", f"{len(spec.solutions)} Solutions")
+    _emit(progress, "registers", "running",
+          _t("det.registers_running", lang, n=len(spec.solutions)))
     register_paths: dict[str, Path] = {}
     registers_by_key: dict[str, dict[str, object]] = {}
     for index, solution in enumerate(spec.solutions):
@@ -1669,7 +1635,7 @@ def _build_portfolio(
             register_paths[f"{name}_{solution.key}"] = target
 
     _emit(progress, "registers", "done",
-          f"{len(REGISTER_NAMES) * len(spec.solutions)} Register")
+          _t("det.registers_done", lang, n=len(REGISTER_NAMES) * len(spec.solutions)))
     _emit(progress, "configs", "running")
     _registers = {r: f"registers/{r}.json" for r in REGISTER_NAMES}
     solution_paths: dict[str, Path] = {}
@@ -1698,11 +1664,10 @@ def _build_portfolio(
     save_structure(structure_path, Structure([spec]))
     story_path = out / "story.json"
     save_story(story_path, story_data)
-    _emit(progress, "configs", "done",
-          "portfolio.json, solution.json je Solution, pi_config, structure, story")
+    _emit(progress, "configs", "done", _t("det.configs", lang))
     if story == STORY_NOW:
         for notice in story_data.notices:
-            log(f"  Hinweis: {notice}")
+            log(_t("log.notice", lang, text=notice))
 
     stand_dates = [reference - timedelta(days=STAND_INTERVAL_DAYS * (stands - k))
                    for k in range(1, stands + 1)]
@@ -1710,14 +1675,15 @@ def _build_portfolio(
     if story == STORY_NOW:
         # E4: Provider-Rohdaten in Systemformaten + sources-Configs je Solution.
         _emit(progress, "sources", "running")
-        sources_info = write_source_inputs(out, spec, registers_by_key, reference, log)
+        sources_info = write_source_inputs(out, spec, registers_by_key, reference, log, lang)
         _emit(progress, "sources", "done",
-              f"{sum(1 for i in sources_info.values() if i.get('configs'))} Solutions mit Rohdaten")
+              _t("det.sources", lang,
+                 n=sum(1 for i in sources_info.values() if i.get("configs"))))
     _emit(progress, "readme", "running")
     readme = out / "README.md"
     readme.write_text(_readme_text(spec, story_data, seed, reference, scale,
                                    stand_dates if story == STORY_NOW else [],
-                                   sources_info),
+                                   sources_info, lang=lang),
                       encoding="utf-8")
     _emit(progress, "readme", "done", "README.md")
 
@@ -1788,7 +1754,8 @@ def build_portfolio_scenario(
                      MAX_STANDS, default DEFAULT_STANDS), two weeks apart,
                      the last one on ``reference``; every consecutive pair
                      gets a rendered Delta-Briefing under deltas/.
-        lang:        Language of the rendered Delta-Briefing pages.
+        lang:        Language of story, README, log lines and the rendered
+                     Delta-Briefing pages (de/en/ro/pt/fr; default English).
         template:    Story template (E2, Schnitt 2): "calm", "standard",
                      "escalation" or "recovery" — decides which events the
                      stands show and when they switch on or off.
@@ -1828,13 +1795,13 @@ def build_portfolio_scenario(
                                  stands=stands, lang=lang, template=template,
                                  switches=switches, stand_index=stand_index,
                                  progress=progress)
-        log(f"Szenario komplett: {out}")
+        log(_t("log.complete", lang, out=out))
         return paths
 
     out.mkdir(parents=True, exist_ok=True)
     per_portfolio: dict[str, dict[str, Any]] = {}
     for spec in structure.portfolios:
-        log(f"Portfolio {spec.name} -> {spec.key}/")
+        log(_t("log.portfolio", lang, name=spec.name, key=spec.key))
         # Overrides are keyed by ART short name; each portfolio knows only its own.
         own = {k: v for k, v in (art_profiles or {}).items() if k in spec.arts} or None
         per_portfolio[spec.key] = _build_portfolio(
@@ -1845,21 +1812,18 @@ def build_portfolio_scenario(
     save_structure(structure_path, structure)
     readme = out / "README.md"
     readme.write_text("\n".join([
-        "# Demo-Datenraum mit mehreren Portfolios",
+        _t("rm.root.title", lang),
         "",
-        f"Erzeugt mit `python -m testdata_generator --scenario portfolio` "
-        f"(Seed {seed}, Referenzdatum {reference.isoformat()}, "
-        f"{structure.describe()}).",
+        _t("rm.root.made", lang, seed=seed, reference=reference.isoformat(),
+           describe=structure.describe()),
         "",
-        "Jeder Unterordner ist ein vollständiger Portfolio-Datenraum mit",
-        "eigener `portfolio.json`, eigenen Ständen und eigener README:",
+        _t("rm.root.intro", lang),
         "",
     ] + [f"- `{spec.key}/` — {spec.name}: "
          + ", ".join(s.display_name for s in spec.solutions)
          for spec in structure.portfolios]
-      + ["", "Ein Lagebild über mehrere Portfolios hinweg ist heute kein",
-         "Feature; die Daten dafür liegen hier bereits nebeneinander.", ""]),
+      + ["", _t("rm.root.note", lang), ""]),
         encoding="utf-8")
-    log(f"Szenario komplett: {out} ({structure.describe()})")
+    log(_t("log.complete_multi", lang, out=out, describe=structure.describe()))
     return {"structure": structure_path, "readme": readme,
             "portfolios": per_portfolio}
