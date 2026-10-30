@@ -258,6 +258,7 @@ class DataspaceWindow(tk.Tk):
 
         self.title(f"{self.t['app']} · {self.t['nav_room']}")
         self.minsize(960, 640)
+        self.geometry("1200x900")        # all ten events visible on a 1080p screen
         self._build()
         self._refresh_preview()
 
