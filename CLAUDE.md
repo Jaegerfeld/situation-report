@@ -54,6 +54,13 @@ ablesbar sind. Erste Fassung 14.10.2026 nach vier eigenmächtigen Releases (v0.4
 - Die Laws-of-UX-Skills liegen auf Nutzer-Ebene (`~/.claude/skills/`), sind proprietär und kommen
   **nie ins Repo**; Ergebnisse tragen die Credit-Zeile „Based on Laws of UX by Jon Yablonski,
   lawsofux.com. Published by Pip Decks."
+- Ebenfalls auf Nutzer-Ebene liegt der eigene Skill `ux-korpus` (seit 31.10.2026): die Abgleichstabellen
+  der vier Kapitelanalysen zu Chlebek, Thesmann und Stapelkamp aus `Quellen/Buchanalysen/`. Er wird bei
+  jedem UX read, Audit und Fix **mitgeladen**; er korrigiert einzelne Karten mit Quellen (Miller, Jakob,
+  Doherty), liefert Prüfwerte, die das Deck nicht hat (Farbe, Schrift, Meldungsklassen, ISO 9241,
+  Kompetenzgrade, Styleguide, Barrierefreiheit, Testmethodik), und die Auflösung der Streitfälle
+  (`references/widersprueche.md`). Quellen aus dem Korpus mit Kürzel und Seite zitieren (CH, TH, ST1, ST2);
+  Lehrbuchstudien ohne Methodik als „laut …" kennzeichnen.
 
 ## 6. Veröffentlichte Texte
 
