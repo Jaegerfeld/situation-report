@@ -33,7 +33,11 @@ ein, dafür ist einmal Internet nötig).
 4. **Ordnerdialog:** „Durchsuchen …" in Schritt 3. Öffnet sich ein Dialog?
 
 Die ausführliche Anleitung: `docs/tutorials/demo-data-room.de.md` im Paket oder online
-unter https://jaegerfeld.github.io/situation-report/ (Tutorials → Demo-Datenraum).
+unter https://jaegerfeld.github.io/situation-report/ (Tutorials → Demo-Datenraum). Das
+**Handbuch zu diesem Stand** liegt als PDF im Paket unter `docs/` (Deutsch
+`testdata_generator_Benutzerhandbuch.pdf`, dazu EN/RO/PT/FR) — der „Handbuch“-Link in der
+Browser-Seite zeigt dagegen auf die veröffentlichte Fassung vom Hauptzweig, die den
+Datenraum noch nicht beschreibt.
 
 ## Was wir wissen wollen
 
