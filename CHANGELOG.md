@@ -152,6 +152,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   wo er vorher deutsch war. Vollständigkeits- und Platzhalter-Test über die drei Kataloge
   (`tests/testdata_generator/unit/test_i18n.py`); 22 Bestandstests auf den englischen Standard
   umgestellt. Übersetzungen RO/PT/FR sind Entwürfe zur Prüfung durch Muttersprachler.
+- **Handbuch des Testdaten-Generators neu geschrieben (31.10.2026).** Robert: „die manuals
+  sind noch die alten". Das Handbuch beschrieb den Einzel-ART-Generator mit Workflow-Datei und
+  hängte die ganze Beta als einen Absatz an Kapitel 5b. Neu in allen fünf Sprachen: ein Aufbau
+  (`docs/generate_testdata_generator_manual.py`, `build_content()`) aus fünf Textkatalogen
+  `_M[lang]` — 1 Was ist der Generator (zwei Wege), 2 Start (vier Startdateien, Fenster oder
+  Browser, Sprachen), 3 Der Datenraum in drei Schritten (Szenario, Umfang & Quellen,
+  Erzeugen; neues Bildschirmfoto `docs/assets/Datenraum-Fenster.png`), 4 Was im Ordner liegt,
+  5 Die Geschichte verstehen (Rollen, Hinweise, Ereignisse E1–E10, Stand-Fenster), 6 Der
+  Datenraum auf der Kommandozeile, 7 Fortschreiben, 8 Ein einzelner ART (klassischer
+  Generator: Fenster, Workflow-Datei, Parameter, Flow-Muster, ART_A), 9 Häufige Fragen,
+  10 Glossar. Test `tests/docs/test_testdata_manual_catalogue.py` hält die fünf Kataloge auf
+  derselben Schlüsselmenge und baut jeden Aufbau. Das Tester-Paket (Dev Build) trägt die
+  Handbuch- und Tutorial-PDFs jetzt unter `docs/` mit; `TESTER.md` nennt sie, weil der
+  Handbuch-Link der Browser-Seite auf die veröffentlichte Fassung vom Hauptzweig zeigt.
 
 ### Fixed
 - **Delta-Briefing (HTML): vier Register-Abschnitte ohne Überschrift.** Die HTML-Seite kannte keine

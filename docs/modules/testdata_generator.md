@@ -23,6 +23,11 @@ Step by step: [tutorial "A demo data room in one minute"](../tutorials/demo-data
 
 ## Interface
 
+![Data-room window, step 1 "Scenario"](../assets/Datenraum-Fenster.png)
+
+*The data room in three steps (beta, default path; German UI shown). The classic window for
+a single ART remains:*
+
 ![Testdata Generator GUI screenshot](../assets/Testdata-Generator-GUI.png)
 
 ## Start

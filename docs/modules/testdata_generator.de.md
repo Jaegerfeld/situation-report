@@ -23,6 +23,11 @@ Schritt für Schritt: [Tutorial „Demo-Datenraum in einer Minute"](../tutorials
 
 ## Oberfläche
 
+![Datenraum-Fenster, Schritt 1 „Szenario“](../assets/Datenraum-Fenster.png)
+
+*Der Datenraum in drei Schritten (Beta, Standardweg). Das klassische Fenster für einen
+einzelnen ART bleibt erhalten:*
+
 ![Screenshot des Testdata Generator](../assets/Testdata-Generator-GUI.png)
 
 ## Start

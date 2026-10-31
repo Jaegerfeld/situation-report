@@ -133,6 +133,11 @@ jobs:
           foreach ($f in 'docs/tutorials/demo-data-room.de.md','docs/tutorials/demo-data-room.md') {
               if (Test-Path $f) { Copy-Item $f "$BUNDLE\docs\tutorials\" }
           }
+          # Generator manual (five languages) and data-room tutorial as PDF, so testers
+          # read the manual of the packaged state, not the one deployed from main.
+          foreach ($f in (Get-ChildItem 'docs' -Filter 'testdata_generator_*.pdf') + (Get-ChildItem 'docs' -Filter 'dataspace_Tutorial_*.pdf')) {
+              Copy-Item $f.FullName "$BUNDLE\docs\"
+          }
           if (Test-Path 'docs/beta/TESTER.md') { Copy-Item 'docs/beta/TESTER.md' "$BUNDLE\TESTER.md" }
 
           # --- Launcher batch files (python.exe so startup errors are visible) ---
@@ -373,6 +378,8 @@ jobs:
           for f in docs/tutorials/demo-data-room.de.md docs/tutorials/demo-data-room.md; do
             [ -f "$f" ] && cp "$f" "$BUNDLE/docs/tutorials/"
           done
+          # Generator manual (five languages) and data-room tutorial as PDF
+          cp docs/testdata_generator_*.pdf docs/dataspace_Tutorial_*.pdf "$BUNDLE/docs/" 2>/dev/null || true
           [ -f docs/beta/TESTER.md ] && cp docs/beta/TESTER.md "$BUNDLE/TESTER.md"
 
           # Write launcher scripts via Python to avoid heredoc quoting issues
