@@ -173,6 +173,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   ab, sobald einer dieser Abschnitte eine Änderung trug — in der Zwei-Stände-Demo unauffällig, in
   der Stände-Reihe sofort (Wecker-Stände ändern sich zwischen frühen Ständen). Titel in fünf
   Sprachen ergänzt (`portfolio/report_texts.py`), Regressionstest.
+- **Testdaten-Generator: Absturz der Konsolenausgabe in Rumänisch, Portugiesisch und Französisch
+  unter Windows.** `python -m testdata_generator --scenario portfolio --lang ro` brach aus dem
+  Tester-Paket (gebündeltes Python, Konsole in cp1252) mit `UnicodeEncodeError` an „Spațiu de date"
+  ab; der Datenraum wurde nicht erzeugt. Befund vom 31.10.2026 beim Rauchtest des neuen Pakets, im
+  Paket vom 30.10. bereits vorhanden. `testdata_generator/__main__.py` stellt stdout und stderr vor
+  dem Start auf UTF-8 (`ensure_utf8_console`, nicht darstellbare Zeichen werden ersetzt statt
+  abzubrechen); Tests für den Streamwechsel und Ende-zu-Ende mit erzwungener cp1252-Konsole
+  (`tests/testdata_generator/unit/test_console_encoding.py`).
 
 ### Docs
 - **Rechtsstand 10/2026 (Rechts-Kandidat R5, reine Doku — kein Release).** Roadmap-Block „Rechtliche
