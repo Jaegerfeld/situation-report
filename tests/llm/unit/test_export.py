@@ -3,7 +3,7 @@
 # Repository:     https://github.com/Jaegerfeld/situation-report
 # KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
 # Erstellt:       13.10.2026
-# Geändert:       13.10.2026
+# Geändert:       09.11.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
@@ -11,7 +11,8 @@
 #   der Ausgabe, Platzhalter, Klasse export), Einbettung in narrate (Zweck
 #   und Ordner wandern in die Config, Zahlen-Wächter übersprungen, Banner
 #   „kein Modell", Nachweis mit Provider export), Erreichbarkeit über jede
-#   KI-Stelle (D1, D5 ohne Fragen-Wächter, P3), Zwischenablage abschaltbar.
+#   KI-Stelle (D1, D5 ohne Fragen-Wächter, P3), Zwischenablage abschaltbar,
+#   Aufrufreihenfolge in copy_to_clipboard (Tk-9-Absturz, 09.11.2026).
 # =============================================================================
 
 from __future__ import annotations
@@ -156,3 +157,60 @@ class TestReachableFromEveryAiStep:
         page, _ = attach_reading("<table></table>", matrix_to_markdown(ws), "export", lang="en",
                                  audit_path=tmp_path / "llm_audit.jsonl", log=lambda m: None)
         assert "No model called" in page and list(tmp_path.glob("prompt_p3_reading_*.md"))
+
+
+class TestClipboard:
+    """
+    `copy_to_clipboard` talks to Tk directly. Tk 9.0.4 (Python 3.14.7) kills
+    the process with a Windows access violation when `clipboard_clear()` runs
+    on a window that was never realized — an `except Exception` cannot catch
+    it, so only the call order protects the program. These tests pin that
+    order with a fake tkinter instead of the real one.
+    """
+
+    def _fake_tkinter(self, monkeypatch, calls: list[str]):
+        import sys
+        import types
+
+        class FakeRoot:
+            def withdraw(self) -> None:
+                calls.append("withdraw")
+
+            def update(self) -> None:
+                calls.append("update")
+
+            def clipboard_clear(self) -> None:
+                calls.append("clear")
+
+            def clipboard_append(self, text: str) -> None:
+                calls.append(f"append:{text}")
+
+            def destroy(self) -> None:
+                calls.append("destroy")
+
+        module = types.ModuleType("tkinter")
+        module.Tk = FakeRoot           # type: ignore[attr-defined]
+        monkeypatch.setitem(sys.modules, "tkinter", module)
+
+    def test_window_is_realized_before_the_clipboard_is_cleared(self, monkeypatch) -> None:
+        from llm.export import copy_to_clipboard
+        calls: list[str] = []
+        self._fake_tkinter(monkeypatch, calls)
+        assert copy_to_clipboard("hallo") is True
+        assert calls == ["withdraw", "update", "clear", "append:hallo", "update", "destroy"]
+        assert calls.index("update") < calls.index("clear")   # the crash guard
+
+    def test_a_tk_failure_means_not_copied(self, monkeypatch) -> None:
+        import sys
+        import types
+
+        from llm.export import copy_to_clipboard
+
+        module = types.ModuleType("tkinter")
+
+        def boom() -> None:
+            raise RuntimeError("no display")
+
+        module.Tk = boom               # type: ignore[attr-defined]
+        monkeypatch.setitem(sys.modules, "tkinter", module)
+        assert copy_to_clipboard("hallo") is False

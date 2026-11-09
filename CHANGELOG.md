@@ -181,6 +181,22 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   dem Start auf UTF-8 (`ensure_utf8_console`, nicht darstellbare Zeichen werden ersetzt statt
   abzubrechen); Tests für den Streamwechsel und Ende-zu-Ende mit erzwungener cp1252-Konsole
   (`tests/testdata_generator/unit/test_console_encoding.py`).
+- **Prompt-Export: harter Absturz beim Kopieren in die Zwischenablage unter Tk 9.** `llm/export.py`
+  rief `clipboard_clear()` auf einem gerade erzeugten, noch nicht realisierten Tk-Fenster auf. Unter
+  Tk 9.0.4 (Python 3.14.7) erzeugt das eine Access Violation: der Prozess stirbt, und das `except
+  Exception` der Funktion kann das nicht abfangen. Betroffen war jeder Weg über den Provider
+  `export` — `portfolio ask`, die KI-Entwürfe des Testdaten-Generators — und damit auch der
+  Testlauf, der nach 58 Tests abbrach. Belegt ist der Absturz auf einem Rechner (Laptop, Tk 9.0.4,
+  Befund vom 09.11.2026 beim Einrichten); am Desktop (Python 3.14.5) lief derselbe Lauf bisher
+  durch, und die Tester-Pakete vom 31.10. bündeln nach Dateilage Tk 8.6 (`tcl86t.dll`, `tk86t.dll`
+  im Windows-ZIP). Das Fenster wird jetzt mit `root.update()` realisiert, bevor die Zwischenablage
+  angefasst wird; mit diesem Einzeiler allein lief der volle Testlauf durch (2258 Tests, echter
+  Tk-Pfad), und die Minimalprobe fünfmal hintereinander. Ein Test hält die Aufrufreihenfolge mit
+  einem gefälschten `tkinter` fest (`tests/llm/unit/test_export.py::TestClipboard`) und schlägt ohne
+  den Fix fehl. Außerdem rührt kein Test mehr die echte Zwischenablage an: die bisher nur dateiweise
+  gesetzte Attrappe steht jetzt sitzungsweit in `tests/conftest.py` (`no_real_clipboard`) — nötig,
+  weil die modulweite Fixture `drafts` in `tests/testdata_generator/unit/test_dataspace.py` vor
+  jeder funktionsweiten Fixture gebaut wird.
 
 ### Docs
 - **Rechtsstand 10/2026 (Rechts-Kandidat R5, reine Doku — kein Release).** Roadmap-Block „Rechtliche

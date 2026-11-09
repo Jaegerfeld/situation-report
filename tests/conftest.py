@@ -3,7 +3,7 @@
 # Repository:     https://github.com/Jaegerfeld/situation-report
 # KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
 # Erstellt:       14.04.2026
-# Geändert:       13.10.2026
+# Geändert:       09.11.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
@@ -13,7 +13,8 @@
 #   Dateien über mehrere Tests hinweg. Seit 13.10.2026 außerdem: jeder Test
 #   bekommt eine eigene Präferenz-Datei — die GUI-Module schreiben sonst in
 #   ~/.situation_report/prefs.json des Entwicklers (Sprache, Modell), und
-#   ein Test kann den nächsten über diese Datei beeinflussen.
+#   ein Test kann den nächsten über diese Datei beeinflussen. Seit 09.11.2026
+#   außerdem: kein Test rührt die echte Zwischenablage an.
 # =============================================================================
 
 from pathlib import Path
@@ -79,3 +80,26 @@ def isolate_user_prefs(monkeypatch, tmp_path):
     except Exception:  # pragma: no cover
         pass
     yield prefs
+
+
+@pytest.fixture(autouse=True, scope="session")
+def no_real_clipboard():
+    """
+    Keep every test away from the real clipboard.
+
+    The provider "export" copies the prompt bundle to the clipboard, so any
+    test that walks a full KI path (the AI drafts of the data room, for
+    instance) wrote into the developer's clipboard. Two of them also hit Tk
+    directly and crashed the whole run on Tk 9.0.4 (09.11.2026, Laptop).
+    The patch is session-scoped on purpose: module-scoped fixtures such as
+    ``drafts`` in tests/testdata_generator/unit/test_dataspace.py are built
+    before any function-scoped fixture runs, so a monkeypatch per test would
+    come too late. Tests that want the copy to look successful patch the same
+    name again inside the test (tests/llm/unit/test_export.py).
+    """
+    from unittest.mock import patch
+
+    import llm.providers.export as export_provider
+
+    with patch.object(export_provider, "copy_to_clipboard", lambda text: False):
+        yield

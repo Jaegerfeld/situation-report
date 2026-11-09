@@ -3,7 +3,7 @@
 # Repository:     https://github.com/Jaegerfeld/situation-report
 # KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
 # Erstellt:       13.10.2026
-# Geändert:       13.10.2026
+# Geändert:       09.11.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
@@ -114,6 +114,10 @@ def copy_to_clipboard(text: str) -> bool:
 
         root = tk.Tk()
         root.withdraw()
+        root.update()           # realize the window first: with Tk 9.0.4 a
+                                # clipboard_clear() on an unrealized window raises
+                                # a Windows access violation, which kills the
+                                # process and no except clause can catch
         root.clipboard_clear()
         root.clipboard_append(text)
         root.update()           # hand the content to the clipboard owner
