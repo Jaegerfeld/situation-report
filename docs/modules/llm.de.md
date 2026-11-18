@@ -151,7 +151,7 @@ benannt; `--clipboard` liest die Antwort aus der Zwischenablage statt aus einer 
   verknüpft. Seit 0.45.0 trägt auch der Bündelkopf diese Prüfsumme; ein nach dem Export
   verändertes Bündel wird gemeldet.
 
-In der Solutions-&-Portfolios-GUI gibt es denselben Schritt als Knopf **KI-Antwort prüfen …**. Für Antworten an das Lagebild (Zweck `d3_question`, seit 0.46.0) läuft zusätzlich der **Zitat-Wächter**: jede Aussage muss einen Pfad des Fakten-Index aus dem Bündel zitieren, jede Zahl aus den zitierten Fakten stammen.
+In der Solutions-&-Portfolios-GUI gibt es denselben Schritt als Knopf **KI-Antwort prüfen …**. Für Antworten an das Lagebild (Zweck `d3_question`, seit 0.46.0) läuft zusätzlich der **Zitat-Wächter**: jede Aussage muss einen Pfad des Fakten-Index aus dem Bündel zitieren, jede Zahl aus den zitierten Fakten stammen. Seit 0.55.0 läuft dort außerdem der **Belegstufen-Wächter** (`llm/guard.py::basis_violations`): ein Soll oder ein gemeldeter Zustand darf nicht als Zustand formuliert sein, und der geprüfte Entwurf trägt den vom Werkzeug gezählten Belegspiegel (Ist · Soll · Meldung). Bündel ohne Belegstufen, also vor 0.55.0 exportiert, werden wie bisher geprüft.
 
 ## Maschinenlesbarer Marker und Freigabe (R3, seit 0.53.0)
 

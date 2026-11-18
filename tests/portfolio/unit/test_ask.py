@@ -26,7 +26,7 @@ import pytest
 
 from llm.audit import AUDIT_FILENAME
 from llm.base import DEPLOYMENT_MOCK, LlmResult
-from llm.guard import UNKNOWN_ANSWERS, CitationGuardError
+from llm.guard import UNKNOWN_ANSWERS, BasisGuardError, CitationGuardError
 from portfolio.ask import ask_question, ask_to_markdown, question_contract, run_ask
 from portfolio.facts import build_fact_index
 from portfolio.snapshot import load_snapshot
@@ -177,3 +177,69 @@ class TestGuiWiring:
                         "msg_ask_error", "msg_ask_empty"):
                 assert key in _T[lang], (lang, key)
         assert callable(SolutionManagerApp._ask_dialog)
+
+
+class TestEvidenceBasis:
+    """D10a: a target or a report stated as a state is discarded; the tool counts the evidence."""
+
+    @staticmethod
+    def _fact(idx, suffix: str, basis: str):
+        return next(f for f in idx.facts if f.path.endswith(suffix) and f.basis == basis
+                    and f.path.startswith("S1/"))
+
+    def test_report_stated_as_state_is_discarded_and_recorded(self, alpha, tmp_path) -> None:
+        cfg, snap = alpha
+        audit = tmp_path / AUDIT_FILENAME
+        status = self._fact(build_fact_index(snap), ").status", "reported")
+        text = f"Das läuft gut [{status.path}]."
+        with patch("llm.narrate.discover_providers", return_value={"fixed": _provider(text)}):
+            with pytest.raises(BasisGuardError) as exc:
+                ask_question(cfg, "Wie steht es?", provider_id="fixed", snapshot=snap,
+                             audit_path=audit, log=lambda m: None)
+        assert exc.value.violations[0].startswith("reported stated as a state: ")
+        assert isinstance(exc.value, CitationGuardError)            # GUI, CLI and noise catch it as before
+        records = [json.loads(line) for line in audit.read_text(encoding="utf-8").splitlines()]
+        assert records[-1]["guard_passed"] is False and records[-1]["purpose"] == "d3_question"
+
+    def test_named_report_passes_and_the_mirror_counts_it(self, alpha, tmp_path) -> None:
+        cfg, snap = alpha
+        idx = build_fact_index(snap)
+        status = self._fact(idx, ").status", "reported")
+        open_fact = idx.by_path["S1/total.open"]
+        text = (f"Laut Register lautet der Status {status.value} [{status.path}]. "
+                f"Offen sind {open_fact.value} Items [S1/total.open].")
+        with patch("llm.narrate.discover_providers", return_value={"fixed": _provider(text)}):
+            res = run_ask(cfg, "Wie steht es?", tmp_path / "m.ask.md", provider_id="fixed",
+                          snapshot=snap, log=lambda m: None)
+        assert res.basis_counts == {"actual": 1, "target": 0, "reported": 1}
+        assert res.mirror("de") == "Belege (vom Werkzeug gezählt): 1 Ist · 0 Soll · 1 Meldung"
+        written = (tmp_path / "m.ask.md").read_text(encoding="utf-8")
+        # the mirror sits between the answer and the provenance line
+        assert written.index(text) < written.index(f"**{res.mirror('de')}**") < written.index("\n---\n")
+
+    def test_unknown_answer_says_no_cited_facts_and_export_has_no_mirror(self, alpha, tmp_path) -> None:
+        import llm.providers.export as export_provider
+        cfg, snap = alpha
+        res = run_ask(cfg, "F?", tmp_path / "u.ask.md", provider_id="mock", snapshot=snap,
+                      log=lambda m: None)
+        assert res.mirror("de") == "Belege (vom Werkzeug gezählt): keine zitierten Fakten"
+        assert res.mirror("de") in (tmp_path / "u.ask.md").read_text(encoding="utf-8")
+        with patch.object(export_provider, "copy_to_clipboard", lambda text: False):
+            exported = run_ask(cfg, "F?", tmp_path / "e.ask.md", provider_id="export", snapshot=snap,
+                               log=lambda m: None)
+        assert exported.mirror("de") == ""
+        assert "Belege" not in (tmp_path / "e.ask.md").read_text(encoding="utf-8")
+
+    def test_question_prompt_names_the_three_levels(self) -> None:
+        from llm.prompts import PROMPT_VERSION, question_system_prompt
+        assert PROMPT_VERSION == "v3"
+        for lang in ("de", "en"):
+            prompt = question_system_prompt(lang)
+            assert all(tag in prompt for tag in ("{actual}", "{target}", "{reported}"))
+        assert "KEIN Zustand" in question_system_prompt("de")
+        assert "NOT a state" in question_system_prompt("en")
+
+    def test_gui_has_the_rejection_text_in_every_language(self) -> None:
+        from portfolio.gui import _T
+        for lang in ("de", "en", "ro", "pt", "fr"):
+            assert "{n}" in _T[lang]["msg_ask_rejected_basis"]

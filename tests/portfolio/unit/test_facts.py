@@ -3,7 +3,7 @@
 # Repository:     https://github.com/Jaegerfeld/situation-report
 # KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
 # Erstellt:       14.10.2026
-# Geändert:       14.10.2026
+# Geändert:       18.11.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
@@ -12,6 +12,7 @@
 #   und Veränderung, Harmonisierung, Scope, KEINE Personenfelder (Leitplanke
 #   b), Freitext als Daten (gekürzt, ohne Steuerzeichen, ohne eckige Klammern),
 #   stabile Prüfsumme, Zeilenformat lesbar für den Zitat-Wächter.
+#   Seit D10a: Belegstufe je Fakt (Ist/Soll/Meldung) samt Legende im Index.
 # =============================================================================
 
 from __future__ import annotations
@@ -20,11 +21,18 @@ from datetime import date
 
 import pytest
 
-from llm.guard import parse_fact_lines
+from llm.guard import parse_fact_basis, parse_fact_lines
 from portfolio.facts import (
+    BASES,
+    BASIS_ACTUAL,
+    BASIS_LEGEND,
+    BASIS_REPORTED,
+    BASIS_TARGET,
     PERSON_FIELDS,
+    TARGET_FIELDS,
     TEXT_LIMIT,
     Fact,
+    _register_basis,
     build_fact_index,
     sanitize_text,
 )
@@ -122,3 +130,65 @@ class TestIndex:
         prev, now = stands
         a, b = build_fact_index(now), build_fact_index(now)
         assert a.digest() == b.digest() and a.digest() != build_fact_index(prev).digest()
+
+
+class TestEvidenceBasis:
+    """D10a: every fact says what kind of statement it is - actual, target or reported."""
+
+    @pytest.fixture()
+    def index(self, stands):
+        prev, now = stands
+        return build_fact_index(now, prev=prev)
+
+    def test_every_fact_of_a_stand_is_classified(self, index) -> None:
+        assert index.facts and all(f.basis in BASES for f in index.facts)
+        assert index.basis_map() == {f.path: f.basis for f in index.facts}
+
+    def test_flow_metrics_changes_and_confidence_are_actual(self, index) -> None:
+        measured = [f for f in index.facts
+                    if f.path.startswith(("S1/total.", "S0/total.", "S1/units(", "D/"))
+                    or f.path.endswith(".confidence")]
+        assert measured and {f.basis for f in measured} == {BASIS_ACTUAL}
+
+    def test_register_fields_are_reported_unless_they_are_targets(self, index) -> None:
+        register = [f for f in index.facts if "/governance." in f.path]
+        targets = [f for f in register if f.path.rsplit(".", 1)[-1] in TARGET_FIELDS]
+        assert targets and {f.basis for f in targets} == {BASIS_TARGET}
+        counts = [f for f in register if ".count" in f.path]
+        assert counts and {f.basis for f in counts} == {BASIS_REPORTED}
+        texts = [f for f in register if f.value.startswith("text: ")]
+        assert texts and {f.basis for f in texts} == {BASIS_REPORTED}
+        status = [f for f in register if f.path.endswith(").status")
+                  and "decision_points" not in f.path]
+        assert status and {f.basis for f in status} == {BASIS_REPORTED}
+
+    def test_decision_point_value_inherits_the_basis_of_its_metric(self) -> None:
+        flow = {"metric": "S1/total.p85_ct"}
+        reports = {"metric": "S1/governance.risks.count(open)"}
+        matrix = {"metric": "H/process(Order).data.score"}
+        for key in ("value", "status"):
+            assert _register_basis("decision_points", key, flow) == BASIS_ACTUAL
+            assert _register_basis("decision_points", key, reports) == BASIS_REPORTED
+            assert _register_basis("decision_points", key, matrix) == BASIS_REPORTED
+            assert _register_basis("decision_points", key, {}) == BASIS_REPORTED
+        assert _register_basis("decision_points", "threshold", flow) == BASIS_TARGET
+        assert _register_basis("decision_points", "title", flow) == BASIS_REPORTED
+        # outside the decision points a field called "value" is simply a report
+        assert _register_basis("risks", "value", flow) == BASIS_REPORTED
+
+    def test_target_fields_cover_the_register_definitions(self) -> None:
+        assert TARGET_FIELDS == {"due", "needed_by", "review_by", "target_pct", "threshold",
+                                 "horizon", "follow_up_pi"}
+
+    def test_line_carries_the_tag_and_the_guard_parser_reads_it(self, index) -> None:
+        f = Fact("S1/total.open", "41", "open", "2026-10-13", "Alpha", BASIS_ACTUAL)
+        assert f.line() == "- [S1/total.open] {actual} open = 41 (as of 2026-10-13; Alpha)"
+        assert "{actual}" not in f.evidence()                      # the tag is no evidence text
+        assert parse_fact_basis(index.to_markdown()) == index.basis_map()
+        assert set(parse_fact_lines(index.to_markdown())) == index.paths
+
+    def test_index_explains_the_tags_once(self, index) -> None:
+        text = index.to_markdown()
+        assert text.count(BASIS_LEGEND) == 1 and text.index(BASIS_LEGEND) < text.index("## Facts")
+        # the legend adds no number the numbers guard could trip over
+        assert not any(ch.isdigit() for ch in BASIS_LEGEND)

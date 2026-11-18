@@ -457,6 +457,33 @@ The GUI button **Ask the picture …** opens a dialog with the question, the own
 purpose `d3_question`; exit code 3 when the answer is discarded. The answer explains, it never
 recommends.
 
+### Evidence basis: actual, target, reported (D10a, since 0.55.0)
+
+Every fact of the index carries an **evidence basis**, and the fact line shows it:
+
+| Basis | In the contract | Meaning | Examples |
+|---|---|---|---|
+| **Actual** | `{actual}` | computed by the tool from the source data | cycle times, open and completed items, changes (`D/…`), source confidence |
+| **Target** | `{target}` | set or committed | dates (`due`, `needed_by`, `review_by`), thresholds (`threshold`, `target_pct`), `horizon`, `follow_up_pi`, the board decision of the harmonisation |
+| **Reported** | `{reported}` | entered by a unit or delivered by another system | status, ROAM, health, ratings, free text, counts of register entries, harmonisation scores |
+
+The value and status of a decision point inherit the basis of the watched metric: actual for a
+flow metric, reported when the metric itself counts register entries.
+
+A target is not a state, and a report only proves that something was reported. The **basis
+guard** therefore discards an answer when a statement cites no actual fact but only a target or
+a report that claims a state (status, ROAM, health, rating, count by status) and does not say
+so. "AD-1 is blocked [S1/governance.dependencies(AD-1).status]." fails; "AD-1 is marked as blocked
+[…]." or "According to the register AD-1 is blocked […]." passes. Descriptive register fields
+(who depends on whom, a title, an opening date) need no marker. The check is a word list (German
+and English), not a second model.
+
+Below every answer stands the **evidence mirror**, for example "Evidence (counted by the tool):
+1 actual · 1 target · 5 reported". The tool counts the cited facts per basis; the model does not
+write this line. All three levels are always shown, a zero shows what is missing. The return
+path `llm check` applies the same guard and appends the mirror; bundles exported before 0.55.0
+carry no basis tags and are checked as before. Prompt version v3.
+
 ## Noise audit — how loud is the model? (D7, since 0.47.0)
 
 `--ask "question" --noise 5` asks the same question five times in varied phrasings (run 1 is the

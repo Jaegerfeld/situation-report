@@ -797,6 +797,14 @@ def content_de(st: dict) -> list:
            "zitierten Fakten stammen — sonst verwirft der Zitat-Wächter die Antwort. „Dazu "
            "liegt im Lagebild keine Angabe vor.“ ist erlaubt. Eigene Einschätzung vor der "
            "Antwort (Entscheidungshygiene), nie ans Modell. Keine Personen, keine Empfehlung.", st),
+        _P("Belegstufen (seit 0.55.0): Jeder Fakt trägt <font name='Courier'>{actual}</font> (Ist — "
+           "vom Werkzeug gemessen), <font name='Courier'>{target}</font> (Soll — Ziel, Termin, "
+           "Schwelle, Beschluss) oder <font name='Courier'>{reported}</font> (Meldung — von einer "
+           "Stelle eingetragen). Ein Soll ist kein Zustand, eine Meldung keine Messung: Zitiert ein "
+           "Satz nur ein Soll oder einen gemeldeten Zustand und sagt das nicht („Termin ist …“, "
+           "„laut Register …“, „steht auf …“), verwirft der Belegstufen-Wächter die Antwort. Unter "
+           "der Antwort steht der Belegspiegel, vom Werkzeug gezählt, z. B. „1 Ist · 1 Soll · "
+           "5 Meldung“ — eine Null zeigt, was fehlt.", st),
         _SP(6),
         _H2("5.20  Noise-Audit (D7)", st), _hr(st),
         _P("<font name='Courier'>--ask \"Frage\" --noise 5</font> oder Feld „Wiederholungen“ im "
@@ -1381,6 +1389,14 @@ def content_en(st: dict) -> list:
            "otherwise the citation guard discards the answer. 'The situational picture holds "
            "no information on that.' is permitted. Own assessment before the answer "
            "(decision hygiene), never sent to the model. No persons, no recommendation.", st),
+        _P("Evidence basis (since 0.55.0): every fact carries <font name='Courier'>{actual}</font> "
+           "(measured by the tool), <font name='Courier'>{target}</font> (goal, due date, threshold, "
+           "decision) or <font name='Courier'>{reported}</font> (entered by a unit). A target is not "
+           "a state, a report is not a measurement: if a statement cites only a target or a reported "
+           "state and does not say so ('the target is …', 'according to the register …', 'marked "
+           "as …'), the basis guard discards the answer. Below the answer the tool prints the "
+           "evidence mirror it counted, e.g. '1 actual · 1 target · 5 reported' — a zero shows what "
+           "is missing.", st),
         _SP(6),
         _H2("5.20  Noise audit (D7)", st), _hr(st),
         _P("<font name='Courier'>--ask \"question\" --noise 5</font> or the Repeats field of the "
@@ -1919,6 +1935,13 @@ def content_ro(st: dict) -> list:
            "Fiecare afirmatie trebuie sa citeze o cale, fiecare numar trebuie sa provina din "
            "faptele citate — altfel paznicul citarii respinge raspunsul. Propria evaluare "
            "inainte de raspuns, niciodata trimisa modelului. Fara persoane, fara recomandari.", st),
+        _P("Baza dovezilor (din 0.55.0): fiecare fapt poarta <font name='Courier'>{actual}</font> "
+           "(masurat de instrument), <font name='Courier'>{target}</font> (tinta, termen, prag, "
+           "decizie) sau <font name='Courier'>{reported}</font> (introdus de o unitate). O tinta nu "
+           "este o stare, o raportare nu este o masuratoare: daca o afirmatie citeaza doar o tinta "
+           "sau o stare raportata si nu o spune, paznicul bazei respinge raspunsul. Sub raspuns "
+           "instrumentul afiseaza oglinda dovezilor numarata de el, de ex. '1 realizat · 1 tinta · "
+           "5 raportat' — un zero arata ce lipseste.", st),
         _SP(6),
         _H2("5.20  Audit de zgomot (D7)", st), _hr(st),
         _P("<font name='Courier'>--ask --noise 5</font> sau campul Repetari din dialogul de intrebare: "
@@ -2459,6 +2482,13 @@ def content_pt(st: dict) -> list:
            "afirmacao tem de citar um caminho, cada numero tem de vir dos factos citados — caso "
            "contrario o guarda de citacao rejeita a resposta. Avaliacao propria antes da "
            "resposta, nunca enviada ao modelo. Sem pessoas, sem recomendacao.", st),
+        _P("Base de evidencia (desde 0.55.0): cada facto traz <font name='Courier'>{actual}</font> "
+           "(medido pela ferramenta), <font name='Courier'>{target}</font> (meta, prazo, limiar, "
+           "decisao) ou <font name='Courier'>{reported}</font> (introduzido por uma unidade). Uma "
+           "meta nao e um estado, um reporte nao e uma medicao: se uma afirmacao cita apenas uma "
+           "meta ou um estado reportado e nao o diz, o guarda de base rejeita a resposta. Por baixo "
+           "da resposta a ferramenta mostra o espelho de evidencias que contou, p. ex. '1 real · "
+           "1 meta · 5 reportado' — um zero mostra o que falta.", st),
         _SP(6),
         _H2("5.20  Auditoria de ruido (D7)", st), _hr(st),
         _P("<font name='Courier'>--ask --noise 5</font> ou o campo Repeticoes do dialogo de pergunta: "
@@ -3021,6 +3051,13 @@ def content_fr(st: dict) -> list:
            "affirmation doit citer un chemin, chaque nombre doit provenir des faits cites — sinon "
            "le garde de citation rejette la reponse. Evaluation propre avant la reponse, jamais "
            "envoyee au modele. Pas de personnes, pas de recommandation.", st),
+        _P("Niveau de preuve (depuis 0.55.0) : chaque fait porte <font name='Courier'>{actual}</font> "
+           "(mesure par l'outil), <font name='Courier'>{target}</font> (objectif, echeance, seuil, "
+           "decision) ou <font name='Courier'>{reported}</font> (saisi par une unite). Une cible "
+           "n'est pas un etat, une declaration n'est pas une mesure : si une affirmation ne cite "
+           "qu'une cible ou un etat declare sans le dire, le garde de niveau rejette la reponse. "
+           "Sous la reponse, l'outil affiche le miroir des preuves qu'il a comptees, p. ex. "
+           "'1 reel · 1 cible · 5 declare' — un zero montre ce qui manque.", st),
         _SP(6),
         _H2("5.20  Audit de bruit (D7)", st), _hr(st),
         _P("<font name='Courier'>--ask --noise 5</font> ou le champ Repetitions du dialogue de question : "

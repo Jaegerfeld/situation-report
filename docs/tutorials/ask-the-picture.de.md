@@ -88,7 +88,7 @@ echtes Modell liefert.
 
 ---
 
-## 3. Fünf Begriffe, die du brauchst
+## 3. Sechs Begriffe, die du brauchst
 
 **Stand.** Das Lagebild zu einem Zeitpunkt: Kennzahlen, Quellen, alle Register. Technisch
 ein Snapshot. Du fragst immer *einen* Stand — den aktuellen (live aus der Config) oder
@@ -96,7 +96,7 @@ einen gespeicherten.
 
 **Fakten-Index.** Vor der Antwort wird der Stand in einzelne **Fakten** zerlegt. Jeder Fakt
 hat einen **Pfad**, einen Wert, eine Beschriftung und das Datum des Stands. Der Index ist
-der einzige Text, den das Modell sieht. Solution Alpha hat heute 527 Fakten.
+der einzige Text, den das Modell sieht. Solution Alpha hat heute 598 Fakten.
 
 **Pfad.** Die Adresse eines Fakts. Er ist so gebaut:
 
@@ -137,6 +137,14 @@ Klammern enthält.
 **Zitat-Wächter.** Die Prüfung nach der Antwort. Sie zerlegt die Antwort in Aussagen
 (Listenzeilen, Sätze) und prüft jede: Gibt es ein Zitat? Existiert der Pfad? Stehen alle
 Zahlen der Aussage in den zitierten Fakten? Ein Verstoß verwirft die Antwort.
+
+**Belegstufe.** Seit 0.55.0 sagt jeder Fakt, was für eine Angabe er ist: **Ist**
+(`{actual}` — vom Werkzeug aus den Quelldaten gerechnet), **Soll** (`{target}` — Termin,
+Schwelle, Ziel, Beschluss) oder **Meldung** (`{reported}` — von einer Stelle eingetragen:
+Status, Bewertung, Freitext). Ein Soll ist kein Zustand, eine Meldung keine Messung. Der
+**Belegstufen-Wächter** verwirft eine Antwort, wenn ein Satz nur ein Soll oder einen
+gemeldeten Zustand zitiert und das nicht sagt („Termin ist …", „laut Register …",
+„steht auf …").
 
 ---
 
@@ -184,7 +192,7 @@ Tippe ein: *Welche Abhängigkeit ist überfällig, und wen betrifft sie?* — un
 Mit `mock` steht im Antwortfeld:
 
 ```text
-KI-formulierter Entwurf (mock-1 @ mock, Prompt v1) — ungeprüft; vor Verwendung durch
+KI-formulierter Entwurf (mock-1 @ mock, Prompt v3) — ungeprüft; vor Verwendung durch
 einen Menschen redigieren und freigeben.
 
 Dazu liegt im Lagebild keine Angabe vor.
@@ -210,7 +218,7 @@ bestanden. Ein lokales Modell antwortet ähnlich, nur mit anderen Worten.
 
 **Eigene Einschätzung (vor der Antwort):** Vermutlich die Billing-API zwischen Alpha-1 und Alpha-3.
 
-> KI-formulierter Entwurf (demo-llm @ mock, Prompt v1) — ungeprüft; vor Verwendung durch
+> KI-formulierter Entwurf (demo-llm @ mock, Prompt v3) — ungeprüft; vor Verwendung durch
 > einen Menschen redigieren und freigeben.
 
 ## Antwort (KI-Entwurf)
@@ -223,8 +231,10 @@ Nehmer [S1/governance.dependencies(AD-1).from] [S1/governance.dependencies(AD-1)
 Dieselbe Naht hat zum dritten Mal eine Solution Area zum Thema test environment
 eröffnet [S1/governance.solution_areas.seams(ART Alpha-1 x ART Alpha-3).recurrence].
 
+**Belege (vom Werkzeug gezählt): 1 Ist · 1 Soll · 5 Meldung**
+
 ---
-Stand: S1 = 2026-10-14 · Fakten im Index: 527 · Index-Prüfsumme (SHA-256): 43aa08d6… ·
+Stand: S1 = 2026-10-14 · Fakten im Index: 598 · Index-Prüfsumme (SHA-256): 3cfb73d9… ·
 Modell: demo-llm @ mock · own-view hash: 56dc697e80339a25
 ```
 
@@ -237,6 +247,7 @@ Was die Teile bedeuten:
 | **Eigene Einschätzung** | dein Text von vor der Antwort — oder „— (übersprungen)" |
 | Banner (`>`) | Pflichtkennzeichnung: Modell, Betriebsklasse (`local`, `remote`, `mock`), Prompt-Version. Bleibt stehen, bis ein Mensch den Text redigiert und freigibt |
 | Antwort | jede Aussage endet mit einem oder mehreren Zitaten |
+| **Belege** | der Belegspiegel: wie viele der zitierten Fakten Ist, Soll und Meldung sind. Das Werkzeug zählt, das Modell schreibt diese Zeile nicht. Hier steht die Antwort vor allem auf Meldungen aus dem Abhängigkeitsregister; gemessen ist nur der Stand selbst |
 | Fußzeile | Stand (S1, ggf. S0), Zahl der Fakten, Prüfsumme des Index (damit ist nachvollziehbar, **welchen** Stand das Modell sah), Modell, Hash deiner Einschätzung |
 
 ### Ein Zitat nachschlagen
@@ -253,7 +264,7 @@ Nimm `[S1/governance.dependencies(AD-1).due]`. Das ist: aktueller Stand, Registe
 Die Zahl `2026-09-29` in der Antwort steht genau dort. Das ist der ganze Trick: Jede
 Aussage hat eine Adresse, und die Adresse führt zu einer Datei, die du öffnen kannst.
 
-Den kompletten Fakten-Index mit allen 527 Pfaden bekommst du, wenn du den Provider
+Den kompletten Fakten-Index mit allen 598 Pfaden bekommst du, wenn du den Provider
 `export` wählst (Kapitel 10): Das Prompt-Bündel enthält ihn vollständig.
 
 ### Warum zwei Zitate hinter einer Aussage?
@@ -276,7 +287,7 @@ python -m portfolio demo/solutions/alpha/solution.json \
 Ausgabe:
 
 ```text
-Question to stand 2026-10-14 via 'ollama' (527 facts) ...
+Question to stand 2026-10-14 via 'ollama' (598 facts) ...
 Answer written (draft for human review): demo/solutions/alpha/solution_2026-10-14.ask.md
 ```
 
@@ -325,13 +336,29 @@ Beachte das zweite Beispiel: Die Aussage war inhaltlich sogar richtig (AD-1 ist
 blockiert) — aber sie trug kein Zitat und enthielt eine Empfehlung („sollte eskaliert
 werden"). Beides darf nicht durch.
 
-Die drei Verstoßarten:
+**Belegstufen-Wächter** (ein gemeldeter Status als Tatsache formuliert, seit 0.55.0):
+
+```text
+REJECTED: Answer discarded: a statement that rests only on a target or on a reported state
+must say so ("target is", "planned for", "according to the register", "status is").
+1 violation(s): reported stated as a state: Die Abhängigkeit AD-1 ist blockiert
+[S1/governance.dependencies(AD-1).status].
+```
+
+Dieser Satz trägt ein Zitat und keine falsche Zahl — trotzdem fällt er durch. „Ist
+blockiert" behauptet einen Zustand; belegt ist nur, dass im Register `blocked` eingetragen
+ist. „AD-1 steht auf blocked" oder „Laut Register ist AD-1 blockiert" besteht. Dasselbe gilt
+für Termine: „AD-1 wird am 29.09. fertig" macht aus einem Soll einen Zustand, „AD-1 war am
+2026-09-29 fällig" nicht.
+
+Die vier Verstoßarten:
 
 | Meldung | Bedeutet |
 |---|---|
 | `uncited: …` | eine Aussage ohne `[Pfad]` |
 | `unknown path: …` | ein Zitat auf einen Pfad, den der Index nicht hat (meist ein Tippfehler des Modells) |
 | `number not in cited facts: …` | eine Zahl, die zwar irgendwo im Stand vorkommt, aber nicht in den Fakten, die die Aussage zitiert |
+| `target stated as a state: …`, `reported stated as a state: …` | ein Satz zitiert nur ein Soll oder einen gemeldeten Zustand und sagt das nicht |
 
 Was du tun kannst — in dieser Reihenfolge:
 

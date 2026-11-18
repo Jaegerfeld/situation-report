@@ -149,7 +149,7 @@ from the clipboard instead of a file.
   audit trail. Since 0.45.0 the bundle head also carries that checksum; a bundle edited after
   export is reported.
 
-The Solutions & Portfolios GUI has the same step as the button **Check AI answer …**. For answers to the situational picture (purpose `d3_question`, since 0.46.0) the check also runs the **citation guard**: every statement must cite a fact path of the bundle's index and every number must come from the cited facts.
+The Solutions & Portfolios GUI has the same step as the button **Check AI answer …**. For answers to the situational picture (purpose `d3_question`, since 0.46.0) the check also runs the **citation guard**: every statement must cite a fact path of the bundle's index and every number must come from the cited facts. Since 0.55.0 it also runs the **basis guard** (`llm/guard.py::basis_violations`): a target or a reported state must not be phrased as a state, and the checked draft carries the evidence mirror counted by the tool (actual · target · reported). Bundles without basis tags, exported before 0.55.0, are checked as before.
 
 ## Machine-readable marker and approval (R3, since 0.53.0)
 
