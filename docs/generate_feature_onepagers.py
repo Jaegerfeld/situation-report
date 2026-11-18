@@ -405,6 +405,82 @@ ONEPAGERS: dict[str, dict[str, dict]] = {
             ],
         },
     },
+    "evidence_basis": {
+        "de": {
+            "title": "Belegstufen: Ist, Soll, Meldung (D10a)",
+            "tagline": "18.11.2026 · Ein Soll ist kein Zustand, eine Meldung keine Messung – die Antwort "
+                       "sagt es, oder sie wird nicht geschrieben.",
+            "sections": [
+                ("h", "Worum geht es?"),
+                ("p", "Ein Termin aus einem Register und eine gemessene Durchlaufzeit sahen für das "
+                      "Sprachmodell bisher gleich aus. So wird aus „zugesagt für den 30.09.“ leicht „ist "
+                      "am 30.09. fertig“ und aus einem gemeldeten Status eine Tatsache. Zahlen- und "
+                      "Zitat-Wächter fangen das nicht: Die Zahl stimmt, das Zitat auch."),
+                ("h", "Was es tut"),
+                ("li", "Jeder Fakt trägt eine Belegstufe: Ist (vom Werkzeug gemessen), Soll (Ziel, Termin, "
+                       "Schwelle, Beschluss), Meldung (von einer Stelle eingetragen)"),
+                ("li", "Die Faktenzeile zeigt die Stufe: - [S1/total.median_ct] {actual} … · "
+                       "{target} · {reported}"),
+                ("li", "Belegstufen-Wächter: Zitiert ein Satz nur ein Soll oder einen gemeldeten Zustand "
+                       "und sagt das nicht, wird die Antwort verworfen"),
+                ("li", "Belegspiegel unter jeder Antwort, vom Werkzeug gezählt: „1 Ist · 1 Soll · "
+                       "5 Meldung“ – eine Null zeigt, was fehlt"),
+                ("li", "Gilt im Dialog „Lagebild befragen“, in der .ask.md und im Rückweg llm check"),
+                ("h", "Drei Entscheidungen"),
+                ("p", "<b>Ist, Soll, Meldung.</b> Drei Stufen in der Sprache von Controlling und Stab. "
+                      "Ein Soll ist kein schwacher Beleg für einen Zustand, sondern gar keiner; eine "
+                      "Meldung belegt, dass jemand etwas gemeldet hat."),
+                ("p", "<b>Der Kern, nicht jedes Wort.</b> Ein Kennwort ist Pflicht bei jedem Soll und bei "
+                      "Meldungen, die einen Zustand behaupten (Status, ROAM, Health, Bewertung). Wer von "
+                      "wem abhängt, ist Stammdatum und braucht keines."),
+                ("p", "<b>Das Werkzeug prüft, kein zweites Modell.</b> Wortliste, Zählung, "
+                      "Mengenvergleich – reproduzierbar und ohne weitere KI. Das Urteil bleibt beim "
+                      "Menschen."),
+                ("h", "So liest du es"),
+                ("code", "Verworfen:  AD-1 ist blockiert [S1/governance.dependencies(AD-1).status].\n"
+                         "Besteht:    AD-1 steht auf blocked [S1/governance.dependencies(AD-1).status].\n"
+                         "Besteht:    AD-1 war am 2026-09-29 fällig [S1/governance.dependencies(AD-1).due].\n"
+                         "Belege (vom Werkzeug gezählt): 1 Ist · 1 Soll · 5 Meldung"),
+            ],
+        },
+        "en": {
+            "title": "Evidence Basis: Actual, Target, Reported (D10a)",
+            "tagline": "18 Nov 2026 · A target is not a state, a report is not a measurement – the answer "
+                       "says so, or it is not written.",
+            "sections": [
+                ("h", "What is it?"),
+                ("p", "A due date from a register and a measured cycle time used to look alike to the "
+                      "language model. That is how 'committed for 30 Sept' turns into 'will be done on "
+                      "30 Sept', and a reported status into a fact. The numbers guard and the citation "
+                      "guard do not catch it: the number is right, and so is the citation."),
+                ("h", "What it does"),
+                ("li", "Every fact carries an evidence basis: actual (measured by the tool), target (goal, "
+                       "due date, threshold, decision), reported (entered by a unit)"),
+                ("li", "The fact line shows the basis: - [S1/total.median_ct] {actual} … · "
+                       "{target} · {reported}"),
+                ("li", "Basis guard: if a statement cites only a target or a reported state and does not "
+                       "say so, the answer is discarded"),
+                ("li", "Evidence mirror below every answer, counted by the tool: '1 actual · 1 target · "
+                       "5 reported' – a zero shows what is missing"),
+                ("li", "Applies in the 'Ask the picture' dialog, in the .ask.md file and on the return "
+                       "path llm check"),
+                ("h", "Three decisions"),
+                ("p", "<b>Actual, target, reported.</b> Three levels in the language of controlling and "
+                      "staff work. A target is not weak evidence of a state, it is none; a report proves "
+                      "that someone reported something."),
+                ("p", "<b>The core, not every word.</b> A marker is required for every target and for "
+                      "reports that claim a state (status, ROAM, health, rating). Who depends on whom is "
+                      "master data and needs none."),
+                ("p", "<b>The tool checks, not a second model.</b> Word list, count, set comparison – "
+                      "reproducible and without further AI. Judgement stays with the humans."),
+                ("h", "How to read it"),
+                ("code", "Discarded:  AD-1 is blocked [S1/governance.dependencies(AD-1).status].\n"
+                         "Passes:     AD-1 is marked as blocked [S1/governance.dependencies(AD-1).status].\n"
+                         "Passes:     AD-1 was due on 2026-09-29 [S1/governance.dependencies(AD-1).due].\n"
+                         "Evidence (counted by the tool): 1 actual · 1 target · 5 reported"),
+            ],
+        },
+    },
     "llm_check": {
         "de": {
             "title": "llm check \u2013 der R\u00fcckweg des Prompt-Exports",

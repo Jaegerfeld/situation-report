@@ -259,6 +259,7 @@ _T: dict[str, dict[str, str]] = {
         "msg_ask_running": "Frage läuft — Fakten-Index wird gebaut, Modell antwortet …",
         "msg_ask_done": "Antwort geschrieben (Entwurf): {path}",
         "msg_ask_rejected": "Antwort verworfen — {n} Verstoß/Verstöße gegen Zitierpflicht oder Zahlen: {first}",
+        "msg_ask_rejected_basis": "Antwort verworfen — {n} Satz/Sätze geben ein Soll oder eine Meldung als Zustand aus. Nichts geschrieben; bitte erneut fragen.",
         "msg_ask_error": "Frage fehlgeschlagen: {error}",
         "msg_ask_empty": "Bitte eine Frage eingeben.",
         "lbl_ask_repeats": "Wiederholungen (1 = Frage, > 1 = Noise-Audit)",
@@ -399,6 +400,7 @@ _T: dict[str, dict[str, str]] = {
         "msg_ask_running": "Asking — building the fact index, model answering …",
         "msg_ask_done": "Answer written (draft): {path}",
         "msg_ask_rejected": "Answer discarded — {n} violation(s) of citation or numbers: {first}",
+        "msg_ask_rejected_basis": "Answer discarded — {n} statement(s) present a target or a report as a state. Nothing written; please ask again.",
         "msg_ask_error": "Question failed: {error}",
         "msg_ask_empty": "Please enter a question.",
         "lbl_ask_repeats": "Repeats (1 = question, > 1 = noise audit)",
@@ -539,6 +541,7 @@ _T: dict[str, dict[str, str]] = {
         "msg_ask_running": "Întrebare în curs — se construiește indexul, modelul răspunde …",
         "msg_ask_done": "Răspuns scris (schiță): {path}",
         "msg_ask_rejected": "Răspuns respins — {n} abateri de la citare sau numere: {first}",
+        "msg_ask_rejected_basis": "Răspuns respins — {n} afirmații prezintă o țintă sau o raportare ca stare. Nimic scris; vă rugăm să întrebați din nou.",
         "msg_ask_error": "Întrebarea a eșuat: {error}",
         "msg_ask_empty": "Introduceți o întrebare.",
         "lbl_ask_repeats": "Repetări (1 = întrebare, > 1 = audit de zgomot)",
@@ -679,6 +682,7 @@ _T: dict[str, dict[str, str]] = {
         "msg_ask_running": "Pergunta em curso — a construir o índice, o modelo responde …",
         "msg_ask_done": "Resposta escrita (rascunho): {path}",
         "msg_ask_rejected": "Resposta rejeitada — {n} violações de citação ou números: {first}",
+        "msg_ask_rejected_basis": "Resposta rejeitada — {n} afirmações apresentam uma meta ou um reporte como estado. Nada escrito; pergunte novamente.",
         "msg_ask_error": "A pergunta falhou: {error}",
         "msg_ask_empty": "Introduza uma pergunta.",
         "lbl_ask_repeats": "Repetições (1 = pergunta, > 1 = auditoria de ruído)",
@@ -819,6 +823,7 @@ _T: dict[str, dict[str, str]] = {
         "msg_ask_running": "Question en cours — construction de l'index, le modèle répond …",
         "msg_ask_done": "Réponse écrite (brouillon) : {path}",
         "msg_ask_rejected": "Réponse rejetée — {n} infraction(s) à la citation ou aux nombres : {first}",
+        "msg_ask_rejected_basis": "Réponse rejetée — {n} affirmation(s) présentent une cible ou une déclaration comme un état. Rien n'a été écrit ; veuillez reposer la question.",
         "msg_ask_error": "La question a échoué : {error}",
         "msg_ask_empty": "Saisissez une question.",
         "lbl_ask_repeats": "Répétitions (1 = question, > 1 = audit de bruit)",
@@ -1991,7 +1996,7 @@ class SolutionManagerApp(tk.Tk):
 
             def worker() -> None:
                 try:
-                    from llm.guard import CitationGuardError, NumbersGuardError
+                    from llm.guard import BasisGuardError, CitationGuardError, NumbersGuardError
 
                     from .ask import run_ask
                     from .noise import run_noise
@@ -2009,7 +2014,14 @@ class SolutionManagerApp(tk.Tk):
                                           own_view=own, llm_model=llm_model, llm_base_url=llm_base_url,
                                           log=lambda *_: None)
                             text = f"{res.banner}\n\n{res.answer}"
+                            if res.mirror(lang):
+                                # D10a: the evidence mirror - the tool's line, below the answer,
+                                # in the answer's language so dialog and .ask.md read alike
+                                text += f"\n\n———\n{res.mirror(lang)}"
                             msg = self._tr("msg_ask_done").format(path=path)
+                    except BasisGuardError as exc:
+                        text = "\n".join(exc.violations)
+                        msg = self._tr("msg_ask_rejected_basis").format(n=len(exc.violations))
                     except CitationGuardError as exc:
                         text = "\n".join(exc.violations)
                         msg = self._tr("msg_ask_rejected").format(

@@ -33,7 +33,11 @@ from .audit import AUDIT_FILENAME, append_audit
 from .base import DEPLOYMENT_EXTERNAL_ANSWER, LlmResult
 from .guard import (
     ai_banner_text,
+    basis_counts,
+    basis_mirror,
+    basis_violations,
     citation_violations,
+    parse_fact_basis,
     parse_fact_lines,
     question_violations,
     verify_numbers,
@@ -49,6 +53,10 @@ BUNDLE_GLOB = "prompt_*.md"
 QUESTION_PURPOSES = ("d5_red_team",)
 #: Audit purposes whose answers must cite fact paths (D3, D4 explanations, M6 briefing).
 CITATION_PURPOSES = ("d3_question", "d4_anomaly", "m6_briefing")
+#: Audit purposes whose answers face the basis guard (D10a): a target or a
+#: report must not be stated as a state. Bundles exported before D10a carry
+#: no basis tags and pass unchanged.
+BASIS_PURPOSES = ("d3_question",)
 #: Suffix of the file llm check writes next to the answer.
 CHECKED_SUFFIX = ".checked.md"
 
@@ -167,17 +175,20 @@ class CheckReport:
     number_violations: list[str] = field(default_factory=list)
     question_violations: list[str] = field(default_factory=list)
     citation_violations: list[str] = field(default_factory=list)
+    basis_violations: list[str] = field(default_factory=list)
     written: Path | None = None
 
     @property
     def passed(self) -> bool:
-        return not (self.number_violations or self.question_violations or self.citation_violations)
+        return not (self.number_violations or self.question_violations
+                    or self.citation_violations or self.basis_violations)
 
     @property
     def violations(self) -> list[str]:
         return ([f"Zahl nicht im Contract: {n}" for n in self.number_violations]
                 + [f"Keine Frage: {line}" for line in self.question_violations]
-                + [f"Zitat: {line}" for line in self.citation_violations])
+                + [f"Zitat: {line}" for line in self.citation_violations]
+                + [f"Belegstufe: {line}" for line in self.basis_violations])
 
     def result(self) -> LlmResult:
         """The answer dressed as an LlmResult for banner and audit."""
@@ -199,6 +210,8 @@ def check_answer(answer: str, bundle: Bundle, model: str = MODEL_UNKNOWN) -> Che
         report.question_violations = question_violations(answer)
     if bundle.purpose in CITATION_PURPOSES:
         report.citation_violations = citation_violations(answer, parse_fact_lines(bundle.contract))
+    if bundle.purpose in BASIS_PURPOSES:
+        report.basis_violations = basis_violations(answer, parse_fact_basis(bundle.contract))
     return report
 
 
@@ -208,7 +221,12 @@ def checked_text(report: CheckReport, lang: str | None = None) -> str:
     result = report.result()
     lang = lang or report.bundle.lang
     banner = ai_banner_text(result, lang)
-    return f"{ai_markdown_head(result, banner, report.bundle.purpose, lang)}\n\n{report.answer.strip()}\n"
+    text = f"{ai_markdown_head(result, banner, report.bundle.purpose, lang)}\n\n{report.answer.strip()}\n"
+    basis = parse_fact_basis(report.bundle.contract)
+    if report.bundle.purpose in BASIS_PURPOSES and basis:
+        # the evidence mirror: counted by the tool, not written by the model
+        text += f"\n**{basis_mirror(basis_counts(report.answer, basis), lang)}**\n"
+    return text
 
 
 def record_check(report: CheckReport, audit_path: Path) -> None:

@@ -85,7 +85,7 @@ class TestPrompts:
     def test_translation_prompt_and_version(self) -> None:
         for lang in TRANSLATION_LANGS:
             assert "DATEN" in translation_system_prompt(lang)
-        assert PROMPT_VERSION == "v2"
+        assert PROMPT_VERSION == "v3"
 
 
 class TestWiring:
@@ -94,7 +94,7 @@ class TestWiring:
         n = narrate(contract, provider_id="mock", audit_path=tmp_path / "a.jsonl")
         assert len(n.warnings) == 1 and n.warnings[0].startswith("- [S1/a]")
         rec = json.loads((tmp_path / "a.jsonl").read_text(encoding="utf-8").splitlines()[-1])
-        assert rec["contract_warnings"] == 1 and rec["prompt_version"] == "v2" and "Prompt v2" in n.banner
+        assert rec["contract_warnings"] == 1 and rec["prompt_version"] == "v3" and "Prompt v3" in n.banner
         clean = narrate("# C\n- [S1/b] open = 4\n", provider_id="mock", audit_path=tmp_path / "a.jsonl")
         rec2 = json.loads((tmp_path / "a.jsonl").read_text(encoding="utf-8").splitlines()[-1])
         assert clean.warnings == [] and "contract_warnings" not in rec2
