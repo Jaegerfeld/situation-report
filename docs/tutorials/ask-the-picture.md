@@ -87,7 +87,7 @@ Chapters 4 to 6 show `mock` first, then an answer the way a real model gives it.
 
 ---
 
-## 3. Five terms you need
+## 3. Six terms you need
 
 **Stand.** The situational picture at one point in time: metrics, sources, every register.
 Technically a snapshot. You always ask *one* stand — the current one (live from the config)
@@ -95,7 +95,7 @@ or a saved one.
 
 **Fact index.** Before the answer, the stand is split into single **facts**. Every fact has
 a **path**, a value, a label and the date of the stand. The index is the only text the model
-sees. Solution Alpha has 527 facts today.
+sees. Solution Alpha has 598 facts today.
 
 **Path.** The address of a fact. It is built like this:
 
@@ -136,6 +136,13 @@ citation itself contains no square brackets.
 **Citation guard.** The check after the answer. It splits the answer into statements (list
 lines, sentences) and checks each: is there a citation? does the path exist? are all numbers
 of the statement in the cited facts? One violation discards the answer.
+
+**Evidence basis.** Since 0.55.0 every fact says what kind of statement it is: **actual**
+(`{actual}` — computed by the tool from the source data), **target** (`{target}` — due date,
+threshold, goal, decision) or **reported** (`{reported}` — entered by a unit: status, rating,
+free text). A target is not a state, a report is not a measurement. The **basis guard**
+discards an answer when a statement cites only a target or a reported state and does not say
+so ("the target is …", "according to the register …", "marked as …").
 
 ---
 
@@ -180,7 +187,7 @@ line shows the run. Local models need 30 to 120 seconds; `mock` answers at once.
 With `mock` the answer box reads:
 
 ```text
-AI-drafted (mock-1 @ mock, Prompt v1) — unreviewed draft; a human must edit and approve
+AI-drafted (mock-1 @ mock, Prompt v3) — unreviewed draft; a human must edit and approve
 before use.
 
 The situational picture holds no information on that.
@@ -206,7 +213,7 @@ passed. A local model answers similarly, in its own words.
 
 **Eigene Einschätzung (vor der Antwort):** Vermutlich die Billing-API zwischen Alpha-1 und Alpha-3.
 
-> KI-formulierter Entwurf (demo-llm @ mock, Prompt v1) — ungeprüft; vor Verwendung durch
+> KI-formulierter Entwurf (demo-llm @ mock, Prompt v3) — ungeprüft; vor Verwendung durch
 > einen Menschen redigieren und freigeben.
 
 ## Antwort (KI-Entwurf)
@@ -219,8 +226,10 @@ Nehmer [S1/governance.dependencies(AD-1).from] [S1/governance.dependencies(AD-1)
 Dieselbe Naht hat zum dritten Mal eine Solution Area zum Thema test environment
 eröffnet [S1/governance.solution_areas.seams(ART Alpha-1 x ART Alpha-3).recurrence].
 
+**Belege (vom Werkzeug gezählt): 1 Ist · 1 Soll · 5 Meldung**
+
 ---
-Stand: S1 = 2026-10-14 · Fakten im Index: 527 · Index-Prüfsumme (SHA-256): 43aa08d6… ·
+Stand: S1 = 2026-10-14 · Fakten im Index: 598 · Index-Prüfsumme (SHA-256): 3cfb73d9… ·
 Modell: demo-llm @ mock · own-view hash: 56dc697e80339a25
 ```
 
@@ -233,6 +242,7 @@ What the parts mean:
 | **Own assessment** | your text from before the answer — or "— (skipped)" |
 | Banner (`>`) | mandatory label: model, deployment class (`local`, `remote`, `mock`), prompt version. Stays until a human edits and approves the text |
 | Answer | every statement ends with one or more citations |
+| **Belege** (evidence) | the evidence mirror: how many of the cited facts are actual (Ist), target (Soll) and reported (Meldung). The tool counts; the model does not write this line. Here the answer rests mostly on reports from the dependency register; only the stand itself is measured |
 | Footer | stand (S1, S0 if any), number of facts, checksum of the index (so it is traceable **which** stand the model saw), model, hash of your assessment |
 
 ### Looking up a citation
@@ -249,7 +259,7 @@ Take `[S1/governance.dependencies(AD-1).due]`. That is: current stand, register
 The number `2026-09-29` in the answer is exactly there. That is the whole trick: every
 statement has an address, and the address leads to a file you can open.
 
-The complete fact index with all 527 paths is yours when you pick the provider `export`
+The complete fact index with all 598 paths is yours when you pick the provider `export`
 (chapter 10): the prompt bundle contains it in full.
 
 ### Why two citations behind one statement?
@@ -271,7 +281,7 @@ python -m portfolio demo/solutions/alpha/solution.json \
 Output:
 
 ```text
-Question to stand 2026-10-14 via 'ollama' (527 facts) ...
+Question to stand 2026-10-14 via 'ollama' (598 facts) ...
 Answer written (draft for human review): demo/solutions/alpha/solution_2026-10-14.ask.md
 ```
 
@@ -319,13 +329,28 @@ ist blockiert und sollte eskaliert werden.
 Note the second example: the statement was even correct (AD-1 is blocked) — but it carried
 no citation and contained a recommendation ("should be escalated"). Neither may pass.
 
-The three kinds of violation:
+**Basis guard** (a reported status phrased as a fact, since 0.55.0):
+
+```text
+REJECTED: Answer discarded: a statement that rests only on a target or on a reported state
+must say so ("target is", "planned for", "according to the register", "status is").
+1 violation(s): reported stated as a state: Die Abhängigkeit AD-1 ist blockiert
+[S1/governance.dependencies(AD-1).status].
+```
+
+This statement carries a citation and no wrong number — and still fails. "Is blocked" claims
+a state; what is proven is only that the register says `blocked`. "AD-1 is marked as blocked"
+or "According to the register AD-1 is blocked" passes. The same holds for dates: "AD-1 will be
+done on 29 Sept" turns a target into a state, "AD-1 was due on 2026-09-29" does not.
+
+The four kinds of violation:
 
 | Message | Means |
 |---|---|
 | `uncited: …` | a statement without `[path]` |
 | `unknown path: …` | a citation of a path the index does not have (usually a typo by the model) |
 | `number not in cited facts: …` | a number that occurs somewhere in the stand but not in the facts the statement cites |
+| `target stated as a state: …`, `reported stated as a state: …` | a statement cites only a target or a reported state and does not say so |
 
 What you can do — in this order:
 

@@ -3,7 +3,7 @@
 # Repository:     https://github.com/Jaegerfeld/situation-report
 # KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
 # Erstellt:       14.10.2026
-# Geändert:       14.10.2026
+# Geändert:       18.11.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
@@ -32,7 +32,15 @@ from typing import Any
 
 from llm.audit import AUDIT_FILENAME, append_audit
 from llm.base import DEPLOYMENT_EXPORT, LlmResult, provider_config
-from llm.guard import CitationGuardError, ai_markdown_head, citation_violations
+from llm.guard import (
+    BasisGuardError,
+    CitationGuardError,
+    ai_markdown_head,
+    basis_counts,
+    basis_mirror,
+    basis_violations,
+    citation_violations,
+)
 from llm.narrate import narrate
 from llm.prompts import question_system_prompt
 
@@ -72,6 +80,15 @@ class AskResult:
     @property
     def exported(self) -> bool:
         return self.result.deployment_class == DEPLOYMENT_EXPORT
+
+    @property
+    def basis_counts(self) -> dict[str, int]:
+        """Cited facts per evidence basis (D10a) - counted by the tool, not by the model."""
+        return basis_counts(self.answer, self.index.basis_map())
+
+    def mirror(self, lang: str = "de") -> str:
+        """The evidence mirror line below the answer; empty for an exported prompt (no answer yet)."""
+        return "" if self.exported else basis_mirror(self.basis_counts, lang)
 
 
 def question_contract(index: FactIndex, question: str) -> str:
@@ -125,6 +142,8 @@ def ask_question(
         NumbersGuardError:  A number outside the contract (from narrate).
         CitationGuardError: An uncited statement, an unknown path or a number
                             that the cited facts do not carry — answer discarded.
+        BasisGuardError:    A statement that presents a target or a report as a
+                            state (D10a; a CitationGuardError) — answer discarded.
         RuntimeError:       Provider failure.
     """
     quiet: Callable[[str], None] = lambda m: None  # noqa: E731
@@ -147,6 +166,12 @@ def ask_question(
             if audit_path is not None:
                 append_audit(audit_path, narration.result, contract, PURPOSE, guard_passed=False)
             raise CitationGuardError(violations)
+        # D10a: a target is not a state, a report is not a measurement
+        weak = basis_violations(narration.text, index.basis_map())
+        if weak:
+            if audit_path is not None:
+                append_audit(audit_path, narration.result, contract, PURPOSE, guard_passed=False)
+            raise BasisGuardError(weak)
     return AskResult(question=clean_question, own_view=sanitize_text(own_view, 2000),
                      answer=narration.text, banner=narration.banner, index=index,
                      result=narration.result)
@@ -160,7 +185,11 @@ def ask_to_markdown(res: AskResult, lang: str = "de") -> str:
              f"**{_t(key, 'question')}:** {res.question}", "",
              f"**{_t(key, 'own')}:** {res.own_view or _t(key, 'skipped')}", "",
              ai_markdown_head(res.result, res.banner, PURPOSE, key), "",
-             f"## {_t(key, 'answer')}", "", res.answer.strip(), "", "---",
+             f"## {_t(key, 'answer')}", "", res.answer.strip(), ""]
+    if res.mirror(lang):
+        # the evidence mirror sits with the answer, set apart as the tool's own line
+        lines += [f"**{res.mirror(lang)}**", ""]
+    lines += ["---",
              f"{_t(key, 'stand')}: S1 = {res.index.as_of}"
              + (f", S0 = {res.index.prev_as_of}" if res.index.prev_as_of else "")
              + f" · {_t(key, 'facts')}: {len(res.index)} · {_t(key, 'digest')}: {res.index.digest()}"

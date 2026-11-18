@@ -467,6 +467,34 @@ an, eine Präferenz dieses Rechners) und Antwort. Provider wie überall (`--narr
 schreibt das Prompt-Bündel, `llm check` prüft dann auch die Zitate); Nachweis-Zweck `d3_question`;
 Rückgabewert 3, wenn die Antwort verworfen wird. Die Antwort erklärt, sie empfiehlt nie.
 
+### Belegstufen: Ist, Soll, Meldung (D10a, seit 0.55.0)
+
+Jeder Fakt des Index trägt eine **Belegstufe**, und die Faktenzeile zeigt sie:
+
+| Stufe | Im Contract | Bedeutung | Beispiele |
+|---|---|---|---|
+| **Ist** | `{actual}` | vom Werkzeug aus den Quelldaten gerechnet | Durchlaufzeiten, offene und abgeschlossene Items, Veränderungen (`D/…`), Quell-Konfidenz |
+| **Soll** | `{target}` | gesetzt oder zugesagt | Termine (`due`, `needed_by`, `review_by`), Schwellen (`threshold`, `target_pct`), `horizon`, `follow_up_pi`, Board-Entscheidung der Harmonisierung |
+| **Meldung** | `{reported}` | von einer Stelle eingetragen oder von einem anderen System geliefert | Status, ROAM, Health, Bewertungen, Freitexte, Zählungen über Registereinträge, Harmonisierungs-Scores |
+
+Wert und Status eines Entscheidungspunkts erben die Stufe der beobachteten Kennzahl: Ist bei
+einer Flow-Kennzahl, Meldung, wenn die Kennzahl selbst Registereinträge zählt.
+
+Ein Soll ist kein Zustand, und eine Meldung belegt nur, dass etwas gemeldet wurde. Der
+**Belegstufen-Wächter** verwirft deshalb eine Antwort, wenn ein Satz keinen Ist-Fakt zitiert,
+sondern nur ein Soll oder eine Meldung, die einen Zustand behauptet (Status, ROAM, Health,
+Bewertung, Zählung nach Status), und das nicht sagt. „AD-1 ist blockiert
+[S1/governance.dependencies(AD-1).status]." fällt durch; „AD-1 steht auf blocked […]." oder „Laut
+Register ist AD-1 blockiert […]." besteht. Beschreibende Registerfelder (wer von wem abhängt,
+Titel, Eröffnungsdatum) brauchen kein Kennwort. Die Prüfung ist eine Wortliste (Deutsch und
+Englisch), kein zweites Modell.
+
+Unter jeder Antwort steht der **Belegspiegel**, zum Beispiel „Belege (vom Werkzeug gezählt):
+1 Ist · 1 Soll · 5 Meldung". Das Werkzeug zählt die zitierten Fakten je Stufe; das Modell
+schreibt diese Zeile nicht. Alle drei Stufen stehen immer da, eine Null zeigt, was fehlt. Der
+Rückweg `llm check` wendet denselben Wächter an und hängt den Spiegel an; Bündel, die vor 0.55.0
+exportiert wurden, tragen keine Stufen und werden wie bisher geprüft. Prompt-Version v3.
+
 ## Noise-Audit — wie laut ist das Modell? (D7, seit 0.47.0)
 
 `--ask "Frage" --noise 5` stellt dieselbe Frage fünfmal in variierter Formulierung (Lauf 1 die
