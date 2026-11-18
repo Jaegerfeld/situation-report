@@ -26,9 +26,16 @@ ablesbar sind. Erste Fassung 14.10.2026 nach vier eigenmächtigen Releases (v0.4
 
 ## 3. Tests und Werkzeuge
 
-- Python nur aus der Projekt-venv: `.venv/Scripts/python.exe -m pytest tests --basetemp=.pytest_tmp -p no:cacheprovider`;
-  das globale `python` hat weder pytest noch mypy.
-- Vor jedem Commit: `python -m ruff check .` und `.venv/Scripts/python.exe -m mypy` (der Pre-Commit-Hook tut es auch).
+- Python nur aus der venv **dieses Rechners, außerhalb des Repo-Ordners**:
+  `~/.venvs/situation-report/Scripts/python.exe -m pytest tests --basetemp=.pytest_tmp -p no:cacheprovider`;
+  das globale `python` hat weder pytest noch mypy. Grund (Entscheidung Robert 18.11.2026): Der Repo-Ordner
+  wird über OneDrive zwischen zwei Rechnern geteilt, und eine venv darin zeigt auf den Python-Pfad des
+  Rechners, der sie zuletzt gebaut hat — auf dem anderen startet sie nicht. Eine `.venv` im Repo-Ordner ist
+  nur noch Rückfall.
+- Fehlt die venv auf einem Rechner: `py -3.14 -m venv ~/.venvs/situation-report`, dann die Pakete aus
+  `pyproject.toml` installieren (`dependencies` sowie die Extras `dev` und `docs`).
+- Vor jedem Commit: `ruff check .` und `mypy` aus derselben venv (der Pre-Commit-Hook tut es auch und sucht
+  die venv zuerst unter `~/.venvs/situation-report`).
 - Tests lesen nur getrackte Daten unter `tests/testdata/`; GUI-Tests laufen mit isolierten Präferenzen
   (`tests/conftest.py::isolate_user_prefs`).
 - Ein einzelner Tk-Fehler (`TclError … tk8.6`) im Gesamtlauf ist ein bekannter Umgebungs-Flake: Test einzeln
