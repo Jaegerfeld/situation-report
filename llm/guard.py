@@ -3,7 +3,7 @@
 # Repository:     https://github.com/Jaegerfeld/situation-report
 # KI-Unterstützung: Erstellt mit Unterstützung von Claude (Anthropic)
 # Erstellt:       03.09.2026
-# Geändert:       03.09.2026
+# Geändert:       18.11.2026
 # Lizenz:         BSD-3-Clause (siehe LICENSE)
 #
 # Fachliche Funktion:
@@ -17,6 +17,11 @@
 #     Entwurfs-/KI-Hinweis mit Modell und Deployment-Klasse. Das
 #     Werkzeug behauptet NIE eine Freigabe — die hebt erst der Mensch
 #     auf, der den Entwurf redigiert und übernimmt.
+#   - Belegstufen-Wächter (D10a, 18.11.2026): Ein Soll ist kein Zustand,
+#     eine Meldung keine Messung — ein Satz, der sich nur auf Soll- oder
+#     Meldungs-Fakten stützt, muss das sagen, sonst wird die Antwort
+#     verworfen. Der Belegspiegel („3 Ist · 1 Soll · 2 Meldung") wird vom
+#     Werkzeug gezählt, nicht vom Modell geschrieben.
 # =============================================================================
 
 from __future__ import annotations
@@ -333,6 +338,117 @@ class CitationGuardError(RuntimeError):
             "Answer discarded: every statement must cite a fact path of the "
             "stand and every number must come from the cited facts. "
             f"{len(violations)} violation(s): " + " | ".join(violations[:4]))
+        self.violations = violations
+
+
+# ---------------------------------------------------------------------------
+# Belegstufen-Wächter (D10a): a target is not a state, a report is not a
+# measurement. The fact lines of a contract carry {actual}, {target} or
+# {reported} (portfolio/facts.py); this guard holds the model to it.
+# ---------------------------------------------------------------------------
+
+BASIS_ACTUAL = "actual"
+BASIS_TARGET = "target"
+BASIS_REPORTED = "reported"
+BASIS_ORDER = (BASIS_ACTUAL, BASIS_TARGET, BASIS_REPORTED)
+_BASIS_TAG_RE = re.compile(r"^- \[([^\]\n]+)\] \{(actual|target|reported)\} ", re.M)
+#: Reported facts that CLAIM A STATE: a status, a rating, a value delivered by
+#: another system, a count by status. Descriptive register fields (who depends
+#: on whom, a title, an opening date) are reported too, but say nothing about
+#: how things stand - they need no marker.
+_STATE_CLAIM_RE = re.compile(
+    r"\.(?:status|roam|health|impact|score|confidence|spread|sli_pct|value)$|\.count\([^)]*\)$")
+#: Words that say "this is a goal / a commitment" resp. "this is what a unit
+#: stated" (German and English; prefix match, so "geplant", "planned", "Zielwert"
+#: all count).
+_BASIS_MARKERS = {
+    BASIS_TARGET: re.compile(
+        r"\b(?:soll|geplant|plan|zugesag|zusage|fällig|frist|beschl|vorgesehen|angestreb|"
+        r"target|goal|committed|commitment|due|deadline|threshold|decision|decided|scheduled|"
+        r"intended)|ziel|termin|schwelle", re.I),
+    BASIS_REPORTED: re.compile(
+        r"\b(?:laut|gemeldet|meldung|meldet|eingetragen|angegeben|angabe|bewert|einschätz|"
+        r"vermerk|notiert|genannt|geführt|markiert|gekennzeichnet|steht auf|reported|"
+        r"according to|stated|entered|recorded|rated|rating|assessment|listed|noted|marked|"
+        r"flagged|set to|entry|entries)|register|status|eintrag|einträge", re.I),
+}
+#: The evidence mirror under an answer, per house language.
+BASIS_LABELS = {
+    "de": {"head": "Belege (vom Werkzeug gezählt)", BASIS_ACTUAL: "Ist", BASIS_TARGET: "Soll", BASIS_REPORTED: "Meldung",
+           "none": "keine zitierten Fakten"},
+    "en": {"head": "Evidence (counted by the tool)", BASIS_ACTUAL: "actual", BASIS_TARGET: "target",
+           BASIS_REPORTED: "reported", "none": "no cited facts"},
+    "ro": {"head": "Dovezi (numărate de instrument)", BASIS_ACTUAL: "realizat", BASIS_TARGET: "țintă",
+           BASIS_REPORTED: "raportat", "none": "niciun fapt citat"},
+    "pt": {"head": "Evidências (contadas pela ferramenta)", BASIS_ACTUAL: "real", BASIS_TARGET: "meta",
+           BASIS_REPORTED: "reportado", "none": "nenhum facto citado"},
+    "fr": {"head": "Preuves (comptées par l'outil)", BASIS_ACTUAL: "réel", BASIS_TARGET: "cible",
+           BASIS_REPORTED: "déclaré", "none": "aucun fait cité"},
+}
+
+
+def parse_fact_basis(contract: str) -> dict[str, str]:
+    """path -> evidence basis from the tagged fact lines of a contract (untagged lines: absent)."""
+    return dict(_BASIS_TAG_RE.findall(contract))
+
+
+def basis_violations(answer: str, basis: Mapping[str, str]) -> list[str]:
+    """
+    The basis guard (D10a): a statement that cites no fact measured by the
+    tool, but a target or a report that claims a state (status, rating,
+    count by status ...), must say so in its own words ("target is",
+    "planned for", "according to the register", "status is"). Otherwise it
+    presents a goal or a report as a state. Passing without a marker:
+    statements that cite at least one actual fact, statements that cite
+    only descriptive register fields (who, what, when) and statements on
+    untagged facts. Empty list = pass; an empty ``basis`` (a contract from
+    before D10a) passes everything.
+    """
+    violations: list[str] = []
+    if not basis:
+        return violations
+    for stmt in statements(answer):
+        cited = {c: basis[c] for c in CITATION_RE.findall(stmt) if c in basis}
+        if not cited or BASIS_ACTUAL in cited.values():
+            continue
+        needed = {b for c, b in cited.items()
+                  if b == BASIS_TARGET or (b == BASIS_REPORTED and _STATE_CLAIM_RE.search(c))}
+        if not needed:
+            continue
+        prose = CITATION_RE.sub("", stmt)
+        if not any(_BASIS_MARKERS[b].search(prose) for b in needed):
+            kinds = "/".join(b for b in BASIS_ORDER if b in needed)
+            violations.append(f"{kinds} stated as a state: {stmt[:90]}")
+    return violations
+
+
+def basis_counts(answer: str, basis: Mapping[str, str]) -> dict[str, int]:
+    """Distinct cited fact paths per evidence basis - the numbers of the evidence mirror."""
+    cited = {c for c in CITATION_RE.findall(answer) if c in basis}
+    return {b: sum(1 for c in cited if basis[c] == b) for b in BASIS_ORDER}
+
+
+def basis_mirror(counts: Mapping[str, int], lang: str = "de") -> str:
+    """
+    The evidence mirror, written by the TOOL below an answer (never by the
+    model): "Belege (vom Werkzeug gezählt): 3 Ist · 1 Soll · 2 Meldung". All three levels are
+    shown, so a missing one is visible as a zero.
+    """
+    labels = BASIS_LABELS.get(lang, BASIS_LABELS["en"])
+    if not any(counts.get(b, 0) for b in BASIS_ORDER):
+        return f"{labels['head']}: {labels['none']}"
+    return f"{labels['head']}: " + " · ".join(f"{counts.get(b, 0)} {labels[b]}" for b in BASIS_ORDER)
+
+
+class BasisGuardError(CitationGuardError):
+    """Raised when a D3 answer states a target or a report as a state - discarded."""
+
+    def __init__(self, violations: list[str]) -> None:
+        RuntimeError.__init__(
+            self,
+            "Answer discarded: a statement that rests only on a target or on a reported state must "
+            "say so (\"target is\", \"planned for\", \"according to the register\", \"status "
+            f"is\"). {len(violations)} violation(s): " + " | ".join(violations[:4]))
         self.violations = violations
 
 

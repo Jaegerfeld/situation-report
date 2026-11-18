@@ -212,6 +212,43 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [0.55.0] – 2026-11-18
+
+### Added
+- **Belegstufen: Ist, Soll, Meldung (Roadmap D10, Schnitt a).** Jeder Fakt des Fakten-Index trägt
+  jetzt eine **Belegstufe** (`Fact.basis` in `portfolio/facts.py`): `actual` (Ist — vom Werkzeug aus
+  den Quelldaten gerechnet: Flow-Kennzahlen, Veränderungen, Quell-Konfidenz), `target` (Soll —
+  gesetzt oder zugesagt: `due`, `needed_by`, `review_by`, `target_pct`, `threshold`, `horizon`,
+  `follow_up_pi`, Board-Entscheidung der Harmonisierung) oder `reported` (Meldung — von einer Stelle
+  eingetragen oder von einem anderen System geliefert: Status, ROAM, Health, Bewertungen, Freitexte,
+  Zählungen über Registereinträge, Harmonisierungs-Scores). Wert und Status eines Entscheidungspunkts
+  erben die Stufe der beobachteten Kennzahl. Die Contract-Zeile zeigt die Stufe
+  (`- [S1/total.median_ct] {actual} …`), der Index erklärt die drei Stufen in einem Satz.
+  Neuer **Belegstufen-Wächter** (`llm/guard.py::basis_violations`): Zitiert ein Satz keinen Ist-Fakt,
+  sondern nur ein Soll oder eine Meldung, die einen Zustand behauptet (Status, ROAM, Health,
+  Bewertung, Zählung nach Status), und sagt das nicht („Termin ist …“, „laut Register …“, „steht
+  auf …“), wird die Antwort verworfen (`BasisGuardError`, eine `CitationGuardError`; Rückgabewert 3
+  wie bisher). Beschreibende Registerfelder brauchen kein Kennwort. Die Prüfung ist eine Wortliste
+  (Deutsch und Englisch), kein zweites Modell. Unter jeder Antwort steht der **Belegspiegel**, vom
+  Werkzeug gezählt und in fünf Sprachen beschriftet („Belege (vom Werkzeug gezählt): 1 Ist · 1 Soll ·
+  5 Meldung“) — im Dialog „Lagebild befragen …“, in der `.ask.md` und im geprüften Entwurf von
+  `llm check`. Der Dialog meldet die neue Ablehnung in der Sprache der Oberfläche. Anlass: ein
+  Gesprächsverlauf mit einem KI-Assistenten vom 17.11.2026, der Zielwerte als Zustand behandelte.
+  Abweichung vom Konzept: Die Kennwortpflicht gilt für Soll und zustandsbehauptende Meldungen, nicht
+  für jedes Registerfeld — die geprüfte Musterantwort des Tutorials wäre sonst gescheitert.
+  Tests `tests/llm/unit/test_basis_guard.py`, Ergänzungen in `tests/portfolio/unit/test_facts.py` und
+  `test_ask.py`. Doku: mkdocs portfolio DE/EN, llm DE/EN, Portfolio-Manual 5.19 (fünf Sprachen),
+  Tutorial „Das Lagebild befragen“ DE/EN, Onepager „Belegstufen“ DE/EN, Roadmap D10.
+
+### Changed
+- **Prompt-Version v3.** Der Fragen-Prompt (D3) nennt die drei Belegstufen und verbietet, ein Soll
+  oder eine Meldung als Zustand auszugeben. Weil die Faktenzeilen die Stufe tragen, ändert sich die
+  Prüfsumme des Index; Prompt-Bündel, die vor 0.55.0 exportiert wurden, tragen keine Stufen und
+  werden von `llm check` wie bisher geprüft. Der Alarm-Contract (D4) und der Briefing-Contract (M6)
+  zeigen die Stufen und ihre Legende ebenfalls; ihr Wächter folgt mit Schnitt b.
+
+---
+
 ## [0.54.0] – 2026-10-17
 
 ### Added
