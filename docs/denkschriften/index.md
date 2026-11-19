@@ -6,7 +6,7 @@ Each memorandum is available here in its current edition as a PDF (German and En
 
 [![The memoranda series at a glance](Memoranda-Series_Overview-en.png)](Memoranda-Series_Overview-en.png)
 
-*The series at a glance: five memoranda in sequence, each with its single most important sentence – from the original talk to the AI memorandum. Click to enlarge.*
+*The series at a glance: five memoranda in sequence, each with its single most important sentence – from the original talk to the AI memorandum; the two further companion memoranda appear as bars above them. Click to enlarge.*
 
 ??? info "The connections in detail: the series mind map"
     [![The memoranda series as a mind map](Denkschriften-Mindmap.svg)](Denkschriften-Mindmap.svg)
@@ -105,10 +105,25 @@ To what extent AI helps create and above all **provide** situational information
 
 ---
 
+## Companion Memorandum · AI on the Staff
+
+**Whoever Shouts Loudest Is Right – AI Edition. Why AI assistants follow the brochure first and the person asking second**
+*Version 1.0 · 2026-11-19 · 7 pages – a case study in nine answers, and seven rules for staff work*
+
+!!! quote "The single most important sentence"
+    An AI assistant without a standard of evidence sides with whoever is loudest – first whoever has published the most, then whoever objected last – and a staff recognises both by the same sign: the judgement changes although no fact has changed.
+
+A lesson on working with AI assistants, complementing Main Memorandum 3. It was prompted by a conversation about a rocket: the assistant calculates with the manufacturer's target values as if they were measurements; when contradicted, it changes sides without a single new fact. The memorandum shows why both are the same error, gives four reasons why the pattern is not a slip, and transfers it to the portfolio: three evidence levels (actual, target, reported), seven rules and five questions to put to every AI answer. Which assistant it was is not named – what is described is a pattern of today's language models, not one vendor's fault.
+
+**Download:** [PDF German](pdf/Wer-am-lautesten-schreit_KI-Edition_v1.0.pdf) · [PDF English](pdf/Whoever-Shouts-Loudest-Is-Right_AI-Edition_v1.0-en.pdf)
+**Software connection:** The case study led to the [evidence basis](../modules/portfolio.md) in the `portfolio` module (since version 0.55.0): every fact carries actual, target or reported, and an answer that presents a target as a state is rejected.
+
+---
+
 ## Versioned Editions
 
 This page always offers the **current edition** of each memorandum. Frozen editions are published as [GitHub releases using the tag scheme `denkschriften/<date>`](https://github.com/Jaegerfeld/situation-report/releases) – in addition, every PDF carries its version in the file name and in the version history on its last page.
 
 ## Transparency Notice
 
-All memoranda of the series were produced with the support of an AI system (Claude, Anthropic – models Claude Opus 4.8 and Claude Fable 5, via Claude Code): drafting, research preparation, typesetting and chart code. All content was substantively reviewed, edited and approved by Robert Seebauer, who holds editorial responsibility. The series thus practises what its AI memorandum demands: AI is a staff member, not a commander – and human sign-off is the last step before every publication.
+All memoranda of the series were produced with the support of an AI system (Claude, Anthropic – models Claude Opus 4.8, Claude Fable 5 and Claude Fable 5.2, via Claude Code): drafting, research preparation, typesetting and chart code. All content was substantively reviewed, edited and approved by Robert Seebauer, who holds editorial responsibility. The series thus practises what its AI memorandum demands: AI is a staff member, not a commander – and human sign-off is the last step before every publication.

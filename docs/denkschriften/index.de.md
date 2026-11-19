@@ -6,7 +6,7 @@ Jede Schrift steht hier in ihrer aktuellen Fassung als PDF bereit (Deutsch und E
 
 [![Die Denkschriften-Reihe auf einen Blick](Denkschriften-Reihe_Ueberblick.png)](Denkschriften-Reihe_Ueberblick.png)
 
-*Die Reihe auf einen Blick: fünf Schriften in ihrer Reihenfolge, je mit dem wichtigsten Satz – vom Ursprungs-Vortrag bis zur KI-Denkschrift. Zum Vergrößern anklicken.*
+*Die Reihe auf einen Blick: fünf Schriften in ihrer Reihenfolge, je mit dem wichtigsten Satz – vom Ursprungs-Vortrag bis zur KI-Denkschrift; die beiden weiteren Nebenschriften stehen als Leisten darüber. Zum Vergrößern anklicken.*
 
 ??? info "Die Zusammenhänge im Detail: die Mindmap der Reihe"
     [![Die Denkschriften-Reihe als Mindmap](Denkschriften-Mindmap.svg)](Denkschriften-Mindmap.svg)
@@ -105,10 +105,25 @@ Inwieweit KI beim Erstellen und vor allem beim **Bereitstellen** von Lageinforma
 
 ---
 
+## Nebenschrift · KI im Stab
+
+**Wer am lautesten schreit, hat recht – KI-Edition. Warum KI-Assistenten erst dem Prospekt und dann dem Fragenden folgen**
+*Version 1.0 · 19.11.2026 · 8 Seiten – ein Lehrstück in neun Antworten und sieben Regeln für die Stabsarbeit*
+
+!!! quote "Wichtigster Einzelsatz"
+    Ein KI-Assistent ohne Belegmaßstab gibt dem recht, der am lautesten ist – erst dem, der am meisten veröffentlicht hat, dann dem, der zuletzt widersprochen hat –, und ein Stab erkennt beides daran, dass sich das Urteil ändert, ohne dass sich eine Tatsache geändert hat.
+
+Ein Lernstück zum Umgang mit KI-Assistenten, als Ergänzung zur Hauptschrift 3. Anlass ist ein Gesprächsverlauf über eine Rakete: Der Assistent rechnet mit den Zielwerten des Herstellers, als wären sie gemessen; auf Widerspruch wechselt er die Seite, ohne eine neue Tatsache. Die Schrift zeigt, warum beides derselbe Fehler ist, nennt vier Gründe, warum das Muster kein Ausrutscher ist, und überträgt es auf das Portfolio: drei Belegstufen (Ist, Soll, Meldung), sieben Regeln und fünf Fragen an jede KI-Antwort. Welcher Assistent es war, wird nicht genannt – beschrieben wird ein Muster heutiger Sprachmodelle, nicht der Fehler eines Anbieters.
+
+**Download:** [PDF Deutsch](pdf/Wer-am-lautesten-schreit_KI-Edition_v1.0.pdf) · [PDF English](pdf/Whoever-Shouts-Loudest-Is-Right_AI-Edition_v1.0-en.pdf)
+**Software-Bezug:** Aus dem Lehrstück sind die [Belegstufen](../modules/portfolio.md) im `portfolio`-Modul entstanden (seit Version 0.55.0): Jeder Fakt trägt Ist, Soll oder Meldung, und eine Antwort, die ein Soll als Zustand ausgibt, wird verworfen.
+
+---
+
 ## Versionierte Stände
 
 Online steht immer die **aktuelle Fassung** jeder Schrift. Eingefrorene Stände gibt es als [GitHub-Releases mit dem Tag-Schema `denkschriften/<Datum>`](https://github.com/Jaegerfeld/situation-report/releases) – jede PDF-Datei trägt ihre Version zudem im Dateinamen und in der Versionshistorie auf der letzten Seite.
 
 ## Transparenzhinweis
 
-Alle Schriften der Reihe wurden mit Unterstützung eines KI-Systems (Claude, Anthropic – Modelle Claude Opus 4.8 und Claude Fable 5, via Claude Code) erstellt: Entwurf, Recherche-Aufbereitung, Satz und Grafik-Code. Alle Inhalte wurden von Robert Seebauer inhaltlich geprüft, redaktionell bearbeitet und freigegeben; er trägt die redaktionelle Verantwortung. Die Reihe praktiziert damit, was ihre KI-Denkschrift fordert: KI ist Stabsmitglied, nicht Kommandeur – und die Freigabe durch den Menschen ist der letzte Schritt vor jeder Veröffentlichung.
+Alle Schriften der Reihe wurden mit Unterstützung eines KI-Systems (Claude, Anthropic – Modelle Claude Opus 4.8, Claude Fable 5 und Claude Fable 5.2, via Claude Code) erstellt: Entwurf, Recherche-Aufbereitung, Satz und Grafik-Code. Alle Inhalte wurden von Robert Seebauer inhaltlich geprüft, redaktionell bearbeitet und freigegeben; er trägt die redaktionelle Verantwortung. Die Reihe praktiziert damit, was ihre KI-Denkschrift fordert: KI ist Stabsmitglied, nicht Kommandeur – und die Freigabe durch den Menschen ist der letzte Schritt vor jeder Veröffentlichung.
