@@ -18,19 +18,34 @@ Ablauf bei einem Versionssprung einer Denkschrift:
   5. Optional ``--release``: legt ein GitHub-Release ``denkschriften/<Datum>``
      mit allen aktuellen PDFs als eingefrorenem Stand an (nutzt ``gh``).
 
+Ort der Quellen: Standard ist ``<Repo>/Quellen``. In einem Worktree gibt es den
+Ordner nicht (er ist gitignored); dann zeigt die Umgebungsvariable ``SR_QUELLEN``
+auf den gepflegten Ordner.
+
+Veroeffentlichter Stand und Arbeitsstand koennen auseinanderlaufen:
+  * Liegt eine online stehende Fassung nicht mehr in ``Quellen/`` (weil dort schon
+    ein noch nicht freigegebener Nachfolger entsteht), bleibt die bereits
+    veroeffentlichte Kopie in ``docs/denkschriften/pdf/`` unveraendert stehen.
+    Eine Datei, die weder in ``Quellen/`` noch online liegt, bleibt ein Fehler.
+  * Zeigt die Arbeits-Mindmap Fassungen, die noch nicht online sind, wird
+    stattdessen ``Quellen/Mindmap/Denkschriften-Mindmap_online.svg`` veroeffentlicht
+    (gebaut von ``online_variante.py`` dort). Ist diese Datei aelter als die
+    Arbeits-Mindmap, bricht das Skript ab.
+
 Stdlib-only; ``--release`` ruft die GitHub CLI via subprocess auf.
 """
 from __future__ import annotations
 
 import argparse
 import datetime as _dt
+import os
 import shutil
 import subprocess
 import sys
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[1]
-QUELLEN = REPO / "Quellen"
+QUELLEN = Path(os.environ.get("SR_QUELLEN") or REPO / "Quellen")
 TARGET = REPO / "docs" / "denkschriften"
 
 # Aktuelle Fassungen (bei Versionssprung hier aktualisieren; DE + EN je Schrift)
@@ -47,8 +62,12 @@ MANIFEST = [
     "Architecture-Thought-Leaders_v1.2.en.pdf",
     "KI-und-Lagebild_v2.1.pdf",
     "AI-and-the-Situational-Picture_v2.1.en.pdf",
+    "Wer-am-lautesten-schreit_KI-Edition_v1.0.pdf",
+    "Whoever-Shouts-Loudest-Is-Right_AI-Edition_v1.0.en.pdf",
 ]
 MINDMAP_SVG = QUELLEN / "Mindmap" / "Denkschriften-Mindmap.svg"
+# Mindmap im veroeffentlichten Stand (nur vorhanden, solange der Arbeitsstand vorauslaeuft)
+MINDMAP_ONLINE_SVG = QUELLEN / "Mindmap" / "Denkschriften-Mindmap_online.svg"
 # Ueberblicksgrafiken (Quelle -> Online-Name). EN mit -en (bleibt im Root);
 # DE zusaetzlich als .de.png -> landet im de/-Baum, damit die DE-Seite lokal verlinkt.
 OVERVIEW_PNGS = {
@@ -110,6 +129,7 @@ def sync() -> list[Path]:
     pdf_dir.mkdir(parents=True, exist_ok=True)
     copied = []
     missing = []
+    kept = []
     bad = check_page1([QUELLEN / n for n in MANIFEST if (QUELLEN / n).exists()])
     if bad:
         sys.exit("FEHLER - wichtigster Einzelsatz nicht auf Seite 1 (Reihen-Standard): "
@@ -117,7 +137,11 @@ def sync() -> list[Path]:
     for name in MANIFEST:
         src = QUELLEN / name
         if not src.exists():
-            missing.append(name)
+            # Bestandsschutz: online stehende Fassung, deren Quelle schon archiviert ist
+            if (pdf_dir / online_name(name)).exists():
+                kept.append(name)
+            else:
+                missing.append(name)
             continue
         shutil.copy2(src, pdf_dir / online_name(name))
         copied.append(pdf_dir / online_name(name))
@@ -125,9 +149,20 @@ def sync() -> list[Path]:
             shutil.copy2(src, pdf_dir / de_copy_name(name))
             copied.append(pdf_dir / de_copy_name(name))
     if missing:
-        sys.exit("FEHLER - nicht in Quellen/ gefunden (MANIFEST pruefen): "
+        sys.exit("FEHLER - weder in Quellen/ noch online gefunden (MANIFEST pruefen): "
                  + ", ".join(missing))
-    if MINDMAP_SVG.exists():
+    if kept:
+        print("HINWEIS - nicht in Quellen/, veroeffentlichte Kopie bleibt unveraendert: "
+              + ", ".join(kept))
+    if MINDMAP_ONLINE_SVG.exists():
+        if MINDMAP_SVG.exists() and MINDMAP_ONLINE_SVG.stat().st_mtime < MINDMAP_SVG.stat().st_mtime:
+            sys.exit("FEHLER - " + MINDMAP_ONLINE_SVG.name + " ist aelter als die Arbeits-Mindmap: "
+                     "online_variante.py neu laufen lassen (oder die Datei loeschen, wenn der "
+                     "Arbeitsstand vollstaendig online ist).")
+        shutil.copy2(MINDMAP_ONLINE_SVG, TARGET / MINDMAP_SVG.name)
+        copied.append(TARGET / MINDMAP_SVG.name)
+        print("HINWEIS - Mindmap im veroeffentlichten Stand verwendet:", MINDMAP_ONLINE_SVG.name)
+    elif MINDMAP_SVG.exists():
         shutil.copy2(MINDMAP_SVG, TARGET / MINDMAP_SVG.name)
         copied.append(TARGET / MINDMAP_SVG.name)
     else:
